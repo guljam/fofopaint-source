@@ -16,18 +16,9 @@ package Modules
     import flash.geom.Point;
     import flash.system.Capabilities;
     import flash.system.IME;
-    import flash.globalization.LastOperationStatus;
-    import worker.BackgroundImageProcessor;
     import flash.display.BitmapData;
-    import flash.utils.ByteArray;
-    import flash.filesystem.FileStream;
-    import flash.filesystem.FileMode;
-    import flash.geom.Rectangle;
-    import flash.display.Sprite;
-    import flash.display.Stage;
-    import flash.display.Bitmap;
 
-    public class InputController
+    public class InputManager
     {
         // todo 툴이나 기능별로 키보드 마우스 입력 분리하기, 이후에 코드 포맷팅해주기
         // todo 툴 전역 입력 이벤트 빼고 툴관련 이벤트 핸들러도 같이 들어가있는지 확인

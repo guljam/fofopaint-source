@@ -628,12 +628,12 @@ package Modules
 				showTopbarOnReplayEnd();
 				seekBarBox.setDeleteRangeBarVisible(false);
 				seekBarBox.visible = false;
-				InputController.removeInputEventsReplayMode();
+				InputManager.removeInputEventsReplayMode();
 			}
 			else
 			{
 				CanvasGridOverlay.canvasGrid.visible = false;
-				InputController.removeInputEventsDrawMode();
+				InputManager.removeInputEventsDrawMode();
 			}
 
 			if (SidebarController.isSidebarVisible)
@@ -658,20 +658,20 @@ package Modules
 				hideMouseHint();
 			}
 
-			InputController.addInputEventsCaptrueMode();
+			InputManager.addInputEventsCaptrueMode();
 			MainUIController.updateStageOffset();
 		}
 
 		public static function deactivateCaptureUI():void
 		{
 			const replayMode:Boolean = ReplayController.isReplayModeON;
-			InputController.removeInputEventCaptrueMode();
+			InputManager.removeInputEventCaptrueMode();
 			ReferenceLayerController.canvasRefLayer.visible = true;
 
 			if (replayMode)
 			{
 				updateTopbarIconsReplayMode();
-				InputController.addInputEventsReplayMode();
+				InputManager.addInputEventsReplayMode();
 				seekBarBox.visible = true;
 			}
 			else
@@ -686,7 +686,7 @@ package Modules
 				}
 				PenSizePreviewCursor.setCursorInVisibleFlag(false);
 				updateTopbarIconsDrawMode();
-				InputController.addInputEventsDrawMode();
+				InputManager.addInputEventsDrawMode();
 			}
 
 			ColorPickerController.switchColorPickerModePen();

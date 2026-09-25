@@ -109,7 +109,7 @@ package Modules
             CanvasController.isMouseClickBlocked = true;
             MainUI.hideBottomHint();
 
-            InputController.removeInputEventsDrawMode();
+            InputManager.removeInputEventsDrawMode();
 
             if (welcome === true)
             {
@@ -137,9 +137,9 @@ package Modules
         {
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown);
 
-            InputController.removeInputEventCaptrueMode();
-            InputController.removeInputEventsReplayMode();
-            InputController.addInputEventsDrawMode();
+            InputManager.removeInputEventCaptrueMode();
+            InputManager.removeInputEventsReplayMode();
+            InputManager.addInputEventsDrawMode();
 
             isAboutBoxOpened = false;
             aboutBox.visible = false;

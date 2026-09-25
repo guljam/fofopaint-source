@@ -12,6 +12,8 @@ package Modules
     public class FillPenTool
     {
         //todo 다른 메서드들도 마찬가지지만 클래스 정적 변수 직접 접근하는 부분은 메서드로 호출하게 만들어야함
+        //todo 왼쪽 클릭 뭔가 타이밍 잘맞춰서하면 선이 캔버스에 그려지는 버그있음 초반에 버그 구현되다가 갑자기 안됨
+        //새로 추가한 라인툴 이벤트랑 섞였을 가능성도 있음
         public static var main:Main;
 
         public static function setMainInstance(instance:Main):void
@@ -325,7 +327,7 @@ package Modules
 
         private static function exitFillPen():void
         {
-            InputController.removeEventsFillPen();
+            InputManager.removeEventsFillPen();
 
             CanvasController.canvasDrawLayer.alpha = 1.0;
 
@@ -426,7 +428,7 @@ package Modules
         {
             _isStarted = true;
 
-            if (InputController.getFirstPressedKey() === InputController.KEY.q || InputController.getFirstPressedKey() === InputController.KEY.o)
+            if (InputManager.getFirstPressedKey() === InputManager.KEY.q || InputManager.getFirstPressedKey() === InputManager.KEY.o)
             {
                 isStartedFromShortCut = true;
             }
@@ -498,7 +500,7 @@ package Modules
             ToolController.toolOptionsBox.disableButtonFillPenStarted();
             ColorPickerController.colorPickerBox.setFillPenModeON();
 
-            InputController.addEventsFillPen();
+            InputManager.addEventsFillPen();
         }
     }
 }

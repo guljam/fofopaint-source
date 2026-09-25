@@ -394,7 +394,7 @@ package Modules
 
         public static function onMouseUpStage(e:MouseEvent):void
         {
-            InputController.checkInvalidKey();
+            InputManager.checkInvalidKey();
             const mx:Number = main.stage.mouseX;
             const my:Number = main.stage.mouseY;
             isMouseLeftClicked = false;
@@ -1043,7 +1043,7 @@ package Modules
                     }
                     canvasSizeChanging = false;
                     MainUI.hideMouseHint();
-                    MainUIController.updateCanvasResizeButtonVisible((isMouseCursorInStage() && isRightMouseClicked) || InputController.isPressingControl());
+                    MainUIController.updateCanvasResizeButtonVisible((isMouseCursorInStage() && isRightMouseClicked) || InputManager.isPressingControl());
                     canvasAnchorPoint.removeChild(resizePreviewRect);
                     canvasAnchorPoint.removeChild(resizePreviewRatioRect);
                     resizePreviewRect.graphics.clear();

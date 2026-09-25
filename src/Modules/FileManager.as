@@ -474,7 +474,7 @@ package Modules
                 CanvasController.toggleLayer2Check();
             }
             MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-            InputController.removeKeyRepeatEvents(null);
+            InputManager.removeKeyRepeatEvents(null);
             CanvasController.canvasLayer1Bitmap.visible = true;
             CanvasController.canvasLayer2Bitmap.visible = true;
             MainUI.topBar.captureButton.alpha = 1.0;
@@ -607,7 +607,7 @@ package Modules
         public static function setFileBrowserIsOpen(flag:Boolean):void
         {
             isFileBrowserOpened = flag;
-            InputController.clearKeyBuffer();
+            InputManager.clearKeyBuffer();
         }
 
         public static function updateLastFilePathByRandomFileName():void
@@ -779,7 +779,7 @@ package Modules
         }
         public static function createNewFile(fromShortcut:Boolean):void
         {
-            InputController.startPressHoldKey((!fromShortcut) ? MainUI.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, CanvasController.resetAllCanvasAndReplayData, null);
+            InputManager.startPressHoldKey((!fromShortcut) ? MainUI.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, CanvasController.resetAllCanvasAndReplayData, null);
         }
         public static function openLocalManualFolder():void
         {
@@ -793,15 +793,15 @@ package Modules
 
         private static function keyDownLoadMenuBox(e:KeyboardEvent):void
         {
-            const firstKey:uint = InputController.getFirstPressedKey();
-            if (firstKey === InputController.KEY.esc || firstKey === InputController.KEY.backspace)
+            const firstKey:uint = InputManager.getFirstPressedKey();
+            if (firstKey === InputManager.KEY.esc || firstKey === InputManager.KEY.backspace)
             {
                 closeLoadMenuBox();
             }
         }
         public static function prepareOpenLoadBox(fromUpdate:Boolean, reflayermenu:Boolean, file:File, bmpd:BitmapData, filetype:String):void
         {
-            InputController.clearKeyBuffer();
+            InputManager.clearKeyBuffer();
             ToolController.closeToolBox2();
             loadMenuBoxFileType = filetype;
             loadMenuBoxFile = file;
@@ -1229,8 +1229,8 @@ package Modules
             }
             setFileBrowserIsOpen(true);
             MainUIController.showCanvasResizeButtonVisibleDelay(false);
-            InputController.removeInputEventsReplayMode();
-            InputController.removeInputEventsDrawMode();
+            InputManager.removeInputEventsReplayMode();
+            InputManager.removeInputEventsDrawMode();
             file.browseForOpen(windowTitle, [new FileFilter("All supported formats", "*.2020;*.png;*.jpg;*.jpeg;*.jfif;*.gif;*.webp")]);
             file.addEventListener(Event.SELECT, onFileSelected);
             file.addEventListener(Event.COMPLETE, onFileSelectComplete);
@@ -1483,7 +1483,7 @@ package Modules
                     BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage.clone(), CanvasController.CANVAS_BG_COLOR, false, false);
                     saveFOFOFile();
                     MainUIController.updateWindowTitle();
-                    InputController.clearKeyBuffer();
+                    InputManager.clearKeyBuffer();
                     isFileAlreadySaved = true;
                     pollTimerWaitWorkerForImageSave(lastSaveFilePath, true);
                 }
@@ -1622,8 +1622,8 @@ package Modules
         {
             CanvasController.isMouseClickBlocked = true;
             main.resizeCanvas.exit(true);
-            InputController.clearKeyBuffer();
-            InputController.removeKeyRepeatEvents(null);
+            InputManager.clearKeyBuffer();
+            InputManager.removeKeyRepeatEvents(null);
             FOFOTimer.remove("pressholdtimer");
             if (ToolController.isToolBox2Showing)
             {
@@ -1683,9 +1683,9 @@ package Modules
             main.isAppClosing = true;
             e.preventDefault();
             main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, onWindowDeactivate);
-            InputController.removeInputEventCaptrueMode();
-            InputController.removeInputEventsDrawMode();
-            InputController.removeInputEventsReplayMode();
+            InputManager.removeInputEventCaptrueMode();
+            InputManager.removeInputEventsDrawMode();
+            InputManager.removeInputEventsReplayMode();
             ActivityWorkTimer.stop();
 
             if (ImageViewWindow.canvasWindow !== null)

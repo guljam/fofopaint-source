@@ -261,9 +261,9 @@ package Modules
         {
             const keyCode:uint = e.keyCode;
 
-            if (keyCode === InputController.KEY.s || keyCode === InputController.KEY.d
-                    || keyCode === InputController.KEY.j || keyCode === InputController.KEY.k
-                    || keyCode === InputController.KEY.n6)
+            if (keyCode === InputManager.KEY.s || keyCode === InputManager.KEY.d
+                    || keyCode === InputManager.KEY.j || keyCode === InputManager.KEY.k
+                    || keyCode === InputManager.KEY.n6)
             {
                 startDeactivteQuickSidebar();
             }
@@ -349,10 +349,10 @@ package Modules
 
         public static function isPressingQuickSidebarShortcut(key1:int, key2:int):Boolean
         {
-            if ((key1 === InputController.KEY.s && key2 === InputController.KEY.d)
-                    || (key1 === InputController.KEY.d && key2 === InputController.KEY.s)
-                    || (key1 === InputController.KEY.j && key2 === InputController.KEY.k)
-                    || (key1 === InputController.KEY.k && key2 === InputController.KEY.j))
+            if ((key1 === InputManager.KEY.s && key2 === InputManager.KEY.d)
+                    || (key1 === InputManager.KEY.d && key2 === InputManager.KEY.s)
+                    || (key1 === InputManager.KEY.j && key2 === InputManager.KEY.k)
+                    || (key1 === InputManager.KEY.k && key2 === InputManager.KEY.j))
             {
                 return true;
             }
@@ -433,7 +433,7 @@ package Modules
         private static function sidebarOFFRightMouseDownEvent(e:MouseEvent):void
         {
             CanvasController.isMouseClickBlocked = true;
-            InputController.unblockMouseClickAfterDelay();
+            InputManager.unblockMouseClickAfterDelay();
 
             startHidingSidebarTemporary();
         }
@@ -850,7 +850,7 @@ package Modules
                     CanvasController.startCanvasMoveByCanvasNavigator(true);
                     return true;
                 }
-                else if (ColorPickerController.handleColorPickerBoxMouseDown(target) && !InputController.isKeyPressed())
+                else if (ColorPickerController.handleColorPickerBoxMouseDown(target) && !InputManager.isKeyPressed())
                 {
                     return true;
                 }

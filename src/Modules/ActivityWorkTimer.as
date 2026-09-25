@@ -99,7 +99,7 @@ package Modules
             const nowTime:int = getTimer();
             const subTime:int = nowTime - lastWorkTime;
             if (!main.stage.nativeWindow.active
-                    || (!CanvasController.isMouseLeftClicked && !CanvasController.isRightMouseClicked && !InputController.isKeyPressed()
+                    || (!CanvasController.isMouseLeftClicked && !CanvasController.isRightMouseClicked && !InputManager.isKeyPressed()
                         && main.stage.mouseX === lastMousePosX && main.stage.mouseY === lastMousePosY))
             {
                 MainUI.topBar.timerAFkDot.visible = !MainUI.topBar.timerAFkDot.visible;

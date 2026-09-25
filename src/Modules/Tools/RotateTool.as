@@ -8,7 +8,7 @@ package Modules.Tools
     import Modules.MainUI;
     import Modules.ReplayController;
     import Modules.DragInteraction;
-    import Modules.InputController;
+    import Modules.InputManager;
     import Modules.PenSizePreviewCursor;
 
     public class RotateTool
@@ -58,7 +58,7 @@ package Modules.Tools
                     ReplayController.fitReplayCanvasToViewport();
                 }
 
-                InputController.resetLastKey();
+                InputManager.resetLastKey();
                 ReplayController.rFollowMouse.updateBounds();
             }
 

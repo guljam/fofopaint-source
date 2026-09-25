@@ -4,7 +4,7 @@ package Modules.Tools
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
     import Modules.ImageViewWindow;
-    import Modules.InputController;
+    import Modules.InputManager;
     import Modules.MainUI;
     import Modules.MainUIController;
     import Modules.ReferenceLayerController;
@@ -130,7 +130,7 @@ package Modules.Tools
         {
             _lassoMenuBox.visible = true;
             _isLassoMenuHiddenTemp = false;
-            InputController.resetLastKey();
+            InputManager.resetLastKey();
         }
 
         public static function mergeLassoImageToRefLayer():void
@@ -699,7 +699,7 @@ package Modules.Tools
                         ReferenceLayerController.refLayerMenuBox.visible = false;
                     }
                     setAlphaButtonsOnLassoTool(Global.OFFALPHA);
-                    InputController.addInputEventsLassoTool();
+                    InputManager.addInputEventsLassoTool();
                 }
             }
             function onMouseMoveLassoTool(MouseEvent:Event):void
@@ -950,7 +950,7 @@ package Modules.Tools
         // 라소박스 변형이랑 플래그 초기화
         public static function resetLassoBox():void
         {
-            InputController.removeInputEventsLassoTool();
+            InputManager.removeInputEventsLassoTool();
             _isLassoToolStarted = false;
             isLassoMirrorON = false;
             isLassoImageCopied = false;

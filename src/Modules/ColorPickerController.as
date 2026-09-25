@@ -317,7 +317,7 @@ package Modules
 
                 Utils.setAsTopChild(numPadBox);
 
-                InputController.resetLastKey();
+                InputManager.resetLastKey();
 
                 main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad, false, -2);
                 main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad, false, -2);
@@ -338,7 +338,7 @@ package Modules
 
             FOFOTimer.addByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function ():void
                 {
-                    InputController.addInputEventsDrawMode();
+                    InputManager.addInputEventsDrawMode();
                 });
         }
 
@@ -407,11 +407,11 @@ package Modules
 
             if (targetName === "numInc")
             {
-                InputController.startKeyRepeat(true, rgbInfoNumPadIncKey, 1);
+                InputManager.startKeyRepeat(true, rgbInfoNumPadIncKey, 1);
             }
             else if (targetName === "numDec")
             {
-                InputController.startKeyRepeat(true, rgbInfoNumPadIncKey, -1);
+                InputManager.startKeyRepeat(true, rgbInfoNumPadIncKey, -1);
             }
             else if (targetName === "okLWrapper")
             {
@@ -991,7 +991,7 @@ package Modules
 
         public static function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean
         {
-            if (ToolController.isToolBox2Showing || (InputController.isKeyPressed()
+            if (ToolController.isToolBox2Showing || (InputManager.isKeyPressed()
                         && !ToolController.isSelectedToolPenOrLine()
                         && !ToolController.isSelectedTool(ToolController.TOOL_ERASER)
                         && !ToolController.isSelectedTool(ToolController.TOOL_FILLPEN)))
@@ -1053,7 +1053,7 @@ package Modules
 
                 case "drawrPresetButton":
                 case "tegakiPresetButton":
-                    InputController.startScratchPadResetTimer(target);
+                    InputManager.startScratchPadResetTimer(target);
                     handleColorPickerBoxClick(targetName);
                     return true;
 

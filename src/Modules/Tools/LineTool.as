@@ -19,7 +19,7 @@ package Modules.Tools
     import Modules.PenSizePreviewCursor;
     import flash.system.ApplicationDomain;
     import flash.events.KeyboardEvent;
-    import Modules.InputController;
+    import Modules.InputManager;
     import flash.events.BrowserInvokeEvent;
 
     public class LineTool
@@ -269,11 +269,11 @@ package Modules.Tools
 
         private static function onKeyDownLineTool(e:KeyboardEvent):void
         {
-            if (InputController.isPressedKey(InputController.KEY.esc))
+            if (InputManager.isPressedKey(InputManager.KEY.esc))
             {
                 cancel();
             }
-            else if (InputController.isPressedKey(InputController.KEY.enter))
+            else if (InputManager.isPressedKey(InputManager.KEY.enter))
             {
                 apply();
             }
@@ -281,7 +281,7 @@ package Modules.Tools
 
         private static function onKeyUpLineTool(e:KeyboardEvent):void
         {
-            if (e.keyCode === InputController.KEY.shift)
+            if (e.keyCode === InputManager.KEY.shift)
             {
                 apply();
             }
@@ -318,37 +318,6 @@ package Modules.Tools
             }
             return false;
         }
-
-        // private static function onMouseUpLineTool(e:MouseEvent):void
-        // {
-
-        // if (isLineInsideCanvas() === true)
-        // {
-        // const mx:Number = CanvasController.canvasDrawLayerChild.mouseX;
-        // const my:Number = CanvasController.canvasDrawLayerChild.mouseY;
-        // UndoManager.canAddUndoData = true;
-        // if (mouseMovedFlag === false && oldX === mx && oldY === my)
-        // {
-        // ReplayController.rDataBuffer = [];
-        // ReplayController.rDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, subLayerFlag, xAirBrushON, CanvasController.canvasAnchorPoint.rotation]);
-        // DotTool.start(xShape, xSize, xColor, mx, my, CanvasController.canvasAnchorPoint.rotation);
-        // }
-        // else
-        // {
-        // if (xShape === true)
-        // {
-        // const extPoints:Array = extendLineSegment(oldX, oldY, mx, my, xSize / 8);
-        // startPoint.setTo(extPoints[0], extPoints[1]);
-        // endPoint.setTo(extPoints[2], extPoints[3]);
-        // }
-        // else
-        // {
-        // startPoint.setTo(oldX, oldY);
-        // endPoint.setTo(mx, my);
-        // }
-        // }
-        // }
-        // }
 
         public static function start():void
         {
@@ -396,7 +365,6 @@ package Modules.Tools
                     ReferenceLayerController.setCanvasRefLayerInvisible();
                 }
 
-                // 선 관련 이벤트 함수 붙여줌
                 main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool);
                 main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool);
 
@@ -411,7 +379,7 @@ package Modules.Tools
                         return true;
                     });
 
-                if (InputController.isPressingShift())
+                if (InputManager.isPressingShift())
                 {
                     startFromShortCut = true;
                     main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLineTool);

@@ -4,7 +4,7 @@ package Modules.Tools
     import Modules.CaptureController;
     import Modules.ColorPickerController;
     import Modules.FileManager;
-    import Modules.InputController;
+    import Modules.InputManager;
     import Modules.MainUI;
     import Modules.MainUIController;
     import Modules.ReferenceLayerController;
@@ -145,8 +145,8 @@ package Modules.Tools
                 return;
             }
 
-            if (e.keyCode === InputController.KEY.c || e.keyCode === InputController.KEY.m) {}
-            else if (e.keyCode === InputController.KEY.space)
+            if (e.keyCode === InputManager.KEY.c || e.keyCode === InputManager.KEY.m) {}
+            else if (e.keyCode === InputManager.KEY.space)
             {
                 if (PenTool.isTransparentPenColor)
                 {
@@ -181,7 +181,7 @@ package Modules.Tools
                 return;
             }
 
-            if (e.keyCode === InputController.KEY.c || e.keyCode === InputController.KEY.m)
+            if (e.keyCode === InputManager.KEY.c || e.keyCode === InputManager.KEY.m)
             {
                 confirmEyeDropperSelection();
             }

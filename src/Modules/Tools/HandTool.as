@@ -6,7 +6,7 @@ package Modules.Tools
     import flash.events.MouseEvent;
     import Modules.CanvasController;
     import Modules.ReferenceLayerController;
-    import Modules.InputController;
+    import Modules.InputManager;
     import Modules.ToolController;
     import Modules.MainUIController;
     import Modules.ReplayController;
@@ -51,7 +51,7 @@ package Modules.Tools
                         LassoTool.hideLassoMenuBoxTemp();
                     }
                 } // tool box에서 클릭해서 핸드툴 들어갈때 필요함
-                else if (!InputController.isLastKey(InputController.KEY.space))
+                else if (!InputManager.isLastKey(InputManager.KEY.space))
                 {
                     ToolController.selectLastUsedTool();
                 }

@@ -14,7 +14,7 @@
     import Modules.FileManager;
     import Modules.FillPenTool;
     import Modules.ImageViewWindow;
-    import Modules.InputController;
+    import Modules.InputManager;
     import Modules.MainUI;
     import Modules.MainUIController;
     import Modules.PaletteController;
@@ -141,7 +141,7 @@
             Utils.setMainInstance(this);
             UndoManager.setMainInstance(this);
             ReplayController.setMainInstance(this);
-            InputController.setMainInstance(this);
+            InputManager.setMainInstance(this);
         }
 
         public function initializeTools():void
@@ -174,7 +174,7 @@
             // 입력 이벤트는 loadappdstate보다느려야함
             addGlobalEvents();
             addGlobalEventsChild();
-            InputController.addInputEventsDrawMode();
+            InputManager.addInputEventsDrawMode();
             const isNewReplayFile:Boolean = !FileManager.replayDataFilePath.exists;
             ReplayController.initializeReplayDataFile();
             if (isNewReplayFile)
@@ -184,7 +184,7 @@
             CanvasController.canvasNavigatorBox.updateImage();
             ActivityWorkTimer.start();
             AppUpdater.checkUpdate();
-            InputController.tryDisableIME();
+            InputManager.tryDisableIME();
             ColorPickerController.colorPickerBox.setActiveColorPreset(0);
             MainUI.mouseHint.updateBGColor();
             SidebarController.moveSideBar("left"); // 컨트롤 박스 크기가 set pentool 이후에 제대로 바뀜 원인 모름
@@ -216,7 +216,7 @@
 
         public function onMouseUpStage(e:MouseEvent):void
         {
-            InputController.checkInvalidKey();
+            InputManager.checkInvalidKey();
             const mx:Number = stage.mouseX;
             const my:Number = stage.mouseY;
             CanvasController.isMouseLeftClicked = false;
@@ -228,7 +228,7 @@
 
         public function onRightMouseUpStage(e:MouseEvent):void
         {
-            InputController.checkInvalidKey();
+            InputManager.checkInvalidKey();
             const mx:Number = stage.mouseX;
             const my:Number = stage.mouseY;
             CanvasController.isRightMouseClicked = false;
@@ -250,7 +250,7 @@
         {
             if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging
                     || MainUIController.isPopUpWindowOpened()
-                    || CaptureController.isCaptureModeON || !SidebarController.isQuickSidebarActive && InputController.isKeyPressed() || InputController.getCommandKey() !== 0)
+                    || CaptureController.isCaptureModeON || !SidebarController.isQuickSidebarActive && InputManager.isKeyPressed() || InputManager.getCommandKey() !== 0)
             {
                 return;
 
@@ -310,15 +310,15 @@
             // 전역스테이지 이벤트 cMouseMoveStage <- 스테이지 마우스 무브는 클로저로 하고있음
             // todo gpt가 동일한 우선순위라도 capture 플래그가 true인것이 먼저 실행된다고함 capture - target  -bubble 순이라고함
             // 그래서 마우스랑 키보드 입력 mouseleave이벤트를 캡쳐플래그를 true로해놓았음 나중에 기능 이상생기면 확인
-            stage.addEventListener(MouseEvent.MOUSE_DOWN, InputController.onMouseDownStage, true, 1);
+            stage.addEventListener(MouseEvent.MOUSE_DOWN, InputManager.onMouseDownStage, true, 1);
             stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpStage, false, 1);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpStage, false, 1);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, InputController.onRightMouseDownStage, true, 1);
-            stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, InputController.onMiddleMouseDownStage, false, 1);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN, InputController.onKeyDownStage, true, 1);
-            stage.addEventListener(KeyboardEvent.KEY_UP, InputController.onKeyUpStage, false, 1);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, InputController.onMouseMoveUpdatePenPreviewCursor);
-            stage.addEventListener(MouseEvent.MOUSE_UP, InputController.onMouseMoveUpdatePenPreviewCursor, false, -1);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, InputManager.onRightMouseDownStage, true, 1);
+            stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, InputManager.onMiddleMouseDownStage, false, 1);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN, InputManager.onKeyDownStage, true, 1);
+            stage.addEventListener(KeyboardEvent.KEY_UP, InputManager.onKeyUpStage, false, 1);
+            stage.addEventListener(MouseEvent.MOUSE_MOVE, InputManager.onMouseMoveUpdatePenPreviewCursor);
+            stage.addEventListener(MouseEvent.MOUSE_UP, InputManager.onMouseMoveUpdatePenPreviewCursor, false, -1);
             stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveStage, true);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, MainUI.onMouseMoveBottomHint);
             stage.nativeWindow.x = Capabilities.screenResolutionX / 2 - 680 / 2;

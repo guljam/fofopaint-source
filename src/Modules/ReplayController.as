@@ -1410,7 +1410,7 @@ package Modules
                 rTempCachedLastImageIndex = -2;
                 UndoManager.undoToIndex(rData.length - 1);
                 CanvasController.centerCanvas("replay");
-                InputController.addInputEventsReplayMode();
+                InputManager.addInputEventsReplayMode();
                 rCanvasAnchorPoint.visible = true;
             }
             else
@@ -1424,11 +1424,11 @@ package Modules
                 CanvasController.updateCanvasScale(1.0);
                 CanvasController.centerCanvas("draw");
                 UndoManager.resetUndoState();
-                InputController.addInputEventsDrawMode();
+                InputManager.addInputEventsDrawMode();
             }
 
             FileManager.closeLoadMenuBox();
-            InputController.clearKeyBuffer();
+            InputManager.clearKeyBuffer();
 
             if(finalizeFunc !== null)
             {
@@ -1539,7 +1539,7 @@ package Modules
                     exitReplayMode();
                 }
 
-                InputController.removeInputEventsDrawMode();
+                InputManager.removeInputEventsDrawMode();
             }
 
             rReplayImageCacheState = REPLAY_IMAGE_CAHCHE_PROCESSING;
@@ -1728,7 +1728,7 @@ package Modules
 
         public static function startAdjustPlayBackSpeedByShortcut(increase:Boolean):void
         {
-            InputController.startKeyRepeat(true, adjustReplaySpeedByShortcut, increase);
+            InputManager.startKeyRepeat(true, adjustReplaySpeedByShortcut, increase);
         }
 
         public static function adjutReplaySpeedByMouse():void
@@ -2009,7 +2009,7 @@ package Modules
                 stopReplay();
             }
 
-            InputController.removeInputEventsReplayMode();
+            InputManager.removeInputEventsReplayMode();
             cancelReplayRestartTimer();
             isReplayModeON = false;
             rCanvasAnchorPoint.visible = false;
@@ -2067,7 +2067,7 @@ package Modules
 
             clearRFrameTempCache();
             rReplayFOFOCursor.visible = false;
-            InputController.addInputEventsDrawMode();
+            InputManager.addInputEventsDrawMode();
         }
 
         public static function enterReplayMode():void
@@ -2077,7 +2077,7 @@ package Modules
                 return;
             }
 
-            InputController.removeInputEventsDrawMode();
+            InputManager.removeInputEventsDrawMode();
             isReplayModeON = true;
             CanvasController.canvasAnchorPoint.visible = false;
             rCanvasAnchorPoint.visible = true;
@@ -2149,7 +2149,7 @@ package Modules
                 CanvasController.keepCanvasPanelInStage(true);
                 SidebarController.hideSidebarTemporary();
                 MainUI.updateTopbarIconsReplayMode();
-                InputController.addInputEventsReplayMode();
+                InputManager.addInputEventsReplayMode();
 
                 if (isReplayCanvasFitToWindow)
                 {
@@ -2916,11 +2916,11 @@ package Modules
         {
             if (isReplayModeON)
             {
-                InputController.addInputEventsReplayMode();
+                InputManager.addInputEventsReplayMode();
             }
             else
             {
-                InputController.addInputEventsDrawMode();
+                InputManager.addInputEventsDrawMode();
             }
         }
 
@@ -2947,7 +2947,7 @@ package Modules
             FileManager.updateLastFilePathByRandomFileName();
             CanvasController.canvasInfoBox.setMirror(false);
             MainUIController.updateWindowTitle();
-            InputController.removeKeyRepeatEvents(null);
+            InputManager.removeKeyRepeatEvents(null);
         }
 
         private static function replayCompleteEffect():void

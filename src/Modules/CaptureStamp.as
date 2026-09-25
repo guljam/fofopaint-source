@@ -349,7 +349,7 @@ package Modules
         {
             FOFOTimer.add(0.2, false, function ():void
                 {
-                    InputController.tryDisableIME();
+                    InputManager.tryDisableIME();
                     isCaptureStampTextFieldFocused = false;
                 });
         }

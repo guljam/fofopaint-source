@@ -226,7 +226,7 @@ package Modules
         {
             if (ReplayController.isGeneratingCacheImages())
             {
-                InputController.removeKeyRepeatEvents(null);
+                InputManager.removeKeyRepeatEvents(null);
                 return;
             }
             if (UndoManager.isDeepUndoEnabled)
