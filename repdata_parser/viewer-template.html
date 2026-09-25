@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>리플레이 명령 시각화</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #e8edf7; background: #10151f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { position: sticky; top: 0; z-index: 2; background: #10151ff5; border-bottom: 1px solid #303949; padding: 18px 72px; }
+    h1 { font-size: 22px; margin: 0 0 8px; }
+    .meta { color: #94a4ba; font-size: 13px; }
+    form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+    input { width: min(360px, 100%); padding: 10px 12px; border-radius: 8px; border: 1px solid #56637a; background: #1c2634; color: white; }
+    form button { padding: 10px 14px; border: 1px solid #6e8aaa; border-radius: 8px; background: #2b4560; color: white; cursor: pointer; }
+    #search-status { color: #c9d7e9; font-size: 13px; min-height: 20px; }
+    main { max-width: 1360px; margin: auto; padding: 22px 72px; }
+    .frame { display: grid; grid-template-columns: 150px 1fr; gap: 18px; margin-bottom: 14px; padding: 14px; border: 2px solid #33415a; border-radius: 12px; background: #17202e; scroll-margin-top: 150px; }
+    .frame[hidden] { display: none !important; }
+    .frame-label { color: #8dc9ff; align-self: start; }
+    .frame-label strong { font-size: 20px; }
+    .groups { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; }
+    .group { border: 1px solid #48617e; border-radius: 10px; background: #202c3e; padding: 10px; min-width: 210px; max-width: 100%; color: #e8edf7; }
+    .group.stroke { border-color: #a978ba; background: #30263d; }
+    .group-title { font-weight: 700; margin-bottom: 9px; }
+    .command-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .command { border: 1px solid #50647c; border-radius: 7px; background: #17202d; padding: 7px; max-width: 380px; overflow: hidden; scroll-margin-top: 150px; cursor: pointer; transition: background-color .12s, border-color .12s; }
+    .command:hover { border-color: #7892ae; background: #28384a; }
+    .command:focus-visible { outline: 2px solid #9cb9d8; outline-offset: 2px; }
+    .command.selected { border-color: #d3a94a; background: #594918; box-shadow: 0 0 0 2px #cba14688; }
+    .command.selected:hover { border-color: #e0b653; background: #70591b; }
+    .command.selected .cmd-frame { color: #f5d592; }
+    .command.selected .cmd-name { color: #ffdc82; }
+    .cmd-frame { color: #b9c4d1; font-variant-numeric: tabular-nums; }
+    .cmd-name { color: #9ed3ff; font-weight: 650; }
+    .derived .cmd-name { color: #e9baef; }
+    .command-args { margin-top: 8px; padding-top: 7px; border-top: 1px solid #637084; color: #c4cfdf; font-size: 11px; }
+    .command-args[hidden] { display: none; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 220px; overflow: auto; }
+    .page-arrow { position: fixed; z-index: 3; top: 50%; transform: translateY(-50%); width: 52px; height: 84px; border: 1px solid #536781; border-radius: 12px; background: #1d2a3eea; color: white; font: 36px system-ui; cursor: pointer; }
+    .page-arrow:hover:not(:disabled) { background: #375576; }
+    .page-arrow:disabled { opacity: .3; cursor: default; }
+    #prev-page { left: 8px; }
+    #next-page { right: 8px; }
+    #page-status { position: fixed; z-index: 3; bottom: 12px; left: 50%; transform: translateX(-50%); padding: 6px 12px; border-radius: 20px; background: #26354be8; color: #e8edf7; font-size: 13px; }
+    @media (max-width: 720px) {
+      header { padding: 16px 48px; }
+      main { padding: 18px 48px; }
+      .frame { display: block; }
+      .frame-label { margin-bottom: 10px; }
+      .page-arrow { width: 36px; height: 64px; font-size: 26px; }
+      #prev-page { left: 4px; }
+      #next-page { right: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>리플레이 명령 시각화</h1>
+    <div class="meta">{{SOURCE}} · {{OBJECT_COUNT}}개 객체 · {{ITEM_COUNT}}개 표시 항목 (내장 moveTo 포함)</div>
+    <form id="frame-search">
+      <input id="frame-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="프레임 번호" aria-label="프레임 번호">
+      <button type="submit">프레임 찾기</button>
+      <span id="search-status" role="status" aria-live="polite"></span>
+    </form>
+  </header>
+  <button id="prev-page" class="page-arrow" type="button" aria-label="이전 페이지">&lt;</button>
+  <main id="frames">{{ROWS}}</main>
+  <button id="next-page" class="page-arrow" type="button" aria-label="다음 페이지">&gt;</button>
+  <div id="page-status" aria-live="polite"></div>
+  <script>
+    const frames = [...document.querySelectorAll('.frame')];
+    const pageSize = 30;
+    const pageCount = Math.max(1, Math.ceil(frames.length / pageSize));
+    const prev = document.getElementById('prev-page');
+    const next = document.getElementById('next-page');
+    const pageStatus = document.getElementById('page-status');
+    const searchStatus = document.getElementById('search-status');
+    const frameRoot = document.getElementById('frames');
+    let page = 0;
+    let selectedCommand = null;
+
+    function toggleCommand(command) {
+      const args = command.querySelector('.command-args');
+      const expanded = command.getAttribute('aria-expanded') === 'true';
+      args.hidden = expanded;
+      command.setAttribute('aria-expanded', String(!expanded));
+    }
+
+    frameRoot.addEventListener('click', event => {
+      const command = event.target.closest('.command');
+      if (command && frameRoot.contains(command)) toggleCommand(command);
+    });
+    frameRoot.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const command = event.target.closest('.command');
+      if (command && frameRoot.contains(command)) {
+        event.preventDefault();
+        toggleCommand(command);
+      }
+    });
+
+    function showPage(index) {
+      page = Math.max(0, Math.min(index, pageCount - 1));
+      frames.forEach((frame, position) => {
+        frame.hidden = Math.floor(position / pageSize) !== page;
+      });
+      prev.disabled = page === 0;
+      next.disabled = page === pageCount - 1;
+      pageStatus.textContent = `${page + 1} / ${pageCount}`;
+      window.scrollTo(0, 0);
+    }
+
+    prev.addEventListener('click', () => showPage(page - 1));
+    next.addEventListener('click', () => showPage(page + 1));
+    document.getElementById('frame-search').addEventListener('submit', event => {
+      event.preventDefault();
+      const text = document.getElementById('frame-input').value.trim();
+      if (!/^[1-9][0-9]*$/.test(text)) {
+        searchStatus.textContent = '1 이상의 프레임 번호를 입력하세요.';
+        return;
+      }
+      const number = Number(text);
+      const position = frames.findIndex(frame => Number(frame.dataset.start) <= number && number <= Number(frame.dataset.end));
+      if (selectedCommand) selectedCommand.classList.remove('selected');
+      selectedCommand = null;
+      if (position < 0) {
+        searchStatus.textContent = `프레임 ${number}을 찾지 못했습니다.`;
+        return;
+      }
+      const command = [...frames[position].querySelectorAll('.command')].find(item => Number(item.dataset.frame) === number && !item.classList.contains('derived'));
+      if (!command) {
+        searchStatus.textContent = `프레임 ${number}의 명령을 찾지 못했습니다.`;
+        return;
+      }
+      showPage(Math.floor(position / pageSize));
+      command.classList.add('selected');
+      selectedCommand = command;
+      searchStatus.textContent = `프레임 ${number}을 표시했습니다.`;
+      command.focus({ preventScroll: true });
+      command.scrollIntoView({ block: 'center', inline: 'nearest' });
+    });
+    showPage(0);
+  </script>
+</body>
+</html>

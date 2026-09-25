@@ -201,6 +201,12 @@ package Modules
                     // 압축된 데이터 써주고 압축 풀어줌
                     fs.readBytes(replayData, 0, compBytes);
                     replayData.uncompress();
+                    if (ReplayDataCodec.isEncoded(replayData))
+                    {
+                        const decodedReplayData:ByteArray = ReplayDataCodec.decode(replayData);
+                        replayData.clear();
+                        replayData = decodedReplayData;
+                    }
                 }
             }
 

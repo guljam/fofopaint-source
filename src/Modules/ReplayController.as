@@ -125,7 +125,6 @@ package Modules
         public static var rCanvasZoomIndex:int = 4;
         public static var isReplayCanvasFitToWindow:Boolean = false; // 리플레이에서 오른쪽 클릭해서 창 크기에 맞췄을때 올려줌 startreplay될때 줌 1.0으로 리셋 못시키게함
         private static var rJumpImageIndexLast:int = -2; // 썸네일 인덱스 바뀌면 여기다 저장
-        private static var rJumpImageNowFrameLast:Number = -1;
         private static var rCachedImageLastIndex:int = -2; // 마지막에 그려준 캐쉬 이미지 번호를 저장
         private static var rTempCachedLastImageIndex:int = -2; // 더 잘게 쪼개준 이미지 인덱스 바뀌면 여기다 저장
         public static var rJumpImageFrameData:Array = [0]; // 스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
@@ -486,7 +485,7 @@ package Modules
                 rReplayFOFOCursor.visible = false;
                 MainUI.seekBarBox.resetReplayPrograssBarWidth();
                 FileManager.isFileAlreadySaved = false;
-                startGeneratingReplayCacheImage(false,finlize);
+                startGeneratingReplayCacheImage(false, finlize);
             }
 
             function finlize():void
@@ -639,9 +638,9 @@ package Modules
             var nowJumpFlag:Boolean;
             const cursorUpdateTime:int = main.stage.frameRate * 2;
 
-            function makeMemoryCacheImage():void
+            function makeMemoryCacheImage(completedStepStartFrame:Number):void
             {
-                createRFrameTempCache(rFrameTempCachedImages.length, rFileCutBytePosition);
+                createRFrameTempCache(completedStepStartFrame, rFileCutBytePosition);
             }
 
             function readyToReadMemoryData(jumpFlag:int):void
@@ -732,6 +731,7 @@ package Modules
                 {
                     if (ReplayDrawCommands.isReadFinished())
                     {
+                        const completedStepStartFrame:Number = rPrevFrame;
                         if (readNextFileData() === false)
                         {
                             // 더이상 읽을 데이터가 없을때 메모리읽기로 넘겨줌
@@ -743,7 +743,7 @@ package Modules
                         {
                             if (rNowFrame > getRFrameTempCacheLastFrame() + REPLAY_MEMORY_CACHE_FRAME_INTERVAL)
                             {
-                                makeMemoryCacheImage();
+                                makeMemoryCacheImage(completedStepStartFrame);
                             }
                         }
                     }
@@ -806,7 +806,6 @@ package Modules
         {
             renderReplayFrame(rNowFrame + ReplayDrawCommands.getRemainingData(), JUMP_FRAME_MANUAL);
         }
-
 
         public static function updateReplayCanvasFromUndoBaseInfo():void
         {
@@ -960,9 +959,14 @@ package Modules
             ba2.compress();
             rFirstImageLayer2BitmapData = CanvasController.updateBitmapData(rFirstImageLayer2BitmapData, bmpd2, null);
             rFirstImageBGColor = bgColor;
-            createCacheImage(ba1, ba2, w, h, bgColor, 0, 0, mirrorFlag);
+            createCacheImage(ba1, ba2, new CacheImageMetaData(w, h, bgColor, 0, 0, 0, mirrorFlag, 0.0, 0.0));
             ba1.clear();
             ba2.clear();
+        }
+
+        public static function refreshRFrameTempCachedImages():void
+        {
+            rFrameTempCachedImages = [];
         }
 
         public static function clearRFrameTempCache():void
@@ -978,24 +982,28 @@ package Modules
                 rFrameTempCachedImages.length = 0;
                 rJumpImageIndexLast = -2;
                 rCachedImageLastIndex = -2;
+                refreshRFrameTempCachedImages();
             }
         }
 
         public static function getRFrameTempCacheLastFrame():Number
         {
-            return rFrameTempCachedImages[rFrameTempCachedImages.length - 1][6];
+            return rFrameTempCachedImages[rFrameTempCachedImages.length - 1][2].nowFrame;
         }
-
-        public static function createRFrameTempCache(index:uint, lastReadBytes:Number):void
+        public static function createRFrameTempCache(lastFrame:Number, lastReadBytes:Number):void
         {
-            rFrameTempCachedImages[index] = [rCanvasLayer1BitmapData.clone()
-                    , rCanvasLayer2BitmapData.clone()
-                    , rCanvasLayer1BitmapData.width
-                    , rCanvasLayer1BitmapData.height
-                    , RCANVAS_BG_COLOR
-                    , lastReadBytes
-                    , rNowFrame
-                    , rMirrorON];
+            rFrameTempCachedImages.push(
+                    [
+                        rCanvasLayer1BitmapData.clone(),
+                        rCanvasLayer2BitmapData.clone(),
+                        new CacheImageMetaData(
+                            rCanvasLayer1BitmapData.width,
+                            rCanvasLayer1BitmapData.height,
+                            RCANVAS_BG_COLOR,
+                            lastReadBytes,
+                            lastFrame,
+                            rNowFrame,
+                            rMirrorON)]);
         }
 
         // targetFrame이 rFrameCacheImages데이터에 몆 번 인덱스에 있나 구해줌
@@ -1003,7 +1011,7 @@ package Modules
         {
             return Utils.binarySearchIndex(rFrameTempCachedImages, targetFrame, function (item:*):Number
                 {
-                    return item[6];
+                    return item[2].nowFrame;
                 });
         }
 
@@ -1095,6 +1103,7 @@ package Modules
             var cachedImageIndex:Number = -1; // 자잘 썸네일 인덱스를 넣어줌
             var loadCacheFlag:int = 0;
             var remainingFrameCount:Number = 0.0;
+
             // isReplayStarted 붙여주는 이유는
             // slide show모드로 재생하게 되면 클리어 케시를 계속 호출해주고
             // 재생 완료시 rJumpImageIndexLast가 갱신되어있을때 다시 해주면 메모리 캐시가 없는데 캐시를 불러주는 버그가 생겨서
@@ -1106,7 +1115,7 @@ package Modules
             }
             else if (rFrameTempCachedImages.length > 0)
             {
-                if (tragetFrame >= rFrameTempCachedImages[0][6])
+                if (tragetFrame >= rFrameTempCachedImages[0][2].nowFrame)
                 {
                     cachedImageIndex = getCacheImageIndex(tragetFrame);
 
@@ -1120,15 +1129,18 @@ package Modules
             if (loadCacheFlag > 0 || tragetFrame < rNowFrame)
             {
                 var cachedImageData:Array;
+                var metaData:CacheImageMetaData;
                 var layer1bmpd:BitmapData;
                 var layer2bmpd:BitmapData;
                 var newrect:Rectangle;
+
 
                 if (loadCacheFlag === 2)
                 {
                     cachedImageData = rFrameTempCachedImages[cachedImageIndex];
                     layer1bmpd = cachedImageData[0];
                     layer2bmpd = cachedImageData[1];
+                    metaData = cachedImageData[2];
                     rCachedImageLastIndex = cachedImageIndex;
                 }
                 else
@@ -1140,12 +1152,13 @@ package Modules
                     fs.close();
                     cachedImageData[0].uncompress();
                     cachedImageData[1].uncompress();
-                    newrect = new Rectangle(0, 0, cachedImageData[2], cachedImageData[3]);
-                    layer1bmpd = new BitmapData(cachedImageData[2], cachedImageData[3], true, 0);
+                    metaData = cachedImageData[2] as CacheImageMetaData;
+                    newrect = new Rectangle(0, 0, metaData.bmpdWidth, metaData.bmpdHeight);
+                    layer1bmpd = new BitmapData(metaData.bmpdWidth, metaData.bmpdHeight, true, 0);
                     layer1bmpd.lock();
                     layer1bmpd.setPixels(newrect, cachedImageData[0]);
                     layer1bmpd.unlock();
-                    layer2bmpd = new BitmapData(cachedImageData[2], cachedImageData[3], true, 0);
+                    layer2bmpd = new BitmapData(metaData.bmpdWidth, metaData.bmpdHeight, true, 0);
                     layer2bmpd.lock();
                     layer2bmpd.setPixels(newrect, cachedImageData[1]);
                     layer2bmpd.unlock();
@@ -1153,27 +1166,28 @@ package Modules
                     cachedImageData[0] = null;
                     cachedImageData[1].clear();
                     cachedImageData[1] = null;
-                    rJumpImageNowFrameLast = cachedImageData[6];
                 }
 
                 rJumpImageIndexLast = index;
-                rFileLastBytePosition = cachedImageData[5]; // 마지막 바이트
-                rFileStream.position = cachedImageData[5];
-                rNowFrame = cachedImageData[6]; // 썸네일 이미지를 저장한 프레임
+                rFileLastBytePosition = metaData.lastByte; // 마지막 바이트
+                rFileStream.position = metaData.lastByte;
+                rNowFrame = metaData.nowFrame; // 썸네일 이미지를 저장한 프레임
                 // 원하는 프레임에서 썸네일 이미지 프레임을 빼줌 나머지 프레임만 그려주면 되니깐
-                remainingFrameCount = tragetFrame - cachedImageData[6];
+                remainingFrameCount = tragetFrame - metaData.nowFrame;
                 rDataIndex = 0; // 이거 먼저 초기화 시켜주어야함
                 ReplayDrawCommands.clearData();
                 clearCanvasReplayMode();
-                rMirrorON = cachedImageData[7];
+                rMirrorON = metaData.mirrorFlag;
                 rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, layer1bmpd, rCanvasLayer1Bitmap);
                 rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, layer2bmpd, rCanvasLayer2Bitmap);
                 updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
-                updateCanvasBGColorReplayMode(cachedImageData[4]);
+                updateCanvasBGColorReplayMode(metaData.bgColor);
+                ReplayDrawCommands.setRCursorPos(metaData.rCursorPosX,metaData.rCursorPosY);
 
                 if (loadCacheFlag === 1 && isReplayStarted === false)
                 {
-                    createRFrameTempCache(0, rFileLastBytePosition);
+                    ReplayController.refreshRFrameTempCachedImages();
+                    createRFrameTempCache(metaData.lastFrame, rFileLastBytePosition);
                 }
 
                 cachedImageData = null;
@@ -1187,6 +1201,11 @@ package Modules
                     layer1bmpd = null;
                     layer2bmpd = null;
                 }
+
+                if (remainingFrameCount === 0.0)
+                {
+                    rPrevFrame = metaData.lastFrame;
+                }
             }
             else
             {
@@ -1196,11 +1215,6 @@ package Modules
                 }
 
                 remainingFrameCount = tragetFrame - rNowFrame;
-            }
-
-            if (remainingFrameCount === 0.0)
-            {
-                rPrevFrame = tragetFrame - 1;
             }
 
             return remainingFrameCount;
@@ -1348,33 +1362,16 @@ package Modules
             DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
         }
 
-        public static function createCacheImage
-            (
-                layer1ImageData:ByteArray,
-                layer2ImageData:ByteArray,
-                imageWidth:int,
-                imageHeight:int,
-                bgColor:uint,
-                lastBytePosition:Number,
-                frameSum:Number,
-                mirrorFlag:Boolean
-            ):void
+        public static function createCacheImage(bmpd1:ByteArray, bmpd2:ByteArray, metadata:CacheImageMetaData):void
         {
             const fs:FileStream = new FileStream();
-            rJumpImageFrameData.push(frameSum);
+            rJumpImageFrameData.push(metadata.nowFrame);
             fs.open(FileManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length - 1)), FileMode.WRITE);
-            fs.writeObject([layer1ImageData // 0
-                        , layer2ImageData
-                        , imageWidth
-                        , imageHeight
-                        , bgColor // 4
-                        , lastBytePosition
-                        , frameSum
-                        , mirrorFlag]); // 7
+            fs.writeObject([bmpd1, bmpd2, metadata]);
             fs.close();
         }
 
-        private static function handleReplayCacheImageGenerateComplete(fs:FileStream, onFrameEnter:Function, _frameSum:Number, _frameSumLast:Number,finalizeFunc:Function):void
+        private static function handleReplayCacheImageGenerateComplete(fs:FileStream, onFrameEnter:Function, _frameSum:Number, _frameSumLast:Number, finalizeFunc:Function):void
         {
             main.stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
             fs.close();
@@ -1406,7 +1403,6 @@ package Modules
                 updateDeleteReplayDataButtonsState();
                 clearRFrameTempCache();
                 rJumpImageIndexLast = -2;
-                rJumpImageNowFrameLast = -1;
                 rTempCachedLastImageIndex = -2;
                 UndoManager.undoToIndex(rData.length - 1);
                 CanvasController.centerCanvas("replay");
@@ -1430,7 +1426,7 @@ package Modules
             FileManager.closeLoadMenuBox();
             InputManager.clearKeyBuffer();
 
-            if(finalizeFunc !== null)
+            if (finalizeFunc !== null)
             {
                 finalizeFunc();
             }
@@ -1444,7 +1440,7 @@ package Modules
             const deepUndoFlag:Boolean = UndoManager.isDeepUndoEnabled;
             var rect:Rectangle;
             var _frameSum:Number = 0;
-            var _frameSumLast:Number = 0;
+            var _LastframeSum:Number = 0;
             var dataWriteCount:uint = 0;
             var hintPrintTimeSave:int = getTimer();
             CanvasController.canvasAnchorPoint.visible = false;
@@ -1480,7 +1476,7 @@ package Modules
 
                     if (namojiBytes === 0)
                     {
-                        handleReplayCacheImageGenerateComplete(fs, onFrameEnter, _frameSum, _frameSumLast,finalizeFunc);
+                        handleReplayCacheImageGenerateComplete(fs, onFrameEnter, _frameSum, _LastframeSum, finalizeFunc);
                         return;
                     }
 
@@ -1493,7 +1489,7 @@ package Modules
 
                     const data:Array = fs.readObject() as Array;
                     ReplayDrawCommands.setData(data);
-                    _frameSumLast = _frameSum;
+                    _LastframeSum = _frameSum;
                     _frameSum += data.length; // _rJumpImageCount 변수보다 먼저 와야함
                     dataWriteCount += data.length;
                     ReplayDrawCommands.drawAll();
@@ -1508,14 +1504,19 @@ package Modules
                         rCanvasLayer2BitmapData.copyPixelsToByteArray(rect, imgData2);
                         imgData1.compress();
                         imgData2.compress();
-                        createCacheImage(imgData1,
+                        createCacheImage(
+                                imgData1,
                                 imgData2,
-                                rCanvasLayer1BitmapData.width,
-                                rCanvasLayer1BitmapData.height,
-                                rLastCanvasBGColor,
-                                fs.position,
-                                _frameSum,
-                                rMirrorON);
+                                new CacheImageMetaData
+                                (
+                                    rCanvasLayer1BitmapData.width,
+                                    rCanvasLayer1BitmapData.height,
+                                    rLastCanvasBGColor,
+                                    fs.position,
+                                    _LastframeSum,
+                                    _frameSum,
+                                    rMirrorON
+                                ));
                         imgData1.clear();
                         imgData2.clear();
 
@@ -1530,9 +1531,9 @@ package Modules
             main.stage.addEventListener(Event.ENTER_FRAME, onFrameEnter);
         }
 
-        public static function startGeneratingReplayCacheImage(fromLoadFile:Boolean,finalizeFunc:Function):void
+        public static function startGeneratingReplayCacheImage(fromLoadFile:Boolean, finalizeFunc:Function):void
         {
-            if(fromLoadFile)
+            if (fromLoadFile)
             {
                 if (isReplayModeON)
                 {
@@ -1563,7 +1564,6 @@ package Modules
             rNowFrame = 0;
             rPrevFrame = 0;
             rJumpImageIndexLast = -2;
-            rJumpImageNowFrameLast = -1;
             rTempCachedLastImageIndex = -2;
             isReplayFinished = true;
             isReplaySlideShowMode = false;

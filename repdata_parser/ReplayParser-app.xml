@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<application xmlns="http://ns.adobe.com/air/application/51.3">
+  <id>fofoPaint.replayParser</id>
+  <versionNumber>1.0</versionNumber>
+  <filename>ReplayParser</filename>
+  <name>Replay Parser</name>
+  <initialWindow>
+    <content>ReplayParser.swf</content>
+    <visible>false</visible>
+  </initialWindow>
+  <supportedProfiles>extendedDesktop</supportedProfiles>
+</application>

@@ -37,7 +37,7 @@ package Modules
         public static var captureImageDataQueue:Array = null;
         public static var receivedCaptureImageQueueFromWorker:Vector.<ByteArray>;
         public static var receivedUndoImageQueueFromWorker:Array = null;
-        public static var undoDataQueue:Array = null;
+        public static var undoDataQueue:Array;
         private static var workerSWF:ByteArray = null;
         private static var workerDataSendCount:int = 0;
         private static var workerDataReceiveCount:int = 0;
@@ -363,14 +363,10 @@ package Modules
                     {
                         if (receivedUndoImageQueueFromWorker.length > 0)
                         {
-                            ReplayController.createCacheImage(receivedUndoImageQueueFromWorker[0][0],
+                            ReplayController.createCacheImage(
+                                receivedUndoImageQueueFromWorker[0][0],
                                     receivedUndoImageQueueFromWorker[0][1],
-                                    undoDataQueue[0][0],
-                                    undoDataQueue[0][1],
-                                    undoDataQueue[0][2],
-                                    undoDataQueue[0][3],
-                                    undoDataQueue[0][4],
-                                    undoDataQueue[0][5]);
+                                    undoDataQueue[0]);
 
                             receivedUndoImageQueueFromWorker[0][0].clear();
                             receivedUndoImageQueueFromWorker[0][1].clear();

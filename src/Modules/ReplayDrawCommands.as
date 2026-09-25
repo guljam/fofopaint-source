@@ -114,6 +114,7 @@ package Modules
         {
             if (!data)
                 return 0;
+
             return data.length - index;
         }
 

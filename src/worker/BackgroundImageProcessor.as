@@ -1,5 +1,6 @@
 package worker
 {
+    import Modules.ReplayDataCodec;
     import flash.display.BitmapData;
     import flash.display.PNGEncoderOptions;
     import flash.display.Sprite;
@@ -76,7 +77,28 @@ package worker
             ba3.compress();
             ba4.compress();
             ba5.compress();
+            // Command coordinates are transformed before zlib. Keep the old
+            // representation when it is smaller or an old stream is malformed.
+            var encoded:ByteArray;
+            try
+            {
+                encoded = ReplayDataCodec.encode(ba6);
+                encoded.compress();
+            }
+            catch (error:Error)
+            {
+                trace("Replay transform skipped: " + error);
+                encoded = null;
+            }
             ba6.compress();
+            if (encoded != null && encoded.length < ba6.length)
+            {
+                ba6.clear();
+                ba6.writeBytes(encoded);
+                ba6.position = 0;
+            }
+            if (encoded != null)
+                encoded.clear();
             this.backToMain.send("compress_ReplayDataDone");
             this.backToMain.send(ba1);
             this.backToMain.send(ba2);

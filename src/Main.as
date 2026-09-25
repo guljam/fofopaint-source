@@ -50,22 +50,14 @@
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.events.NativeDragEvent;
-    import flash.events.TimerEvent;
     import flash.events.UncaughtErrorEvent;
-    import flash.filesystem.File;
-    import flash.geom.Matrix;
-    import flash.geom.Point;
-    import flash.geom.Rectangle;
-    import flash.net.URLRequest;
-    import flash.net.navigateToURL;
     import flash.net.registerClassAlias;
     import flash.system.Capabilities;
-    import flash.utils.Timer;
-    import flash.utils.getTimer;
     import Modules.ActivityWorkTimer;
     import Modules.PenSizePreviewCursor;
     import Modules.CaptureStamp;
     import Modules.CaptureArea;
+    import Modules.CacheImageMetaData;
 
     // import
     public class Main extends Sprite
@@ -111,7 +103,8 @@
         public function initializeModule():void
         {
             // 나중에 file load 클래스 초기화로 옮겨야함
-            registerClassAlias("AppState", AppStateVars);
+            registerClassAlias("AppStateVars", AppStateVars);
+            registerClassAlias("CacheImageMetaData", CacheImageMetaData);
             // main ui가 호출되기전에 이것부터 stage 연결시켜주어야함 그냥 상단에 고정
             HintBoxSet.setMainStage(this.stage);
 

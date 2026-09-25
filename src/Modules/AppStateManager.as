@@ -133,8 +133,8 @@ package Modules
         {
             const fs:FileStream = new FileStream();
             var arr:Array = [];
+            var metaData:CacheImageMetaData;
             var newRectangle:Rectangle;
-
             const firstCachedImage:File = FileManager.replayCacheImageFolderPath.resolvePath("0");
 
             // 앱 경로에 마지막 저장 파일이 있으면 끄기전의 상태로 세팅해줌
@@ -144,10 +144,36 @@ package Modules
                 arr = fs.readObject() as Array;
                 fs.close();
 
-                if (arr[1] is ByteArray === false)
+                //신버전
+                if (arr[2] is CacheImageMetaData)
+                {
+                    metaData = arr[2];
+                    arr[0].uncompress();
+                    newRectangle = new Rectangle(0, 0, metaData.bmpdWidth,metaData.bmpdHeight);
+
+                    if (ReplayController.rFirstImageLayer1BitmapData)
+                        ReplayController.rFirstImageLayer1BitmapData.dispose();
+                    ReplayController.rFirstImageLayer1BitmapData = new BitmapData(metaData.bmpdWidth,metaData.bmpdHeight, true, 0);
+                    ReplayController.rFirstImageLayer1BitmapData.lock();
+                    ReplayController.rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
+                    ReplayController.rFirstImageLayer1BitmapData.unlock();
+
+                    arr[1].uncompress();
+
+                    if (ReplayController.rFirstImageLayer2BitmapData)
+                        ReplayController.rFirstImageLayer2BitmapData.dispose();
+                    ReplayController.rFirstImageLayer2BitmapData = new BitmapData(metaData.bmpdWidth,metaData.bmpdHeight, true, 0);
+                    ReplayController.rFirstImageLayer2BitmapData.lock();
+                    ReplayController.rFirstImageLayer2BitmapData.setPixels(newRectangle, arr[1]);
+                    ReplayController.rFirstImageLayer2BitmapData.unlock();
+
+                    ReplayController.rFirstImageBGColor = metaData.bgColor;
+
+                }
+                else //구버전
                 {
                     arr[0].uncompress();
-                    newRectangle = new Rectangle(0, 0, arr[1], arr[2]);
+                    newRectangle = new Rectangle(0, 0, arr[1],arr[2]);
 
                     if (ReplayController.rFirstImageLayer1BitmapData)
                     {
@@ -165,29 +191,6 @@ package Modules
                     ReplayController.rFirstImageLayer2BitmapData = new BitmapData(arr[1], arr[2], true, 0);
 
                     ReplayController.rFirstImageBGColor = arr[3];
-                }
-                else
-                {
-                    arr[0].uncompress();
-                    newRectangle = new Rectangle(0, 0, arr[2], arr[3]);
-
-                    if (ReplayController.rFirstImageLayer1BitmapData)
-                        ReplayController.rFirstImageLayer1BitmapData.dispose();
-                    ReplayController.rFirstImageLayer1BitmapData = new BitmapData(arr[2], arr[3], true, 0);
-                    ReplayController.rFirstImageLayer1BitmapData.lock();
-                    ReplayController.rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
-                    ReplayController.rFirstImageLayer1BitmapData.unlock();
-
-                    arr[1].uncompress();
-
-                    if (ReplayController.rFirstImageLayer2BitmapData)
-                        ReplayController.rFirstImageLayer2BitmapData.dispose();
-                    ReplayController.rFirstImageLayer2BitmapData = new BitmapData(arr[2], arr[3], true, 0);
-                    ReplayController.rFirstImageLayer2BitmapData.lock();
-                    ReplayController.rFirstImageLayer2BitmapData.setPixels(newRectangle, arr[1]);
-                    ReplayController.rFirstImageLayer2BitmapData.unlock();
-
-                    ReplayController.rFirstImageBGColor = arr[4];
                 }
             }
             else
