@@ -415,9 +415,9 @@ package Modules
                             main.stage.nativeWindow.activate();
                         }
 
-                        ReplayController.rDataIndex = UndoManager.undoDataIndex;
-                        ReplayController.rNowFrame = ReplayController.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex);
-                        ReplayController.rPrevFrame = ReplayController.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex - 1);
+                        ReplayDrawer.rMemoryDataIndex = UndoManager.undoDataIndex;
+                        ReplayDrawer.rNowFrame = ReplayController.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex);
+                        ReplayDrawer.rPrevFrame = ReplayController.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex - 1);
 
                         // 혹시 몰라서 위치 체크 해줌
                         CanvasController.canvasInfoBox.setRotate(CanvasController.canvasAnchorPoint.rotation);

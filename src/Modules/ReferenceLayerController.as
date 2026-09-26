@@ -614,13 +614,13 @@ package Modules
                 command = "clear2";
             }
 
-            if (ReplayController.hasLastRDataCommand(command))
+            if (ReplayController.hasLastRMemoryDataCommand(command))
             {
                 UndoController.addContinue();
             }
             else
             {
-                ReplayController.rDataBuffer = [[command]];
+                ReplayController.rMemoryDataBuffer = [[command]];
                 UndoController.addNew();
             }
 

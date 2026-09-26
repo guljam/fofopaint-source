@@ -17,16 +17,16 @@ package Modules
         {
             if (UndoManager.canAddUndoData === false)
             {
-                ReplayController.rDataBuffer = [];
+                ReplayController.rMemoryDataBuffer = [];
                 CanvasController.canvasDrawLayerChild.graphics.clear();
                 return;
             }
 
             if (UndoManager.isDeepUndoEnabled)
             {
-                var rDataBufferSave:Array = ReplayController.rDataBuffer.concat();
+                var rDataBufferSave:Array = ReplayController.rMemoryDataBuffer.concat();
                 UndoManager.applyDeepUndo();
-                ReplayController.rDataBuffer = rDataBufferSave;
+                ReplayController.rMemoryDataBuffer = rDataBufferSave;
                 rDataBufferSave = null;
             }
 
@@ -76,7 +76,7 @@ package Modules
                 }
             }
 
-            ReplayController.rDataBuffer.push(["drawDone5", CanvasController.isLayer2Selected]);
+            ReplayController.rMemoryDataBuffer.push(["drawDone5", CanvasController.isLayer2Selected]);
 
             if (CanvasController.isLayer2Selected)
             {

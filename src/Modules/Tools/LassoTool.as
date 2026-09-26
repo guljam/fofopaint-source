@@ -162,7 +162,7 @@ package Modules.Tools
                     l1 = false;
                     l2 = true;
                 }
-                ReplayController.rDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
+                ReplayController.rMemoryDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
                 UndoController.addNew();
                 disposeAllLayerBitmapData();
                 resetLassoBox();
@@ -875,7 +875,7 @@ package Modules.Tools
                         checklayer1 = false;
                         checklayer2 = true;
                     }
-                    ReplayController.rDataBuffer.push(["lasso2", point1, point2
+                    ReplayController.rMemoryDataBuffer.push(["lasso2", point1, point2
                                 , lassoInfo
                                 , isLassoImageCopied
                                 , checklayer1

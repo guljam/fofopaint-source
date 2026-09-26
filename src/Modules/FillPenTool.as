@@ -383,7 +383,7 @@ package Modules
                 data.push(data[1]); // 마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
 
                 CanvasController.canvasDrawLayer.alpha = xAlpha;
-                ReplayController.rDataBuffer.push(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), ToolController.isPenAirBrushON, PenTool.airBrushSizeDrawMode]);
+                ReplayController.rMemoryDataBuffer.push(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), ToolController.isPenAirBrushON, PenTool.airBrushSizeDrawMode]);
 
                 showFillColor();
             }

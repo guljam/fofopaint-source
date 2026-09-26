@@ -203,14 +203,14 @@ package Modules.Tools
 
 					updateExtendEndPoint(mx, my, filteredStartPos.x, filteredStartPos.y, xSize / 8);
 
-					ReplayController.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
+					ReplayController.rMemoryDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
 					penPoints.push(extendedPos.x);
 					penPoints.push(extendedPos.y);
 					CanvasController.canvasDrawLayerChild.graphics.moveTo(extendedPos.x, extendedPos.y);
 				}
 				else
 				{
-					ReplayController.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
+					ReplayController.rMemoryDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
 					penPoints.push(smoothPos.x + offsetForSharpline);
 					penPoints.push(smoothPos.y + offsetForSharpline);
 					CanvasController.canvasDrawLayerChild.graphics.moveTo(smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline);
@@ -224,7 +224,7 @@ package Modules.Tools
 					return;
 				}
 
-				ReplayController.rDataBuffer.push(["lineTo", mx, my]);
+				ReplayController.rMemoryDataBuffer.push(["lineTo", mx, my]);
 				penCommand.push(2);
 				penPoints.push(mx);
 				penPoints.push(my);
@@ -262,11 +262,11 @@ package Modules.Tools
 					penCommand.length = 0;
 					penPoints.length = 0;
 
-					ReplayController.rDataBuffer.push(["tempDone4"]);
+					ReplayController.rMemoryDataBuffer.push(["tempDone4"]);
 
 					if (xShape === true)
 					{
-						ReplayController.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
+						ReplayController.rMemoryDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
 						penCommand.push(1);
 						penPoints.push(prevX);
 						penPoints.push(prevY);
@@ -274,7 +274,7 @@ package Modules.Tools
 					}
 					else
 					{
-						ReplayController.rDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
+						ReplayController.rMemoryDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
 						penCommand.push(1);
 						penPoints.push(mx);
 						penPoints.push(my);
@@ -390,7 +390,7 @@ package Modules.Tools
 					{
 						updateExtendEndPoint(penPoints[pointLen - 4], penPoints[pointLen - 3], penPoints[pointLen - 2], penPoints[pointLen - 1], xSize / 8);
 
-						ReplayController.rDataBuffer.push(["lineTo", extendedPos.x, extendedPos.y]);
+						ReplayController.rMemoryDataBuffer.push(["lineTo", extendedPos.x, extendedPos.y]);
 						CanvasController.canvasDrawLayerChild.graphics.lineTo(extendedPos.x, extendedPos.y);
 					}
 				}
@@ -398,8 +398,8 @@ package Modules.Tools
 
 			if (isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag))
 			{
-				ReplayController.rDataBuffer = [];
-				ReplayController.rDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasController.isLayer2Selected, airBrushSizeDrawMode, CanvasController.canvasAnchorPoint.rotation]);
+				ReplayController.rMemoryDataBuffer = [];
+				ReplayController.rMemoryDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasController.isLayer2Selected, airBrushSizeDrawMode, CanvasController.canvasAnchorPoint.rotation]);
 
 				DotTool.start(xShape, xSize, xColor, clickPos.x, clickPos.y, CanvasController.canvasAnchorPoint.rotation);
 				CanvasController.resetCanvasDrawLayerCliprect();

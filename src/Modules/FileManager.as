@@ -335,7 +335,7 @@ package Modules
         public static function loadImageFile(width:Number, height:Number, layer1Image:IBitmapDrawable, layer2Image:IBitmapDrawable):void
         {
             ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
-            ReplayController.setRFileTotalFrame(0);
+            ReplayController.setRFileDataTotalFrame(0);
             ReplayController.rReplayImageCacheState = ReplayController.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReferenceLayerController.refLayerRawBitmapData = null;
             ReferenceLayerController.refLayerRawTransformData = null;
@@ -1166,11 +1166,11 @@ package Modules
                 {
                     // 마지막 바이트가 0이상일때만 읽어주어야함
                     // ReplayController.rFileLastBytePosition = 0이면 안읽는것이 아니고 전체 바이트를 읽음그래서 0이면 안읽게 해주어야함
-                    if (ReplayController.rFileLastBytePosition > 0)
+                    if (ReplayDrawer.rFileLastBytePosition > 0)
                     {
                         fs.open(repFileTemp, FileMode.READ);
                         fs.position = 0;
-                        fs.readBytes(replayDataReadBytes, 0, ReplayController.rFileLastBytePosition);
+                        fs.readBytes(replayDataReadBytes, 0, ReplayDrawer.rFileLastBytePosition);
                         fs.close();
                     }
                 }
@@ -1185,11 +1185,11 @@ package Modules
                     replayDataReadBytes.position = replayDataReadBytes.length;
                     for (var i:int = 0, len:int = UndoManager.undoDataIndex;i <= len;i++) // 리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
                     {
-                        if (ReplayController.rData[i] && ReplayController.rData[i].length === 0)
+                        if (ReplayController.rMemoryData[i] && ReplayController.rMemoryData[i].length === 0)
                         {
                             continue;
                         }
-                        replayDataReadBytes.writeObject(ReplayController.rData[i]);
+                        replayDataReadBytes.writeObject(ReplayController.rMemoryData[i]);
                     }
                 }
                 BackgroundWorkerCoordinator.startReplayDataCompressionWorker(rLayer1FirstImageData, rLayer2FirstImageData, rLayer1CurrentImageData, rLayer2CurrentImageData, ReferenceLayerController.refLayerImageData, replayDataReadBytes);
@@ -1768,11 +1768,11 @@ package Modules
 
             if (arr[6] is Number)
             {
-                ReplayController.setRFileTotalFrame(arr[6]);
+                ReplayController.setRFileDataTotalFrame(arr[6]);
             }
 
-            ReplayController.rData = (fs.readObject() as Array).concat();
-            ReplayController.rDataFrame = (fs.readObject() as Array).concat();
+            ReplayController.rMemoryData = (fs.readObject() as Array).concat();
+            ReplayController.rMemoryDataFrame = (fs.readObject() as Array).concat();
             fs.close();
 
             UndoManager.undoDataIndex = lastUndoIndex;
@@ -1800,7 +1800,7 @@ package Modules
             arr = null;
 
             // undo index가 arr의 가장 마지막 부분이 아니면 undo를 하던 중이니까 isDeleteUndoDataPending 켜줌
-            if (lastUndoIndex < ReplayController.rData.length - 1)
+            if (lastUndoIndex < ReplayController.rMemoryData.length - 1)
             {
                 UndoManager.isDeleteUndoDataPending = true;
             }
@@ -1827,13 +1827,13 @@ package Modules
             // ba.compress();
             // ba1.compress();
             // 레이어 1,레이어2,가로,세로,배경색, repdata 합계 프레임
-            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayController.getRFileTotalFrame()];
+            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayController.getRFileDataTotalFrame()];
 
             fs.open(undoDataFilePath, FileMode.WRITE);
             fs.writeInt(UndoManager.undoDataIndex);
             fs.writeObject(newArr);
-            fs.writeObject(ReplayController.rData);
-            fs.writeObject(ReplayController.rDataFrame);
+            fs.writeObject(ReplayController.rMemoryData);
+            fs.writeObject(ReplayController.rMemoryDataFrame);
             fs.close();
 
             ba.clear();

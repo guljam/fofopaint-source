@@ -27,7 +27,7 @@ package Modules
         public static var lastDeepUndoEnabledFlag:Boolean = false; // 리플레이 켜줄때 딥 플래그를 꺼줘서 여기다가 미리 저장해둠
         public static var lastReplayFrameOnDeepUndoStart:Number = -1; // 리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼주고 다시 undo실행할때 이 프레임 기준으로 하려고
         private static var _mirrorCommandReady:Boolean = false; // 미러 커맨드를 넣어줄지 말지 결정
-
+        
         // Undo 매니저 클로저 객체
         public static var addUndoData:Object;
 
@@ -86,9 +86,9 @@ package Modules
 
             UndoController.resetRJumpImageCount();
 
-            ReplayController.rData = [];
-            ReplayController.rDataFrame = [];
-            ReplayController.rDataBuffer = [];
+            ReplayController.rMemoryData = [];
+            ReplayController.rMemoryDataFrame = [];
+            ReplayController.rMemoryDataBuffer = [];
 
             canAddUndoData = false;
             isDeleteUndoDataPending = false;
@@ -98,7 +98,7 @@ package Modules
 
         public static function getHowCanvasMoveAfterUndoOrRedo(index:int, redoFlag:Boolean):Point
         {
-            const prevData:Array = (redoFlag) ? ReplayController.rData[index] : ReplayController.rData[index + 1];
+            const prevData:Array = (redoFlag) ? ReplayController.rMemoryData[index] : ReplayController.rMemoryData[index + 1];
 
             if (!prevData)
                 return null;
@@ -132,7 +132,7 @@ package Modules
                 CanvasController.applyReplayCanvasToDrawModeCanvas();
                 Utils.showDisplayTargetAndFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
 
-                if (ReplayController.rNowFrame >= ReplayController.getRFileTotalFrame())
+                if (ReplayDrawer.rNowFrame >= ReplayController.getRFileDataTotalFrame())
                 {
                     exitDeepUndo();
                     undoDataIndex = -1;
@@ -142,13 +142,13 @@ package Modules
             {
                 undoDataIndex++;
 
-                if (undoDataIndex > ReplayController.rData.length - 1)
+                if (undoDataIndex > ReplayController.rMemoryData.length - 1)
                 {
                     FileManager.isFileAlreadySaved = false;
                     isDeleteUndoDataPending = false;
-                    undoDataIndex = ReplayController.rData.length - 1;
+                    undoDataIndex = ReplayController.rMemoryData.length - 1;
                 }
-                else if (ReplayController.rData.length > 0)
+                else if (ReplayController.rMemoryData.length > 0)
                 {
                     FileManager.isFileAlreadySaved = false;
                     UndoManager.updateCanvasStateAfterRedo();
@@ -169,7 +169,7 @@ package Modules
         {
             isDeepUndoEnabled = false;
             lastDeepUndoEnabledFlag = false;
-            ReplayController.rDataReadFlag = true;
+            ReplayDrawer.rMemoryDataReadON = true;
             showRCursorOnUndo(-1);
             ReplayController.clearRFrameTempCache();
         }
@@ -177,12 +177,12 @@ package Modules
         public static function enterDeepUndo():void
         {
             isDeepUndoEnabled = true;
-            ReplayController.rDataReadFlag = false;
+            ReplayDrawer.rMemoryDataReadON = false;
             ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayController.getTotalFrame());
             // 이미지 캐시 해주고 rPrevFrame 갱신해주고
-            ReplayController.renderReplayFrame(ReplayController.getRFileTotalFrame() - 1, ReplayController.JUMP_FRAME_MANUAL);
+            ReplayController.renderReplayFrame(ReplayController.getRFileDataTotalFrame() - 1, ReplayDrawer.JUMP_FRAME_MANUAL);
             // 실제 rPrevFrame으로 점프
-            ReplayController.renderReplayFrame(ReplayController.rPrevFrame, ReplayController.JUMP_FRAME_MANUAL);
+            ReplayController.renderReplayFrame(ReplayDrawer.rPrevFrame, ReplayDrawer.JUMP_FRAME_MANUAL);
             CanvasController.applyReplayCanvasToDrawModeCanvas();
         }
 
@@ -191,11 +191,11 @@ package Modules
         {
             const fs:FileStream = new FileStream();
             fs.open(FileManager.replayDataFilePath, FileMode.UPDATE);
-            fs.position = ReplayController.rFileLastBytePosition;
+            fs.position = ReplayDrawer.rFileLastBytePosition;
             fs.truncate(); // 데이터 위에 짤라주고
             fs.close();
             // 썸네일 이미지도 날려줌
-            const rNowFrameSave:Number = ReplayController.rNowFrame;
+            const rNowFrameSave:Number = ReplayDrawer.rNowFrame;
             const list:Array = FileManager.replayCacheImageFolderPath.getDirectoryListing();
             const index:Number = ReplayController.getCachedFrameImageIndex(rNowFrameSave);
             const len:uint = list.length;
@@ -209,7 +209,7 @@ package Modules
             }
             // framedata도 인덱스 이후꺼 날려줌
             ReplayController.rJumpImageFrameData.splice(index + 1);
-            ReplayController.setRFileTotalFrame(rNowFrameSave);
+            ReplayController.setRFileDataTotalFrame(rNowFrameSave);
             ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
             ReplayController.resetReplayTime();
             UndoManager.resetUndoState(true);
@@ -231,7 +231,7 @@ package Modules
             }
             if (UndoManager.isDeepUndoEnabled)
             {
-                if (ReplayController.rNowFrame > 0)
+                if (ReplayDrawer.rNowFrame > 0)
                 {
                     ReplayController.moveToPreviousStep();
                     CanvasController.applyReplayCanvasToDrawModeCanvas();
@@ -248,7 +248,7 @@ package Modules
                     UndoManager.enterDeepUndo();
                     Utils.showDisplayTargetAndFadeOut(ReplayController.rReplayFOFOCursor, 1.0, 0.3);
                 }
-                else if (ReplayController.rData.length > 0)
+                else if (ReplayController.rMemoryData.length > 0)
                 {
                     FileManager.isFileAlreadySaved = false;
                     UndoManager.isDeleteUndoDataPending = true;

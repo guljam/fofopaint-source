@@ -330,9 +330,9 @@ package Modules
 
         public static function mergeImageIntoLayer2():void
         {
-            if (ReplayController.hasLastRDataCommand("merge"))
+            if (ReplayController.hasLastRMemoryDataCommand("merge"))
             {
-                ReplayController.deleteLastRDataCommand("merge");
+                ReplayController.deleteLastRMemoryDataCommand("merge");
             }
             else
             {
@@ -342,7 +342,7 @@ package Modules
                 }
                 canvasLayer2BitmapData.draw(canvasLayer1BitmapData);
                 canvasLayer1BitmapData.fillRect(new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT), 0);
-                ReplayController.rDataBuffer.push(["merge"]);
+                ReplayController.rMemoryDataBuffer.push(["merge"]);
                 UndoController.addNew();
             }
             ToolController.toolOptionsBox.layerMergeButton.alpha = Global.OFFALPHA;
@@ -370,13 +370,13 @@ package Modules
             tempbmpd11.dispose();
             tempbmpd1 = null;
             tempbmpd11 = null;
-            if (ReplayController.hasLastRDataCommand("swap"))
+            if (ReplayController.hasLastRMemoryDataCommand("swap"))
             {
-                ReplayController.deleteLastRDataCommand("swap");
+                ReplayController.deleteLastRMemoryDataCommand("swap");
             }
             else
             {
-                ReplayController.rDataBuffer.push(["swap"]);
+                ReplayController.rMemoryDataBuffer.push(["swap"]);
                 UndoController.addNew();
             }
             playLayerSwapEffect(ToolController.toolOptionsBox.layerSwapButton);
@@ -1057,7 +1057,7 @@ package Modules
                         }
                         applyCavnvasSizeDrawMode(finalWidth, finalHeight, subX, subY, centerMovedFlag);
                         MainUIController.updateResizeButtonPos(finalWidth, finalHeight);
-                        ReplayController.rDataBuffer.push(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
+                        ReplayController.rMemoryDataBuffer.push(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
                         UndoController.addNew();
                         if (ImageViewWindow.isCanvasWindowON)
                         {

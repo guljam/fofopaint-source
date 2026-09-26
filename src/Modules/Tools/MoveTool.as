@@ -110,28 +110,28 @@ package Modules.Tools
                 if (CanvasController.checkedLayer === 1)
                 {
                     command = "move1";
-                    ReplayController.rDataBuffer.push([command, movex, movey]);
+                    ReplayController.rMemoryDataBuffer.push([command, movex, movey]);
                 }
                 else if (CanvasController.checkedLayer === 2)
                 {
                     command = "move2";
-                    ReplayController.rDataBuffer.push([command, movex1, movey1]);
+                    ReplayController.rMemoryDataBuffer.push([command, movex1, movey1]);
                 }
                 else
                 {
                     if (!CanvasController.canvasLayer2Bitmap.visible)
                     {
                         command = "move1";
-                        ReplayController.rDataBuffer.push([command, movex, movey]);
+                        ReplayController.rMemoryDataBuffer.push([command, movex, movey]);
                     }
                     else if (!CanvasController.canvasLayer1Bitmap.visible)
                     {
                         command = "move2";
-                        ReplayController.rDataBuffer.push([command, movex1, movey1]);
+                        ReplayController.rMemoryDataBuffer.push([command, movex1, movey1]);
                     }
                     else
                     {
-                        ReplayController.rDataBuffer.push([command, movex, movey]);
+                        ReplayController.rMemoryDataBuffer.push([command, movex, movey]);
                     }
                 }
 
