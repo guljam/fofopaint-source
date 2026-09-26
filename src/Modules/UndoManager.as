@@ -293,7 +293,7 @@ package Modules
             // updateMirrorStateDrawModeNotSameRreplayMirrorState 이 함수 직전에 해줘야 나중에 제대로 대칭된 좌표가 됨
             UndoManager.showRCursorOnUndo(UndoManager.undoDataIndex);
 
-            ReplayController.updateMirrorStateDrawModeNotSameRreplayMirrorState();
+            ReplayController.preserveDrawMirrorStateAfterReplayCopy();
             CanvasController.canvasNavigatorBox.updateImage();
             CanvasController.setCanvasBGColorDrawMode(ReplayController.RCANVAS_BG_COLOR);
             CanvasController.updateCanvasPanelColorAndSize();

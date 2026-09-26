@@ -910,11 +910,12 @@ package Modules
             fs.open(file, FileMode.READ);
             const data:Array = fs.readObject() as Array;
             fs.close();
+            const metadata:CacheImageMetaData = data[2];
             data[0].uncompress();
             data[1].uncompress();
-            var layer1:BitmapData = new BitmapData(data[2], data[3], true, 0);
-            var layer2:BitmapData = new BitmapData(data[2], data[3], true, 0);
-            const newRectangle:Rectangle = new Rectangle(0, 0, data[2], data[3]);
+            var layer1:BitmapData = new BitmapData(metadata.bmpdWidth, metadata.bmpdHeight, true, 0);
+            var layer2:BitmapData = new BitmapData(metadata.bmpdWidth, metadata.bmpdHeight, true, 0);
+            const newRectangle:Rectangle = new Rectangle(0, 0, metadata.bmpdWidth, metadata.bmpdHeight);
             layer1.lock();
             layer1.setPixels(newRectangle, data[0]);
             layer1.unlock();
@@ -928,8 +929,8 @@ package Modules
             layer1 = null;
             layer2 = null;
             updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
-            updateCanvasBGColorReplayMode(data[4]);
-            rMirrorON = data[7];
+            updateCanvasBGColorReplayMode(metadata.bgColor);
+            rMirrorON = metadata.mirrorFlag;
         }
 
         public static function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint, mirrorFlag:Boolean = false):void
@@ -1385,15 +1386,12 @@ package Modules
             rPrevFrame = _frameSumLast;
             isReplayFinished = true;
 
-            if (UndoManager.mirrorCommandReady)
-            {
-                rMirrorON = !rMirrorON;
-                UndoManager.mirrorCommandReady = rMirrorON;
-            }
-
             CanvasController.isCanvasMirrored = rMirrorON;
+            UndoManager.mirrorCommandReady = false;
             UndoController.updateUndoBaseImageMirrorFlag(rMirrorON);
             CanvasController.canvasInfoBox.setMirror(rMirrorON);
+            CanvasGridOverlay.updateGridMirror(rMirrorON);
+
             CanvasController.canvasNavigatorBox.visible = true;
 
             if (isReplayModeON)
@@ -2392,8 +2390,8 @@ package Modules
             ReplayDrawCommands.setRCursorPos(curcorX, p.y);
         }
 
-        // 드로우 모드와 리플레이 모드 캔버스 미러가 다를경우 undo 적용 이후에 mirror커맨드 넣어주도록 함
-        public static function updateMirrorStateDrawModeNotSameRreplayMirrorState():void
+        // 드로우 모드와 리플레이 모드 캔버스 미러가 다를경우 undo적용 이후에 mirror되는 것을 방지하고 mirror준비를 넣어주도록 함
+        public static function preserveDrawMirrorStateAfterReplayCopy():void
         {
             if (CanvasController.isCanvasMirrored !== rMirrorON)
             {

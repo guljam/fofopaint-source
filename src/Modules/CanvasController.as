@@ -1612,7 +1612,7 @@ package Modules
             setCanvasBGColorDrawMode(ReplayController.RCANVAS_BG_COLOR);
             updateCanvasPanelColorAndSize();
             FileManager.isFileAlreadySaved = false;
-            ReplayController.updateMirrorStateDrawModeNotSameRreplayMirrorState();
+            ReplayController.preserveDrawMirrorStateAfterReplayCopy();
             CanvasController.canvasNavigatorBox.updateImage();
             if (ImageViewWindow.isCanvasWindowON)
             {

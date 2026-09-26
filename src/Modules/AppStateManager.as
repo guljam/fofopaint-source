@@ -30,7 +30,7 @@ package Modules
             }
         }
 
-        public static function saveAppSatate():void
+        public static function saveAppState():void
         {
             const appStateObject:AppStateVars = new AppStateVars();
             appStateObject.canvasZoomIndex = CanvasController.canvasZoomIndex;
@@ -83,7 +83,6 @@ package Modules
             appStateObject.refLayerMenuBox1 = ReferenceLayerController.refLayerMenuBox.y;
 
             appStateObject.isCanvasMirrored = CanvasController.isCanvasMirrored;
-            appStateObject.rFirstImageMirrorFlag = ReplayController.rFirstImageMirrorFlag;
 
             appStateObject.gridValue = CanvasGridOverlay.gridGapMultiplier;
             appStateObject.hsvColorData0 = ColorPickerController.hsvColorData[0];
@@ -168,7 +167,7 @@ package Modules
                     ReplayController.rFirstImageLayer2BitmapData.unlock();
 
                     ReplayController.rFirstImageBGColor = metaData.bgColor;
-
+                    ReplayController.rFirstImageMirrorFlag = metaData.mirrorFlag;
                 }
                 else //구버전
                 {
@@ -388,8 +387,6 @@ package Modules
 
                         if (CanvasController.isCanvasMirrored !== appStateObject.isCanvasMirrored)
                             CanvasController.mirrorCanvas(true);
-
-                        ReplayController.rFirstImageMirrorFlag = appStateObject.rFirstImageMirrorFlag;
 
                         // Grid Overlay
                         CanvasGridOverlay.gridGapMultiplier = appStateObject.gridValue;

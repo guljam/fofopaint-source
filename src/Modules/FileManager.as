@@ -1589,7 +1589,7 @@ package Modules
 
         public static function saveAllAppData():void
         {
-            AppStateManager.saveAppSatate();
+            AppStateManager.saveAppState();
             saveUndoData();
             saveReplayFrameData();
             ReferenceLayerController.saveRefLayerImage();
