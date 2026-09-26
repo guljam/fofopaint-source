@@ -71,6 +71,11 @@
 			hintText.textColor = color;
 		}
 
+		public function hasHintText(str:String):Boolean
+		{
+			return hintText.text === str;
+		}
+
 		public function setHintText(str:String):void
 		{
 			hintText.text = str;

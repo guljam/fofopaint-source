@@ -144,12 +144,12 @@ package Modules
 			if (FillPenTool.isStarted || LineTool.isStarted)
 			{
 				if (target.alpha > 0.5
-				&&
-				(ToolController.toolBox.contains(target)
-				|| CanvasController.canvasInfoBox.contains(target)
-				|| ColorPickerController.colorPickerBox.contains(target))
-				|| target === SidebarController.sideBarScrollBar
-				|| (targetName && targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) !== -1))
+						&&
+						(ToolController.toolBox.contains(target)
+							|| CanvasController.canvasInfoBox.contains(target)
+							|| ColorPickerController.colorPickerBox.contains(target))
+						|| target === SidebarController.sideBarScrollBar
+						|| (targetName && targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) !== -1))
 				{
 					return true;
 				}
@@ -328,19 +328,34 @@ package Modules
 				return;
 			}
 
-			bottomHint.setHintText(str);
+			const wasVisible:Boolean = bottomBar.visible && bottomHint.visible;
+			const textChanged:Boolean = !bottomHint.hasHintText(str);
+
+			if (textChanged)
+			{
+				bottomHint.setHintText(str);
+			}
+
 			bottomHint.show();
-			MainUIController.updateBottomBarLayoutAndColor();
+
+			if (!bottomBar.visible)
+			{
+				MainUIController.updateBottomBarLayoutAndColor();
+			}
+
 			bottomBar.visible = true;
 			Utils.setAsTopChild(bottomBar);
 
-			if (bottomHint.width > main.stage.stageWidth)
+			if (textChanged || !wasVisible)
 			{
-				startBottomHintScrolling();
-			}
-			else
-			{
-				stopBottomHintScrolling();
+				if (bottomHint.width > main.stage.stageWidth)
+				{
+					startBottomHintScrolling();
+				}
+				else
+				{
+					stopBottomHintScrolling();
+				}
 			}
 		}
 

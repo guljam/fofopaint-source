@@ -29,7 +29,7 @@ package Modules
         private static const resizeButtonSize:Number = 14.0;
         private static const resizeButtonPos:Point = new Point(0, 0);
         private static var minSize:Number = 10.0;
-        private static const mouseMoveOffset:Number = 5.0;
+        private static const mouseMoveThreshold:Number = 5.0;
 
         private static function validateCaptureArea():void
         {
@@ -64,7 +64,7 @@ package Modules
             }
         }
 
-        private static function onMouseMoveCaptureAreaDrawed(e:MouseEvent):void
+        private static function onMouseMoveCaptureAreaDraw(e:MouseEvent):void
         {
             if (!CaptureController.isCaptureModeON)
             {
@@ -220,10 +220,10 @@ package Modules
                 clickPos.setTo(xPanel.mouseX, xPanel.mouseY);
                 drawArea(false);
             }
-            else if (Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset)
+            else if (Math.abs(subX) >= mouseMoveThreshold || Math.abs(subY) >= mouseMoveThreshold)
             {
                 mouseMoved = true;
-                clickPos.setTo(mx, my);
+                // clickPos.setTo(mx, my);
                 CaptureStamp.setVisible(false);
             }
         }
@@ -253,7 +253,7 @@ package Modules
                 MainUI.showBottomHint(getRotatedRectSizeString());
                 drawArea(false);
             }
-            else if (Math.abs(subX) >= mouseMoveOffset || Math.abs(subY) >= mouseMoveOffset)
+            else if (Math.abs(subX) >= mouseMoveThreshold || Math.abs(subY) >= mouseMoveThreshold)
             {
                 rectRaw.x = clickPos.x;
                 rectRaw.y = clickPos.y;
@@ -263,7 +263,7 @@ package Modules
                 rectClamped.y = rectRaw.y;
                 rectClamped.width = rectRaw.width;
                 rectClamped.height = rectRaw.height;
-                clickPos.setTo(mx, my);
+                // clickPos.setTo(mx, my);
                 MainUI.showBottomHint(getRotatedRectSizeString());
                 mouseMoved = true;
                 CaptureStamp.setVisible(false);
@@ -290,13 +290,13 @@ package Modules
         private static function removeCaptureAreaEvents():void
         {
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawCaptureArea);
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCaptureAreaDrawed);
+            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCaptureAreaDraw);
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
         }
 
         public static function updateDrawArea(forceFlag:Boolean = false):void
         {
-            if (rectClamped.width > minSize && rectClamped.height > minSize || forceFlag)
+            if ((rectClamped.width >= minSize && rectClamped.height >= minSize) || forceFlag)
             {
                 drawArea(true);
             }
@@ -435,7 +435,7 @@ package Modules
             rectClamped.height = 0;
             rectRaw.x = 0;
             rectRaw.y = 0;
-            rectRaw.width = 0;
+            rectRaw.width = 0;  
             rectRaw.height = 0;
             rectFull.x = 0;
             rectFull.y = 0;
@@ -518,12 +518,13 @@ package Modules
             limitWidthSave = rectClamped.x + rectClamped.width;
             limitHeightSave = rectClamped.y + rectClamped.height;
             clickPos.setTo(mx, my);
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCaptureAreaDrawed);
+            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCaptureAreaDraw);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
         }
 
         public static function start():void
         {
+            
             if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
                 if (ReplayController.isReplayModeON) // 리플레이 변수로 변경
@@ -548,11 +549,13 @@ package Modules
                 rectFull.height = canvasHeight;
                 resizeFlag = false;
 
-                if (isCursorInResizeButton())
+                const hasCaptureArea:Boolean = !isFullImageCapture();
+
+                if (hasCaptureArea && isCursorInResizeButton())
                 {
                     startUpdatingCaptureAreaPosSize(mx, my, true);
                 }
-                else if (isCursorInCaptureDrea())
+                else if ( hasCaptureArea && isCursorInCaptureDrea())
                 {
                     startUpdatingCaptureAreaPosSize(mx, my, false);
                 }
