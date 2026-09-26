@@ -291,7 +291,7 @@ package Modules
 
             try
             {
-                const newPath:String = FileManager.lastSaveFilePath.substr(0, FileManager.lastSaveFilePath.lastIndexOf(".png")) + ".2020";
+                const newPath:String = getReplayFileNameFromPath(FileManager.lastSaveFilePath);
                 FileManager.repFileTemp.moveTo(new File(newPath), true);
             }
             catch (err:Error)
@@ -628,15 +628,7 @@ package Modules
         {
             // jumpFlag 1번은 마우스 커서로 이동, 2,3번은 스트로크 단위혹은 프레임 단위로 앞뒤로 탐색
             var rDataLen:uint;
-            var savedTime:int;
-            var rFrameCursorDelayTime:int = 0; // 커서 딜레이
-            var _rFrameTextDelayTime:int = 0; // 프레임 바 딜레이
-            var getTimeStr:String;
-            var timeStr:String;
             var readCount:Number = 0;
-            var jumpImageGroupIndex:int;
-            var nowJumpFlag:Boolean;
-            const cursorUpdateTime:int = main.stage.frameRate * 2;
 
             function makeMemoryCacheImage(completedStepStartFrame:Number):void
             {
@@ -772,7 +764,6 @@ package Modules
                         drawFromMemoryData(readCount, jumpFlag);
                     }
                 }
-
             };
         }
 
@@ -899,34 +890,48 @@ package Modules
             return rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING;
         }
 
-        private static function drawFirstJumpImage():void
+        private static function loadReplayCacheImage(index:int):Object
         {
+            const file:File = FileManager.replayCacheImageFolderPath.resolvePath(String(index));
             const fs:FileStream = new FileStream();
-            const file:File = FileManager.replayCacheImageFolderPath.resolvePath("0");
             fs.open(file, FileMode.READ);
+
             const data:Array = fs.readObject() as Array;
             fs.close();
-            const metadata:CacheImageMetaData = data[2];
+
             data[0].uncompress();
             data[1].uncompress();
-            var layer1:BitmapData = new BitmapData(metadata.bmpdWidth, metadata.bmpdHeight, true, 0);
-            var layer2:BitmapData = new BitmapData(metadata.bmpdWidth, metadata.bmpdHeight, true, 0);
-            const newRectangle:Rectangle = new Rectangle(0, 0, metadata.bmpdWidth, metadata.bmpdHeight);
-            layer1.lock();
-            layer1.setPixels(newRectangle, data[0]);
-            layer1.unlock();
-            layer2.lock();
-            layer2.setPixels(newRectangle, data[1]);
-            layer2.unlock();
-            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, layer1, rCanvasLayer1Bitmap);
-            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, layer2, rCanvasLayer2Bitmap);
-            layer1.dispose();
-            layer2.dispose();
-            layer1 = null;
-            layer2 = null;
+
+            const metadata:CacheImageMetaData = data[2] as CacheImageMetaData;
+            const rect:Rectangle = new Rectangle(0, 0, metadata.bmpdWidth, metadata.bmpdHeight);
+            const layer1:BitmapData = new BitmapData(metadata.bmpdWidth,metadata.bmpdHeight,true,0);
+            const layer2:BitmapData = new BitmapData( metadata.bmpdWidth,metadata.bmpdHeight,true,0);
+
+            layer1.setPixels(rect, data[0]);
+            layer2.setPixels(rect, data[1]);
+
+            data[0].clear();
+            data[1].clear();
+
+            return {
+                bmpd1:layer1,
+                bmpd2:layer2,
+                metadata:metadata
+            };
+        }
+
+        private static function drawFirstJumpImage():void
+        {
+            const cacheImageData:Object = loadReplayCacheImage(0);
+
+            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, cacheImageData.bmpd1, rCanvasLayer1Bitmap);
+            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, cacheImageData.bmpd2, rCanvasLayer2Bitmap);
+            cacheImageData.bmpd1.dispose();
+            cacheImageData.bmpd2.dispose();
+
             updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
-            updateCanvasBGColorReplayMode(metadata.bgColor);
-            rMirrorON = metadata.mirrorFlag;
+            updateCanvasBGColorReplayMode(cacheImageData.metadata.bgColor);
+            rMirrorON = cacheImageData.metadata.mirrorFlag;
         }
 
         public static function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint, mirrorFlag:Boolean = false):void
@@ -1099,7 +1104,7 @@ package Modules
 
         public static function drawCacheImageFirst(tragetFrame:Number):Number
         {
-            const index:Number = getCachedFrameImageIndex(tragetFrame);
+            const index:int = getCachedFrameImageIndex(tragetFrame);
             var cachedImageIndex:Number = -1; // 자잘 썸네일 인덱스를 넣어줌
             var loadCacheFlag:int = 0;
             var remainingFrameCount:Number = 0.0;
@@ -1144,27 +1149,10 @@ package Modules
                 }
                 else
                 {
-                    const file:File = FileManager.replayCacheImageFolderPath.resolvePath(String(index));
-                    const fs:FileStream = new FileStream();
-                    fs.open(file, FileMode.READ);
-                    cachedImageData = fs.readObject() as Array;
-                    fs.close();
-                    cachedImageData[0].uncompress();
-                    cachedImageData[1].uncompress();
-                    metaData = cachedImageData[2] as CacheImageMetaData;
-                    newrect = new Rectangle(0, 0, metaData.bmpdWidth, metaData.bmpdHeight);
-                    layer1bmpd = new BitmapData(metaData.bmpdWidth, metaData.bmpdHeight, true, 0);
-                    layer1bmpd.lock();
-                    layer1bmpd.setPixels(newrect, cachedImageData[0]);
-                    layer1bmpd.unlock();
-                    layer2bmpd = new BitmapData(metaData.bmpdWidth, metaData.bmpdHeight, true, 0);
-                    layer2bmpd.lock();
-                    layer2bmpd.setPixels(newrect, cachedImageData[1]);
-                    layer2bmpd.unlock();
-                    cachedImageData[0].clear();
-                    cachedImageData[0] = null;
-                    cachedImageData[1].clear();
-                    cachedImageData[1] = null;
+                    const cacheImageData:Object = loadReplayCacheImage(index);
+                    layer1bmpd = cacheImageData.bmpd1;
+                    layer2bmpd = cacheImageData.bmpd2;
+                    metaData = cacheImageData.metadata as CacheImageMetaData;
                 }
 
                 rJumpImageIndexLast = index;
@@ -2966,8 +2954,6 @@ package Modules
             const min:int = totalSec % 3600 / 60;
             const sec:int = totalSec % 60;
             var timeStr:String = "";
-
-            trace('hour',hour,"min",min,"sec",sec);
 
             if (hour > 0)
             {
