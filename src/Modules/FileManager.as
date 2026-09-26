@@ -80,6 +80,13 @@ package Modules
         private static var loadMenuBoxFileType:String;
         private static var loadMenuBoxFile:File;
 
+        // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
+        public static var lastWindowDeactivateTime:int = 0;
+    
+        // 앱종료할때 올려줌 창 최대화 되어있는 상태를 원래대로 하고 window resize이벤트에서 마지막에 종료 호출
+        public static var isAppClosing:Boolean = false;
+
+
         public static function writeCrashLog(errorObject:*):void
         {
             if (isWritingCrashLog || dataFolderPath === null)
@@ -155,16 +162,16 @@ package Modules
         public static function saveReplayFrameData():void
         {
             const fs:FileStream = new FileStream();
-            fs.open(FileManager.replayCacheImageFrameDataFilePath, FileMode.WRITE);
+            fs.open(replayCacheImageFrameDataFilePath, FileMode.WRITE);
             fs.writeObject(ReplayController.rJumpImageFrameData);
             fs.close();
         }
 
         public static function loadFOFOFile(oldFile:File):void // loadrep
         {
-            if (FileManager.isTrue2020File(oldFile) === false)
+            if (isTrue2020File(oldFile) === false)
             {
-                FileManager.showLoadFaildMouseHint();
+                showLoadFaildMouseHint();
                 return;
             }
 
@@ -189,7 +196,7 @@ package Modules
             var d:Array;
             var ba:ByteArray;
             var replayData:ByteArray = new ByteArray();
-            const isNew2020FileFlag:Boolean = FileManager.isNew2020File(oldFile);
+            const isNew2020FileFlag:Boolean = isNew2020File(oldFile);
 
             if (isNew2020FileFlag)
             {
@@ -299,7 +306,7 @@ package Modules
 
             if (isNew2020FileFlag)
             {
-                fs.open(FileManager.replayDataFilePath, FileMode.WRITE);
+                fs.open(replayDataFilePath, FileMode.WRITE);
                 fs.position = 0;
                 fs.writeBytes(replayData);
                 fs.close();
@@ -311,7 +318,7 @@ package Modules
                 fs.position = imgStartByte;
                 fs.truncate();
                 fs.close();
-                repFileTemp.moveTo(FileManager.replayDataFilePath, true);
+                repFileTemp.moveTo(replayDataFilePath, true);
             }
 
             if (repFileTemp.exists)
@@ -321,7 +328,7 @@ package Modules
 
             replayData.clear();
             replayData = null;
-            FileManager.finalizeLoadFile(0, 0, null, null, false, 0);
+            finalizeLoadFile(0, 0, null, null, false, 0);
             ReplayController.startGeneratingReplayCacheImage(true,null);
         }
 
@@ -332,7 +339,7 @@ package Modules
             ReplayController.rReplayImageCacheState = ReplayController.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReferenceLayerController.refLayerRawBitmapData = null;
             ReferenceLayerController.refLayerRawTransformData = null;
-            FileManager.finalizeLoadFile(width, height, layer1Image, layer2Image, true, 0xFFFFFF);
+            finalizeLoadFile(width, height, layer1Image, layer2Image, true, 0xFFFFFF);
             ReplayController.initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소
             ReplayController.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
         }
@@ -1640,7 +1647,7 @@ package Modules
             {
                 SidebarController.startHidingSidebarTemporary();
             }
-            if (getTimer() - main.lastWindowDeactivateTime >= 3000
+            if (getTimer() - lastWindowDeactivateTime >= 3000
                     && !BackgroundWorkerCoordinator.isSaveInProgress
                     && !isFileBrowserOpened
                     && !isLoadPendingAfterSaving
@@ -1650,7 +1657,7 @@ package Modules
             {
                 saveAllAppData();
             }
-            main.lastWindowDeactivateTime = getTimer();
+            lastWindowDeactivateTime = getTimer();
             if (SidebarController.isQuickSidebarActive && !UndoManager.isDeepUndoEnabled)
             {
                 SidebarController.deactivateQuickSidebar();
@@ -1686,7 +1693,7 @@ package Modules
 
         public static function onWindowClosingEvent(e:Event):void
         {
-            main.isAppClosing = true;
+            isAppClosing = true;
             e.preventDefault();
             main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, onWindowDeactivate);
             InputManager.removeInputEventCaptrueMode();

@@ -41,7 +41,14 @@
 
 		public function updateReplayPrograssBarWidthByNowFame(frameRaio:Number):void
 		{
-			setReplayPrograssBarWidth(trackBar.width * frameRaio);
+			if(isNaN(frameRaio))
+			{
+				setReplayPrograssBarWidth(0);
+			}
+			else
+			{
+				setReplayPrograssBarWidth(trackBar.width * frameRaio);
+			}
 		}
 
 		private function increaseReplayPrograssBarWidth(inc:Number):void

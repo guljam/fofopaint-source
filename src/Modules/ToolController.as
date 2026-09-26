@@ -56,6 +56,12 @@ package Modules
 
         public static var isSharpLineON:Boolean = false; // 0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
         public static var isPenAirBrushON:Boolean = false;
+        public static var lastEraserPosButton:SimpleButton = null; // 지우개 툴이 이동한 버튼 저장; 복원용
+
+        public static function addHintEventToolBox2():void
+        {
+            toolBox2.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverToolBox2Hint);
+        }
 
         public static function get toolBox2ONDelayTime():Number
         {
@@ -746,12 +752,12 @@ package Modules
             setDrawToolSize(PenTool.eraserSizeIndex);
             applyDrawingToolAlpha(PenTool.eraserAlpha);
 
-            if (main.lastEraserPosButton)
+            if (ToolController.lastEraserPosButton)
             {
-                main.lastEraserPosButton.visible = true;
+                ToolController.lastEraserPosButton.visible = true;
             }
 
-            main.lastEraserPosButton = null;
+            ToolController.lastEraserPosButton = null;
             toolBox2.toolEraser.visible = false;
             toolBox.moveToolCursor("toolEraser");
             updateToolOptionsTextBySelectedTool();
@@ -842,16 +848,16 @@ package Modules
             if (!nowButton2)
                 return;
 
-            if (main.lastEraserPosButton)
+            if (lastEraserPosButton)
             {
-                if (main.lastEraserPosButton.x !== nowButton2.x
-                        || main.lastEraserPosButton.y !== nowButton2.y) // 위치가 다를 때에만 보여줌
+                if (lastEraserPosButton.x !== nowButton2.x
+                        || lastEraserPosButton.y !== nowButton2.y) // 위치가 다를 때에만 보여줌
                 {
-                    main.lastEraserPosButton.visible = true;
+                    lastEraserPosButton.visible = true;
                 }
             }
 
-            main.lastEraserPosButton = nowButton2;
+            lastEraserPosButton = nowButton2;
             nowButton2.visible = false;
             toolBox2.toolEraser.visible = true;
             toolBox2.toolEraser.x = nowButton2.x;
@@ -1387,7 +1393,7 @@ package Modules
                             return true;
                         }
 
-                        main.handleMouseClick(targetName);
+                        InputManager.handleMouseClickStage(targetName);
                     }
                     return true;
                 case "sharpLineButtonWrapper":

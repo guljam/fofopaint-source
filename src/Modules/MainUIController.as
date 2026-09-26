@@ -280,7 +280,7 @@ package Modules
                 case "aboutHomePageLink":
                 case "aboutManualFolder":
                     // case "aboutMeLink":
-                    main.handleMouseClick(targetName);
+                    InputManager.handleMouseClickStage(targetName);
                     break;
 
                 default:
@@ -442,7 +442,7 @@ package Modules
                     lastAppWindowSize.setTo(0, 0, main.stage.nativeWindow.width, main.stage.nativeWindow.height);
                     MainUI.hideBottomHint();
 
-                    if (main.isAppClosing)
+                    if (FileManager.isAppClosing)
                     {
                         if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
                         {

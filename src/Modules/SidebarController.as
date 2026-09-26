@@ -514,7 +514,7 @@ package Modules
 
             if (!isSidebarVisible && sideBar.visible)
             {
-                if (main.isCursorInDrawArea())
+                if (Utils.isCursorInDrawArea())
                 {
                     if (!FOFOTimer.hasTimer("sidebarHideDelayTimer"))
                     {
@@ -865,7 +865,7 @@ package Modules
             }
             else if (isSidebarVisible === false)
             {
-                if (sideBar.visible && !sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) && main.isCursorInDrawArea())
+                if (sideBar.visible && !sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) && Utils.isCursorInDrawArea())
                 {
                     startHidingSidebarTemporary();
                     return true;

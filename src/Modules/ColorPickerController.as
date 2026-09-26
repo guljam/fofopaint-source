@@ -570,7 +570,7 @@ package Modules
 
         private static function onMouseDownColorPickerBoxModeBGOFF(e:MouseEvent):void
         {
-            if (main.isCursorInDrawArea())
+            if (Utils.isCursorInDrawArea())
             {
                 isColorPickerModeResetEventAdded = false;
                 main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF);

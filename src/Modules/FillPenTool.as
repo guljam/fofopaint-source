@@ -65,7 +65,7 @@ package Modules
             {
                 applyFillPen();
             }
-            else if (main.isCursorInDrawArea())
+            else if (Utils.isCursorInDrawArea())
             {
                 showDottedLine();
             }

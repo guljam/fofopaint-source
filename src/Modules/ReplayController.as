@@ -937,7 +937,7 @@ package Modules
             }
 
             FileManager.replayCacheImageFolderPath.createDirectory();
-            const fs:FileStream = new FileStream();
+
             var ba1:ByteArray = new ByteArray();
             var ba2:ByteArray = new ByteArray();
             const w:Number = bmpd1.width;
@@ -1048,7 +1048,7 @@ package Modules
         {
             readyForFrameJump();
 
-            if (rNowFrame <= TOTAL_FRAME)
+            if (rNowFrame < TOTAL_FRAME)
             {
                 if (ReplayDrawCommands.getRemainingData() === 0)
                 {
@@ -2851,8 +2851,8 @@ package Modules
             CanvasController.canvasAnchorPoint.rotation = rCanvasAnchorPoint.rotation;
             CanvasController.canvasAnchorPoint.x = rCanvasAnchorPoint.x;
             CanvasController.canvasAnchorPoint.y = rCanvasAnchorPoint.y;
-            rCanvasPanel.x = rCanvasPanel.x;
-            rCanvasPanel.y = rCanvasPanel.y;
+            CanvasController.canvasPanel.x = rCanvasPanel.x;
+            CanvasController.canvasPanel.y = rCanvasPanel.y;
             setRcursorRotation(CanvasController.canvasAnchorPoint.rotation);
         }
 
@@ -2964,6 +2964,8 @@ package Modules
             const sec:int = totalSec % 60;
             var timeStr:String = "";
 
+            trace('hour',hour,"min",min,"sec",sec);
+
             if (hour > 0)
             {
                 timeStr += hour + ":";
@@ -2975,7 +2977,7 @@ package Modules
             }
             else
             {
-                timeStr = "00:";
+                timeStr += "00:";
             }
 
             if (sec > 0)

@@ -107,7 +107,7 @@ package Modules
             // (sideBar.visible && (sideBarScrollBar.hitTestPoint(mouseX,mouseY) || sideBar.hitTestPoint(mouseX,mouseY)))
             if (isPenSizeCursorInvisible
                     || (ToolController.nowTool > ToolController.TOOL_LINE && ToolController.nowTool !== ToolController.TOOL_FILLPEN) // 1 2 3 4 펜 지우개 라인툴 라인-지우개툴
-                    || !main.isCursorInDrawArea()
+                    || !Utils.isCursorInDrawArea()
                     || main.resizeCanvas.isCanvasResizing()
                     || (ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mx, my))
                     || FileManager.loadMenuBox.visible)

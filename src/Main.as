@@ -76,12 +76,7 @@
         public var resizeCanvas:Object = CanvasController.cResizeCanvas();
 
         // 기타
-        public var isAppClosing:Boolean = false; // 앱종료할때 올려줌 창 최대화 되어있는 상태를 원래대로 하고 window resize이벤트에서 마지막에 종료 호출
-        public var lastWindowDeactivateTime:int = 0; // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
-        public var lastEraserPosButton:SimpleButton = null; // 지우개 툴이 이동한 버튼 저장; 복원용
 
-        // handle mouse click 이벤트에서 이벤트 한번만 추가되게 하기
-        public var handMouseClickEventStarted:Boolean = false;
 
         public function Main():void
         {
@@ -166,7 +161,6 @@
             AppStateManager.loadAppState();
             // 입력 이벤트는 loadappdstate보다느려야함
             addGlobalEvents();
-            addGlobalEventsChild();
             InputManager.addInputEventsDrawMode();
             const isNewReplayFile:Boolean = !FileManager.replayDataFilePath.exists;
             ReplayController.initializeReplayDataFile();
@@ -186,16 +180,10 @@
             HintStrings.setMainInstance(this);
             MainUI.bottomHint.visible = true;
             ToolController.selectPenTool();
+            ToolController.addHintEventToolBox2();
             ClipboardManager.checkCanUseClipBoardButton();
         }
         // function
-
-        public function isCursorInDrawArea():Boolean
-        {
-            return !(MainUI.topBar.hitTestPoint(stage.mouseX, stage.mouseY)
-                    || (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(stage.mouseX, stage.mouseY))
-                    || (MainUI.seekBarBox.visible && MainUI.seekBarBox.hitTestPoint(stage.mouseX, stage.mouseY)));
-        }
 
         public function initializeStageSettings():void
         {
@@ -207,82 +195,7 @@
             NativeApplication.nativeApplication.autoExit = true;
         }
 
-        public function onMouseUpStage(e:MouseEvent):void
-        {
-            InputManager.checkInvalidKey();
-            const mx:Number = stage.mouseX;
-            const my:Number = stage.mouseY;
-            CanvasController.isMouseLeftClicked = false;
-            if (!CanvasController.isMouseLeftClicked && CanvasController.isRightMouseClicked)
-            {
-                CanvasController.isMouseDragging = false;
-            }
-        }
 
-        public function onRightMouseUpStage(e:MouseEvent):void
-        {
-            InputManager.checkInvalidKey();
-            const mx:Number = stage.mouseX;
-            const my:Number = stage.mouseY;
-            CanvasController.isRightMouseClicked = false;
-            if (!CanvasController.isMouseLeftClicked && CanvasController.isRightMouseClicked)
-            {
-                CanvasController.isMouseDragging = false;
-            }
-        }
-
-        public function onMouseLeaveStage(e:Event):void
-        {
-            CanvasController.isMouseLeftClicked = false;
-            CanvasController.isRightMouseClicked = false;
-            CanvasController.isMouseDragging = false;
-            PenSizePreviewCursor.setVisible(false);
-        }
-
-        public function onMouseWheelStage(e:MouseEvent):void
-        {
-            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging
-                    || MainUIController.isPopUpWindowOpened()
-                    || CaptureController.isCaptureModeON || !SidebarController.isQuickSidebarActive && InputManager.isKeyPressed() || InputManager.getCommandKey() !== 0)
-            {
-                return;
-
-            }
-
-            if (!FOFOTimer.hasTimer("wheelZoomTimer"))
-            {
-                FOFOTimer.addByName("wheelZoomTimer", 0.07, false, function ():void
-                    {
-                        if (SidebarController.isMouseCursorInSideBar())
-                        {
-                            if (SidebarController.sideBarScrollBar.visible === true)
-                            {
-                                if (e.delta > 0)
-                                {
-                                    SidebarController.startScrollSidebarByMouseWheel(40);
-                                }
-                                else
-                                {
-                                    SidebarController.startScrollSidebarByMouseWheel(-40);
-                                }
-                            }
-                        }
-                        else if (!ReplayController.isReplayModeON && isCursorInDrawArea())
-                        {
-                            if (e.delta > 0)
-                            {
-                                CanvasController.zoomInCanvas(true, false);
-                                MainUI.showMouseHintTemp(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
-                            }
-                            else
-                            {
-                                CanvasController.zoomInCanvas(false, false);
-                                MainUI.showMouseHintTemp(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
-                            }
-                        }
-                    });
-            }
-        }
 
         // 파일 드래그 드롭등 마우스 이벤트에서도 target이 null이 되는등
         // 방지를 위해서 스테이지 전체 +2사이즈 여백으로 뒷부분 전체를 투명하게 깔아줌
@@ -304,15 +217,15 @@
             // todo gpt가 동일한 우선순위라도 capture 플래그가 true인것이 먼저 실행된다고함 capture - target  -bubble 순이라고함
             // 그래서 마우스랑 키보드 입력 mouseleave이벤트를 캡쳐플래그를 true로해놓았음 나중에 기능 이상생기면 확인
             stage.addEventListener(MouseEvent.MOUSE_DOWN, InputManager.onMouseDownStage, true, 1);
-            stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpStage, false, 1);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpStage, false, 1);
+            stage.addEventListener(MouseEvent.MOUSE_UP, InputManager.onMouseUpStage, false, 1);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, InputManager.onRightMouseUpStage, false, 1);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, InputManager.onRightMouseDownStage, true, 1);
             stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, InputManager.onMiddleMouseDownStage, false, 1);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, InputManager.onKeyDownStage, true, 1);
             stage.addEventListener(KeyboardEvent.KEY_UP, InputManager.onKeyUpStage, false, 1);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, InputManager.onMouseMoveUpdatePenPreviewCursor);
             stage.addEventListener(MouseEvent.MOUSE_UP, InputManager.onMouseMoveUpdatePenPreviewCursor, false, -1);
-            stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveStage, true);
+            stage.addEventListener(Event.MOUSE_LEAVE, InputManager.onMouseLeaveStage, true);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, MainUI.onMouseMoveBottomHint);
             stage.nativeWindow.x = Capabilities.screenResolutionX / 2 - 680 / 2;
             stage.nativeWindow.y = Capabilities.screenResolutionY / 2 - 768 / 2 - 50;
@@ -322,7 +235,7 @@
             stage.nativeWindow.addEventListener(Event.CLOSING, FileManager.onWindowClosingEvent);
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, ReplayController.onDragEnterStage);
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, FileManager.onDragDropStage);
-            stage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheelStage);
+            stage.addEventListener(MouseEvent.MOUSE_WHEEL, InputManager.onMouseWheelStage);
             NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, FileManager.onInvokeEvent);
             loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onGlobalError);
             function onGlobalError(e:UncaughtErrorEvent):void
@@ -353,380 +266,6 @@
                     trace("Global error hint failed: " + hintError);
                 }
             }
-        }
-        public function addGlobalEventsChild():void
-        {
-            ToolController.toolBox2.addEventListener(MouseEvent.MOUSE_OVER, ToolController.onMouseOverToolBox2Hint);
-        }
-
-        // todo: 분야별로 분리해야
-        public function handleMouseClick(targetName:String):void
-        {
-            if (handMouseClickEventStarted === true)
-            {
-                return;
-            }
-
-            handMouseClickEventStarted = true;
-            if (AboutBoxController.isAboutBoxOpened)
-            {
-                function onMouseUpAboutBox(e:MouseEvent):void
-                {
-                    stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox);
-                    const upTargetName:String = e.target.name;
-                    if (targetName === upTargetName)
-                    {
-                        AboutBoxController.handlerMouseUpAboutBox(targetName);
-                    }
-                    handMouseClickEventStarted = false;
-                }
-                stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox);
-                return;
-            }
-
-            function onMouseUp(e:MouseEvent):void
-            {
-                stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
-                handMouseClickEventStarted = false;
-                const upTargetName:String = e.target.name;
-                if (targetName === upTargetName)
-                {
-                    switch (upTargetName)
-                    {
-                        case "drawModeButton":
-                            {
-                                ReplayController.exitReplayMode();
-                            }
-                            break;
-                        case "replayModeButton":
-                            {
-                                ReplayController.enterReplayMode();
-                                CanvasController.isMouseLeftClicked = false; // 리플레이 버튼 누르고 나서 단축키가 안먹는 현상이 이거임
-                            }
-                            break;
-                        case "capLayer1VisibleButton":
-                            {
-                                ReplayController.toggleLayerCaptureMode(1);
-                            }
-                            break;
-                        case "capLayer2VisibleButton":
-                            {
-                                ReplayController.toggleLayerCaptureMode(2);
-                            }
-                            break;
-                        case "dpiButton":
-                            {
-                                Global.setNextScaleIndex();
-                                MainUIController.applyUIScale();
-                                MainUI.showMouseHintTemp(Global.getUIScaleString());
-                            }
-                            break;
-                        case "updateButton":
-                            {
-                                AppUpdater.prepareUpdate();
-                            }
-                            break;
-                        case "sideBarPositionButton":
-                        case "sideBarPositionButton2":
-                            {
-                                SidebarController.toggleSideBarPosition();
-                            }
-                            break;
-                        case "sideBarOFFButton":
-                        case "sideBarOFFButton2":
-                            {
-                                SidebarController.hideSidebarPermanent();
-                            }
-                            break;
-                        case "sideBarONButton":
-                        case "sideBarONButton2":
-                            {
-                                SidebarController.showSidebarPermanent();
-                            }
-                            break;
-                        case "refLoadImageButton":
-                            {
-                                FileManager.openLoadFileBrowser(true);
-                            }
-                            break;
-                        case "saveButton":
-                            {
-                                FileManager.openSaveFileBrowser(false);
-                            }
-                            break;
-                        case "loadButton":
-                            {
-                                FileManager.openLoadFileBrowser();
-                            }
-                            break;
-                        case "clipBoardButton":
-                            {
-                                ClipboardManager.tryLoadClipboardImage(false);
-                            }
-                            break;
-                        case "repCaptureButton":
-                        case "captureButton":
-                            {
-                                CaptureController.enterCaptureMode();
-                            }
-                            break;
-                        case "capRotate":
-                            {
-                                CaptureController.rotateCaptureImage(++CaptureController.captureCanvasRotationStep, false);
-                            }
-                            break;
-                        case "capTrans":
-                            {
-                                CaptureController.applyTransparentCanvasBGCaptureMode(!CaptureController.isCaptureTransparentBGShowing);
-                            }
-                            break;
-                        case "capClipBoard":
-                            {
-                                CaptureController.copyCaptureImageToCilpBoard();
-                            }
-                            break;
-                        case "capSave":
-                            {
-                                FileManager.saveCaptureImage();
-                            }
-                            break;
-                        case "capOff":
-                            {
-                                CaptureController.handleExitCaptureMode();
-                            }
-                            break;
-                        case "capFlip":
-                            {
-                                CaptureController.flipCaptureImage(!CaptureController.isCaptureCanvasFlipped, false);
-                            }
-                            break;
-                        case "capStamp":
-                            {
-                                CaptureStamp.toggleCaptureStampButton();
-                            }
-                            break;
-                        case "capStampFont":
-                            {
-                                if (CaptureStamp.captureStampFontListBox.visible)
-                                {
-                                    CaptureStamp.hideStampFontList();
-                                }
-                                else
-                                {
-                                    CaptureStamp.showStampFontList();
-                                }
-                            }
-                            break;
-                        case "capFontListPrev":
-                            {
-                                CaptureStamp.captureStampFontListBox.updateNextFontList(false);
-                            }
-                            break;
-                        case "capFontListNext":
-                            {
-                                CaptureStamp.captureStampFontListBox.updateNextFontList(true);
-                            }
-                            break;
-                        case "topBarColorButton":
-                            {
-                                MainUIController.cycleUIColor();
-                            }
-                            break;
-                        case "gridButton":
-                            {
-                                CanvasGridOverlay.gridButton.start(false);
-                            }
-                            break;
-                        case "aboutButton":
-                            {
-                                AboutBoxController.openAboutBox(false);
-                            }
-                            break;
-                        case "newWindowCloseButton":
-                            {
-                                ImageViewWindow.closeCanvasWindow();
-                            }
-                            break;
-                        case "newWindowButton":
-                            {
-                                ImageViewWindow.openImageViewWindow();
-                            }
-                            break;
-                        case "replayZoomInButton":
-                            {
-                                CanvasController.zoomInCanvas(true, true);
-                            }
-                            break;
-                        case "replayZoomOutButton":
-                            {
-                                CanvasController.zoomInCanvas(false, true);
-                            }
-                            break;
-                        case "replayFitToWindowButton":
-                            {
-                                ReplayController.toggleFitToCanvasReplayMode();
-                            }
-                            break;
-                        case "replayRepeatButton":
-                            {
-                                ReplayController.toggleReplayRepeat();
-                            }
-                            break;
-                        case "refMenuCloseButton":
-                            {
-                                Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                                ReferenceLayerController.closeRefLayerMenu();
-                            }
-                            break;
-                        case "refTransferCanvasImageButton":
-                            {
-                                ReferenceLayerController.mergeCanvasImageIntoRefLayer();
-                            }
-                            break;
-                        case "refClipBoardButton":
-                            {
-                                if (ReferenceLayerController.refLayerMenuBox.refClipBoardButton.alpha === 1.0)
-                                {
-                                    ClipboardManager.tryLoadClipboardImage(true);
-                                }
-                            }
-                            break;
-                        case "refMirrorImageButton":
-                            {
-                                Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                                if (ReferenceLayerController.isRefLayerEmpty())
-                                {
-                                    ReferenceLayerController.showRefLayerIsEmptyHint();
-                                }
-                                else
-                                {
-                                    ReferenceLayerController.startRefLayerImageMirror();
-                                }
-                            }
-                            break;
-                        case "refMemoryTrainingOnButton":
-                        case "refMemoryTrainingOffButton":
-                            {
-                                Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                                if (ReferenceLayerController.isRefLayerEmpty())
-                                {
-                                    ReferenceLayerController.showRefLayerIsEmptyHint();
-                                }
-                                else
-                                {
-                                    ReferenceLayerController.toggleRefLayerMemoryTraining();
-                                }
-                            }
-                            break;
-                        case "playButton":
-                            {
-                                if (ReplayController.isReplayRestartTimerON())
-                                {
-                                    ReplayController.cancelReplayRestartTimer();
-                                }
-                                else
-                                {
-                                    ReplayController.handleReplayStartButton();
-                                }
-                            }
-                            break;
-                        case "pauseButton":
-                            {
-                                FOFOTimer.remove("prograssBarUpdateTimer");
-                                if (ReplayController.isReplayRestartTimerON())
-                                {
-                                    ReplayController.cancelReplayRestartTimer();
-                                }
-                                else
-                                {
-                                    ReplayController.handleReplayStopButton();
-                                }
-                            }
-                            break;
-                        case "lassoRefLayer":
-                            {
-                                LassoTool.mergeLassoImageIntoToRefLayer();
-                            }
-                            break;
-                        case "lassoOK":
-                            {
-                                LassoTool.applyLassoImageToCanvas();
-                            }
-                            break;
-                        case "lassoCancel":
-                            {
-                                LassoTool.cancelIfActive();
-                            }
-                            break;
-                        case "lassoLayerMerge":
-                            {
-                                if (LassoTool._lassoMenuBox.lassoLayerMerge.alpha === 1.0)
-                                {
-                                    LassoTool.mergeLayerByLassoTool();
-                                }
-                            }
-                            break;
-                        case "lassoLayerSwap":
-                            {
-                                if (LassoTool._lassoMenuBox.lassoLayerSwap.alpha === 1.0)
-                                {
-                                    LassoTool.swapLayerByLassoTool();
-                                }
-                            }
-                            break;
-                        case "lasso1pxUp":
-                            {
-                                LassoTool._move1PX(LassoTool.LASSO_1PX_MOVE_UP);
-                            }
-                            break;
-                        case "lasso1pxDown":
-                            {
-                                LassoTool._move1PX(LassoTool.LASSO_1PX_MOVE_DOWN);
-                            }
-                            break;
-                        case "lasso1pxLeft":
-                            {
-                                LassoTool._move1PX(LassoTool.LASSO_1PX_MOVE_LEFT);
-                            }
-                            break;
-                        case "lasso1pxRight":
-                            {
-                                LassoTool._move1PX(LassoTool.LASSO_1PX_MOVE_RIGHT);
-                            }
-                            break;
-                        case "lassoCopy":
-                            {
-                                LassoTool.copyCanvasImageToLassoTool();
-                            }
-                            break;
-                        case "lassoMirror":
-                            {
-                                LassoTool.isLassoMirrorON = !LassoTool.isLassoMirrorON;
-                                LassoTool.lassoLayer1.scaleX = -LassoTool.lassoLayer1.scaleX;
-                                LassoTool.lassoLayer2.scaleX = LassoTool.lassoLayer1.scaleX;
-                                // 캔버스가 회전한각도도 있어서 항상 세로축을 중심으로 대칭되게 regpoint각도를 보정값으로 넣어줌
-                                LassoTool.lassoLayer1.rotation = -LassoTool.lassoLayer1.rotation - (CanvasController.canvasAnchorPoint.rotation * 2);
-                                LassoTool.lassoLayer2.rotation = LassoTool.lassoLayer1.rotation;
-                            }
-                            break;
-                        case "layerMergeButton":
-                            {
-                                CanvasController.mergeImageIntoLayer2();
-                                MainUI.showMouseHintTemp("Layers has been merged to layer 2");
-                            }
-                            break;
-                        case "layerSwapButton":
-                            {
-                                CanvasController.swapLayer();
-                                MainUI.showMouseHintTemp(HintStrings.getCanvasLayerSwappedHintString());
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-            stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
         }
     }
 }

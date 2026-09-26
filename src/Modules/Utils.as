@@ -19,6 +19,15 @@ package Modules
             main = instance;
         }
 
+        //커서가 드로우 영역에 있는지 검사
+        public static function isCursorInDrawArea():Boolean
+        {
+            return !(MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY)
+                    || (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                    || (MainUI.seekBarBox.visible && MainUI.seekBarBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY)));
+        }
+
+
         // 요소 colortransform바꾸기
         public static function setColorTransform(target:DisplayObject, color:uint, customAlpha:Number = NaN):void
         {

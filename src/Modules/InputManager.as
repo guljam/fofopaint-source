@@ -126,6 +126,9 @@ package Modules
         public static var isCaptureModeInputEventsAdded:Boolean = false; // 이벤트 세트가 켜지거나 꺼지는거 보관 중복 이벤트 추가 피하려고
         public static var isReplayModeInputEventsAdded:Boolean = false; // 리플레이 이벤트 추가되면 올려줌
 
+        // handle mouse click 이벤트에서 이벤트 한번만 추가되게 하기
+        public static var handMouseClickEventStarted:Boolean = false;
+
         public static function startScratchPadResetTimer(target:DisplayObject):void
         {
             FOFOTimer.addByName("clearScratchPadTimer", 0.4, false, function ():void
@@ -304,6 +307,376 @@ package Modules
             return 0;
         }
 
+        // todo: 분야별로 분리해야
+        public static function handleMouseClickStage(targetName:String):void
+        {
+            if (handMouseClickEventStarted === true)
+            {
+                return;
+            }
+
+            handMouseClickEventStarted = true;
+            if (AboutBoxController.isAboutBoxOpened)
+            {
+                function onMouseUpAboutBox(e:MouseEvent):void
+                {
+                    main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox);
+                    const upTargetName:String = e.target.name;
+                    if (targetName === upTargetName)
+                    {
+                        AboutBoxController.handlerMouseUpAboutBox(targetName);
+                    }
+                    handMouseClickEventStarted = false;
+                }
+                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox);
+                return;
+            }
+
+            function onMouseUp(e:MouseEvent):void
+            {
+                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+                handMouseClickEventStarted = false;
+                const upTargetName:String = e.target.name;
+                if (targetName === upTargetName)
+                {
+                    switch (upTargetName)
+                    {
+                        case "drawModeButton":
+                            {
+                                ReplayController.exitReplayMode();
+                            }
+                            break;
+                        case "replayModeButton":
+                            {
+                                ReplayController.enterReplayMode();
+                                CanvasController.isMouseLeftClicked = false; // 리플레이 버튼 누르고 나서 단축키가 안먹는 현상이 이거임
+                            }
+                            break;
+                        case "capLayer1VisibleButton":
+                            {
+                                ReplayController.toggleLayerCaptureMode(1);
+                            }
+                            break;
+                        case "capLayer2VisibleButton":
+                            {
+                                ReplayController.toggleLayerCaptureMode(2);
+                            }
+                            break;
+                        case "dpiButton":
+                            {
+                                Global.setNextScaleIndex();
+                                MainUIController.applyUIScale();
+                                MainUI.showMouseHintTemp(Global.getUIScaleString());
+                            }
+                            break;
+                        case "updateButton":
+                            {
+                                AppUpdater.prepareUpdate();
+                            }
+                            break;
+                        case "sideBarPositionButton":
+                        case "sideBarPositionButton2":
+                            {
+                                SidebarController.toggleSideBarPosition();
+                            }
+                            break;
+                        case "sideBarOFFButton":
+                        case "sideBarOFFButton2":
+                            {
+                                SidebarController.hideSidebarPermanent();
+                            }
+                            break;
+                        case "sideBarONButton":
+                        case "sideBarONButton2":
+                            {
+                                SidebarController.showSidebarPermanent();
+                            }
+                            break;
+                        case "refLoadImageButton":
+                            {
+                                FileManager.openLoadFileBrowser(true);
+                            }
+                            break;
+                        case "saveButton":
+                            {
+                                FileManager.openSaveFileBrowser(false);
+                            }
+                            break;
+                        case "loadButton":
+                            {
+                                FileManager.openLoadFileBrowser();
+                            }
+                            break;
+                        case "clipBoardButton":
+                            {
+                                ClipboardManager.tryLoadClipboardImage(false);
+                            }
+                            break;
+                        case "repCaptureButton":
+                        case "captureButton":
+                            {
+                                CaptureController.enterCaptureMode();
+                            }
+                            break;
+                        case "capRotate":
+                            {
+                                CaptureController.rotateCaptureImage(++CaptureController.captureCanvasRotationStep, false);
+                            }
+                            break;
+                        case "capTrans":
+                            {
+                                CaptureController.applyTransparentCanvasBGCaptureMode(!CaptureController.isCaptureTransparentBGShowing);
+                            }
+                            break;
+                        case "capClipBoard":
+                            {
+                                CaptureController.copyCaptureImageToCilpBoard();
+                            }
+                            break;
+                        case "capSave":
+                            {
+                                FileManager.saveCaptureImage();
+                            }
+                            break;
+                        case "capOff":
+                            {
+                                CaptureController.handleExitCaptureMode();
+                            }
+                            break;
+                        case "capFlip":
+                            {
+                                CaptureController.flipCaptureImage(!CaptureController.isCaptureCanvasFlipped, false);
+                            }
+                            break;
+                        case "capStamp":
+                            {
+                                CaptureStamp.toggleCaptureStampButton();
+                            }
+                            break;
+                        case "capStampFont":
+                            {
+                                if (CaptureStamp.captureStampFontListBox.visible)
+                                {
+                                    CaptureStamp.hideStampFontList();
+                                }
+                                else
+                                {
+                                    CaptureStamp.showStampFontList();
+                                }
+                            }
+                            break;
+                        case "capFontListPrev":
+                            {
+                                CaptureStamp.captureStampFontListBox.updateNextFontList(false);
+                            }
+                            break;
+                        case "capFontListNext":
+                            {
+                                CaptureStamp.captureStampFontListBox.updateNextFontList(true);
+                            }
+                            break;
+                        case "topBarColorButton":
+                            {
+                                MainUIController.cycleUIColor();
+                            }
+                            break;
+                        case "gridButton":
+                            {
+                                CanvasGridOverlay.gridButton.start(false);
+                            }
+                            break;
+                        case "aboutButton":
+                            {
+                                AboutBoxController.openAboutBox(false);
+                            }
+                            break;
+                        case "newWindowCloseButton":
+                            {
+                                ImageViewWindow.closeCanvasWindow();
+                            }
+                            break;
+                        case "newWindowButton":
+                            {
+                                ImageViewWindow.openImageViewWindow();
+                            }
+                            break;
+                        case "replayZoomInButton":
+                            {
+                                CanvasController.zoomInCanvas(true, true);
+                            }
+                            break;
+                        case "replayZoomOutButton":
+                            {
+                                CanvasController.zoomInCanvas(false, true);
+                            }
+                            break;
+                        case "replayFitToWindowButton":
+                            {
+                                ReplayController.toggleFitToCanvasReplayMode();
+                            }
+                            break;
+                        case "replayRepeatButton":
+                            {
+                                ReplayController.toggleReplayRepeat();
+                            }
+                            break;
+                        case "refMenuCloseButton":
+                            {
+                                Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
+                                ReferenceLayerController.closeRefLayerMenu();
+                            }
+                            break;
+                        case "refTransferCanvasImageButton":
+                            {
+                                ReferenceLayerController.mergeCanvasImageIntoRefLayer();
+                            }
+                            break;
+                        case "refClipBoardButton":
+                            {
+                                if (ReferenceLayerController.refLayerMenuBox.refClipBoardButton.alpha === 1.0)
+                                {
+                                    ClipboardManager.tryLoadClipboardImage(true);
+                                }
+                            }
+                            break;
+                        case "refMirrorImageButton":
+                            {
+                                Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
+                                if (ReferenceLayerController.isRefLayerEmpty())
+                                {
+                                    ReferenceLayerController.showRefLayerIsEmptyHint();
+                                }
+                                else
+                                {
+                                    ReferenceLayerController.startRefLayerImageMirror();
+                                }
+                            }
+                            break;
+                        case "refMemoryTrainingOnButton":
+                        case "refMemoryTrainingOffButton":
+                            {
+                                Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
+                                if (ReferenceLayerController.isRefLayerEmpty())
+                                {
+                                    ReferenceLayerController.showRefLayerIsEmptyHint();
+                                }
+                                else
+                                {
+                                    ReferenceLayerController.toggleRefLayerMemoryTraining();
+                                }
+                            }
+                            break;
+                        case "playButton":
+                            {
+                                if (ReplayController.isReplayRestartTimerON())
+                                {
+                                    ReplayController.cancelReplayRestartTimer();
+                                }
+                                else
+                                {
+                                    ReplayController.handleReplayStartButton();
+                                }
+                            }
+                            break;
+                        case "pauseButton":
+                            {
+                                FOFOTimer.remove("prograssBarUpdateTimer");
+                                if (ReplayController.isReplayRestartTimerON())
+                                {
+                                    ReplayController.cancelReplayRestartTimer();
+                                }
+                                else
+                                {
+                                    ReplayController.handleReplayStopButton();
+                                }
+                            }
+                            break;
+                        case "lassoRefLayer":
+                            {
+                                LassoTool.mergeLassoImageIntoToRefLayer();
+                            }
+                            break;
+                        case "lassoOK":
+                            {
+                                LassoTool.applyLassoImageToCanvas();
+                            }
+                            break;
+                        case "lassoCancel":
+                            {
+                                LassoTool.cancelIfActive();
+                            }
+                            break;
+                        case "lassoLayerMerge":
+                            {
+                                if (LassoTool._lassoMenuBox.lassoLayerMerge.alpha === 1.0)
+                                {
+                                    LassoTool.mergeLayerByLassoTool();
+                                }
+                            }
+                            break;
+                        case "lassoLayerSwap":
+                            {
+                                if (LassoTool._lassoMenuBox.lassoLayerSwap.alpha === 1.0)
+                                {
+                                    LassoTool.swapLayerByLassoTool();
+                                }
+                            }
+                            break;
+                        case "lasso1pxUp":
+                            {
+                                LassoTool._move1PX(LassoTool.LASSO_1PX_MOVE_UP);
+                            }
+                            break;
+                        case "lasso1pxDown":
+                            {
+                                LassoTool._move1PX(LassoTool.LASSO_1PX_MOVE_DOWN);
+                            }
+                            break;
+                        case "lasso1pxLeft":
+                            {
+                                LassoTool._move1PX(LassoTool.LASSO_1PX_MOVE_LEFT);
+                            }
+                            break;
+                        case "lasso1pxRight":
+                            {
+                                LassoTool._move1PX(LassoTool.LASSO_1PX_MOVE_RIGHT);
+                            }
+                            break;
+                        case "lassoCopy":
+                            {
+                                LassoTool.copyCanvasImageToLassoTool();
+                            }
+                            break;
+                        case "lassoMirror":
+                            {
+                                LassoTool.isLassoMirrorON = !LassoTool.isLassoMirrorON;
+                                LassoTool.lassoLayer1.scaleX = -LassoTool.lassoLayer1.scaleX;
+                                LassoTool.lassoLayer2.scaleX = LassoTool.lassoLayer1.scaleX;
+                                // 캔버스가 회전한각도도 있어서 항상 세로축을 중심으로 대칭되게 regpoint각도를 보정값으로 넣어줌
+                                LassoTool.lassoLayer1.rotation = -LassoTool.lassoLayer1.rotation - (CanvasController.canvasAnchorPoint.rotation * 2);
+                                LassoTool.lassoLayer2.rotation = LassoTool.lassoLayer1.rotation;
+                            }
+                            break;
+                        case "layerMergeButton":
+                            {
+                                CanvasController.mergeImageIntoLayer2();
+                                MainUI.showMouseHintTemp("Layers has been merged to layer 2");
+                            }
+                            break;
+                        case "layerSwapButton":
+                            {
+                                CanvasController.swapLayer();
+                                MainUI.showMouseHintTemp(HintStrings.getCanvasLayerSwappedHintString());
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+        }
+
         public static function onMouseDownStage(e:MouseEvent):void
         {
             checkInvalidKey();
@@ -311,10 +684,88 @@ package Modules
             MainUI.hideBottomHint();
         }
 
+        public static function onMouseUpStage(e:MouseEvent):void
+        {
+            InputManager.checkInvalidKey();
+            const mx:Number = main.stage.mouseX;
+            const my:Number = main.stage.mouseY;
+            CanvasController.isMouseLeftClicked = false;
+            if (!CanvasController.isMouseLeftClicked && CanvasController.isRightMouseClicked)
+            {
+                CanvasController.isMouseDragging = false;
+            }
+        }
+
         public static function onRightMouseDownStage(e:MouseEvent):void
         {
             checkInvalidKey();
             CanvasController.isRightMouseClicked = true;
+        }
+
+
+        public static function onRightMouseUpStage(e:MouseEvent):void
+        {
+            InputManager.checkInvalidKey();
+            const mx:Number = main.stage.mouseX;
+            const my:Number = main.stage.mouseY;
+            CanvasController.isRightMouseClicked = false;
+            if (!CanvasController.isMouseLeftClicked && CanvasController.isRightMouseClicked)
+            {
+                CanvasController.isMouseDragging = false;
+            }
+        }
+
+        public static function onMouseWheelStage(e:MouseEvent):void
+        {
+            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging
+                    || MainUIController.isPopUpWindowOpened()
+                    || CaptureController.isCaptureModeON || !SidebarController.isQuickSidebarActive && InputManager.isKeyPressed() || InputManager.getCommandKey() !== 0)
+            {
+                return;
+
+            }
+
+            if (!FOFOTimer.hasTimer("wheelZoomTimer"))
+            {
+                FOFOTimer.addByName("wheelZoomTimer", 0.07, false, function ():void
+                    {
+                        if (SidebarController.isMouseCursorInSideBar())
+                        {
+                            if (SidebarController.sideBarScrollBar.visible === true)
+                            {
+                                if (e.delta > 0)
+                                {
+                                    SidebarController.startScrollSidebarByMouseWheel(40);
+                                }
+                                else
+                                {
+                                    SidebarController.startScrollSidebarByMouseWheel(-40);
+                                }
+                            }
+                        }
+                        else if (!ReplayController.isReplayModeON && Utils.isCursorInDrawArea())
+                        {
+                            if (e.delta > 0)
+                            {
+                                CanvasController.zoomInCanvas(true, false);
+                                MainUI.showMouseHintTemp(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
+                            }
+                            else
+                            {
+                                CanvasController.zoomInCanvas(false, false);
+                                MainUI.showMouseHintTemp(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
+                            }
+                        }
+                    });
+            }
+        }
+
+        public static function onMouseLeaveStage(e:Event):void
+        {
+            CanvasController.isMouseLeftClicked = false;
+            CanvasController.isRightMouseClicked = false;
+            CanvasController.isMouseDragging = false;
+            PenSizePreviewCursor.setVisible(false);
         }
 
         public static function onMiddleMouseDownStage(e:MouseEvent):void
@@ -427,7 +878,8 @@ package Modules
             //디버그 확인용
             if(isPressedKey(KEY.f12))
             {
-
+                const a:String = ReplayController.getReplayRemainingTimeString(1.0,1.0,false);
+                trace('a',a);
             }
 
             tryDisableIME();
@@ -512,7 +964,7 @@ package Modules
 
             const target:SimpleButton = e.target as SimpleButton;
 
-            if (!target || target.alpha < 1.0 || !main.isCursorInDrawArea())
+            if (!target || target.alpha < 1.0 || !Utils.isCursorInDrawArea())
             {
                 ToolController.closeToolBox2();
                 return;
@@ -632,7 +1084,7 @@ package Modules
             {
                 SidebarController.startScrollSidebarByDrag();
             }
-            else if (main.isCursorInDrawArea() && SidebarController.isQuickSidebarActive === false)
+            else if (Utils.isCursorInDrawArea() && SidebarController.isQuickSidebarActive === false)
             {
                 CanvasController.isMouseDragging = true;
                 main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
@@ -1211,7 +1663,7 @@ package Modules
                 return;
             }
             const targetName:String = target.name;
-            if (main.isCursorInDrawArea() && LassoTool._lassoMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            if (Utils.isCursorInDrawArea() && LassoTool._lassoMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
                 if (LassoTool.isLassoMenuHiddenTemp)
                 {
@@ -1305,7 +1757,7 @@ package Modules
                     case "lassoLayerMerge":
                     case "lassoLayerSwap":
                     case "lassoMirror":
-                        main.handleMouseClick(targetName);
+                        InputManager.handleMouseClickStage(targetName);
                         break;
                     default:
                         break;
@@ -1838,7 +2290,7 @@ package Modules
                         {
                             return;
                         }
-                        main.handleMouseClick(targetName);
+                        InputManager.handleMouseClickStage(targetName);
                     }
                     return;
                 case "replaySpeedSliderWrapper":
@@ -1945,7 +2397,7 @@ package Modules
                     return;
             }
             // 캔버스 영역 밖에서는 해주지 않음
-            if (main.isCursorInDrawArea() && !CanvasController.isMouseClickBlocked)
+            if (Utils.isCursorInDrawArea() && !CanvasController.isMouseClickBlocked)
             {
                 switch (ToolController.nowTool)
                 {
@@ -2054,7 +2506,7 @@ package Modules
 
                 default:
                     {
-                        if (main.isCursorInDrawArea())
+                        if (Utils.isCursorInDrawArea())
                         {
                             if (ToolController.isToolBox2Showing && !UndoManager.isDeepUndoEnabled)
                             {
@@ -2188,7 +2640,7 @@ package Modules
 
             if (targetName === "capLayer1VisibleButton" || targetName === "capLayer2VisibleButton" || targetName === "capStamp" || targetName === "capStampFont")
             {
-                main.handleMouseClick(targetName);
+                InputManager.handleMouseClickStage(targetName);
                 return;
             }
 
@@ -2199,7 +2651,7 @@ package Modules
                 {
                     return;
                 }
-                main.handleMouseClick(targetName);
+                InputManager.handleMouseClickStage(targetName);
             }
 
             if (target.alpha < 1.0 && MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
@@ -2211,7 +2663,7 @@ package Modules
             {
                 if (targetName === "capFontListNext" || targetName === "capFontListPrev")
                 {
-                    main.handleMouseClick(targetName);
+                    InputManager.handleMouseClickStage(targetName);
                 }
                 else if (targetName && targetName.indexOf(CaptureStamp.captureStampFontListBox.getStampFontButtonName()) !== -1)
                 {
@@ -2234,7 +2686,7 @@ package Modules
                 case "capSave":
                 case "capOff":
                 case "capTrans":
-                    main.handleMouseClick(targetName);
+                    InputManager.handleMouseClickStage(targetName);
                     break;
                 case "timer":
                     startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
@@ -2487,7 +2939,7 @@ package Modules
                     {
                         return;
                     }
-                    main.handleMouseClick(targetName);
+                    InputManager.handleMouseClickStage(targetName);
                     return;
                 }
             }
@@ -2616,7 +3068,7 @@ package Modules
                         {
                             return;
                         }
-                        main.handleMouseClick(targetName);
+                        InputManager.handleMouseClickStage(targetName);
                     }
                     break;
             }
