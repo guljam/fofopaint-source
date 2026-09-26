@@ -985,8 +985,11 @@ package Modules
 
         public static function getRFrameTempCacheLastFrame():Number
         {
+            if(rFrameTempCachedImages.length === 0) return 0.0;
+
             return rFrameTempCachedImages[rFrameTempCachedImages.length - 1][2].nowFrame;
         }
+
         public static function createRFrameTempCache(lastFrame:Number, lastReadBytes:Number):void
         {
             rFrameTempCachedImages.push(
