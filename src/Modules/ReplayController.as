@@ -457,7 +457,7 @@ package Modules
 
                 MainUI.topBar.repNewFileButton.alpha = Global.OFFALPHA;
                 rReplayFOFOCursor.visible = false;
-                finlize();
+                finalize();
             }
             else
             {
@@ -485,10 +485,10 @@ package Modules
                 rReplayFOFOCursor.visible = false;
                 MainUI.seekBarBox.resetReplayPrograssBarWidth();
                 FileManager.isFileAlreadySaved = false;
-                startGeneratingReplayCacheImage(false, finlize);
+                startGeneratingReplayCacheImage(false, finalize);
             }
 
-            function finlize():void
+            function finalize():void
             {
                 resetReplaySpeedBar();
                 isReplayFinished = true;
@@ -809,7 +809,6 @@ package Modules
 
         public static function updateReplayCanvasFromUndoBaseInfo():void
         {
-            var rMirrorSave:Boolean = rMirrorON;
             const undoBaseImage:Array = UndoController.getUndoBaseImage();
 
             if (undoBaseImage[2] !== RCANVAS_WIDTH || undoBaseImage[3] !== RCANVAS_HEIGHT)
@@ -824,6 +823,7 @@ package Modules
 
             rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoBaseImage[0], rCanvasLayer1Bitmap);
             rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoBaseImage[1], rCanvasLayer2Bitmap);
+            rMirrorON = undoBaseImage[5];
 
             ReplayDrawCommands.setData(rData[0]);
             ReplayDrawCommands.drawAll();
@@ -843,11 +843,7 @@ package Modules
             undoBaseImage[2] = RCANVAS_WIDTH;
             undoBaseImage[3] = RCANVAS_HEIGHT;
             undoBaseImage[4] = RCANVAS_BG_COLOR;
-
-            if (rMirrorON !== rMirrorSave)
-            {
-                undoBaseImage[5] = !undoBaseImage[5];
-            }
+            undoBaseImage[5] = rMirrorON;
 
             ReplayDrawCommands.setFirstRCursorPosCurrent();
         }
