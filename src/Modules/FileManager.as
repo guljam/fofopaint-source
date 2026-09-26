@@ -377,7 +377,7 @@ package Modules
             // updateLastFilePathByRandomFileName();
             isContinueSaveON = false; // 연속 세이브 플래그 취소
             ReplayController.rMirrorON = false;
-            CanvasController.isCanvasMirrored = false;
+            CanvasController.mirrorON = false;
             UndoManager.mirrorCommandReady = false;
             CanvasController.canvasInfoBox.setMirror(false);
             CanvasGridOverlay.updateGridMirror(false);
@@ -1746,7 +1746,7 @@ package Modules
             }
 
             ReplayController.rMirrorON = false;
-            CanvasController.isCanvasMirrored = false;
+            CanvasController.mirrorON = false;
             CanvasController.canvasInfoBox.setMirror(false);
 
             const fs:FileStream = new FileStream();

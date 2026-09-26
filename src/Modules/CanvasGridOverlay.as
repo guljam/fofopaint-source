@@ -118,7 +118,7 @@ package Modules
             canvasGrid.graphics.lineStyle(1 / CanvasController.canvasZoomMultipler, GRID_NORMAL_COLOR, 0.5, false);
             canvasGrid.graphics.drawPath(gridGraphicsCommands, gridGraphicsData);
 
-            updateGridMirror(CanvasController.isCanvasMirrored);
+            updateGridMirror(CanvasController.mirrorON);
             canvasGrid.cacheAsBitmap = true;
             canvasGrid.visible = true;
         }
@@ -210,7 +210,7 @@ package Modules
             {
                 InputManager.startKeyRepeat(true, function ():void
                     {
-                        gridDrawOffsetX += moveX * (CanvasController.isCanvasMirrored ? -1 : 1);
+                        gridDrawOffsetX += moveX * (CanvasController.mirrorON ? -1 : 1);
                         gridDrawOffsetY += moveY;
 
                         if (Math.abs(gridDrawOffsetX) >= gridGapMultiplier * GRID_GAP)

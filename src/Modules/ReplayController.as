@@ -1131,7 +1131,6 @@ package Modules
                 var layer2bmpd:BitmapData;
                 var newrect:Rectangle;
 
-
                 if (loadCacheFlag === 2)
                 {
                     cachedImageData = rFrameTempCachedImages[cachedImageIndex];
@@ -1179,7 +1178,7 @@ package Modules
                 rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, layer2bmpd, rCanvasLayer2Bitmap);
                 updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
                 updateCanvasBGColorReplayMode(metaData.bgColor);
-                ReplayDrawCommands.setRCursorPos(metaData.rCursorPosX,metaData.rCursorPosY);
+                ReplayDrawCommands.setRCursorPos(metaData.rCursorPosX, metaData.rCursorPosY);
 
                 if (loadCacheFlag === 1 && isReplayStarted === false)
                 {
@@ -1382,7 +1381,7 @@ package Modules
             rPrevFrame = _frameSumLast;
             isReplayFinished = true;
 
-            CanvasController.isCanvasMirrored = rMirrorON;
+            CanvasController.mirrorON = rMirrorON;
             UndoManager.mirrorCommandReady = false;
             UndoController.updateUndoBaseImageMirrorFlag(rMirrorON);
             CanvasController.canvasInfoBox.setMirror(rMirrorON);
@@ -2389,11 +2388,11 @@ package Modules
         // 드로우 모드와 리플레이 모드 캔버스 미러가 다를경우 undo적용 이후에 mirror되는 것을 방지하고 mirror준비를 넣어주도록 함
         public static function preserveDrawMirrorStateAfterReplayCopy():void
         {
-            if (CanvasController.isCanvasMirrored !== rMirrorON)
+            if (CanvasController.mirrorON !== rMirrorON)
             {
                 UndoManager.mirrorCommandReady = true;
                 CanvasController.mirrorBmpdDrawmode();
-                CanvasGridOverlay.updateGridMirror(CanvasController.isCanvasMirrored);
+                CanvasGridOverlay.updateGridMirror(CanvasController.mirrorON);
                 mirrorRCursorPos();
             }
             else if (UndoManager.mirrorCommandReady)
@@ -2551,7 +2550,7 @@ package Modules
             const rNowFrameBackup:Number = rNowFrame;
             renderReplayFrame(0, JUMP_FRAME_MANUAL);
             renderReplayFrame(rNowFrameBackup, JUMP_FRAME_MANUAL);
-            CanvasController.isCanvasMirrored = rMirrorON;
+            CanvasController.mirrorON = rMirrorON;
             UndoManager.mirrorCommandReady = false;
             CanvasController.canvasInfoBox.setMirror(rMirrorON);
         }
@@ -2923,7 +2922,7 @@ package Modules
             FileManager.isContinueSaveON = false;
             rLastCanvasBGColor = CanvasController.CANVAS_BG_COLOR;
             rMirrorON = false;
-            CanvasController.isCanvasMirrored = false;
+            CanvasController.mirrorON = false;
             rDataReadFlag = false;
             UndoManager.mirrorCommandReady = false;
             setRFileTotalFrame(0);

@@ -215,7 +215,7 @@ package Modules
             UndoManager.resetUndoState(true);
             ReplayController.rReplayFOFOCursor.visible = true; // 대칭된 커서 위치를 갱신해주려고 임시로 켜줌
             // checkMirrorCanvasReplayMirror();
-            CanvasController.canvasInfoBox.setMirror(CanvasController.isCanvasMirrored);
+            CanvasController.canvasInfoBox.setMirror(CanvasController.mirrorON);
             ReplayDrawCommands.setFirstRCursorPosCurrent();
             ReplayController.rReplayFOFOCursor.visible = false;
             CanvasController.canvasNavigatorBox.updateImage();

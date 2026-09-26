@@ -82,7 +82,7 @@ package Modules
             appStateObject.refLayerMenuBox0 = ReferenceLayerController.refLayerMenuBox.x;
             appStateObject.refLayerMenuBox1 = ReferenceLayerController.refLayerMenuBox.y;
 
-            appStateObject.isCanvasMirrored = CanvasController.isCanvasMirrored;
+            appStateObject.isCanvasMirrored = CanvasController.mirrorON;
 
             appStateObject.gridValue = CanvasGridOverlay.gridGapMultiplier;
             appStateObject.hsvColorData0 = ColorPickerController.hsvColorData[0];
@@ -385,7 +385,7 @@ package Modules
                                 appStateObject.canvasRefLayerScaleY
                             );
 
-                        if (CanvasController.isCanvasMirrored !== appStateObject.isCanvasMirrored)
+                        if (CanvasController.mirrorON !== appStateObject.isCanvasMirrored)
                             CanvasController.mirrorCanvas(true);
 
                         // Grid Overlay

@@ -56,7 +56,7 @@ package Modules
         public static var canvasDrawLayerBitmap:Bitmap = new Bitmap(canvasDrawLayerBitmapData, "auto", true);
 
         public static var canvasDrawLayerClipRect:Rectangle = new Rectangle(); // 그려준 영역 만큼만 캔버스bitmap1에 그려주는 사각형
-        public static var isCanvasMirrored:Boolean = false;
+        public static var mirrorON:Boolean = false;
         public static var canvasZoomMultiplerList:Array = [0.125, 0.25, 0.5, 0.75, 1.0, 1.50, 2.0, 3.0, 4.0, 6.0, 8.0];
         public static var canvasZoomMultipler:Number = 1.0;
         public static var canvasZoomIndex:int = 4;
@@ -741,10 +741,10 @@ package Modules
         {
             // canvaspanel로 하면 중점이 안맞아서 canvas1로함
             const p:Point = getCanvasPanelMidPos();
-            isCanvasMirrored = !isCanvasMirrored;
+            mirrorON = !mirrorON;
             UndoManager.flipMirrorComandReadyFlag();
             mirrorBmpdDrawmode();
-            canvasInfoBox.setMirror(isCanvasMirrored);
+            canvasInfoBox.setMirror(mirrorON);
             // 회전각 부호를 바꿔야 제대로 mirror가됨
             moveCanvasAnchorPoint(p.x, p.y); // regpoint를 회전한 캔버스 중점으로 두고
             if (canvasOnly === false) // 보통 미러할때, canvasonly가 true일때는 appdata에서 바꿔줄때 밖에 없음
@@ -753,7 +753,7 @@ package Modules
                 ReplayController.setRcursorRotation(canvasAnchorPoint.rotation);
                 ReferenceLayerController.mirrorRefLayerImage();
             }
-            CanvasGridOverlay.updateGridMirror(isCanvasMirrored);
+            CanvasGridOverlay.updateGridMirror(mirrorON);
             const halfCanvas:Number = (main.stage.stageWidth - SidebarController.sideBar.getWidth()) / 2;
             var stageHalf:Number = (SidebarController.sideBar.visible === false) ? main.stage.stageWidth / 2
                 : (SidebarController.isRightSidebar) ? halfCanvas

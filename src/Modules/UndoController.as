@@ -19,7 +19,7 @@ package Modules
                 CanvasController.CANVAS_WIDTH,
                 CanvasController.CANVAS_HEIGHT,
                 CanvasController.CANVAS_BG_COLOR,
-                CanvasController.isCanvasMirrored
+                CanvasController.mirrorON
             ];
 
         public static function resetRJumpImageCount():void
@@ -52,7 +52,7 @@ package Modules
                     CanvasController.canvasLayer1BitmapData.width,
                     CanvasController.canvasLayer1BitmapData.height,
                     CanvasController.CANVAS_BG_COLOR,
-                    CanvasController.isCanvasMirrored
+                    CanvasController.mirrorON
                 );
         }
 
