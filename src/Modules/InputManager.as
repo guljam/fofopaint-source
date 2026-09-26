@@ -17,6 +17,8 @@ package Modules
     import flash.system.Capabilities;
     import flash.system.IME;
     import flash.display.BitmapData;
+    import Symbols.TopMenuSet;
+    import flash.display.DisplayObjectContainer;
 
     public class InputManager
     {
@@ -425,9 +427,7 @@ package Modules
             //디버그 확인용
             if(isPressedKey(KEY.f12))
             {
-                const bmpd:BitmapData = new BitmapData(1,1);
-                bmpd.dispose();
-                bmpd.draw(main.stage);
+
             }
 
             tryDisableIME();

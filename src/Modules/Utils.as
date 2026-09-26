@@ -8,6 +8,8 @@ package Modules
     import flash.utils.Dictionary;
     import flash.utils.getTimer;
     import flash.geom.ColorTransform;
+    import flash.display.SimpleButton;
+    import avmplus.getQualifiedClassName;
 
     public class Utils
     {
@@ -16,8 +18,8 @@ package Modules
         {
             main = instance;
         }
-        
-        //요소 colortransform바꾸기
+
+        // 요소 colortransform바꾸기
         public static function setColorTransform(target:DisplayObject, color:uint, customAlpha:Number = NaN):void
         {
             if (!target)
@@ -408,5 +410,213 @@ package Modules
             }
             trace(prefix + branch + label + " : " + value);
         }
+
+        public static function traceDisplayTree(target:DisplayObject, indent:String = ""):void
+        {
+            if (target == null)
+            {
+                trace(indent + "null");
+                return;
+            }
+
+            trace(
+                    indent + getQualifiedClassName(target) + " name=" + target.name
+                );
+
+            var container:DisplayObjectContainer = target as DisplayObjectContainer;
+
+            if (container == null)
+            {
+                return;
+            }
+
+            for (var i:int = 0;i < container.numChildren;i++)
+            {
+                traceDisplayTree(container.getChildAt(i), indent + "    ");
+            }
+        }
+
+        public static function cloneSimpleButton(originalButton:SimpleButton):SimpleButton
+        {
+            return SimpleButtonCloneUtil.clone(originalButton);
+        }
+    }
+}
+
+import flash.display.SimpleButton;
+import avmplus.getQualifiedClassName;
+import flash.utils.getDefinitionByName;
+import flash.display.DisplayObject;
+import flash.display.Bitmap;
+import flash.geom.Rectangle;
+import flash.display.BitmapData;
+import flash.geom.Matrix;
+import flash.geom.ColorTransform;
+import flash.filters.BitmapFilter;
+
+final class SimpleButtonCloneUtil
+{
+    public static function clone(source:SimpleButton):SimpleButton
+    {
+        if (source == null)
+        {
+            return null;
+        }
+
+        var result:SimpleButton = createSameButtonClass(source);
+
+        if (result == null)
+        {
+            result = createButtonFromStates(source);
+        }
+
+        copyButtonProperties(source, result);
+
+        return result;
+    }
+
+    private static function createSameButtonClass(source:SimpleButton):SimpleButton
+    {
+        try
+        {
+            var className:String = getQualifiedClassName(source);
+
+            if (isBuiltInClass(className))
+            {
+                return null;
+            }
+
+            var ButtonClass:Class = getDefinitionByName(className) as Class;
+            return new ButtonClass() as SimpleButton;
+        }
+        catch (error:Error)
+        {
+            return null;
+        }
+    }
+
+    private static function createButtonFromStates(source:SimpleButton):SimpleButton
+    {
+        var result:SimpleButton = new SimpleButton();
+
+        result.upState = cloneState(source.upState);
+        result.overState = cloneState(source.overState);
+        result.downState = cloneState(source.downState);
+        result.hitTestState = cloneState(source.hitTestState);
+
+        return result;
+    }
+
+    private static function cloneState(source:DisplayObject):DisplayObject
+    {
+        if (source == null)
+        {
+            return null;
+        }
+
+        var cloned:DisplayObject = createSameDisplayObjectClass(source);
+
+        if (cloned != null)
+        {
+            copyDisplayObjectProperties(source, cloned);
+            return cloned;
+        }
+
+        return cloneAsBitmap(source);
+    }
+
+    private static function createSameDisplayObjectClass(source:DisplayObject):DisplayObject
+    {
+        try
+        {
+            var className:String = getQualifiedClassName(source);
+
+            if (isBuiltInClass(className))
+            {
+                return null;
+            }
+
+            var DisplayClass:Class = getDefinitionByName(className) as Class;
+            return new DisplayClass() as DisplayObject;
+        }
+        catch (error:Error)
+        {
+            return null;
+        }
+    }
+
+    private static function isBuiltInClass(className:String):Boolean
+    {
+        return className.indexOf("flash.") == 0;
+    }
+
+    private static function copyButtonProperties(source:SimpleButton, target:SimpleButton):void
+    {
+        copyDisplayObjectProperties(source, target);
+
+        target.enabled = source.enabled;
+        target.useHandCursor = source.useHandCursor;
+        target.trackAsMenu = source.trackAsMenu;
+        target.tabEnabled = source.tabEnabled;
+        target.tabIndex = source.tabIndex;
+        target.name = source.name;
+        target.accessibilityProperties = source.accessibilityProperties;
+    }
+
+    private static function copyDisplayObjectProperties(source:DisplayObject, target:DisplayObject):void
+    {
+        target.transform.matrix = source.transform.matrix.clone();
+        target.transform.colorTransform = cloneColorTransform(source.transform.colorTransform);
+        target.alpha = source.alpha;
+        target.visible = source.visible;
+        target.blendMode = source.blendMode;
+        target.cacheAsBitmap = source.cacheAsBitmap;
+        target.opaqueBackground = source.opaqueBackground;
+        target.filters = cloneFilters(source.filters);
+    }
+
+    private static function cloneAsBitmap(source:DisplayObject):Bitmap
+    {
+        var bounds:Rectangle = source.getBounds(source);
+        var width:int = Math.max(1, Math.ceil(bounds.width));
+        var height:int = Math.max(1, Math.ceil(bounds.height));
+
+        var bitmapData:BitmapData = new BitmapData(width, height, true, 0x00000000);
+        var matrix:Matrix = new Matrix();
+
+        matrix.translate(-bounds.x, -bounds.y);
+        bitmapData.draw(source, matrix, null, null, null, true);
+
+        var bitmap:Bitmap = new Bitmap(bitmapData, "auto", true);
+        bitmap.x = bounds.x;
+        bitmap.y = bounds.y;
+
+        return bitmap;
+    }
+
+    private static function cloneColorTransform(source:ColorTransform):ColorTransform
+    {
+        return new ColorTransform(
+                source.redMultiplier,
+                source.greenMultiplier,
+                source.blueMultiplier,
+                source.alphaMultiplier,
+                source.redOffset,
+                source.greenOffset,
+                source.blueOffset,
+                source.alphaOffset
+            );
+    }
+
+    private static function cloneFilters(source:Array):Array
+    {
+        var result:Array = [];
+
+        for each (var filter:BitmapFilter in source)
+        {
+            result.push(filter.clone());
+        }
+
+        return result;
     }
 }
