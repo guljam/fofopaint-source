@@ -369,10 +369,7 @@ package Modules.Tools
                 main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool);
                 main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool);
 
-                if (hasLineTouchedCanvas === false)
-                {
-                    checkPointInsideCanvas(mx, my);
-                }
+                hasLineTouchedCanvas = checkPointInsideCanvas(mx, my);
 
                 FOFOTimer.addByName("updateLineToolTimer", 0.1, true, function ():Boolean
                     {
