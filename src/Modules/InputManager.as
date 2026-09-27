@@ -878,11 +878,9 @@ package Modules
         public static function onKeyUpStage(e:KeyboardEvent):void
         {
             //디버그 확인용
-            if(isPressedKey(KEY.f12))
-            {
-                const a:String = ReplayController.getReplayRemainingTimeString(1.0,1.0,false);
-                trace('a',a);
-            }
+            // if(isPressedKey(KEY.f12))
+            // {
+            // }
 
             tryDisableIME();
             checkInvalidKey();

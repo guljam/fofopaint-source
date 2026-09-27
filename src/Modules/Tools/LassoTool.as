@@ -67,7 +67,8 @@ package Modules.Tools
         public static const LASSO_1PX_MOVE_RIGHT:int = (1 << 3);
 
         public static var _lassoMenuBox:LassoMenuSet = new LassoMenuSet(); // 라소툴 버튼
-        public static var lassoDraw:Shape = new Shape(); // 라소 영역 선 그려주는 쉐이프
+        public static const lassoDraw:Shape = new Shape(); // 라소 영역 선 그려주는 쉐이프
+        public static const lassoDrawCloseLine:Shape = new Shape(); // 라소 영역 증분그리기로 되어서 선 닫아주는 그래픽은 따로 추가해줌
         public static var lassoLayer1:Sprite = new Sprite(); // 선택한 이미지를 그려주고 확대/축소 등 조작
         public static var lassoLayer1Bitmap:Bitmap = new Bitmap();
 
@@ -90,6 +91,37 @@ package Modules.Tools
 
         public static var lassoToolFunction:Object = cLassoTool();
         public static var lassoAndRefLayerBoxLastPos:Array = [0, 0, 0, 0, 0, 0, 0, 0]; // 사이즈바 켜줄때 임시로 사이드바 안쪽으로 밀려나게 하고 위치가 변경되지 않았으면 원래대로 복귀해줌
+
+        private static function setOptimizeView(flag:Boolean):void
+        {
+            lassoDraw.visible = !flag;
+            lassoDrawCloseLine.visible = !flag;
+            lassoLayer1Bitmap.smoothing = !flag;
+            lassoLayer2Bitmap.smoothing = !flag;
+            _lassoMenuBox.visible = !flag;
+        }
+
+        public static function redrawLassoOutline():void
+        {
+            if (!_isLassoToolStarted || lassoTransformData.length < 2)
+                return;
+
+            const pts:Array = lassoTransformData[1];
+            const len:uint = pts.length;
+            if (len < 2)
+                return;
+
+            // 라소 이미지 리사이즈 배율까지 반영해야 화면에서 늘 1px / 5px 로 보임
+            DottedLineTool.setLineScale(CanvasController.canvasZoomMultipler * Math.abs(lassoLayer1.scaleY));
+
+            lassoDraw.graphics.clear(); // lassoDraw.x/y 보정값은 그대로 두므로 위치는 유지됨
+            DottedLineTool.moveTo(lassoDraw.graphics, pts[0][0], pts[0][1]);
+            for (var i:uint = 1;i < len;i++)
+            {
+                DottedLineTool.lineTo(pts[i][0], pts[i][1]);
+            }
+            DottedLineTool.lineTo(pts[0][0], pts[0][1], true);
+        }
 
         public static function resetLassoLayerScale():void
         {
@@ -326,19 +358,15 @@ package Modules.Tools
         public static function startLassoImageRotation():void
         {
             var getAngle:Function = MainUI.showCanvasRotateCursorMouseDrag(lassoLayer1);
+            function onDragStart():void
+            {
+                setOptimizeView(true);
+            }
             function onMouseUp():void
             {
                 getAngle = null;
                 MainUI.hideCanvasRotateCursor();
-                lassoLayer1Bitmap.smoothing = true;
-                lassoLayer2Bitmap.smoothing = true;
-                _lassoMenuBox.visible = true;
-            }
-            function onDragStart():void
-            {
-                _lassoMenuBox.visible = false;
-                lassoLayer1Bitmap.smoothing = false;
-                lassoLayer2Bitmap.smoothing = false;
+                setOptimizeView(false);
             }
             function onMouseMove():void
             {
@@ -355,9 +383,7 @@ package Modules.Tools
             var getScale:Function = Utils.updateImageScaleMouseDrag(lassoLayer1.scaleX);
             function onDragStart():void
             {
-                _lassoMenuBox.visible = false;
-                lassoLayer1Bitmap.smoothing = false;
-                lassoLayer2Bitmap.smoothing = false;
+                setOptimizeView(false);
                 MainUI.showMouseHint(MainUI.getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
             }
             function onMouseUp():void
@@ -365,9 +391,8 @@ package Modules.Tools
                 getScale = null;
                 MainUIController.keepBoxInsideViewPort(_lassoMenuBox);
                 MainUI.hideMouseHint();
-                lassoLayer1Bitmap.smoothing = true;
-                lassoLayer2Bitmap.smoothing = true;
-                _lassoMenuBox.visible = true;
+                LassoTool.redrawLassoOutline();
+                setOptimizeView(true);
             }
             function onMouseMove():void
             {
@@ -403,9 +428,7 @@ package Modules.Tools
             {
                 getMovedPos = null;
                 MainUIController.keepBoxInsideViewPort(_lassoMenuBox);
-                lassoLayer1Bitmap.smoothing = true;
-                lassoLayer2Bitmap.smoothing = true;
-                _lassoMenuBox.visible = true;
+                setOptimizeView(false);
             }
             function onMouseMove():void
             {
@@ -417,9 +440,7 @@ package Modules.Tools
             }
             function onDragStart():void
             {
-                _lassoMenuBox.visible = false;
-                lassoLayer1Bitmap.smoothing = false;
-                lassoLayer2Bitmap.smoothing = false;
+                setOptimizeView(true);
             }
             DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
         }
@@ -597,7 +618,7 @@ package Modules.Tools
         public static function cLassoTool():Object
         {
             var drawnCount:uint = 0;
-            const closeLineDraw:Shape = new Shape(); // lassoDraw 형제로 addChild 필요
+            
             var clickPos:Point = new Point(0, 0);
             var maxWidth:Number;
             var maxHeight:Number;
@@ -605,7 +626,8 @@ package Modules.Tools
             var lassoPoints:Array;
             function resetPosData():void
             {
-                LassoTool.lassoLayer1.removeChild(closeLineDraw);
+                drawnCount = 0;
+                lassoDrawCloseLine.graphics.clear();
 
                 drawnCount = 0;
                 if (lassoRect)
@@ -636,7 +658,7 @@ package Modules.Tools
                 }
                 drawnCount = len;
 
-                closeLineDraw.graphics.clear();
+                lassoDrawCloseLine.graphics.clear();
 
                 if (isFinal)
                 {
@@ -646,8 +668,7 @@ package Modules.Tools
                 else
                 {
                     // 드래그 중: 상태를 건드리지 않고 별도 Shape에 닫는 점선
-                    trace('lassoPoints[0][0]',lassoPoints[0][0],lassoPoints[0][1]);
-                    DottedLineTool.drawClosingLine(closeLineDraw.graphics, lassoPoints[0][0], lassoPoints[0][1]);
+                    DottedLineTool.drawClosingLine(lassoDrawCloseLine.graphics, lassoPoints[0][0], lassoPoints[0][1]);
                 }
             }
 
@@ -762,10 +783,6 @@ package Modules.Tools
                     return;
 
                 drawnCount = 0;
-                if (closeLineDraw.parent !== lassoLayer1)
-                {
-                    lassoLayer1.addChild(closeLineDraw);
-                }
                 CanvasController.isMouseDragging = true;
                 _lassoMenuBox.hint("Lasso tool");
                 maxWidth = CanvasController.CANVAS_WIDTH;
@@ -773,13 +790,13 @@ package Modules.Tools
                 clickPos.setTo(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
                 lassoDraw.x = 0;
                 lassoDraw.y = 0;
-                LassoTool.lassoLayer1.addChild(closeLineDraw);
                 // left, top, right, bottom순임
                 lassoRect = new <Number>[clickPos.x, clickPos.y, clickPos.x, clickPos.y];
                 lassoPoints = [];
                 lassoTransformData = [];
                 CanvasController.canvasDrawLayer.alpha = 1.0; // 알파값이 조정되어 있을 수도 있기 때문에 해줌
                 lassoDraw.graphics.clear();
+                lassoDrawCloseLine.graphics.clear();
                 lassoPoints.push([clickPos.x, clickPos.y]);
                 lassoLayer1.visible = true;
                 DottedLineTool.setLineScale(CanvasController.canvasZoomMultipler);
@@ -1074,6 +1091,7 @@ package Modules.Tools
                 posX = -1;
             else if (command === LASSO_1PX_MOVE_RIGHT)
                 posX = 1;
+
             const rotatedPoint:Point = Utils.rotatePoint(posX, posY, CanvasController.canvasAnchorPoint.rotation);
             lassoLayer1.x += rotatedPoint.x;
             lassoLayer1.y += rotatedPoint.y;

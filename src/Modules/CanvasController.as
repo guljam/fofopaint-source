@@ -780,10 +780,10 @@ package Modules
             var tmpbmpd:BitmapData = new BitmapData(canvasLayer1BitmapData.width, canvasLayer1BitmapData.height, true, 0);
             var flipMat:Matrix = new Matrix(-1, 0, 0, 1, canvasLayer1BitmapData.width);
             tmpbmpd.draw(canvasLayer1BitmapData, flipMat);
-            copyPixels(canvasLayer1BitmapData,tmpbmpd);
+            copyPixels(canvasLayer1BitmapData, tmpbmpd);
             tmpbmpd.fillRect(new Rectangle(0, 0, canvasLayer1BitmapData.width, canvasLayer1BitmapData.height), 0);
             tmpbmpd.draw(canvasLayer2BitmapData, flipMat);
-            copyPixels(canvasLayer2BitmapData,tmpbmpd);
+            copyPixels(canvasLayer2BitmapData, tmpbmpd);
             tmpbmpd.dispose();
             tmpbmpd = null;
         }
@@ -1303,6 +1303,7 @@ package Modules
             LassoTool.lassoLayer1.name = "lassoBox1";
             LassoTool.lassoLayer1.addChild(LassoTool.lassoLayer1Bitmap);
             LassoTool.lassoLayer1.addChild(LassoTool.lassoDraw);
+            LassoTool.lassoLayer1.addChild(LassoTool.lassoDrawCloseLine);
             LassoTool.lassoLayer1.visible = false;
             LassoTool.lassoLayer2.name = "lassoBox2";
             LassoTool.lassoLayer2.addChild(LassoTool.lassoLayer2Bitmap);
@@ -1350,6 +1351,10 @@ package Modules
                 if (!CaptureController.isCaptureModeON)
                 {
                     PenSizePreviewCursor.updateZoom(zoomValue);
+                }
+                if (LassoTool._isLassoToolStarted)
+                {
+                    LassoTool.redrawLassoOutline();
                 }
             }
             else
@@ -1625,17 +1630,17 @@ package Modules
             }
         }
 
-        public static function copyPixels(target:BitmapData,source:BitmapData):void
+        public static function copyPixels(target:BitmapData, source:BitmapData):void
         {
-            if(target.width !== source.width || target.height !== source.height)
+            if (target.width !== source.width || target.height !== source.height)
             {
                 MainUI.showMouseHintTemp("CanvasController.copyPixels() failed : Not same size", 10.0);
                 return;
             }
 
-            copyPixelRect.setTo(0,0,source.width,source.height);
+            copyPixelRect.setTo(0, 0, source.width, source.height);
             target.lock();
-            target.copyPixels(source,copyPixelRect,Global.ZERO_POINT,null,null,false);
+            target.copyPixels(source, copyPixelRect, Global.ZERO_POINT, null, null, false);
             target.unlock();
         }
     }
