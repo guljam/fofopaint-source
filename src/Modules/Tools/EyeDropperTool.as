@@ -20,6 +20,7 @@ package Modules.Tools
     import flash.geom.Rectangle;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayState;
+    import flash.events.Event;
 
     public class EyeDropperTool
     {
@@ -64,9 +65,9 @@ package Modules.Tools
             }
         }
 
-        private static function pickColor():uint
+        private static function pickColor(canShow:Boolean):uint
         {
-            if (CanvasController.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (canShow)
             {
                 // 배경색
                 const r3:uint = (CanvasController.CANVAS_BG_COLOR & 0xFF0000) >> 16;
@@ -242,7 +243,7 @@ package Modules.Tools
             {
                 okFlag = true;
 
-                const pickedColor:uint = pickColor();
+                const pickedColor:uint = pickColor(canShowEyedropperLens());
                 PenTool.penColor = pickedColor;
                 ColorPickerController.pickerIgnoreHistoryColor = pickedColor;
                 ColorPickerController.updateColorPickerCursorPosAndRGBInfo(pickedColor);
@@ -251,7 +252,7 @@ package Modules.Tools
             exitEyeDropperTool(okFlag);
         }
 
-        private static function onMouseMoveEyeDropper(e:MouseEvent):void
+        private static function onEnterFrameEyeDropper(e:Event):void
         {
             if (isNotEyeDropperTool())
             {
@@ -259,12 +260,19 @@ package Modules.Tools
                 return;
             }
 
+            if(eyedropperLens.x === main.stage.mouseX && eyedropperLens.y === main.stage.mouseY)
+            {
+                trace('return;');
+                return;
+            }
+
             eyedropperLens.x = main.stage.mouseX;
             eyedropperLens.y = main.stage.mouseY;
-
-            if (canShowEyedropperLens())
+            
+            const canShow:Boolean = canShowEyedropperLens();
+            if (canShow)
             {
-                Utils.setColorTransform(eyedropperLens.nowColor, pickColor());
+                Utils.setColorTransform(eyedropperLens.nowColor, pickColor(canShow));
 
                 if (CanvasController.canvasZoomMultipler < 12.0)
                 {
@@ -281,7 +289,7 @@ package Modules.Tools
 
         private static function removeEyedropperEvents():void
         {
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveEyeDropper);
+            main.stage.removeEventListener(Event.ENTER_FRAME, onEnterFrameEyeDropper);
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper);
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper);
             main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper);
@@ -290,7 +298,7 @@ package Modules.Tools
 
         private static function addEyedropperEvents():void
         {
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveEyeDropper);
+            main.stage.addEventListener(Event.ENTER_FRAME,onEnterFrameEyeDropper);
             main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper, false, -2);
             main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper, false, -2);
             main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper, false, 2);
@@ -305,21 +313,14 @@ package Modules.Tools
 
         public static function start():void
         {
+            if (CanvasController.checkedLayer !== 0 || CanvasController.isAllLayerInvisible())
+            {
+                return;
+            }
+
             ToolController.toolBox.moveToolCursor("toolEyedropper");
-
-            if (CanvasController.checkedLayer !== 0)
-            {
-                return;
-            }
-
-            if (CanvasController.isAllLayerInvisible())
-            {
-                return;
-            }
-
             ToolController.updateLastTool();
             // todo: 이것도 그냥 setLastToolPen, setSeletedToolPen이런식으로 메서드로 호출
-            ToolController.setLastTool(ToolController.nowTool);
             ToolController.setSelectedTool(ToolController.TOOL_EYEDROPPER);
 
             penColorBackup = PenTool.penColor;
@@ -334,12 +335,13 @@ package Modules.Tools
             canvasBGShape.graphics.beginFill(CanvasController.CANVAS_BG_COLOR);
             canvasBGShape.graphics.drawRect(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
 
-            if (canShowEyedropperLens())
+            const canShow:Boolean = canShowEyedropperLens();
+            if (canShow)
             {
                 eyedropperLens.x = main.stage.mouseX;
                 eyedropperLens.y = main.stage.mouseY;
 
-                Utils.setColorTransform(eyedropperLens.nowColor, pickColor());
+                Utils.setColorTransform(eyedropperLens.nowColor, pickColor(canShow));
                 Utils.setAsTopChild(eyedropperLens);
 
                 if (CanvasController.canvasZoomMultipler < 12.0)
@@ -356,6 +358,7 @@ package Modules.Tools
             }
 
             addEyedropperEvents();
+            return;
         }
     }
 }

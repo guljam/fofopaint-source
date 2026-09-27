@@ -173,7 +173,7 @@ package Modules
         {
             return isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN);
         }
-    
+
         public static function selectPenToolIfNotDrawingTool(checkErase:Boolean):void
         {
             if (!(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN)
@@ -266,8 +266,6 @@ package Modules
             toolOptionsBox.opaCursor.x = curButton.x;
             toolOptionsBox.opaCursor.y = curButton.y;
         }
-
-
         public static function applyDrawingToolAlpha(alpha:Number = 0.0):void
         {
             const index:int = PenTool.penAlphaList.indexOf(alpha);
@@ -919,7 +917,11 @@ package Modules
                         else if (!isSelectedTool(TOOL_EYEDROPPER))
                         {
                             EyeDropperTool.start();
-                            showNowToolIconToCursorTemp(TOOL_EYEDROPPER);
+
+                            if (isSelectedTool(TOOL_EYEDROPPER))
+                            {
+                                showNowToolIconToCursorTemp(TOOL_EYEDROPPER);
+                            }
                         }
                     }
                     break;
