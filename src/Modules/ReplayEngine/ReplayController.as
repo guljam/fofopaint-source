@@ -314,7 +314,18 @@ package Modules.ReplayEngine
             {
                 rSeekbarTextUpdateTime = nowTime;
                 const nextFrame:Number = ReplayState.rReplaySpeedMultipler * main.stage.frameRate;
-                ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame + Math.floor(nextFrame / REPLAY_SLIDESHOW_FRAME_RATE), ReplayDrawer.JUMP_FRAME_MANUAL);
+                const shouldStop:Boolean = ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame + Math.floor(nextFrame / REPLAY_SLIDESHOW_FRAME_RATE), ReplayDrawer.JUMP_FRAME_MANUAL);
+
+                if (shouldStop)
+                {
+                    stopReplay();
+
+                    // 예전에는 renderReplayFrame 안에서 정지된 뒤(슬라이드쇼 플래그 꺼진 상태로) 실행되던 검사라서 순서 유지를 위해 여기서 다시 해줌
+                    if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoManager.isDeepUndoEnabled)
+                    {
+                        rFollowMouse.check(true);
+                    }
+                }
 
                 if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
                 {
@@ -818,7 +829,10 @@ package Modules.ReplayEngine
                     }
                     else
                     {
-                        ReplayDrawer.startDraw(ReplayState.rReplaySpeedMultipler, ReplayDrawer.JUMP_FRAME_PLAY);
+                        if (ReplayDrawer.startDraw(ReplayState.rReplaySpeedMultipler, ReplayDrawer.JUMP_FRAME_PLAY))
+                        {
+                            stopReplay();
+                        }
                     }
 
                     return true;

@@ -248,7 +248,8 @@ package Modules.ReplayEngine
             return remainingFrameCount;
         }
 
-        public static function renderReplayFrame(frame:Number, jumpflag:int):void // jumpp
+        // 반환값: 리플레이를 정지해야 하면 true (슬라이드쇼 재생이 끝났을때)
+        public static function renderReplayFrame(frame:Number, jumpflag:int):Boolean // jumpp
         {
             if (frame < 0)
             {
@@ -263,13 +264,13 @@ package Modules.ReplayEngine
             {
                 if (frame >= ReplayState.TOTAL_FRAME && ReplayState.isReplayFinished)
                 {
-                    return;
+                    return false;
                 }
             }
 
             rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
-            ReplayDrawer.startDraw(remainingFrameCount, jumpflag);
+            const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);
             rFileStream.close();
             // dodraw밑이기 때문에 rFrameSum이 갱신되서 위에 nowFrame은 쓸수가 없음
 
@@ -298,6 +299,8 @@ package Modules.ReplayEngine
             {
                 ReplayController.rFollowMouse.check(true);
             }
+
+            return shouldStop;
         }
 
         public static function updateReplayCursorScale(zoom:Number):void
@@ -584,6 +587,7 @@ package Modules.ReplayEngine
             return false;
         }
 
+        // 리플레이 정지는 직접 하지 않고 정지가 필요한지만 반환함 (정지는 ReplayController가 처리)
         public static function checkFinish(jumpFlag:int):Boolean
         {
             if (ReplayState.rMemoryDataIndex >= rMemoryDataLen || rMemoryDataLen === 0) // 자연적으로 끝났을때
@@ -595,7 +599,6 @@ package Modules.ReplayEngine
                 {
                     // reset replay time해주지 말고 그냥 end플래그만 올려줌
                     // 왜냐하면 리플레이 자연적으로 끝나고도 스킵프레임이나 oneframe jump을 해줄수가 있기 때문
-                    ReplayController.stopReplay();
                     return true;
                 }
             }
@@ -603,7 +606,8 @@ package Modules.ReplayEngine
             return false;
         }
 
-        public static function drawFromMemoryData(len:Number, jumpFlag:int):void
+        // 반환값: 리플레이를 정지해야 하면 true
+        public static function drawFromMemoryData(len:Number, jumpFlag:int):Boolean
         {
             for (var i:Number = 0;i < len;i++)
             {
@@ -613,7 +617,7 @@ package Modules.ReplayEngine
 
                     if (checkFinish(jumpFlag))
                     {
-                        return;
+                        return true;
                     }
 
                     ReplayState.rPrevFrame = ReplayState.rNowFrame;
@@ -623,6 +627,8 @@ package Modules.ReplayEngine
                 ReplayDrawCommands.drawNext();
                 ReplayState.rNowFrame++;
             }
+
+            return false;
         }
 
         public static function drawFromFileData(len:Number, jumpFlag:int):void
@@ -654,8 +660,11 @@ package Modules.ReplayEngine
             }
         }
 
-        public static function startDraw(commandCount:Number, jumpFlag:int):void
+        // 반환값: 리플레이를 정지해야 하면 true
+        public static function startDraw(commandCount:Number, jumpFlag:int):Boolean
         {
+            var shouldStop:Boolean = false;
+
             if (commandCount > 0)
             {
                 readCount = commandCount;
@@ -669,9 +678,11 @@ package Modules.ReplayEngine
                 if (readCount > 0)
                 {
                     // readcount를 읽어줌
-                    drawFromMemoryData(readCount, jumpFlag);
+                    shouldStop = drawFromMemoryData(readCount, jumpFlag);
                 }
             }
+
+            return shouldStop;
         }
     }
 }
