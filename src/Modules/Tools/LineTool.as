@@ -3,25 +3,19 @@ package Modules.Tools
     import Modules.CanvasController;
     import Modules.ColorPickerController;
     import Modules.DrawingFinish;
-    import Modules.MainUI;
+    import Modules.InputManager;
     import Modules.PaletteController;
+    import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
-    import Modules.ToolController;
+    import Modules.ReplayEngine.ReplayState;
     import Modules.UndoManager;
 
-    import flash.display.BitmapData;
     import flash.display.CapsStyle;
     import flash.display.JointStyle;
     import flash.display.LineScaleMode;
+    import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.geom.Point;
-    import Modules.PenSizePreviewCursor;
-    import flash.system.ApplicationDomain;
-    import flash.events.KeyboardEvent;
-    import Modules.InputManager;
-    import flash.events.BrowserInvokeEvent;
-    import Modules.ReplayEngine.ReplayController;
-    import Modules.ReplayEngine.ReplayState;
 
     public class LineTool
     {
@@ -43,7 +37,6 @@ package Modules.Tools
         private static var xAlpha:Number;
         private static var xShape:Boolean;
         private static var xBlendMode:String;
-        private static var xAirBrushON:Boolean;
         private static var subLayerFlag:Boolean;
         private static var command:Vector.<int>;
         private static var data:Vector.<Number>;
@@ -332,7 +325,6 @@ package Modules.Tools
                 xSize = PenTool.penSize;
                 xAlpha = PenTool.penAlpha;
                 xShape = PenTool.penIsSquare;
-                xAirBrushON = ToolController.isPenAirBrushON;
 
                 if (PenTool.isTransparentPenColor)
                 {
@@ -368,7 +360,6 @@ package Modules.Tools
 
                 main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool);
                 main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool);
-
                 hasLineTouchedCanvas = checkPointInsideCanvas(mx, my);
 
                 FOFOTimer.addByName("updateLineToolTimer", 0.1, true, function ():Boolean

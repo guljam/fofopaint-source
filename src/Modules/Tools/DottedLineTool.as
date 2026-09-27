@@ -22,7 +22,8 @@ package Modules.Tools
             lineSize = 1 / zoomed;
             dotLineLength = 5 / zoomed;
         }
-        private static function toggleLineColor(from:int):uint
+
+        private static function toggleLineColor():uint
         {
             if (dotLineColor === 0)
             {
@@ -32,6 +33,7 @@ package Modules.Tools
             {
                 dotLineColor = 0;
             }
+
             return dotLineColor;
         }
 
@@ -85,7 +87,7 @@ package Modules.Tools
                 ratio = (dist - subDotLength) / dist - 1.0;
                 interpPoint.setTo(nowPos.x + ratio * (interpPoint.x - nowPos.x),
                         nowPos.y + ratio * (interpPoint.y - nowPos.y));
-                toggleLineColor(1);
+                toggleLineColor();
                 graphics.lineStyle(lineSize, dotLineColor, 1.0, false, "normal", "none");
                 graphics.moveTo(lastInterpPos.x, lastInterpPos.y);
                 graphics.lineTo(interpPoint.x, interpPoint.y);

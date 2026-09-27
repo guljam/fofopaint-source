@@ -45,7 +45,7 @@ package Modules.Tools
                 {
                     if (LassoTool._isLassoMenuHiddenTemp === true)
                     {
-                        LassoTool.hideLassoMenuBoxTemp();
+                        LassoTool.showLassoMenuBox();
                     }
                 }
 
@@ -103,7 +103,5 @@ package Modules.Tools
 
             DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
         };
-
-        private function updatePenSizeCursor():void {}
     }
 }

@@ -65,18 +65,17 @@ package Modules.Tools
 
         private static function onMouseMove():void
         {
-            var abs:Function = Math.abs;
             var mx:Number = main.stage.mouseX;
             var my:Number = main.stage.mouseY;
 
             if (dragDirection === 0)
             {
-                if (abs(mx - lastMousePos.x) > 20)
+                if (Math.abs(mx - lastMousePos.x) > 20)
                 {
                     dragDirection = 1;
                     lastMousePos.x = main.stage.mouseX;
                 }
-                else if (abs(my - lastMousePos.y) > 20)
+                else if (Math.abs(my - lastMousePos.y) > 20)
                 {
                     dragDirection = 2;
                     lastMousePos.y = main.stage.mouseY;
@@ -86,7 +85,7 @@ package Modules.Tools
             {
                 const subX:Number = lastMousePos.x - mx;
 
-                if (abs(subX) > mouseMoveStep)
+                if (Math.abs(subX) > mouseMoveStep)
                 {
                     lastMousePos.x = main.stage.mouseX;
                     zoomToolMouseMoveEvent2(subX);
@@ -96,7 +95,7 @@ package Modules.Tools
             {
                 const subY:Number = my - lastMousePos.y;
 
-                if (abs(subY) > mouseMoveStep)
+                if (Math.abs(subY) > mouseMoveStep)
                 {
                     lastMousePos.y = main.stage.mouseY;
                     zoomToolMouseMoveEvent2(subY);
@@ -115,7 +114,7 @@ package Modules.Tools
 
             if (LassoTool._isLassoMenuHiddenTemp === true)
             {
-                LassoTool.hideLassoMenuBoxTemp();
+                LassoTool.showLassoMenuBox();
             }
 
             MainUIController.updateCanvasNaigatorCursor();

@@ -528,7 +528,7 @@ package Modules
                 {
                     if (LassoTool._isLassoMenuHiddenTemp === true)
                     {
-                        LassoTool.hideLassoMenuBoxTemp();
+                        LassoTool.showLassoMenuBox();
                     }
                 }
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);

@@ -28,7 +28,6 @@ package Modules.Tools
         private static var isDrawMode:Boolean;
 
         private static var xAnc:Sprite;
-        private static var xBitmap:Bitmap;
 
         private static function onMouseUpHandTool(e:MouseEvent):void
         {
@@ -49,7 +48,7 @@ package Modules.Tools
                 {
                     if (LassoTool._isLassoMenuHiddenTemp === true)
                     {
-                        LassoTool.hideLassoMenuBoxTemp();
+                        LassoTool.showLassoMenuBox();
                     }
                 } // tool box에서 클릭해서 핸드툴 들어갈때 필요함
                 else if (!InputManager.isLastKey(InputManager.KEY.space))
@@ -108,7 +107,6 @@ package Modules.Tools
             isDrawMode = !fromReplayMode;
 
             xAnc = (isDrawMode) ? CanvasController.canvasAnchorPoint : ReplayDrawer.rCanvasAnchorPoint;
-            xBitmap = (isDrawMode) ? CanvasController.canvasLayer1Bitmap : ReplayDrawer.rCanvasLayer1Bitmap;
 
             old.setTo(main.stage.mouseX, main.stage.mouseY);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);

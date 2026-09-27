@@ -149,6 +149,7 @@ package Modules.Tools
         {
             return _lassoMenuBox;
         }
+
         public static function get isLassoMenuHiddenTemp():Boolean
         {
             return _isLassoMenuHiddenTemp;
@@ -159,8 +160,9 @@ package Modules.Tools
             _isLassoMenuHiddenTemp = flag;
         }
 
-        public static function hideLassoMenuBoxTemp():void
+        public static function showLassoMenuBox():void
         {
+            trace('hello');
             _lassoMenuBox.visible = true;
             _isLassoMenuHiddenTemp = false;
             InputManager.resetLastKey();
@@ -960,15 +962,12 @@ package Modules.Tools
                 return;
             }
 
-            var rect:Rectangle = new Rectangle();
             if (lassoLayer1LastBitmapdata)
             {
-                rect.setTo(0, 0, lassoLayer1LastBitmapdata.width, lassoLayer1LastBitmapdata.height);
                 CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData, lassoLayer1LastBitmapdata);
             }
             if (lassoLayer2LastBitmapdata)
             {
-                rect.setTo(0, 0, lassoLayer2LastBitmapdata.width, lassoLayer2LastBitmapdata.height);
                 CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData, lassoLayer2LastBitmapdata);
             }
             CanvasController.canvasNavigatorBox.updateImage();
