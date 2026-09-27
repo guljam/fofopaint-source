@@ -591,3 +591,130 @@ lastMouseY = main.stage.mouseY;
 - `ToolController.as:1102` (툴박스2)에는 아이콘 표시 가드를 넣지 않았지만, 레이어가 체크되면 `ToolMenuSet2.as:103`에서 스포이드 버튼 alpha를 낮추고, `InputManager.as:969`의 `target.alpha < 1.0` 검사로 막힙니다. 추가 수정은 필요 없습니다.
 - `pickColor(canShow)`의 판정 기준이 `hitTestPoint(shapeFlag=false)`에서 `canShowEyedropperLens()`로 바뀌었습니다. 렌즈 표시 조건과 같아졌으므로 오히려 일관성이 좋아졌습니다.
 - 마우스를 가만히 둔 채 휠로 줌하면 렌즈가 갱신되지 않는 문제는 MOUSE_MOVE 방식에서도 똑같았으므로 회귀가 아닙니다.
+
+---
+
+## 추가 검토 2 (43e6366: 라소 점선 증분 그리기 적용 후)
+
+### B4 상태 변경: 의도된 구버전 경로라 수정 대상에서 제외
+`applyLassoShapen`은 구버전 `lasso` 리플레이 명령 전용으로 남겨둔 코드이고, `lasso2`에서는 부하 때문에 샤픈을 적용하지 않습니다. 이후 ANE 네이티브(란초스 보간 / color average)로 교체할 예정이므로 **수정하지 않습니다.**
+
+### P4 적용 후 생긴 두 가지 버그: 원인은 제 제안 코드
+
+두 버그 모두 원래 코드(전체 다시 그리기)에는 **없던 문제**입니다. P4 제안 코드가 불완전해서 생겼습니다.
+
+| 증상 | 원인 |
+|---|---|
+| 시작점으로 이어지는 선이 검은 실선으로 보임 | 제안 코드가 닫는 선을 `lineStyle(1/zoom, 0)`의 **검은 단색 실선**으로 그렸음. 원래 코드는 `DottedLineTool.lineTo(시작점, true)`로 **점선**으로 닫음 |
+| 마우스 업 후 점선이 끝까지 닫히지 않음 | ① 마우스 업 때 호출되는 `drawPreviewLine()`(`LassoTool.as:708`)도 증분 모드라서, lassoDraw에는 닫는 점선을 **한 번도 그리지 않음**. ② 닫는 선을 가진 `closeLineDraw`는 lassoLayer1의 자식인데, 마우스 업 때 `moveSelectedAreaToLassoBox`가 lassoLayer1을 선택 영역 중앙으로 옮기면서 **lassoDraw에만** `x/y = -lassoLayer1.x/y` 보정을 줌(`:576-577`). 그래서 closeLineDraw의 닫는 선은 선택 영역 중앙 좌표만큼 **엉뚱한 곳으로 밀려남** |
+
+### clear 없이 이어 그려도 점선이 똑같이 나오는가? → 똑같이 나옴
+- 점선 상태(`graphics`, `dotLineColor`, `subDotLength`, `lastDotPos`, `lastInterpPos`)는 모두 `DottedLineTool`의 static 변수입니다. 호출이 끝나도 유지됩니다.
+- 전체 다시 그리기는 매번 `moveTo`로 상태를 초기화한 뒤 0~N번 점을 **같은 순서로 같은 계산**을 해서 그립니다. 증분 그리기는 이미 그린 0~k번 결과를 그대로 두고 k+1~N번만 이어서 계산합니다.
+- 따라서 점선 부분의 결과는 **같습니다.** 달라지는 경우는 둘뿐입니다.
+  1. 증분 그리기 사이에 다른 코드가 `DottedLineTool.moveTo/lineTo`를 호출하는 경우: 라소를 드래그하는 중에는 채우기펜 점선이 호출되지 않습니다.
+  2. **닫는 점선을 lassoDraw에 그리는 경우**: `lineTo(시작점, true)`가 `lastDotPos`를 시작점으로 바꿔 버려서 다음 증분 그리기가 틀어집니다. 그래서 드래그 중에는 상태를 **백업한 뒤 별도 Shape에 그리고 복원**해야 합니다.
+
+### 수정안
+
+**DottedLineTool.as: 상태를 바꾸지 않고 닫는 점선만 그리는 메서드 추가**
+
+```as3
+// 현재 점선 상태(색, 대시 위치)를 바꾸지 않고, 마지막 점에서 (x, y)까지 닫는 점선을 g 에 그림
+// 라소를 드래그하는 동안 닫는 선을 미리 보여주는 용도
+public static function drawClosingLine(g:Graphics, x:Number, y:Number):void
+{
+    const savedGraphics:Graphics = graphics;
+    const savedColor:uint = dotLineColor;
+    const savedSub:Number = subDotLength;
+    const savedDotX:Number = lastDotPos.x;
+    const savedDotY:Number = lastDotPos.y;
+    const savedInterpX:Number = lastInterpPos.x;
+    const savedInterpY:Number = lastInterpPos.y;
+
+    graphics = g;
+    g.lineStyle(lineSize, dotLineColor, 1.0, false, "normal", "none");
+    g.moveTo(lastInterpPos.x, lastInterpPos.y); // 새 Graphics는 펜 위치가 (0,0)이라 반드시 필요
+    lineTo(x, y, true);
+
+    graphics = savedGraphics;
+    dotLineColor = savedColor;
+    subDotLength = savedSub;
+    lastDotPos.setTo(savedDotX, savedDotY);
+    lastInterpPos.setTo(savedInterpX, savedInterpY);
+}
+```
+
+> `g.moveTo(lastInterpPos)`로 시작하므로, lassoDraw에 아직 그려지지 않은 "마지막 대시의 남은 구간"도 이 닫는 선에 함께 그려집니다. 원래 전체 다시 그리기의 모양과 같습니다.
+
+**LassoTool.as (cLassoTool 안)**
+
+```as3
+function resetPosData():void
+{
+    // removeChild 하지 않음: 한 번 붙여두고 graphics 만 비움 (lassoLayer1이 숨겨지므로 보이지 않음)
+    drawnCount = 0;
+    closeLineDraw.graphics.clear();
+    if (lassoRect)
+        lassoRect.length = 0;
+    if (lassoPoints)
+        lassoPoints.length = 0;
+    lassoRect = null;
+    lassoPoints = null;
+}
+
+function drawPreviewLine(isFinal:Boolean = false):void
+{
+    if (lassoPoints === null || lassoPoints.length < 2)
+        return;
+
+    const len:uint = lassoPoints.length;
+
+    if (drawnCount === 0)
+    {
+        lassoDraw.graphics.clear();
+        DottedLineTool.moveTo(lassoDraw.graphics, lassoPoints[0][0], lassoPoints[0][1]);
+        drawnCount = 1;
+    }
+
+    for (var i:uint = drawnCount; i < len; i++)
+    {
+        DottedLineTool.lineTo(lassoPoints[i][0], lassoPoints[i][1]);
+    }
+    drawnCount = len;
+
+    closeLineDraw.graphics.clear();
+
+    if (isFinal)
+    {
+        // 확정: 원래 코드와 똑같이 lassoDraw에 점선으로 닫음 (lassoDraw의 좌표 보정을 그대로 따라감)
+        DottedLineTool.lineTo(lassoPoints[0][0], lassoPoints[0][1], true);
+    }
+    else
+    {
+        // 드래그 중: 상태를 건드리지 않고 별도 Shape에 닫는 점선
+        DottedLineTool.drawClosingLine(closeLineDraw.graphics, lassoPoints[0][0], lassoPoints[0][1]);
+    }
+}
+
+// start() 안
+if (closeLineDraw.parent !== lassoLayer1)
+{
+    lassoLayer1.addChild(closeLineDraw);
+}
+
+// onMouseUpLassoTool() 안 (현재 708줄)
+drawPreviewLine(true);
+```
+
+### addChild / removeChild 가드가 필요한가?
+- `addChild`: 이미 자식인 객체를 다시 추가해도 **오류가 나지 않고** 맨 위로 이동할 뿐입니다. 가드가 없어도 동작하지만, 매번 z-order를 바꾸지 않도록 `parent` 검사를 권장합니다.
+- `removeChild`: 자식이 아닌 객체를 제거하면 **ArgumentError #2025를 던집니다.** 현재 `resetLassoBox()` 호출부(`LassoTool.as:144,170,677,704,932,987`)는 모두 `start()` 이후에 실행되어서 지금 당장은 크래시가 나지 않습니다. 하지만 `resetLassoBox`가 연속으로 두 번 불리거나 `start` 없이 불리는 경로가 추가되면 바로 크래시가 납니다.
+- **권장:** 위 수정안처럼 **removeChild 자체를 하지 않는 것**이 가장 안전합니다. lassoLayer1은 라소를 쓰지 않을 때 `visible = false`이고 graphics도 비워 두므로 비용이 거의 없습니다. 꼭 제거해야 한다면 `if (closeLineDraw.parent) closeLineDraw.parent.removeChild(closeLineDraw);`로 가드하세요.
+
+### 채우기펜(FillPenTool.showDottedLine)도 최적화해야 하는가? → 필요 없음 (증분 그리기도 불가능)
+- **호출 빈도가 낮음:** `showDottedLine`은 스트로크마다 마우스 업(`FillPenTool.as:71`), 언두(`:419`), 사이드바 미리보기가 끝날 때(`:209, :221`, 1회 후 타이머 종료)만 호출됩니다. 드래그 중(`InputManager.onMouseMoveFillPen`, `InputManager.as:978-1008`)에는 점선이 아니라 `showFillColor`(네이티브 `drawPath` 채우기)만 100ms마다 호출됩니다. 라소처럼 "100ms마다 O(N)"이 아니라 "이벤트마다 O(N)"입니다.
+- **증분 그리기를 할 수 없음:**
+  1. `showFillColor`와 `showDottedLine`이 **같은 Graphics**(`canvasDrawLayerChild.graphics`)를 `clear()`하며 번갈아 씁니다.
+  2. `undoData`가 점을 **중간에서 잘라냅니다**(`:405-406`). 잘린 부분까지 이어 그린 점선 상태를 되돌릴 수 없습니다.
+- 결론: 비용 대비 효과가 없으므로 지금 구조를 유지하세요.

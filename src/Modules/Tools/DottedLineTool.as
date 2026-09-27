@@ -47,9 +47,31 @@ package Modules.Tools
             graphics.moveTo(x, y);
         }
 
+        public static function drawClosingLine(g:Graphics, x:Number, y:Number):void
+        {
+            const savedGraphics:Graphics = graphics;
+            const savedColor:uint = dotLineColor;
+            const savedSub:Number = subDotLength;
+            const savedDotX:Number = lastDotPos.x;
+            const savedDotY:Number = lastDotPos.y;
+            const savedInterpX:Number = lastInterpPos.x;
+            const savedInterpY:Number = lastInterpPos.y;
+
+            graphics = g;
+            g.lineStyle(lineSize, dotLineColor, 1.0, false, "normal", "none");
+            g.moveTo(lastInterpPos.x, lastInterpPos.y); // 새 Graphics는 펜 위치가 (0,0)이라 반드시 필요
+            lineTo(x, y, true);
+
+            graphics = savedGraphics;
+            dotLineColor = savedColor;
+            subDotLength = savedSub;
+            lastDotPos.setTo(savedDotX, savedDotY);
+            lastInterpPos.setTo(savedInterpX, savedInterpY);
+        }
+
         public static function lineTo(x:Number, y:Number, closeLine:Boolean = false):void
         {
-            nowPos.setTo(x,y);
+            nowPos.setTo(x, y);
             interpPoint.setTo(lastDotPos.x, lastDotPos.y);
 
             var dist:Number = Point.distance(lastDotPos, nowPos);
@@ -62,7 +84,7 @@ package Modules.Tools
             {
                 ratio = (dist - subDotLength) / dist - 1.0;
                 interpPoint.setTo(nowPos.x + ratio * (interpPoint.x - nowPos.x),
-                      nowPos.y + ratio * (interpPoint.y - nowPos.y));
+                        nowPos.y + ratio * (interpPoint.y - nowPos.y));
                 toggleLineColor(1);
                 graphics.lineStyle(lineSize, dotLineColor, 1.0, false, "normal", "none");
                 graphics.moveTo(lastInterpPos.x, lastInterpPos.y);

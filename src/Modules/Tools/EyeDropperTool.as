@@ -41,6 +41,9 @@ package Modules.Tools
         private static var penColorBackup:uint;
         private static var canvasBGShape:Shape = new Shape();
 
+        private static var lastMouseX:Number = NaN;
+        private static var lastMouseY:Number = NaN;
+
         private static function updateEyeDropperLensBitmap():void
         {
             const mid:Number = magSize / (4 * CanvasController.canvasZoomMultipler); // 4는 기본 중앙값 magsize/2에서 zoomed나워주고 기본이 2배줌이니까 2로 나눠준값
@@ -197,7 +200,7 @@ package Modules.Tools
                 return;
             }
 
-            if (eyedropperLens.visible)
+            if (canShowEyedropperLens())
             {
                 confirmEyeDropperSelection();
             }
@@ -237,19 +240,17 @@ package Modules.Tools
 
         private static function confirmEyeDropperSelection():void
         {
-            var okFlag:Boolean = false;
+            const canShow:Boolean = canShowEyedropperLens();
 
-            if (eyedropperLens.visible === true)
+            if (canShow)
             {
-                okFlag = true;
-
-                const pickedColor:uint = pickColor(canShowEyedropperLens());
+                const pickedColor:uint = pickColor(true);
                 PenTool.penColor = pickedColor;
                 ColorPickerController.pickerIgnoreHistoryColor = pickedColor;
                 ColorPickerController.updateColorPickerCursorPosAndRGBInfo(pickedColor);
             }
 
-            exitEyeDropperTool(okFlag);
+            exitEyeDropperTool(canShow);
         }
 
         private static function onEnterFrameEyeDropper(e:Event):void
@@ -259,16 +260,18 @@ package Modules.Tools
                 exitEyeDropperTool(false);
                 return;
             }
-
-            if(eyedropperLens.x === main.stage.mouseX && eyedropperLens.y === main.stage.mouseY)
+            const mx:Number = main.stage.mouseX;
+            const my:Number = main.stage.mouseY;
+            if (mx === lastMouseX && my === lastMouseY)
             {
-                trace('return;');
                 return;
             }
 
+            lastMouseX = mx;
+            lastMouseY = my;
             eyedropperLens.x = main.stage.mouseX;
             eyedropperLens.y = main.stage.mouseY;
-            
+
             const canShow:Boolean = canShowEyedropperLens();
             if (canShow)
             {
@@ -298,7 +301,7 @@ package Modules.Tools
 
         private static function addEyedropperEvents():void
         {
-            main.stage.addEventListener(Event.ENTER_FRAME,onEnterFrameEyeDropper);
+            main.stage.addEventListener(Event.ENTER_FRAME, onEnterFrameEyeDropper);
             main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper, false, -2);
             main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper, false, -2);
             main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper, false, 2);
@@ -355,9 +358,17 @@ package Modules.Tools
                 }
 
                 eyedropperLens.visible = true;
+                lastMouseX = main.stage.mouseX;
+                lastMouseY = main.stage.mouseY;
+            }
+            else
+            {
+                lastMouseX = NaN;
+                lastMouseY = NaN;
             }
 
             addEyedropperEvents();
+
             return;
         }
     }
