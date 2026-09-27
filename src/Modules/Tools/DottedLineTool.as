@@ -14,6 +14,8 @@ package Modules.Tools
         private static var lineSize:Number = 1;
         private static var dotLineColor:uint = 0;
         private static var graphics:Graphics;
+        private static const nowPos:Point = new Point();
+        private static const interpPoint:Point = new Point();
 
         public static function setLineScale(zoomed:Number):void
         {
@@ -32,6 +34,7 @@ package Modules.Tools
             }
             return dotLineColor;
         }
+
         public static function moveTo(g:Graphics, x:Number, y:Number):void
         {
             graphics = g;
@@ -43,17 +46,23 @@ package Modules.Tools
             graphics.lineStyle(lineSize, dotLineColor, 1.0, false, "normal", "none");
             graphics.moveTo(x, y);
         }
+
         public static function lineTo(x:Number, y:Number, closeLine:Boolean = false):void
         {
-            const nowPos:Point = new Point(x, y);
+            nowPos.setTo(x,y);
+            interpPoint.setTo(lastDotPos.x, lastDotPos.y);
+
             var dist:Number = Point.distance(lastDotPos, nowPos);
-            var interpPoint:Point = new Point(lastDotPos.x, lastDotPos.y);
+            // var interpPoint:Point = new Point(lastDotPos.x, lastDotPos.y);
             var ratio:Number;
+
             subDotLength -= dist;
+
             while (subDotLength < 0)
             {
                 ratio = (dist - subDotLength) / dist - 1.0;
-                interpPoint = Point.interpolate(interpPoint, nowPos, ratio);
+                interpPoint.setTo(nowPos.x + ratio * (interpPoint.x - nowPos.x),
+                      nowPos.y + ratio * (interpPoint.y - nowPos.y));
                 toggleLineColor(1);
                 graphics.lineStyle(lineSize, dotLineColor, 1.0, false, "normal", "none");
                 graphics.moveTo(lastInterpPos.x, lastInterpPos.y);
@@ -62,10 +71,12 @@ package Modules.Tools
                 dist = Point.distance(nowPos, interpPoint);
                 subDotLength += dotLineLength;
             }
+
             if (closeLine)
             {
                 graphics.lineTo(startPos.x, startPos.y);
             }
+
             lastDotPos.setTo(x, y);
         }
     }

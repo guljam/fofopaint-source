@@ -499,14 +499,14 @@ package Modules.Tools
                 }
             }
             const newRectangle:Rectangle = new Rectangle(rectLeft, rectTop, rectWidth, rectHeight);
-            var lassoBMPD:BitmapData = new BitmapData(rectWidth, rectHeight, true, 0);
-            var lassoBMPDsub:BitmapData = new BitmapData(rectWidth, rectHeight, true, 0);
+            var lassoBmpd1:BitmapData = (layer1) ? new BitmapData(rectWidth, rectHeight, true, 0) : null;
+            var lassoBmpd2:BitmapData = (layer2) ? new BitmapData(rectWidth, rectHeight, true, 0) : null;
             var i:uint;
             // 지우기 전에 사각형 모양으로 그려준 부분을 copypixel 함.
             if (layer1)
-                lassoBMPD.copyPixels(canvasBitmapData, newRectangle, new Point(0, 0), null, null, true);
+                lassoBmpd1.copyPixels(canvasBitmapData, newRectangle, new Point(0, 0), null, null, true);
             if (layer2)
-                lassoBMPDsub.copyPixels(canvasBitmapDataSub, newRectangle, new Point(0, 0), null, null, true);
+                lassoBmpd2.copyPixels(canvasBitmapDataSub, newRectangle, new Point(0, 0), null, null, true);
             lassoLayer1Bitmap.smoothing = true;
             lassoLayer2Bitmap.smoothing = true;
             // bitmap1canvas에서 그려준 영역을 지워줌
@@ -549,12 +549,12 @@ package Modules.Tools
             xCanvasDrawLayer.graphics.endFill();
             if (layer1)
             {
-                lassoLayer1Bitmap.bitmapData = lassoBMPD;
+                lassoLayer1Bitmap.bitmapData = lassoBmpd1;
                 lassoLayer1Bitmap.bitmapData.draw(xCanvasDrawLayer, null, null, "erase");
             }
             if (layer2)
             {
-                lassoLayer2Bitmap.bitmapData = lassoBMPDsub;
+                lassoLayer2Bitmap.bitmapData = lassoBmpd2;
                 lassoLayer2Bitmap.bitmapData.draw(xCanvasDrawLayer, null, null, "erase");
             }
             xCanvasDrawLayer.graphics.clear(); // 꼭 해줘야함
@@ -596,6 +596,8 @@ package Modules.Tools
 
         public static function cLassoTool():Object
         {
+            var drawnCount:uint = 0;
+            const closeLineDraw:Shape = new Shape(); // lassoDraw 형제로 addChild 필요
             var clickPos:Point = new Point(0, 0);
             var maxWidth:Number;
             var maxHeight:Number;
@@ -603,6 +605,10 @@ package Modules.Tools
             var lassoPoints:Array;
             function resetPosData():void
             {
+                LassoTool.lassoLayer1.removeChild(closeLineDraw);
+
+                drawnCount = 0;
+                closeLineDraw.graphics.clear();
                 if (lassoRect)
                     lassoRect.length = 0;
                 if (lassoPoints)
@@ -610,25 +616,47 @@ package Modules.Tools
                 lassoRect = null;
                 lassoPoints = null;
             }
+
             function drawPreviewLine():void
-            {
-                if (lassoPoints === null)
-                {
-                    return;
-                }
-                lassoDraw.graphics.clear();
-                const len:uint = lassoPoints.length;
-                if (lassoPoints.length < 2)
-                {
-                    return;
-                }
-                DottedLineTool.moveTo(lassoDraw.graphics, lassoPoints[0][0], lassoPoints[0][1]);
-                for (var i:uint = 0;i < len;i++)
-                {
-                    DottedLineTool.lineTo(lassoPoints[i][0], lassoPoints[i][1]);
-                }
-                DottedLineTool.lineTo(lassoPoints[0][0], lassoPoints[0][1], true);
-            }
+{
+    if (lassoPoints === null || lassoPoints.length < 2) return;
+    const len:uint = lassoPoints.length;
+    if (drawnCount === 0)
+    {
+        lassoDraw.graphics.clear();
+        DottedLineTool.moveTo(lassoDraw.graphics, lassoPoints[0][0], lassoPoints[0][1]);
+        drawnCount = 1;
+    }
+    for (var i:uint = drawnCount; i < len; i++)
+        DottedLineTool.lineTo(lassoPoints[i][0], lassoPoints[i][1]);
+    drawnCount = len;
+
+    // 닫는 선은 단색 1px로 간단히 (줌 보정)
+    closeLineDraw.graphics.clear();
+    closeLineDraw.graphics.lineStyle(1 / CanvasController.canvasZoomMultipler, 0);
+    closeLineDraw.graphics.moveTo(lassoPoints[len - 1][0], lassoPoints[len - 1][1]);
+    closeLineDraw.graphics.lineTo(lassoPoints[0][0], lassoPoints[0][1]);
+}
+            // function drawPreviewLine():void
+            // {
+            //     if (lassoPoints === null)
+            //     {
+            //         return;
+            //     }
+            //     lassoDraw.graphics.clear();
+            //     const len:uint = lassoPoints.length;
+            //     if (lassoPoints.length < 2)
+            //     {
+            //         return;
+            //     }
+            //     DottedLineTool.moveTo(lassoDraw.graphics, lassoPoints[0][0], lassoPoints[0][1]);
+            //     for (var i:uint = 0;i < len;i++)
+            //     {
+            //         DottedLineTool.lineTo(lassoPoints[i][0], lassoPoints[i][1]);
+            //     }
+            //     DottedLineTool.lineTo(lassoPoints[0][0], lassoPoints[0][1], true);
+            // }
+
             function setDeafultLassoMenuPos(lassoMenu:LassoMenuSet):void
             {
                 const g:Point = lassoLayer1.localToGlobal(new Point(0, 0));
@@ -738,6 +766,9 @@ package Modules.Tools
             {
                 if (_isLassoToolStarted === true || CanvasController.isAllLayerInvisible())
                     return;
+
+                drawnCount = 0;
+                closeLineDraw.graphics.clear();
                 CanvasController.isMouseDragging = true;
                 _lassoMenuBox.hint("Lasso tool");
                 maxWidth = CanvasController.CANVAS_WIDTH;
@@ -745,6 +776,7 @@ package Modules.Tools
                 clickPos.setTo(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
                 lassoDraw.x = 0;
                 lassoDraw.y = 0;
+                LassoTool.lassoLayer1.addChild(closeLineDraw);
                 // left, top, right, bottom순임
                 lassoRect = new <Number>[clickPos.x, clickPos.y, clickPos.x, clickPos.y];
                 lassoPoints = [];
@@ -754,18 +786,24 @@ package Modules.Tools
                 lassoPoints.push([clickPos.x, clickPos.y]);
                 lassoLayer1.visible = true;
                 DottedLineTool.setLineScale(CanvasController.canvasZoomMultipler);
-                if (CanvasController.canvasLayer1Bitmap.visible)
+
+                const needLayer1:Boolean = CanvasController.canvasLayer1Bitmap.visible && CanvasController.checkedLayer !== 2;
+                const needLayer2:Boolean = CanvasController.canvasLayer2Bitmap.visible && CanvasController.checkedLayer !== 1;
+                if (needLayer1)
                 {
                     if (lassoLayer1LastBitmapdata != null)
                         lassoLayer1LastBitmapdata.dispose();
+
                     lassoLayer1LastBitmapdata = CanvasController.canvasLayer1BitmapData.clone();
                 }
-                if (CanvasController.canvasLayer2Bitmap.visible)
+                if (needLayer2)
                 {
                     if (lassoLayer2LastBitmapdata != null)
                         lassoLayer2LastBitmapdata.dispose();
+
                     lassoLayer2LastBitmapdata = CanvasController.canvasLayer2BitmapData.clone();
                 }
+
                 main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLassoTool);
                 main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool);
             };
