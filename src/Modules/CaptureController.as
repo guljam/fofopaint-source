@@ -10,6 +10,9 @@ package Modules
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.getTimer;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayState;
 
     public class CaptureController
     {
@@ -36,7 +39,7 @@ package Modules
 
         public static function executeCaptureFlashEffect():void
         {
-            var xPanel:Sprite = (ReplayController.isReplayModeON) ? ReplayController.rCanvasPanel : CanvasController.canvasPanel;
+            var xPanel:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasPanel : CanvasController.canvasPanel;
             var posX:Number;
             var posY:Number;
             var canvasWidth:Number;
@@ -46,10 +49,10 @@ package Modules
             {
                 posX = 0;
                 posY = 0;
-                if (ReplayController.isReplayModeON)
+                if (ReplayState.isReplayModeON)
                 {
-                    canvasWidth = ReplayController.RCANVAS_WIDTH;
-                    canvasHeight = ReplayController.RCANVAS_HEIGHT;
+                    canvasWidth = ReplayState.RCANVAS_WIDTH;
+                    canvasHeight = ReplayState.RCANVAS_HEIGHT;
                 }
                 else
                 {
@@ -74,15 +77,15 @@ package Modules
 
         public static function getCaptrueImageBitmapdata(clipBoardCopyFlag:Boolean):BitmapData
         {
-            const isReplayMode:Boolean = ReplayController.isReplayModeON;
+            const isReplayMode:Boolean = ReplayState.isReplayModeON;
             var rect:Rectangle = (!CaptureArea.isFullImageCapture()) ? CaptureArea.getCaptureArea() : null;
             var layer1:Boolean;
             var layer2:Boolean;
 
             if (isReplayMode)
             {
-                layer1 = ReplayController.rCanvasLayer1Bitmap.visible;
-                layer2 = ReplayController.rCanvasLayer2Bitmap.visible;
+                layer1 = ReplayDrawer.rCanvasLayer1Bitmap.visible;
+                layer2 = ReplayDrawer.rCanvasLayer2Bitmap.visible;
             }
             else
             {
@@ -155,7 +158,7 @@ package Modules
 
         private static function updateCanvasFlipOnCaptureMode():void
         {
-            const xAnc:Sprite = (ReplayController.isReplayModeON) ? ReplayController.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
+            const xAnc:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
             if (captureCanvasRotationStep === 1)
             {
                 xAnc.rotation = 90;
@@ -170,7 +173,7 @@ package Modules
         {
             isCaptureCanvasFlipped = flag;
             CanvasController.fitCanvasToViewportMargin();
-            const xAnc:Sprite = (ReplayController.isReplayModeON) ? ReplayController.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
+            const xAnc:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
 
             if (captureCanvasRotationStep === 1)
             {
@@ -211,10 +214,10 @@ package Modules
 
         public static function restoreCanvasBackgroundColorReplayMode():void
         {
-            var panel:Sprite = ReplayController.rCanvasPanel;
-            var w:Number = ReplayController.RCANVAS_WIDTH;
-            var h:Number = ReplayController.RCANVAS_HEIGHT;
-            var color:uint = ReplayController.RCANVAS_BG_COLOR;
+            var panel:Sprite = ReplayDrawer.rCanvasPanel;
+            var w:Number = ReplayState.RCANVAS_WIDTH;
+            var h:Number = ReplayState.RCANVAS_HEIGHT;
+            var color:uint = ReplayState.RCANVAS_BG_COLOR;
 
             panel.graphics.clear();
             panel.graphics.beginFill(color);
@@ -228,9 +231,9 @@ package Modules
 
             if (isCaptureTransparentBGShowing)
             {
-                BackgroundWorkerCoordinator.applyTransparentCanvasBackground(ReplayController.isReplayModeON);
+                BackgroundWorkerCoordinator.applyTransparentCanvasBackground(ReplayState.isReplayModeON);
             }
-            else if (ReplayController.isReplayModeON)
+            else if (ReplayState.isReplayModeON)
             {
                 restoreCanvasBackgroundColorReplayMode();
             }
@@ -271,11 +274,11 @@ package Modules
             {
                 FOFOTimer.remove("bottomHintOffDelay");
                 const targetName:String = target.name;
-                const xCanvasPanel:Sprite = (ReplayController.isReplayModeON) ? ReplayController.rCanvasPanel : CanvasController.canvasPanel;
+                const xCanvasPanel:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasPanel : CanvasController.canvasPanel;
 
                 if (CaptureArea.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
                 {
-                    MainUI.showHintHighlightBox((ReplayController) ? ReplayController.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
+                    MainUI.showHintHighlightBox((ReplayController) ? ReplayDrawer.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
                     MainUI.showBottomHint(hint);
                 }
                 else if (!(targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "canvasPanel" || targetName === "canvasDrawLayer"))
@@ -295,12 +298,12 @@ package Modules
 
         public static function enterCaptureMode():void
         {
-            if (isCaptureModeON || ReplayController.isGeneratingCacheImages())
+            if (isCaptureModeON || ReplayState.isGeneratingCacheImages())
             {
                 return;
             }
 
-            if (ReplayController.isReplayStarted)
+            if (ReplayState.isReplayStarted)
             {
                 ReplayController.stopReplay();
             }
@@ -327,13 +330,13 @@ package Modules
             var layer1:Boolean;
             var layer2:Boolean;
 
-            if (ReplayController.isReplayModeON)
+            if (ReplayState.isReplayModeON)
             {
-                xAnc = ReplayController.rCanvasAnchorPoint;
-                xPanel = ReplayController.rCanvasPanel;
-                xZoomed = ReplayController.rCanvasZoomMultiplier;
-                ReplayController.rReplayFOFOCursor.visible = false;
-                ReplayController.rCanvasPanel.addChild(CaptureArea.captureDragAreaOverlay);
+                xAnc = ReplayDrawer.rCanvasAnchorPoint;
+                xPanel = ReplayDrawer.rCanvasPanel;
+                xZoomed = ReplayState.rCanvasZoomMultiplier;
+                ReplayDrawer.rReplayFOFOCursor.visible = false;
+                ReplayDrawer.rCanvasPanel.addChild(CaptureArea.captureDragAreaOverlay);
                 layer1 = true;
                 layer2 = true;
             }
@@ -395,12 +398,12 @@ package Modules
 
         public static function exitCaptureMode():void
         {
-            const replayMode:Boolean = ReplayController.isReplayModeON;
+            const replayMode:Boolean = ReplayState.isReplayModeON;
             const data:Object = canvasStateBeforeCaptureMode;
-            const xBitmap1:Bitmap = (replayMode) ? ReplayController.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap;
-            const xBitmap11:Bitmap = (replayMode) ? ReplayController.rCanvasLayer2Bitmap : CanvasController.canvasLayer2Bitmap;
-            const xAnc:Sprite = (replayMode) ? ReplayController.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
-            const xPanel:Sprite = (replayMode) ? ReplayController.rCanvasPanel : CanvasController.canvasPanel;
+            const xBitmap1:Bitmap = (replayMode) ? ReplayDrawer.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap;
+            const xBitmap11:Bitmap = (replayMode) ? ReplayDrawer.rCanvasLayer2Bitmap : CanvasController.canvasLayer2Bitmap;
+            const xAnc:Sprite = (replayMode) ? ReplayDrawer.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
+            const xPanel:Sprite = (replayMode) ? ReplayDrawer.rCanvasPanel : CanvasController.canvasPanel;
 
             xBitmap1.smoothing = false;
             xBitmap11.smoothing = false;
@@ -420,9 +423,9 @@ package Modules
 
             if (replayMode)
             {
-                ReplayController.rCanvasLayer1Bitmap.visible = true;
-                ReplayController.rCanvasLayer2Bitmap.visible = true;
-                ReplayController.rCanvasDrawLayer.visible = true;
+                ReplayDrawer.rCanvasLayer1Bitmap.visible = true;
+                ReplayDrawer.rCanvasLayer2Bitmap.visible = true;
+                ReplayDrawer.rCanvasDrawLayer.visible = true;
             }
             else
             {
@@ -430,7 +433,7 @@ package Modules
                 CanvasController.canvasLayer2Bitmap.visible = data.layer2;
             }
 
-            if (!ReplayController.isReplayCanvasFitToWindow)
+            if (!ReplayState.isReplayCanvasFitToWindow)
             {
                 CanvasController.updateCanvasScale(data.z, replayMode);
             }
@@ -447,7 +450,7 @@ package Modules
             if (replayMode)
             {
                 restoreCanvasBackgroundColorReplayMode();
-                ReplayController.rReplayFOFOCursor.visible = true;
+                ReplayDrawer.rReplayFOFOCursor.visible = true;
             }
             else if (!replayMode)
             {

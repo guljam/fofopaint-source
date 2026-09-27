@@ -19,6 +19,7 @@ package Modules
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
+    import Modules.ReplayEngine.ReplayState;
 
     public final class ReferenceLayerController
     {
@@ -614,13 +615,13 @@ package Modules
                 command = "clear2";
             }
 
-            if (ReplayController.hasLastRMemoryDataCommand(command))
+            if (ReplayState.hasLastRMemoryDataCommand(command))
             {
                 UndoController.addContinue();
             }
             else
             {
-                ReplayController.rMemoryDataBuffer = [[command]];
+                ReplayState.rMemoryDataBuffer = [[command]];
                 UndoController.addNew();
             }
 

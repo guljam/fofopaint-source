@@ -15,6 +15,7 @@ package Modules
     import flash.geom.Rectangle;
     import Modules.Tools.RotateTool;
     import Modules.Tools.EyeDropperTool;
+    import Modules.ReplayEngine.ReplayState;
 
     public class ToolController
     {
@@ -589,7 +590,7 @@ package Modules
             {
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox);
 
-                if (ReplayController.isGeneratingCacheImages())
+                if (ReplayState.isGeneratingCacheImages())
                 {
                     return;
                 }

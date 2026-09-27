@@ -7,10 +7,11 @@ package Modules.Tools
     import flash.geom.Matrix;
     import Modules.UndoManager;
     import flash.geom.Rectangle;
-    import Modules.ReplayController;
     import flash.geom.Point;
     import Modules.PenSizePreviewCursor;
     import Modules.UndoController;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayState;
 
     public class MoveTool
     {
@@ -110,28 +111,28 @@ package Modules.Tools
                 if (CanvasController.checkedLayer === 1)
                 {
                     command = "move1";
-                    ReplayController.rMemoryDataBuffer.push([command, movex, movey]);
+                    ReplayState.rMemoryDataBuffer.push([command, movex, movey]);
                 }
                 else if (CanvasController.checkedLayer === 2)
                 {
                     command = "move2";
-                    ReplayController.rMemoryDataBuffer.push([command, movex1, movey1]);
+                    ReplayState.rMemoryDataBuffer.push([command, movex1, movey1]);
                 }
                 else
                 {
                     if (!CanvasController.canvasLayer2Bitmap.visible)
                     {
                         command = "move1";
-                        ReplayController.rMemoryDataBuffer.push([command, movex, movey]);
+                        ReplayState.rMemoryDataBuffer.push([command, movex, movey]);
                     }
                     else if (!CanvasController.canvasLayer1Bitmap.visible)
                     {
                         command = "move2";
-                        ReplayController.rMemoryDataBuffer.push([command, movex1, movey1]);
+                        ReplayState.rMemoryDataBuffer.push([command, movex1, movey1]);
                     }
                     else
                     {
-                        ReplayController.rMemoryDataBuffer.push([command, movex, movey]);
+                        ReplayState.rMemoryDataBuffer.push([command, movex, movey]);
                     }
                 }
 

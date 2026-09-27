@@ -17,6 +17,9 @@ package Modules
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import Modules.Tools.LineTool;
+	import Modules.ReplayEngine.ReplayController;
+	import Modules.ReplayEngine.ReplayDrawer;
+	import Modules.ReplayEngine.ReplayState;
 
 	public final class MainUI
 	{
@@ -90,7 +93,7 @@ package Modules
 		public static function isHintUnavailable():Boolean
 		{
 			return CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging || ToolController.isToolBox2Showing
-				|| ColorPickerController.numPadBox.visible || AboutBoxController.isAboutBoxOpened || ReplayController.isGeneratingCacheImages();
+				|| ColorPickerController.numPadBox.visible || AboutBoxController.isAboutBoxOpened || ReplayState.isGeneratingCacheImages();
 			// || isFillPenStarted
 			// || isLassoToolStarted
 		}
@@ -114,10 +117,10 @@ package Modules
 				FOFOTimer.remove("bottomHintOffDelay");
 
 				const targetName:String = target.name;
-				const xCanvasPanel:Sprite = (ReplayController.isReplayModeON) ? ReplayController.rCanvasPanel : CanvasController.canvasPanel;
+				const xCanvasPanel:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasPanel : CanvasController.canvasPanel;
 				if (CaptureArea.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
 				{
-					showHintHighlightBox((ReplayController.isReplayModeON) ? ReplayController.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
+					showHintHighlightBox((ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
 					showBottomHint(hint);
 				}
 				else if (!(targetName === "rCanvasPanel"
@@ -633,7 +636,7 @@ package Modules
 
 		public static function activateCaptureUI():void
 		{
-			const replayMode:Boolean = ReplayController.isReplayModeON;
+			const replayMode:Boolean = ReplayState.isReplayModeON;
 			CaptureArea.reset();
 			MainUIController.updateCanvasResizeButtonVisible(false);
 			FOFOTimer.remove("rCursorOffAlphaAnimTimer");
@@ -666,7 +669,7 @@ package Modules
 			}
 
 			updateTopbarIconsCaptureMode();
-			ReplayController.rReplayFOFOCursor.visible = false;
+			ReplayDrawer.rReplayFOFOCursor.visible = false;
 
 			if (mouseHint.isShowing())
 			{
@@ -679,7 +682,7 @@ package Modules
 
 		public static function deactivateCaptureUI():void
 		{
-			const replayMode:Boolean = ReplayController.isReplayModeON;
+			const replayMode:Boolean = ReplayState.isReplayModeON;
 			InputManager.removeInputEventCaptrueMode();
 			ReferenceLayerController.canvasRefLayer.visible = true;
 

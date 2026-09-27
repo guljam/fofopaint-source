@@ -16,6 +16,7 @@ package Modules
     import flash.geom.Rectangle;
     import Modules.Tools.EyeDropperTool;
     import Modules.Tools.LineTool;
+    import Modules.ReplayEngine.ReplayState;
 
     public final class SidebarController
     {
@@ -477,7 +478,7 @@ package Modules
         private static function canShowSidebarTemporarily():Boolean
         {
             return !sideBar.visible
-                && !ReplayController.isReplayModeON
+                && !ReplayState.isReplayModeON
                 && !CaptureController.isCaptureModeON
                 && !ToolController.isToolBox2Showing
                 && !CanvasController.isMouseClickBlocked

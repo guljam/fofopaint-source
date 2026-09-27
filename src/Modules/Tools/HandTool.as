@@ -9,8 +9,9 @@ package Modules.Tools
     import Modules.InputManager;
     import Modules.ToolController;
     import Modules.MainUIController;
-    import Modules.ReplayController;
     import Modules.PenSizePreviewCursor;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayDrawer;
 
     public class HandTool
     {
@@ -106,8 +107,8 @@ package Modules.Tools
             isReplayMode = fromReplayMode;
             isDrawMode = !fromReplayMode;
 
-            xAnc = (isDrawMode) ? CanvasController.canvasAnchorPoint : ReplayController.rCanvasAnchorPoint;
-            xBitmap = (isDrawMode) ? CanvasController.canvasLayer1Bitmap : ReplayController.rCanvasLayer1Bitmap;
+            xAnc = (isDrawMode) ? CanvasController.canvasAnchorPoint : ReplayDrawer.rCanvasAnchorPoint;
+            xBitmap = (isDrawMode) ? CanvasController.canvasLayer1Bitmap : ReplayDrawer.rCanvasLayer1Bitmap;
 
             old.setTo(main.stage.mouseX, main.stage.mouseY);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);

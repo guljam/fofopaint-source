@@ -8,7 +8,6 @@ package Modules.Tools
     import Modules.MainUI;
     import Modules.MainUIController;
     import Modules.ReferenceLayerController;
-    import Modules.ReplayController;
     import Modules.ToolController;
     import Modules.Utils;
 
@@ -19,6 +18,8 @@ package Modules.Tools
     import flash.events.MouseEvent;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayState;
 
     public class EyeDropperTool
     {
@@ -230,7 +231,7 @@ package Modules.Tools
 
         private static function isNotEyeDropperTool():Boolean
         {
-            return !ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || ReplayController.isReplayModeON || CaptureController.isCaptureModeON || FileManager.isFileBrowserOpened || CanvasController.isMouseClickBlocked;
+            return !ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || ReplayState.isReplayModeON || CaptureController.isCaptureModeON || FileManager.isFileBrowserOpened || CanvasController.isMouseClickBlocked;
         }
 
         private static function confirmEyeDropperSelection():void

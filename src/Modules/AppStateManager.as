@@ -8,6 +8,11 @@ package Modules
     import flash.filesystem.FileStream;
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayDrawCommands;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayFileCache;
+    import Modules.ReplayEngine.ReplayState;
 
     public class AppStateManager
     {
@@ -93,8 +98,8 @@ package Modules
             appStateObject.svBaseColor = ColorPickerController.colorPickerBox.svBaseColor;
             appStateObject.isHSVInfoTextMode = ColorPickerController.isHSVInfoTextMode;
 
-            appStateObject.rReplayImageCacheState = ReplayController.rReplayImageCacheState;
-            appStateObject.rLastCanvasBGColor = ReplayController.rLastCanvasBGColor;
+            appStateObject.rReplayImageCacheState = ReplayState.rReplayImageCacheState;
+            appStateObject.rLastCanvasBGColor = ReplayState.rLastCanvasBGColor;
 
             appStateObject.isRightSidebar = SidebarController.isRightSidebar;
             appStateObject.saveFilePath = FileManager.lastSaveFilePath;
@@ -150,55 +155,55 @@ package Modules
                     arr[0].uncompress();
                     newRectangle = new Rectangle(0, 0, metaData.bmpdWidth,metaData.bmpdHeight);
 
-                    if (ReplayController.rFirstImageLayer1BitmapData)
-                        ReplayController.rFirstImageLayer1BitmapData.dispose();
-                    ReplayController.rFirstImageLayer1BitmapData = new BitmapData(metaData.bmpdWidth,metaData.bmpdHeight, true, 0);
-                    ReplayController.rFirstImageLayer1BitmapData.lock();
-                    ReplayController.rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
-                    ReplayController.rFirstImageLayer1BitmapData.unlock();
+                    if (ReplayFileCache.rFirstImageLayer1BitmapData)
+                        ReplayFileCache.rFirstImageLayer1BitmapData.dispose();
+                    ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(metaData.bmpdWidth,metaData.bmpdHeight, true, 0);
+                    ReplayFileCache.rFirstImageLayer1BitmapData.lock();
+                    ReplayFileCache.rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
+                    ReplayFileCache.rFirstImageLayer1BitmapData.unlock();
 
                     arr[1].uncompress();
 
-                    if (ReplayController.rFirstImageLayer2BitmapData)
-                        ReplayController.rFirstImageLayer2BitmapData.dispose();
-                    ReplayController.rFirstImageLayer2BitmapData = new BitmapData(metaData.bmpdWidth,metaData.bmpdHeight, true, 0);
-                    ReplayController.rFirstImageLayer2BitmapData.lock();
-                    ReplayController.rFirstImageLayer2BitmapData.setPixels(newRectangle, arr[1]);
-                    ReplayController.rFirstImageLayer2BitmapData.unlock();
+                    if (ReplayFileCache.rFirstImageLayer2BitmapData)
+                        ReplayFileCache.rFirstImageLayer2BitmapData.dispose();
+                    ReplayFileCache.rFirstImageLayer2BitmapData = new BitmapData(metaData.bmpdWidth,metaData.bmpdHeight, true, 0);
+                    ReplayFileCache.rFirstImageLayer2BitmapData.lock();
+                    ReplayFileCache.rFirstImageLayer2BitmapData.setPixels(newRectangle, arr[1]);
+                    ReplayFileCache.rFirstImageLayer2BitmapData.unlock();
 
-                    ReplayController.rFirstImageBGColor = metaData.bgColor;
-                    ReplayController.rFirstImageMirrorFlag = metaData.mirrorFlag;
+                    ReplayFileCache.rFirstImageBGColor = metaData.bgColor;
+                    ReplayFileCache.rFirstImageMirrorFlag = metaData.mirrorFlag;
                 }
                 else //구버전
                 {
                     arr[0].uncompress();
                     newRectangle = new Rectangle(0, 0, arr[1],arr[2]);
 
-                    if (ReplayController.rFirstImageLayer1BitmapData)
+                    if (ReplayFileCache.rFirstImageLayer1BitmapData)
                     {
-                        ReplayController.rFirstImageLayer1BitmapData.dispose();
+                        ReplayFileCache.rFirstImageLayer1BitmapData.dispose();
                     }
-                    ReplayController.rFirstImageLayer1BitmapData = new BitmapData(arr[1], arr[2], true, 0);
-                    ReplayController.rFirstImageLayer1BitmapData.lock();
-                    ReplayController.rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
-                    ReplayController.rFirstImageLayer1BitmapData.unlock();
+                    ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(arr[1], arr[2], true, 0);
+                    ReplayFileCache.rFirstImageLayer1BitmapData.lock();
+                    ReplayFileCache.rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
+                    ReplayFileCache.rFirstImageLayer1BitmapData.unlock();
 
-                    if (ReplayController.rFirstImageLayer2BitmapData)
+                    if (ReplayFileCache.rFirstImageLayer2BitmapData)
                     {
-                        ReplayController.rFirstImageLayer2BitmapData.dispose();
+                        ReplayFileCache.rFirstImageLayer2BitmapData.dispose();
                     }
-                    ReplayController.rFirstImageLayer2BitmapData = new BitmapData(arr[1], arr[2], true, 0);
+                    ReplayFileCache.rFirstImageLayer2BitmapData = new BitmapData(arr[1], arr[2], true, 0);
 
-                    ReplayController.rFirstImageBGColor = arr[3];
+                    ReplayFileCache.rFirstImageBGColor = arr[3];
                 }
             }
             else
             {
-                ReplayController.rFirstImageLayer1BitmapData.dispose();
-                ReplayController.rFirstImageLayer2BitmapData.dispose();
+                ReplayFileCache.rFirstImageLayer1BitmapData.dispose();
+                ReplayFileCache.rFirstImageLayer2BitmapData.dispose();
 
-                ReplayController.rFirstImageLayer1BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-                ReplayController.rFirstImageLayer2BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
+                ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
+                ReplayFileCache.rFirstImageLayer2BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
             }
 
             if (ReferenceLayerController.refLayerImageFilePath.exists)
@@ -228,7 +233,7 @@ package Modules
                 arr = fs.readObject() as Array;
                 fs.close();
 
-                ReplayController.rJumpImageFrameData = arr.concat();
+                ReplayFileCache.rJumpImageFrameData = arr.concat();
             }
 
             if (FileManager.myPaletteDataFilePath.exists)
@@ -297,7 +302,7 @@ package Modules
                         CanvasController.canvasAnchorPoint.y = appStateObject.canvasAnchorPointY;
                         CanvasController.canvasAnchorPoint.rotation = appStateObject.canvasAnchorPointRotation;
 
-                        ReplayController.setRcursorRotation(appStateObject.canvasAnchorPointRotation);
+                        ReplayDrawer.setRcursorRotation(appStateObject.canvasAnchorPointRotation);
                         MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
                         CanvasController.canvasRotateCursor.rotateArrow.rotation = appStateObject.canvasAnchorPointRotation;
 
@@ -373,8 +378,8 @@ package Modules
                             SidebarController.hideSidebarPermanent();
 
                         // Replay Controller
-                        ReplayController.rReplayImageCacheState = appStateObject.rReplayImageCacheState;
-                        ReplayController.rLastCanvasBGColor = appStateObject.rLastCanvasBGColor;
+                        ReplayState.rReplayImageCacheState = appStateObject.rReplayImageCacheState;
+                        ReplayState.rLastCanvasBGColor = appStateObject.rLastCanvasBGColor;
                         ReplayDrawCommands.setFirstRCursorPos(appStateObject.getFirstRCursorPosX, appStateObject.getFirstRCursorPosY);
 
                         ReferenceLayerController.updateRefLayerImageTransform(
@@ -415,9 +420,9 @@ package Modules
                             main.stage.nativeWindow.activate();
                         }
 
-                        ReplayDrawer.rMemoryDataIndex = UndoManager.undoDataIndex;
-                        ReplayDrawer.rNowFrame = ReplayController.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex);
-                        ReplayDrawer.rPrevFrame = ReplayController.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex - 1);
+                        ReplayState.rMemoryDataIndex = UndoManager.undoDataIndex;
+                        ReplayState.rNowFrame = ReplayState.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex);
+                        ReplayState.rPrevFrame = ReplayState.getNowFrameUntilUndoIndex(UndoManager.undoDataIndex - 1);
 
                         // 혹시 몰라서 위치 체크 해줌
                         CanvasController.canvasInfoBox.setRotate(CanvasController.canvasAnchorPoint.rotation);
@@ -466,13 +471,13 @@ package Modules
                         MainUIController.updateWindowTitle();
                         CanvasController.selectLayer1(false);
 
-                        if(ReplayController.isGeneratingCacheImages())
+                        if(ReplayState.isGeneratingCacheImages())
                         {
-                            ReplayController.createFirstImageCache(
-                                ReplayController.rFirstImageLayer1BitmapData,
-                                ReplayController.rFirstImageLayer2BitmapData,
-                                ReplayController.rFirstImageBGColor,
-                                ReplayController.rFirstImageMirrorFlag);
+                            ReplayFileCache.createFirstImageCache(
+                                ReplayFileCache.rFirstImageLayer1BitmapData,
+                                ReplayFileCache.rFirstImageLayer2BitmapData,
+                                ReplayFileCache.rFirstImageBGColor,
+                                ReplayFileCache.rFirstImageMirrorFlag);
                             ReplayController.startGeneratingReplayCacheImage(true,null);
                         }
                     });

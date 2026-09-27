@@ -11,6 +11,9 @@ package Modules
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Modules.Tools.EyeDropperTool;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayState;
 
     // todo: 캔버스 리사이즈 버튼은 나중에 따로 분리 해야함
 
@@ -83,7 +86,7 @@ package Modules
                 STAGE_TOP_OFFSET += MainUI.seekBarBox.BARSIZE * scale;
             }
 
-            if (CaptureController.isCaptureModeON || ReplayController.isReplayModeON)
+            if (CaptureController.isCaptureModeON || ReplayState.isReplayModeON)
             {
                 return;
             }
@@ -126,7 +129,7 @@ package Modules
             ColorPickerController.numPadBox.setScale(scale);
             updateStageOffset();
             SidebarController.updateScrollBarHeight();
-            ReplayController.rReplayFOFOCursor.setScale(scale);
+            ReplayDrawer.rReplayFOFOCursor.setScale(scale);
             SidebarController.fofo.setScale(scale);
             SidebarController.checkFOFOPosition();
             ReplayController.rFollowMouse.updateScale(scale);
@@ -371,8 +374,8 @@ package Modules
                         }
                         else
                         {
-                            ReplayController.rCanvasAnchorPoint.x = ReplayController.rCanvasAnchorPoint.x + dx;
-                            ReplayController.rCanvasAnchorPoint.y = ReplayController.rCanvasAnchorPoint.y + dy;
+                            ReplayDrawer.rCanvasAnchorPoint.x = ReplayDrawer.rCanvasAnchorPoint.x + dx;
+                            ReplayDrawer.rCanvasAnchorPoint.y = ReplayDrawer.rCanvasAnchorPoint.y + dy;
                         }
 
                         CanvasController.canvasAnchorPoint.x = CanvasController.canvasAnchorPoint.x + dx;
@@ -398,12 +401,12 @@ package Modules
                         AboutBoxController.updateAboutPanelCenterPos();
                     }
 
-                    if (ReplayController.isReplayModeON)
+                    if (ReplayState.isReplayModeON)
                     {
                         MainUI.seekBarBox.updatePos(main.stage.stageWidth);
                         ReplayController.rFollowMouse.updateBounds();
 
-                        if (ReplayController.isReplayCanvasFitToWindow)
+                        if (ReplayState.isReplayCanvasFitToWindow)
                         {
                             ReplayController.fitReplayCanvasToViewport();
                         }

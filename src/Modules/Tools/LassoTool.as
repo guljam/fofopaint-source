@@ -8,7 +8,6 @@ package Modules.Tools
     import Modules.MainUI;
     import Modules.MainUIController;
     import Modules.ReferenceLayerController;
-    import Modules.ReplayController;
     import Modules.SidebarController;
     import Modules.ToolController;
     import Modules.UndoManager;
@@ -30,6 +29,9 @@ package Modules.Tools
     import flash.geom.Rectangle;
     import Symbols.RotateCursorSet;
     import Modules.UndoController;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayState;
 
     public class LassoTool
     {
@@ -162,7 +164,7 @@ package Modules.Tools
                     l1 = false;
                     l2 = true;
                 }
-                ReplayController.rMemoryDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
+                ReplayState.rMemoryDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
                 UndoController.addNew();
                 disposeAllLayerBitmapData();
                 resetLassoBox();
@@ -466,18 +468,18 @@ package Modules.Tools
             // 에어브러시 켜줄때 필터 백업함
             if (replayMode)
             {
-                canvasDrawLayerFilterBackUp = ReplayController.rCanvasDrawShape.filters.concat();
-                ReplayController.rCanvasDrawShape.filters = [];
-                xCanvasDrawLayer = ReplayController.rCanvasDrawShape;
+                canvasDrawLayerFilterBackUp = ReplayDrawer.rCanvasDrawShape.filters.concat();
+                ReplayDrawer.rCanvasDrawShape.filters = [];
+                xCanvasDrawLayer = ReplayDrawer.rCanvasDrawShape;
                 if (layer1)
                 {
-                    canvasBitmapData = ReplayController.rCanvasLayer1BitmapData;
-                    canvasBitmap = ReplayController.rCanvasLayer1Bitmap;
+                    canvasBitmapData = ReplayDrawer.rCanvasLayer1BitmapData;
+                    canvasBitmap = ReplayDrawer.rCanvasLayer1Bitmap;
                 }
                 if (layer2)
                 {
-                    canvasBitmapDataSub = ReplayController.rCanvasLayer2BitmapData;
-                    canvasBitmapSub = ReplayController.rCanvasLayer2Bitmap;
+                    canvasBitmapDataSub = ReplayDrawer.rCanvasLayer2BitmapData;
+                    canvasBitmapSub = ReplayDrawer.rCanvasLayer2Bitmap;
                 }
             }
             else
@@ -575,7 +577,7 @@ package Modules.Tools
             lassoDraw.y = -lassoLayer1.y;
             if (replayMode)
             {
-                ReplayController.rCanvasDrawShape.filters = canvasDrawLayerFilterBackUp.concat();
+                ReplayDrawer.rCanvasDrawShape.filters = canvasDrawLayerFilterBackUp.concat();
             }
             else
             {
@@ -875,7 +877,7 @@ package Modules.Tools
                         checklayer1 = false;
                         checklayer2 = true;
                     }
-                    ReplayController.rMemoryDataBuffer.push(["lasso2", point1, point2
+                    ReplayState.rMemoryDataBuffer.push(["lasso2", point1, point2
                                 , lassoInfo
                                 , isLassoImageCopied
                                 , checklayer1

@@ -9,10 +9,10 @@
     import Modules.Tools.PenTool;
     import Modules.Tools.LassoTool;
     import Modules.ToolController;
-    import Modules.ReplayController;
     import Modules.ActivityWorkTimer;
     import Modules.CanvasController;
     import Modules.CaptureArea;
+    import Modules.ReplayEngine.ReplayController;
 
     public class HintStrings
     {

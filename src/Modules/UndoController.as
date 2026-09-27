@@ -6,6 +6,9 @@ package Modules
     import flash.filesystem.FileMode;
     import flash.utils.ByteArray;
     import flash.geom.Rectangle;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayFileCache;
+    import Modules.ReplayEngine.ReplayState;
 
     public class UndoController
     {
@@ -14,8 +17,8 @@ package Modules
 
         // undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
         private static var undoBaseImage:Array = [
-                ReplayController.rFirstImageLayer1BitmapData.clone(),
-                ReplayController.rFirstImageLayer2BitmapData.clone(),
+                ReplayFileCache.rFirstImageLayer1BitmapData.clone(),
+                ReplayFileCache.rFirstImageLayer2BitmapData.clone(),
                 CanvasController.CANVAS_WIDTH,
                 CanvasController.CANVAS_HEIGHT,
                 CanvasController.CANVAS_BG_COLOR,
@@ -35,12 +38,12 @@ package Modules
         public static function updateUndoBaseImageFromReplayMode():void
         {
             updateUndoBaseImage(
-                    ReplayController.rCanvasLayer1BitmapData.clone(),
-                    ReplayController.rCanvasLayer2BitmapData.clone(),
-                    ReplayController.rCanvasLayer1BitmapData.width,
-                    ReplayController.rCanvasLayer1BitmapData.height,
-                    ReplayController.RCANVAS_BG_COLOR,
-                    ReplayController.rMirrorON
+                    ReplayDrawer.rCanvasLayer1BitmapData.clone(),
+                    ReplayDrawer.rCanvasLayer2BitmapData.clone(),
+                    ReplayDrawer.rCanvasLayer1BitmapData.width,
+                    ReplayDrawer.rCanvasLayer1BitmapData.height,
+                    ReplayState.RCANVAS_BG_COLOR,
+                    ReplayState.rMirrorON
                 );
         }
 
@@ -84,29 +87,29 @@ package Modules
         // 끝 부분 중복처리 일때 넣어주는 거
         public static function addContinue():void
         {
-            if (ReplayController.rMemoryData.length === 0)
+            if (ReplayState.rMemoryData.length === 0)
                 return;
 
             if (UndoManager.isDeleteUndoDataPending)
             {
                 UndoManager.isDeleteUndoDataPending = false;
-                ReplayController.rMemoryData.splice(UndoManager.undoDataIndex + 1);
-                ReplayController.rMemoryDataFrame.splice(UndoManager.undoDataIndex + 1);
+                ReplayState.rMemoryData.splice(UndoManager.undoDataIndex + 1);
+                ReplayState.rMemoryDataFrame.splice(UndoManager.undoDataIndex + 1);
             }
 
-            ReplayController.updateLastRMemoryDataMirror();
+            ReplayState.updateLastRMemoryDataMirror();
 
             // 버퍼에mirror가 있을수도 있기 때문에 요소를 하나씩 push해주어야함
-            const len:uint = ReplayController.rMemoryDataBuffer.length;
+            const len:uint = ReplayState.rMemoryDataBuffer.length;
 
             for (var i:uint = 0;i < len;i++)
             {
-                ReplayController.rMemoryData[ReplayController.rMemoryData.length - 1].push(ReplayController.rMemoryDataBuffer[i]); // 배열안에 배열이 들어있음
+                ReplayState.rMemoryData[ReplayState.rMemoryData.length - 1].push(ReplayState.rMemoryDataBuffer[i]); // 배열안에 배열이 들어있음
             }
 
-            ReplayController.rMemoryDataFrame[ReplayController.rMemoryDataFrame.length - 1] = ReplayController.rMemoryData[ReplayController.rMemoryData.length - 1].length;
-            ReplayController.rMemoryDataBuffer = [];
-            ReplayController.syncRNowFrameWithTotalFrame();
+            ReplayState.rMemoryDataFrame[ReplayState.rMemoryDataFrame.length - 1] = ReplayState.rMemoryData[ReplayState.rMemoryData.length - 1].length;
+            ReplayState.rMemoryDataBuffer = [];
+            ReplayState.syncRNowFrameWithTotalFrame();
 
             CanvasController.canvasNavigatorBox.updateImage();
 
@@ -121,34 +124,34 @@ package Modules
             if (UndoManager.isDeleteUndoDataPending === true)
             {
                 UndoManager.isDeleteUndoDataPending = false;
-                ReplayController.rMemoryData.splice(UndoManager.undoDataIndex + 1);
-                ReplayController.rMemoryDataFrame.splice(UndoManager.undoDataIndex + 1);
+                ReplayState.rMemoryData.splice(UndoManager.undoDataIndex + 1);
+                ReplayState.rMemoryDataFrame.splice(UndoManager.undoDataIndex + 1);
             }
 
-            if (ReplayController.rMemoryData.length >= NATIVE_UNDO_LIMIT_COUNT) // 첫번째 이미지는 빼야하니깐 -1로 계산해야함
+            if (ReplayState.rMemoryData.length >= NATIVE_UNDO_LIMIT_COUNT) // 첫번째 이미지는 빼야하니깐 -1로 계산해야함
             {
-                var oldData:Array = ReplayController.rMemoryData[0];
+                var oldData:Array = ReplayState.rMemoryData[0];
 
                 if (oldData.length > 0)
                 {
                     const fs:FileStream = new FileStream();
-                    const firstElementFrameCount:uint = ReplayController.rMemoryDataFrame[0];
+                    const firstElementFrameCount:uint = ReplayState.rMemoryDataFrame[0];
                     const rf:File = FileManager.replayDataFilePath;
-                    const lastRDataTotalFrame:Number = ReplayController.getRFileDataTotalFrame();
+                    const lastRDataTotalFrame:Number = ReplayState.getRFileDataTotalFrame();
 
                     fs.open(rf, FileMode.APPEND);
                     fs.writeObject(oldData);
                     fs.close();
 
                     oldData = null;
-                    ReplayController.increaseRFileDataTotalFrame(firstElementFrameCount);
+                    ReplayState.increaseRFileDataTotalFrame(firstElementFrameCount);
                     dataWriteCount += firstElementFrameCount;
 
-                    ReplayController.updateReplayCanvasFromUndoBaseInfo();
+                    ReplayDrawer.updateReplayCanvasFromUndoBaseInfo();
 
-                    if (ReplayController.rReplayImageCacheState === ReplayController.REPLAY_IMAGE_CAHCHE_COMPLETE)
+                    if (ReplayState.rReplayImageCacheState === ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE)
                     {
-                        if (dataWriteCount > ReplayController.REPLAY_DISK_CACHE_FRAME_INTERVAL)
+                        if (dataWriteCount > ReplayFileCache.REPLAY_DISK_CACHE_FRAME_INTERVAL)
                         {
                             dataWriteCount = 0;
 
@@ -179,7 +182,7 @@ package Modules
                                         bgColor,
                                         rf.size,
                                         lastRDataTotalFrame,
-                                        ReplayController.getRFileDataTotalFrame(),
+                                        ReplayState.getRFileDataTotalFrame(),
                                         data[5]));
                             BackgroundWorkerCoordinator.startUndoImageCompressionWorker(imgData, imgData1);
                             BackgroundWorkerCoordinator.pollTimerWaitWorkerForCacheUndoData();
@@ -187,25 +190,25 @@ package Modules
                     }
                 }
 
-                ReplayController.rMemoryData[0].length = 0;
-                ReplayController.rMemoryData[0] = null;
-                ReplayController.rMemoryDataFrame[0] = null;
-                ReplayController.rMemoryData.shift();
-                ReplayController.rMemoryDataFrame.shift();
+                ReplayState.rMemoryData[0].length = 0;
+                ReplayState.rMemoryData[0] = null;
+                ReplayState.rMemoryDataFrame[0] = null;
+                ReplayState.rMemoryData.shift();
+                ReplayState.rMemoryDataFrame.shift();
             }
 
-            ReplayController.updateLastRMemoryDataMirror();
+            ReplayState.updateLastRMemoryDataMirror();
 
-            if (ReplayController.rMemoryDataBuffer.length > 0)
+            if (ReplayState.rMemoryDataBuffer.length > 0)
             {
-                ReplayController.rMemoryData.push(ReplayController.rMemoryDataBuffer);
-                ReplayController.rMemoryDataFrame.push(ReplayController.rMemoryDataBuffer.length);
-                ReplayController.rMemoryDataBuffer = [];
+                ReplayState.rMemoryData.push(ReplayState.rMemoryDataBuffer);
+                ReplayState.rMemoryDataFrame.push(ReplayState.rMemoryDataBuffer.length);
+                ReplayState.rMemoryDataBuffer = [];
                 FileManager.isFileAlreadySaved = false;
-                ReplayDrawer.rMemoryDataReadON = true;
+                ReplayState.rMemoryDataReadON = true;
             }
 
-            UndoManager.undoDataIndex = ReplayController.rMemoryData.length - 1;
+            UndoManager.undoDataIndex = ReplayState.rMemoryData.length - 1;
 
             CanvasController.canvasNavigatorBox.updateImage();
 
@@ -214,7 +217,7 @@ package Modules
                 ImageViewWindow.updateCanvasWindowImage();
             }
 
-            ReplayController.syncRNowFrameWithTotalFrame();
+            ReplayState.syncRNowFrameWithTotalFrame();
 
             FileManager.enableNewFileButton();
         };

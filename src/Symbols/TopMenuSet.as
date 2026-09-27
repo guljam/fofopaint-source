@@ -21,10 +21,11 @@
 	import Modules.CaptureController;
 	import Modules.Tools.LassoTool;
 	import Modules.CanvasController;
-	import Modules.ReplayController;
 	import Modules.AboutBoxController;
 	import Modules.PenSizePreviewCursor;
 	import Modules.CaptureStamp;
+	import Modules.ReplayEngine.ReplayController;
+	import Modules.ReplayEngine.ReplayState;
 
 	public class TopMenuSet extends Sprite
 	{
@@ -623,7 +624,7 @@
 				showModeIcons("replay");
 				hideModeIcons("draw");
 				hideModeIcons("capture");
-				MainUI.seekBarBox.setPlayButtonVisible(!ReplayController.isReplayStarted);
+				MainUI.seekBarBox.setPlayButtonVisible(!ReplayState.isReplayStarted);
 			}
 			else if (mode === 2)
 			{

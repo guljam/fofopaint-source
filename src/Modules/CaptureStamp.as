@@ -13,6 +13,8 @@ package Modules
     import flash.geom.Point;
     import flash.utils.getTimer;
     import flash.events.KeyboardEvent;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayState;
 
     public class CaptureStamp
     {
@@ -392,8 +394,8 @@ package Modules
             if (CaptureArea.isFullImageCapture())
             {
 
-                offsetX = (ReplayController.isReplayModeON) ? ReplayController.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
-                offsetY = (ReplayController.isReplayModeON) ? ReplayController.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
+                offsetX = (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
+                offsetY = (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
             }
             else
             {
@@ -470,7 +472,7 @@ package Modules
                 if (CaptureArea.isFullImageCapture())
                 {
 
-                    return (ReplayController.isReplayModeON) ? ReplayController.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
+                    return (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
                 }
                 else
                 {
@@ -481,7 +483,7 @@ package Modules
             {
                 if (CaptureArea.isFullImageCapture())
                 {
-                    return (ReplayController.isReplayModeON) ? ReplayController.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
+                    return (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
                 }
                 else
                 {
@@ -841,8 +843,8 @@ package Modules
                     return;
                 }
 
-                const layer1Visible:Boolean = (ReplayController.isReplayModeON) ? ReplayController.rCanvasLayer1Bitmap.visible : CanvasController.canvasLayer1Bitmap.visible;
-                const layer2Visible:Boolean = (ReplayController.isReplayModeON) ? ReplayController.rCanvasLayer2Bitmap.visible : CanvasController.canvasLayer2Bitmap.visible;
+                const layer1Visible:Boolean = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasLayer1Bitmap.visible : CanvasController.canvasLayer1Bitmap.visible;
+                const layer2Visible:Boolean = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasLayer2Bitmap.visible : CanvasController.canvasLayer2Bitmap.visible;
 
                 var bitmapVisibleFlag:int = 0;
 
@@ -857,7 +859,7 @@ package Modules
 
                 if (stampBGColor === null || !rect.equals(lastRectArea) || lastBitmapVisibleFlag !== bitmapVisibleFlag)
                 {
-                    const tegakiBGColorIndex:int = PaletteController.myPaletteTegakiPreset.indexOf((ReplayController.isReplayModeON) ? ReplayController.RCANVAS_BG_COLOR : CanvasController.CANVAS_BG_COLOR);
+                    const tegakiBGColorIndex:int = PaletteController.myPaletteTegakiPreset.indexOf((ReplayState.isReplayModeON) ? ReplayState.RCANVAS_BG_COLOR : CanvasController.CANVAS_BG_COLOR);
 
                     if (tegakiBGColorIndex >= 0)
                     {
@@ -946,11 +948,11 @@ package Modules
                     captureStampBitmap.visible = true;
                 }
 
-                if (ReplayController.isReplayModeON)
+                if (ReplayState.isReplayModeON)
                 {
-                    if (ReplayController.rCanvasPanel.getChildByName("captureStampBitmap") === null)
+                    if (ReplayDrawer.rCanvasPanel.getChildByName("captureStampBitmap") === null)
                     {
-                        ReplayController.rCanvasPanel.addChild(captureStampBitmap);
+                        ReplayDrawer.rCanvasPanel.addChild(captureStampBitmap);
                     }
                 }
                 else if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") === null)
@@ -962,11 +964,11 @@ package Modules
             }
             else if (captureStampBitmap.visible === true)
             {
-                if (ReplayController.isReplayModeON)
+                if (ReplayState.isReplayModeON)
                 {
-                    if (ReplayController.rCanvasPanel.getChildByName("captureStampBitmap") !== null)
+                    if (ReplayDrawer.rCanvasPanel.getChildByName("captureStampBitmap") !== null)
                     {
-                        ReplayController.rCanvasPanel.removeChild(captureStampBitmap);
+                        ReplayDrawer.rCanvasPanel.removeChild(captureStampBitmap);
                     }
                 }
                 else if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") !== null)
@@ -980,9 +982,9 @@ package Modules
 
         public static function off():void
         {
-            if (ReplayController.isReplayModeON)
+            if (ReplayState.isReplayModeON)
             {
-                ReplayController.rCanvasPanel.scrollRect = new Rectangle(0, 0, ReplayController.RCANVAS_WIDTH, ReplayController.RCANVAS_HEIGHT);
+                ReplayDrawer.rCanvasPanel.scrollRect = new Rectangle(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT);
             }
             else
             {
@@ -1010,9 +1012,9 @@ package Modules
 
         public static function init():void
         {
-            if (ReplayController.isReplayModeON)
+            if (ReplayState.isReplayModeON)
             {
-                ReplayController.rCanvasPanel.scrollRect = null;
+                ReplayDrawer.rCanvasPanel.scrollRect = null;
             }
             else
             {

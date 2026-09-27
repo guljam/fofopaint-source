@@ -1,13 +1,14 @@
 package Modules
 {
     import Modules.CanvasController;
-    import Modules.ReplayController;
     import Modules.ToolController;
     import Modules.Tools.PenTool;
     import Modules.UndoManager;
 
     import flash.filters.BlurFilter;
     import flash.geom.ColorTransform;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayState;
 
     public class DrawingFinish
     {
@@ -17,16 +18,16 @@ package Modules
         {
             if (UndoManager.canAddUndoData === false)
             {
-                ReplayController.rMemoryDataBuffer = [];
+                ReplayState.rMemoryDataBuffer = [];
                 CanvasController.canvasDrawLayerChild.graphics.clear();
                 return;
             }
 
             if (UndoManager.isDeepUndoEnabled)
             {
-                var rDataBufferSave:Array = ReplayController.rMemoryDataBuffer.concat();
+                var rDataBufferSave:Array = ReplayState.rMemoryDataBuffer.concat();
                 UndoManager.applyDeepUndo();
-                ReplayController.rMemoryDataBuffer = rDataBufferSave;
+                ReplayState.rMemoryDataBuffer = rDataBufferSave;
                 rDataBufferSave = null;
             }
 
@@ -76,7 +77,7 @@ package Modules
                 }
             }
 
-            ReplayController.rMemoryDataBuffer.push(["drawDone5", CanvasController.isLayer2Selected]);
+            ReplayState.rMemoryDataBuffer.push(["drawDone5", CanvasController.isLayer2Selected]);
 
             if (CanvasController.isLayer2Selected)
             {

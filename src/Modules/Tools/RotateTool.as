@@ -6,10 +6,12 @@ package Modules.Tools
     import flash.geom.Point;
     import Modules.MainUIController;
     import Modules.MainUI;
-    import Modules.ReplayController;
     import Modules.DragInteraction;
     import Modules.InputManager;
     import Modules.PenSizePreviewCursor;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayState;
 
     public class RotateTool
     {
@@ -29,7 +31,7 @@ package Modules.Tools
             const ang:Number = getAngle(true);
 
             xAnc.rotation = ang;
-            ReplayController.setRcursorRotation(xAnc.rotation);
+            ReplayDrawer.setRcursorRotation(xAnc.rotation);
             CanvasController.canvasInfoBox.setRotate(Math.abs(xAnc.rotation));
         }
 
@@ -53,7 +55,7 @@ package Modules.Tools
             }
             else
             {
-                if (ReplayController.isReplayCanvasFitToWindow)
+                if (ReplayState.isReplayCanvasFitToWindow)
                 {
                     ReplayController.fitReplayCanvasToViewport();
                 }
@@ -96,7 +98,7 @@ package Modules.Tools
         private static function _start(fromReplayMode:Boolean):void
         {
             isReplayMode = fromReplayMode;
-            xAnc = (isReplayMode) ? ReplayController.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
+            xAnc = (isReplayMode) ? ReplayDrawer.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
             getAngle = MainUI.showCanvasRotateCursorMouseDrag(xAnc);
 
             DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);

@@ -19,6 +19,8 @@ package Modules
     import flash.display.BitmapData;
     import Symbols.TopMenuSet;
     import flash.display.DisplayObjectContainer;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayState;
 
     public class InputManager
     {
@@ -743,7 +745,7 @@ package Modules
                                 }
                             }
                         }
-                        else if (!ReplayController.isReplayModeON && Utils.isCursorInDrawArea())
+                        else if (!ReplayState.isReplayModeON && Utils.isCursorInDrawArea())
                         {
                             if (e.delta > 0)
                             {
@@ -784,7 +786,7 @@ package Modules
                 LassoTool._isLassoMenuHiddenTemp = true;
             }
 
-            if (ReplayController.isReplayModeON)
+            if (ReplayState.isReplayModeON)
             {
                 HandTool.startInReplayModeWithWheelClick();
             }
@@ -802,7 +804,7 @@ package Modules
             {
                 resetLastKey();
             }
-            else if (!CaptureController.isCaptureModeON && !ReplayController.isReplayModeON && isLastKey(keyCode))
+            else if (!CaptureController.isCaptureModeON && !ReplayState.isReplayModeON && isLastKey(keyCode))
             {
                 onKeyDownLassoTool(null);
             }
@@ -2018,7 +2020,7 @@ package Modules
                 case KEY.z:
                 case KEY.dot:
                     {
-                        if (!ReplayController.isReplayStarted)
+                        if (!ReplayState.isReplayStarted)
                         {
                             startKeyRepeat(true, ReplayController.moveToPreviousFrame);
                         }
@@ -2028,7 +2030,7 @@ package Modules
                 case KEY.x:
                 case KEY.comma:
                     {
-                        if (!ReplayController.isReplayStarted)
+                        if (!ReplayState.isReplayStarted)
                         {
                             startKeyRepeat(true, ReplayController.moveToNextFrame);
                         }
@@ -2722,7 +2724,7 @@ package Modules
             {
                 return;
             }
-            if (ReplayController.isReplayStarted)
+            if (ReplayState.isReplayStarted)
             {
                 switch (firstKey)
                 {
@@ -2772,7 +2774,7 @@ package Modules
                 case KEY.z:
                 case KEY.dot:
                     {
-                        if (!ReplayController.isReplayStarted)
+                        if (!ReplayState.isReplayStarted)
                         {
                             startKeyRepeat(true, ReplayController.moveToPreviousStep);
                         }
@@ -2782,7 +2784,7 @@ package Modules
                 case KEY.x:
                 case KEY.comma:
                     {
-                        if (!ReplayController.isReplayStarted)
+                        if (!ReplayState.isReplayStarted)
                         {
                             startKeyRepeat(true, ReplayController.moveToNextStep);
                         }
@@ -2792,7 +2794,7 @@ package Modules
                 case KEY.f:
                 case KEY.h:
                     {
-                        if (!ReplayController.isReplayStarted)
+                        if (!ReplayState.isReplayStarted)
                         {
                             ReplayController.startAdjustPlayBackSpeedByShortcut(true);
                         }
@@ -2802,7 +2804,7 @@ package Modules
                 case KEY.v:
                 case KEY.n:
                     {
-                        if (!ReplayController.isReplayStarted)
+                        if (!ReplayState.isReplayStarted)
                         {
                             ReplayController.startAdjustPlayBackSpeedByShortcut(false);
                         }
@@ -2896,7 +2898,7 @@ package Modules
                         {
                             ReplayController.cancelReplayRestartTimer();
                         }
-                        else if (!ReplayController.isReplayStarted)
+                        else if (!ReplayState.isReplayStarted)
                         {
                             ReplayController.handleReplayStartButton();
                         }
@@ -3076,7 +3078,7 @@ package Modules
 
         public static function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
         {
-            if (ReplayController.isReplayModeON || CaptureController.isCaptureModeON)
+            if (ReplayState.isReplayModeON || CaptureController.isCaptureModeON)
             {
                 return;
             }

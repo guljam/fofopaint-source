@@ -16,6 +16,7 @@ package Modules
     import flash.events.NativeWindowBoundsEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import Modules.ReplayEngine.ReplayState;
 
     public final class ImageViewWindow
     {
@@ -165,7 +166,7 @@ package Modules
         {
             canvasWindow.visible = false;
             _isCanvasWindowON = false;
-            if (!ReplayController.isReplayModeON && !CaptureController.isCaptureModeON)
+            if (!ReplayState.isReplayModeON && !CaptureController.isCaptureModeON)
             {
                 MainUI.topBar.newWindowButton.visible = true;
                 MainUI.topBar.newWindowCloseButton.visible = false;
@@ -222,7 +223,7 @@ package Modules
         {
             _isCanvasWindowON = true;
 
-            if (!ReplayController.isReplayModeON && !CaptureController.isCaptureModeON)
+            if (!ReplayState.isReplayModeON && !CaptureController.isCaptureModeON)
             {
                 MainUI.topBar.newWindowButton.visible = false;
                 MainUI.topBar.newWindowCloseButton.visible = true;

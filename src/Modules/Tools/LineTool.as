@@ -6,7 +6,6 @@ package Modules.Tools
     import Modules.MainUI;
     import Modules.PaletteController;
     import Modules.ReferenceLayerController;
-    import Modules.ReplayController;
     import Modules.ToolController;
     import Modules.UndoManager;
 
@@ -21,6 +20,8 @@ package Modules.Tools
     import flash.events.KeyboardEvent;
     import Modules.InputManager;
     import flash.events.BrowserInvokeEvent;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayState;
 
     public class LineTool
     {
@@ -259,7 +260,7 @@ package Modules.Tools
                 drawLine();
                 hasLineTouchedCanvas = false;
                 UndoManager.canAddUndoData = true;
-                ReplayController.rMemoryDataBuffer.push(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenTool.airBrushSizeDrawMode]);
+                ReplayState.rMemoryDataBuffer.push(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenTool.airBrushSizeDrawMode]);
             }
 
             CanvasController.resetCanvasDrawLayerCliprect();

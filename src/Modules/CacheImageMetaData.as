@@ -2,6 +2,7 @@ package Modules
 {
     import flash.display.BitmapData;
     import flash.geom.Point;
+    import Modules.ReplayEngine.ReplayDrawCommands;
 
     public class CacheImageMetaData
     {

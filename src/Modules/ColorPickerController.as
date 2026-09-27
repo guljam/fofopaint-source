@@ -11,6 +11,7 @@ package Modules
     import Symbols.FillPenMenuSet;
     import flash.utils.getTimer;
     import Modules.Tools.LineTool;
+    import Modules.ReplayEngine.ReplayState;
 
     public class ColorPickerController
     {
@@ -485,7 +486,7 @@ package Modules
                 ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
             }
 
-            ReplayController.addUndoBGColorData(color);
+            ReplayState.addUndoBGColorData(color);
         }
 
         public static function onMouseDownRGBInfoText(e:MouseEvent):void

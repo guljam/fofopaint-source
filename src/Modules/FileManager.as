@@ -29,6 +29,11 @@ package Modules
     import flash.display.IBitmapDrawable;
     import flash.geom.Matrix;
     import Modules.Tools.LineTool;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayDrawCommands;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayFileCache;
+    import Modules.ReplayEngine.ReplayState;
 
     public class FileManager
     {
@@ -163,7 +168,7 @@ package Modules
         {
             const fs:FileStream = new FileStream();
             fs.open(replayCacheImageFrameDataFilePath, FileMode.WRITE);
-            fs.writeObject(ReplayController.rJumpImageFrameData);
+            fs.writeObject(ReplayFileCache.rJumpImageFrameData);
             fs.close();
         }
 
@@ -181,7 +186,7 @@ package Modules
             var imgH:uint = 0;
             var bg:uint = 0;
             const rect:Rectangle = new Rectangle();
-            ReplayController.initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소\
+            ReplayFileCache.initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소\
             oldFile.copyTo(repFileTemp, true); // repdata.c3p를 복사 덮어씌우기
 
             if (ReferenceLayerController.refLayerRawTransformData)
@@ -192,7 +197,7 @@ package Modules
             }
 
             fs.open(repFileTemp, FileMode.READ);
-            ReplayController.rJumpImageFrameData = [0];
+            ReplayFileCache.rJumpImageFrameData = [0];
             var d:Array;
             var ba:ByteArray;
             var replayData:ByteArray = new ByteArray();
@@ -208,6 +213,7 @@ package Modules
                     // 압축된 데이터 써주고 압축 풀어줌
                     fs.readBytes(replayData, 0, compBytes);
                     replayData.uncompress();
+                    //이거 gpt가 멋대로 설정함 나중에 손봐야함
                     if (ReplayDataCodec.isEncoded(replayData))
                     {
                         const decodedReplayData:ByteArray = ReplayDataCodec.decode(replayData);
@@ -233,43 +239,43 @@ package Modules
                         ba = d[1] as ByteArray;
                         rect.setTo(0, 0, d[2], d[3]);
                         ba.uncompress();
-                        ReplayController.rFirstImageLayer1BitmapData = new BitmapData(d[2], d[3], true, 0);
-                        ReplayController.rFirstImageLayer1BitmapData.lock();
-                        ReplayController.rFirstImageLayer1BitmapData.setPixels(rect, ba);
-                        ReplayController.rFirstImageLayer1BitmapData.unlock();
+                        ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(d[2], d[3], true, 0);
+                        ReplayFileCache.rFirstImageLayer1BitmapData.lock();
+                        ReplayFileCache.rFirstImageLayer1BitmapData.setPixels(rect, ba);
+                        ReplayFileCache.rFirstImageLayer1BitmapData.unlock();
                         ba.clear();
                         ba = null;
-                        ReplayController.rLastCanvasBGColor = d[4];
-                        ReplayController.updateCanvasBGColorReplayMode(ReplayController.rLastCanvasBGColor);
-                        ReplayController.createFirstImageCache(ReplayController.rFirstImageLayer1BitmapData, null, d[4]);
+                        ReplayState.rLastCanvasBGColor = d[4];
+                        ReplayDrawer.updateCanvasBGColorReplayMode(ReplayState.rLastCanvasBGColor);
+                        ReplayFileCache.createFirstImageCache(ReplayFileCache.rFirstImageLayer1BitmapData, null, d[4]);
                     }
                     else // 신버전
                     {
                         ba = d[1] as ByteArray;
                         rect.setTo(0, 0, d[3], d[4]);
                         ba.uncompress();
-                        ReplayController.rFirstImageLayer1BitmapData = new BitmapData(d[3], d[4], true, 0);
-                        ReplayController.rFirstImageLayer1BitmapData.lock();
-                        ReplayController.rFirstImageLayer1BitmapData.setPixels(rect, ba);
-                        ReplayController.rFirstImageLayer1BitmapData.unlock();
+                        ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(d[3], d[4], true, 0);
+                        ReplayFileCache.rFirstImageLayer1BitmapData.lock();
+                        ReplayFileCache.rFirstImageLayer1BitmapData.setPixels(rect, ba);
+                        ReplayFileCache.rFirstImageLayer1BitmapData.unlock();
                         ba.clear();
                         ba = d[2] as ByteArray;
                         ba.uncompress();
-                        ReplayController.rFirstImageLayer2BitmapData = new BitmapData(d[3], d[4], true, 0);
-                        ReplayController.rFirstImageLayer2BitmapData.lock();
-                        ReplayController.rFirstImageLayer2BitmapData.setPixels(rect, ba);
-                        ReplayController.rFirstImageLayer2BitmapData.unlock();
+                        ReplayFileCache.rFirstImageLayer2BitmapData = new BitmapData(d[3], d[4], true, 0);
+                        ReplayFileCache.rFirstImageLayer2BitmapData.lock();
+                        ReplayFileCache.rFirstImageLayer2BitmapData.setPixels(rect, ba);
+                        ReplayFileCache.rFirstImageLayer2BitmapData.unlock();
                         ba.clear();
                         ba = null;
-                        ReplayController.rLastCanvasBGColor = d[5];
-                        ReplayController.updateCanvasBGColorReplayMode(ReplayController.rLastCanvasBGColor);
+                        ReplayState.rLastCanvasBGColor = d[5];
+                        ReplayDrawer.updateCanvasBGColorReplayMode(ReplayState.rLastCanvasBGColor);
                         // air sdk 이전이후 첫 패치된거라서 값이 있으면 읽어주어야함 불리언 값
                         const firstMirrorFlag:Boolean = d.length > 6 && d[6] === true;
                         if (d[6])
                         {
-                            ReplayController.rMirrorON = firstMirrorFlag;
+                            ReplayState.rMirrorON = firstMirrorFlag;
                         }
-                        ReplayController.createFirstImageCache(ReplayController.rFirstImageLayer1BitmapData, ReplayController.rFirstImageLayer2BitmapData, d[5], firstMirrorFlag); // 0.cache 파일 갱신
+                        ReplayFileCache.createFirstImageCache(ReplayFileCache.rFirstImageLayer1BitmapData, ReplayFileCache.rFirstImageLayer2BitmapData, d[5], firstMirrorFlag); // 0.cache 파일 갱신
                     }
                 }
                 else if (d[0] === "rFinalImage")
@@ -335,24 +341,24 @@ package Modules
         public static function loadImageFile(width:Number, height:Number, layer1Image:IBitmapDrawable, layer2Image:IBitmapDrawable):void
         {
             ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
-            ReplayController.setRFileDataTotalFrame(0);
-            ReplayController.rReplayImageCacheState = ReplayController.REPLAY_IMAGE_CAHCHE_COMPLETE;
+            ReplayState.setRFileDataTotalFrame(0);
+            ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReferenceLayerController.refLayerRawBitmapData = null;
             ReferenceLayerController.refLayerRawTransformData = null;
             finalizeLoadFile(width, height, layer1Image, layer2Image, true, 0xFFFFFF);
-            ReplayController.initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소
-            ReplayController.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            ReplayFileCache.initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소
+            ReplayFileCache.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
         }
 
         public static function resetDrawAndReplayCanvasState(canvasWidth:Number,canvasHeight:Number):void
         {
             CanvasController.canvasAnchorPoint.rotation = 0;
-            ReplayController.setRcursorRotation(0);
+            ReplayDrawer.setRcursorRotation(0);
             CanvasController.canvasZoomIndex = 3;
             CanvasController.updateCanvasScale(1.0);
             CanvasController.setCavnvasSizeDrawMode(canvasWidth, canvasHeight, 0, 0, false);
             CanvasController.updateCanvasPanelColorAndSize();
-            ReplayController.setReplayCanvasBmpdFromDrawMode();
+            ReplayDrawer.setReplayCanvasBmpdFromDrawMode();
             ReplayController.setReplayCanvasStateFromDrawMode();
             CanvasController.centerCanvas("draw");
         }
@@ -366,14 +372,14 @@ package Modules
 
             ReplayController.resetReplaySpeedBar();
             ReplayController.resetReplayTime();
-            ReplayController.clearCanvasReplayMode();
+            ReplayDrawer.clearCanvasReplayMode();
             ReplayController.updateReplayPrograssText(true, 0);
             MainUI.seekBarBox.resetReplayPrograssBarWidth();
 
             if(bgColor > 0)
             {
                 CanvasController.setCanvasBGColorDrawMode(bgColor);
-                ReplayController.updateCanvasBGColorReplayMode(bgColor);
+                ReplayDrawer.updateCanvasBGColorReplayMode(bgColor);
             }
 
             if (ImageViewWindow.isCanvasWindowON)
@@ -383,7 +389,7 @@ package Modules
 
             // updateLastFilePathByRandomFileName();
             isContinueSaveON = false; // 연속 세이브 플래그 취소
-            ReplayController.rMirrorON = false;
+            ReplayState.rMirrorON = false;
             CanvasController.mirrorON = false;
             UndoManager.mirrorCommandReady = false;
             CanvasController.canvasInfoBox.setMirror(false);
@@ -417,9 +423,9 @@ package Modules
 
                     if (imageOnlyFlag)
                     {
-                        if (ReplayController.rFirstImageLayer1BitmapData && tmpbmpd !== ReplayController.rFirstImageLayer1BitmapData)
-                            ReplayController.rFirstImageLayer1BitmapData.dispose();
-                        ReplayController.rFirstImageLayer1BitmapData = tmpbmpd.clone(); // 이미지만 불러와주면 첫 이미지를 갱신해줌
+                        if (ReplayFileCache.rFirstImageLayer1BitmapData && tmpbmpd !== ReplayFileCache.rFirstImageLayer1BitmapData)
+                            ReplayFileCache.rFirstImageLayer1BitmapData.dispose();
+                        ReplayFileCache.rFirstImageLayer1BitmapData = tmpbmpd.clone(); // 이미지만 불러와주면 첫 이미지를 갱신해줌
                     }
                 }
 
@@ -430,7 +436,7 @@ package Modules
                     CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, tmpbmpd, CanvasController.canvasLayer2Bitmap);
                     if (imageOnlyFlag)
                     {
-                        ReplayController.rFirstImageLayer2BitmapData = tmpbmpd.clone();
+                        ReplayFileCache.rFirstImageLayer2BitmapData = tmpbmpd.clone();
                     }
                 }
                 else
@@ -477,7 +483,7 @@ package Modules
             }
             MainUIController.updateWindowTitle();
             CanvasController.selectLayer1(false);
-            ReplayController.selectReplaySubLayer(false);
+            ReplayDrawer.selectReplaySubLayer(false);
             if (ToolController.toolOptionsBox.layer1CheckedButton.visible)
             {
                 CanvasController.toggleLayer1Check();
@@ -973,7 +979,7 @@ package Modules
         public static function isFileLoadBlocked():Boolean
         {
             return isFileBrowserOpened || BackgroundWorkerCoordinator.isSaveInProgress
-                || ReplayController.isGeneratingCacheImages();
+                || ReplayState.isGeneratingCacheImages();
         }
 
         // 운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
@@ -997,7 +1003,7 @@ package Modules
                             return;
                         }
                         lastLoadedFile = file;
-                        if (ReplayController.isReplayStarted)
+                        if (ReplayState.isReplayStarted)
                         {
                             ReplayController.stopReplay();
                         }
@@ -1018,7 +1024,7 @@ package Modules
             {
                 return;
             }
-            ReplayController.rFileStream.close();
+            ReplayDrawer.rFileStream.close();
             ReplayController.cancelReplayRestartTimer();
             const data:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
             if (data && data.length > 0)
@@ -1039,7 +1045,7 @@ package Modules
                 if (loadMenuBoxBitmapData)
                 {
                     ReferenceLayerController.transferLoadedImageToRefLayer(loadMenuBoxBitmapData, loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height);
-                    if (!ReplayController.isReplayModeON && !CaptureController.isCaptureModeON)
+                    if (!ReplayState.isReplayModeON && !CaptureController.isCaptureModeON)
                     {
                         ReferenceLayerController.openRefLayerMenu();
                     }
@@ -1104,7 +1110,7 @@ package Modules
         public static function enableFileOperationButtonsTopbar():void
         {
             MainUI.topBar.enableFileOperationButtons(ClipboardManager.isClipBoardButtonActivated);
-            if (ReplayController.isReplayModeON)
+            if (ReplayState.isReplayModeON)
             {
                 ReplayController.updateDeleteReplayDataButtonsState();
             }
@@ -1136,14 +1142,14 @@ package Modules
                 rLayer2CurrentImageData.length = 0;
                 ReferenceLayerController.refLayerImageData.length = 0;
                 replayDataReadBytes.length = 0;
-                ReplayController.lastMirrorReadyFlag = UndoManager.mirrorCommandReady;
+                ReplayState.lastMirrorReadyFlag = UndoManager.mirrorCommandReady;
 
                 // 첫번째 이미지 레이어 1 2 저장
-                const rImgDataW:Number = ReplayController.rFirstImageLayer1BitmapData.width;
-                const rImgDataH:Number = ReplayController.rFirstImageLayer1BitmapData.height;
+                const rImgDataW:Number = ReplayFileCache.rFirstImageLayer1BitmapData.width;
+                const rImgDataH:Number = ReplayFileCache.rFirstImageLayer1BitmapData.height;
                 var newRectangle:Rectangle = new Rectangle(0, 0, rImgDataW, rImgDataH);
-                ReplayController.rFirstImageLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1FirstImageData);
-                ReplayController.rFirstImageLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2FirstImageData);
+                ReplayFileCache.rFirstImageLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1FirstImageData);
+                ReplayFileCache.rFirstImageLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2FirstImageData);
                 // 현재 캔버스 이미지 레이어 1 2 저장
                 newRectangle = new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
                 CanvasController.canvasLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1CurrentImageData);
@@ -1166,11 +1172,11 @@ package Modules
                 {
                     // 마지막 바이트가 0이상일때만 읽어주어야함
                     // ReplayController.rFileLastBytePosition = 0이면 안읽는것이 아니고 전체 바이트를 읽음그래서 0이면 안읽게 해주어야함
-                    if (ReplayDrawer.rFileLastBytePosition > 0)
+                    if (ReplayState.rFileLastBytePosition > 0)
                     {
                         fs.open(repFileTemp, FileMode.READ);
                         fs.position = 0;
-                        fs.readBytes(replayDataReadBytes, 0, ReplayDrawer.rFileLastBytePosition);
+                        fs.readBytes(replayDataReadBytes, 0, ReplayState.rFileLastBytePosition);
                         fs.close();
                     }
                 }
@@ -1185,11 +1191,11 @@ package Modules
                     replayDataReadBytes.position = replayDataReadBytes.length;
                     for (var i:int = 0, len:int = UndoManager.undoDataIndex;i <= len;i++) // 리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
                     {
-                        if (ReplayController.rMemoryData[i] && ReplayController.rMemoryData[i].length === 0)
+                        if (ReplayState.rMemoryData[i] && ReplayState.rMemoryData[i].length === 0)
                         {
                             continue;
                         }
-                        replayDataReadBytes.writeObject(ReplayController.rMemoryData[i]);
+                        replayDataReadBytes.writeObject(ReplayState.rMemoryData[i]);
                     }
                 }
                 BackgroundWorkerCoordinator.startReplayDataCompressionWorker(rLayer1FirstImageData, rLayer2FirstImageData, rLayer1CurrentImageData, rLayer2CurrentImageData, ReferenceLayerController.refLayerImageData, replayDataReadBytes);
@@ -1198,7 +1204,7 @@ package Modules
 
         public static function openLoadFileBrowser(toRefLayer:Boolean = false):void
         {
-            if (ReplayController.isReplayStarted)
+            if (ReplayState.isReplayStarted)
             {
                 ReplayController.stopReplay();
             }
@@ -1257,7 +1263,7 @@ package Modules
                 return;
             }
             CaptureController.executeCaptureFlashEffect();
-            const replayMode:Boolean = ReplayController.isReplayModeON;
+            const replayMode:Boolean = ReplayState.isReplayModeON;
             var name:String = lastSaveFileName;
             var path:String = getExistingParentDirectory(lastSaveCaptureFilePath);
             setFileBrowserIsOpen(true);
@@ -1415,13 +1421,13 @@ package Modules
         public static function openSaveFileBrowser(asFlag:Boolean, saveFailed:Boolean = false):void
         {
             // 계속 저장하는거 방지 다른 이름으로 저장은 예외
-            if (ReplayController.isReplayStarted)
+            if (ReplayState.isReplayStarted)
             {
                 ReplayController.stopReplay();
             }
             const continueFlag:Boolean = (isContinueSaveON === true && asFlag === false);
             const nextPath:String = getExistingParentDirectory(lastSaveFilePath);
-            const replayFilePath:String = ReplayController.getReplayFileNameFromPath(lastSaveFilePath);
+            const replayFilePath:String = ReplayFileCache.getReplayFileNameFromPath(lastSaveFilePath);
             const rawFile:File = new File(replayFilePath);
             if (nextPath === lastSaveFilePath && isFileAlreadySaved && continueFlag && rawFile.exists)
             {
@@ -1653,7 +1659,7 @@ package Modules
                     && !isLoadPendingAfterSaving
                     && !AppUpdater.isUpdatePendingAfterSaving
                     && !loadMenuBox.visible
-                    && !ReplayController.isGeneratingCacheImages())
+                    && !ReplayState.isGeneratingCacheImages())
             {
                 saveAllAppData();
             }
@@ -1685,7 +1691,7 @@ package Modules
             {
                 CaptureController.exitCaptureMode();
             }
-            if (ReplayController.isReplayModeON)
+            if (ReplayState.isReplayModeON)
             {
                 ReplayController.exitReplayMode();
             }
@@ -1711,7 +1717,7 @@ package Modules
                 CaptureController.handleExitCaptureMode();
             }
 
-            if (ReplayController.isReplayStarted === true)
+            if (ReplayState.isReplayStarted === true)
             {
                 ReplayController.stopReplay();
             }
@@ -1752,7 +1758,7 @@ package Modules
                 return;
             }
 
-            ReplayController.rMirrorON = false;
+            ReplayState.rMirrorON = false;
             CanvasController.mirrorON = false;
             CanvasController.canvasInfoBox.setMirror(false);
 
@@ -1768,11 +1774,11 @@ package Modules
 
             if (arr[6] is Number)
             {
-                ReplayController.setRFileDataTotalFrame(arr[6]);
+                ReplayState.setRFileDataTotalFrame(arr[6]);
             }
 
-            ReplayController.rMemoryData = (fs.readObject() as Array).concat();
-            ReplayController.rMemoryDataFrame = (fs.readObject() as Array).concat();
+            ReplayState.rMemoryData = (fs.readObject() as Array).concat();
+            ReplayState.rMemoryDataFrame = (fs.readObject() as Array).concat();
             fs.close();
 
             UndoManager.undoDataIndex = lastUndoIndex;
@@ -1788,7 +1794,7 @@ package Modules
             UndoController.updateUndoBaseImage(bmpd.clone(), bmpd1.clone(), arr[2], arr[3], arr[4], arr[5]);
             UndoManager.updateCanvasStateAfterUndo();
 
-            ReplayController.rReplayFOFOCursor.visible = false;
+            ReplayDrawer.rReplayFOFOCursor.visible = false;
             MainUI.hideMouseHint();
 
             bmpd.dispose();
@@ -1800,7 +1806,7 @@ package Modules
             arr = null;
 
             // undo index가 arr의 가장 마지막 부분이 아니면 undo를 하던 중이니까 isDeleteUndoDataPending 켜줌
-            if (lastUndoIndex < ReplayController.rMemoryData.length - 1)
+            if (lastUndoIndex < ReplayState.rMemoryData.length - 1)
             {
                 UndoManager.isDeleteUndoDataPending = true;
             }
@@ -1827,13 +1833,13 @@ package Modules
             // ba.compress();
             // ba1.compress();
             // 레이어 1,레이어2,가로,세로,배경색, repdata 합계 프레임
-            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayController.getRFileDataTotalFrame()];
+            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayState.getRFileDataTotalFrame()];
 
             fs.open(undoDataFilePath, FileMode.WRITE);
             fs.writeInt(UndoManager.undoDataIndex);
             fs.writeObject(newArr);
-            fs.writeObject(ReplayController.rMemoryData);
-            fs.writeObject(ReplayController.rMemoryDataFrame);
+            fs.writeObject(ReplayState.rMemoryData);
+            fs.writeObject(ReplayState.rMemoryDataFrame);
             fs.close();
 
             ba.clear();

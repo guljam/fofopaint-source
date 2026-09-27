@@ -19,7 +19,6 @@
     import Modules.MainUIController;
     import Modules.PaletteController;
     import Modules.ReferenceLayerController;
-    import Modules.ReplayController;
     import Modules.SidebarController;
     import Modules.ToolController;
     import Modules.Tools.EyeDropperTool;
@@ -58,6 +57,8 @@
     import Modules.CaptureStamp;
     import Modules.CaptureArea;
     import Modules.CacheImageMetaData;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayFileCache;
 
     // import
     public class Main extends Sprite
@@ -163,10 +164,10 @@
             addGlobalEvents();
             InputManager.addInputEventsDrawMode();
             const isNewReplayFile:Boolean = !FileManager.replayDataFilePath.exists;
-            ReplayController.initializeReplayDataFile();
+            ReplayFileCache.initializeReplayDataFile();
             if (isNewReplayFile)
             {
-                ReplayController.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+                ReplayFileCache.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             }
             CanvasController.canvasNavigatorBox.updateImage();
             ActivityWorkTimer.start();

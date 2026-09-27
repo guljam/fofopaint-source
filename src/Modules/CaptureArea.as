@@ -5,6 +5,8 @@ package Modules
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayState;
 
     public class CaptureArea
     {
@@ -305,7 +307,7 @@ package Modules
 
         private static function getCanvasScale():Number
         {
-            return (ReplayController.isReplayModeON) ? Math.abs(ReplayController.rCanvasAnchorPoint.scaleX) : Math.abs(CanvasController.canvasAnchorPoint.scaleX);
+            return (ReplayState.isReplayModeON) ? Math.abs(ReplayDrawer.rCanvasAnchorPoint.scaleX) : Math.abs(CanvasController.canvasAnchorPoint.scaleX);
         }
 
         private static function drawResizeButton(scale:Number):void
@@ -406,9 +408,9 @@ package Modules
 
             if (rectClamped.x === 0.0 && rectClamped.y === 0.0 && rectClamped.width === 0.0 && rectClamped.height === 0.0)
             {
-                if (ReplayController.isReplayModeON)
+                if (ReplayState.isReplayModeON)
                 {
-                    return (CaptureController.captureCanvasRotationStep === 0 || CaptureController.captureCanvasRotationStep === 2) ? ReplayController.RCANVAS_WIDTH + " x " + ReplayController.RCANVAS_HEIGHT : ReplayController.RCANVAS_HEIGHT + " x " + ReplayController.RCANVAS_WIDTH;
+                    return (CaptureController.captureCanvasRotationStep === 0 || CaptureController.captureCanvasRotationStep === 2) ? ReplayState.RCANVAS_WIDTH + " x " + ReplayState.RCANVAS_HEIGHT : ReplayState.RCANVAS_HEIGHT + " x " + ReplayState.RCANVAS_WIDTH;
                 }
                 else
                 {
@@ -527,11 +529,11 @@ package Modules
             
             if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
-                if (ReplayController.isReplayModeON) // 리플레이 변수로 변경
+                if (ReplayState.isReplayModeON) // 리플레이 변수로 변경
                 {
-                    canvasWidth = ReplayController.RCANVAS_WIDTH;
-                    canvasHeight = ReplayController.RCANVAS_HEIGHT;
-                    xPanel = ReplayController.rCanvasPanel;
+                    canvasWidth = ReplayState.RCANVAS_WIDTH;
+                    canvasHeight = ReplayState.RCANVAS_HEIGHT;
+                    xPanel = ReplayDrawer.rCanvasPanel;
                 }
                 else
                 {

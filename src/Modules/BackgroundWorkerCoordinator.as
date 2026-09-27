@@ -14,6 +14,9 @@ package Modules
     import flash.system.WorkerDomain;
     import flash.system.MessageChannel;
     import flash.utils.ByteArray;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayFileCache;
+    import Modules.ReplayEngine.ReplayState;
 
     public final class BackgroundWorkerCoordinator
     {
@@ -78,7 +81,7 @@ package Modules
             else if (command === "compress_ReplayDataDone")
             {
                 workerDataReceiveCount++;
-                ReplayController.writeReplayFile(backToMain.receive(true)
+                ReplayFileCache.writeReplayFile(backToMain.receive(true)
                         , backToMain.receive(true)
                         , backToMain.receive(true)
                         , backToMain.receive(true)
@@ -223,9 +226,9 @@ package Modules
 
             if (replayMode)
             {
-                xPanel = ReplayController.rCanvasPanel;
-                w = ReplayController.RCANVAS_WIDTH;
-                h = ReplayController.RCANVAS_HEIGHT;
+                xPanel = ReplayDrawer.rCanvasPanel;
+                w = ReplayState.RCANVAS_WIDTH;
+                h = ReplayState.RCANVAS_HEIGHT;
             }
             else
             {
@@ -363,7 +366,7 @@ package Modules
                     {
                         if (receivedUndoImageQueueFromWorker.length > 0)
                         {
-                            ReplayController.createCacheImage(
+                            ReplayFileCache.createCacheImage(
                                 receivedUndoImageQueueFromWorker[0][0],
                                     receivedUndoImageQueueFromWorker[0][1],
                                     undoDataQueue[0]);

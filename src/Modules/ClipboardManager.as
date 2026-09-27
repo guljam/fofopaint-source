@@ -4,6 +4,8 @@ package Modules
     import flash.desktop.ClipboardFormats;
     import flash.display.BitmapData;
     import flash.filesystem.File;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayDrawer;
 
     public class ClipboardManager
     {
@@ -22,7 +24,7 @@ package Modules
                 return;
             }
 
-            ReplayController.rFileStream.close();
+            ReplayDrawer.rFileStream.close();
             if (ReplayController.isReplayRestartTimerON())
             {
                 ReplayController.cancelReplayRestartTimer();
