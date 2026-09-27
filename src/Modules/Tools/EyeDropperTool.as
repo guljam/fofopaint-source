@@ -319,7 +319,7 @@ package Modules.Tools
             }
 
             ToolController.toolBox.moveToolCursor("toolEyedropper");
-            ToolController.updateLastTool();
+            ToolController.setLastTool(ToolController.nowTool);
             // todo: 이것도 그냥 setLastToolPen, setSeletedToolPen이런식으로 메서드로 호출
             ToolController.setSelectedTool(ToolController.TOOL_EYEDROPPER);
 

@@ -438,3 +438,156 @@ private static function resolveTargetLayers():void
 | E10 | `applyLassoBoxImageToCanvas`에서 미러(음수 scaleX)일 때 행렬 위치가 틀림 | `lassoBMPWidth = W * scaleX`(음수)로 `translate(-W*sx/2)`를 하면 디스플레이 변환 `R·S·(p − c) + box`와 정확히 같습니다. |
 | E11 | RotateTool이 드로우 모드에서도 `getStageCenterPos("replay")`를 사용해 사이드바를 무시함 | Main.as에서 분리하기 전 원본(`ecd32a4^:src/Main.as:2009`)도 같은 코드입니다. 리팩토링 중 생긴 회귀가 아니고, 의도 여부를 코드만으로는 판단할 수 없어 제외했습니다. 사이드바가 있을 때 회전 중심이 캔버스 영역 중앙이 아니라는 점이 불편하다면 `"draw"`로 바꾸는 것을 검토할 수 있습니다. |
 | E12 | DottedLineTool `ratio` 계산에서 0으로 나누기 | 루프에 들어가는 조건(`subDotLength < 0`)일 때 `dist = D − s > 0`이 보장됩니다. 보간 수식도 "현재 대시 시작점에서 정확히 s만큼 떨어진 점"과 일치합니다. |
+
+---
+
+## 추가 검토 (수정 커밋 6e4b384, 8c4b5be 반영 후)
+
+### R-M1. MoveTool 조기 반환(51~63줄): 제거하면 안 됨. 조건식은 단순화 가능
+
+**모두 제거할 수 없는 이유:** 이 블록이 없으면 **움직이지 않은 클릭**(클릭만 한 경우)도 아래 경로를 전부 탑니다.
+
+| 줄 | 부작용 |
+|---|---|
+| `MoveTool.as:69-72` `UndoManager.applyDeepUndo()` | 딥 언두 상태라면 리플레이 파일을 truncate하고 캐시 이미지를 삭제함 (`UndoManager.as:197-220`). **클릭 한 번으로 redo 이력이 사라짐** |
+| `:75-107` | 캔버스 전체 크기 BitmapData를 할당하고 draw·copyPixels (0,0 이동이라 결과는 같고 비용만 듦) |
+| `:114-145` | `["move", 0, 0]` 리플레이 명령을 기록하고 `UndoController.addNew()` 실행. **빈 언두 단계가 생김** |
+
+따라서 "이동량이 0이면 반환"하는 로직은 반드시 필요합니다.
+
+**조건식에 레이어 visible/checked 판정이 필요 없는 이유:**
+- `canvasLayerXBitmap.x/y`를 바꾸는 곳은 MoveTool뿐입니다 (`grep`으로 확인: `MoveTool.as:29-32, 158-176`).
+- 드래그가 끝나면 항상 `resetLayerBitmapPos()`로 0으로 되돌립니다 (반환하는 경우와 끝까지 가는 경우 모두).
+- 따라서 **이번 드래그에서 움직이지 않은 레이어의 오프셋은 항상 0**입니다. 움직인 레이어는 모두 같은 `pos`를 받습니다 (`:152-177`).
+- 결론적으로 "움직인 레이어가 있는가"는 "네 값이 모두 0인가"와 같습니다. visible/checked 판정은 `onMouseMoveMovetool`의 조건을 한 번 더 반복하는 것일 뿐입니다.
+
+(사용자 확인 사항인 "앱에서 두 레이어가 모두 보이지 않는 상태는 존재하지 않음"은 이 결론에 영향을 주지 않습니다. B1은 두 레이어가 모두 숨겨진 경우가 아니라, `n2`를 두 번 눌러 **1번 레이어만 숨긴** 경우(`CanvasController.as:631`)에 발생했습니다.)
+
+**수정 제안 (51~63줄 교체)**
+
+```as3
+// 이번 드래그에서 움직이지 않은 레이어는 항상 0 이므로 네 값만 보면 충분
+if (movex === 0.0 && movey === 0.0 && movex1 === 0.0 && movey1 === 0.0)
+{
+    resetLayerBitmapPos(); // 1px 미만 이동으로 남은 소수점 오프셋 정리 (B2)
+    return;
+}
+```
+
+---
+
+### R-E1. [회귀 · 중] EyeDropperTool.start: 삭제할 줄이 반대로 선택됨
+
+8c4b5be에서 `setLastTool(nowTool)`을 **삭제**하고 `updateLastTool()`을 **남겼습니다**. D1에서 삭제를 제안한 줄은 `updateLastTool()`입니다.
+
+- `updateLastTool()`은 `lastTool === TOOL_NONE`일 때만 값을 설정합니다 (`ToolController.as:164-170`).
+- `lastTool`이 NONE이 아닌 상태로 남아 있는 경로가 실제로 있습니다.
+
+**재현 경로 (채우기펜 → 스포이드)**
+1. `Q` 키 → `ToolController.as:883-886`: `setLastTool(TOOL_PEN)` 후 `selectFillPenTool()` → nowTool = FILLPEN, **lastTool = PEN**
+2. `C` 키로 스포이드 → `start()`: `updateLastTool()`은 lastTool이 PEN이라 아무것도 하지 않음
+3. 색을 찍음 → `exitEyeDropperTool(true)`: `isLastTool(PEN)`이 참이라 그대로 → `selectLastUsedTool()` → **펜 툴로 돌아감**
+
+| | 스포이드 종료 후 돌아가는 툴 |
+|---|---|
+| 수정 전 (`setLastTool(nowTool)`) | 채우기펜 |
+| 수정 후 (현재) | **펜** ← 회귀 |
+
+**수정**
+
+```as3
+ToolController.toolBox.moveToolCursor("toolEyedropper");
+ToolController.setLastTool(ToolController.nowTool);   // 되살림
+ToolController.setSelectedTool(ToolController.TOOL_EYEDROPPER);
+// ToolController.updateLastTool();  ← 이 줄을 삭제
+```
+
+> 참고: 단축키로 임시 툴을 연달아 쓰는 경우(예: `E` 이동 툴을 누른 채 `C`)도 기존 코드가 문제없이 처리합니다. 색을 찍으면 `exitEyeDropperTool`의 `:222-227`에서 PEN으로 보정되고, 취소하면 이동 툴로 돌아갑니다.
+
+---
+
+### R-E2. [낮음 · 동작 변경] 클릭하거나 C/M을 뗄 때 `eyedropperLens.visible`이 최대 1프레임 늦음
+
+MOUSE_MOVE 방식에서는 마우스가 움직일 때마다 `visible`이 즉시 갱신됐습니다. ENTER_FRAME 방식에서는 **다음 프레임까지** 이전 값이 남습니다.
+
+- 캔버스 밖에서 안으로 빠르게 들어오자마자 클릭: `visible === false`라서 색을 찍지 않고 종료됨 (`:200-207`)
+- 캔버스 안에서 밖으로 빠르게 나가자마자 클릭: `visible === true` → `pickColor(false)`가 `penColorBackup`을 반환 → okFlag가 true라서 `lastTool`이 PEN으로 보정됨
+
+**수정 제안:** 확정 시점에는 캐시된 `visible` 대신 현재 상태를 직접 계산합니다.
+
+```as3
+private static function onMouseDownEyeDropper(e:MouseEvent):void
+{
+    if (isNotEyeDropperTool())
+    {
+        exitEyeDropperTool(false);
+        return;
+    }
+
+    if (canShowEyedropperLens())
+        confirmEyeDropperSelection();
+    else
+        exitEyeDropperTool(false);
+}
+
+private static function confirmEyeDropperSelection():void
+{
+    const canShow:Boolean = canShowEyedropperLens();
+    if (canShow)
+    {
+        const pickedColor:uint = pickColor(true);
+        PenTool.penColor = pickedColor;
+        ColorPickerController.pickerIgnoreHistoryColor = pickedColor;
+        ColorPickerController.updateColorPickerCursorPosAndRGBInfo(pickedColor);
+    }
+    exitEyeDropperTool(canShow);
+}
+```
+
+---
+
+### R-E3. [낮음 · 성능] 위치 비교 조기 반환이 동작하지 않을 수 있음 + trace 잔존
+
+`EyeDropperTool.as:263`
+
+```as3
+if(eyedropperLens.x === main.stage.mouseX && eyedropperLens.y === main.stage.mouseY)
+```
+
+- `DisplayObject.x`는 twip(1/20px) 단위로 저장됩니다. `mouseX`가 1/20로 나누어떨어지지 않는 소수이면(HiDPI 배율 등) 대입한 값과 읽은 값이 달라져 **비교가 항상 거짓**이 됩니다. 이 경우 가만히 있어도 매 프레임 hitTest 1회와 draw 3회가 실행됩니다 (기능상 오류는 없음).
+- `trace('return;')`: 디버그 빌드에서 매 프레임 출력됩니다. 삭제하세요.
+
+**수정 제안**
+
+```as3
+private static var lastMouseX:Number = NaN;
+private static var lastMouseY:Number = NaN;
+
+// onEnterFrameEyeDropper
+const mx:Number = main.stage.mouseX;
+const my:Number = main.stage.mouseY;
+if (mx === lastMouseX && my === lastMouseY)
+{
+    return;
+}
+lastMouseX = mx;
+lastMouseY = my;
+eyedropperLens.x = mx;
+eyedropperLens.y = my;
+
+// start() 끝 부분 (addEyedropperEvents 직전)
+lastMouseX = main.stage.mouseX;   // start에서 이미 그렸다면 첫 프레임은 생략
+lastMouseY = main.stage.mouseY;
+// 단, canShow가 false였다면 NaN으로 두어 첫 프레임에 갱신되게 함
+```
+
+---
+
+### R-E4. [참고 · 문제 아님] 종료 조건 검사 시점이 빨라짐
+
+이제 `isNotEyeDropperTool()`을 **매 프레임** 검사합니다. 예를 들어 창이 비활성화되면 `FileManager.onWindowDeactivate` → `isMouseClickBlocked = true` (`FileManager.as:1642`)가 되고, 다음 프레임에 스포이드가 취소(`exit(false)`)되어 이전 툴로 돌아갑니다. 전에는 마우스를 움직이거나 입력이 있을 때 종료됐습니다. 결과(취소 후 이전 툴 복귀, 색 유지)는 같고 시점만 빨라졌으므로 회귀로 보지 않습니다.
+
+### 확인된 정상 항목
+- `ToolController.as:1102` (툴박스2)에는 아이콘 표시 가드를 넣지 않았지만, 레이어가 체크되면 `ToolMenuSet2.as:103`에서 스포이드 버튼 alpha를 낮추고, `InputManager.as:969`의 `target.alpha < 1.0` 검사로 막힙니다. 추가 수정은 필요 없습니다.
+- `pickColor(canShow)`의 판정 기준이 `hitTestPoint(shapeFlag=false)`에서 `canShowEyedropperLens()`로 바뀌었습니다. 렌즈 표시 조건과 같아졌으므로 오히려 일관성이 좋아졌습니다.
+- 마우스를 가만히 둔 채 휠로 줌하면 렌즈가 갱신되지 않는 문제는 MOUSE_MOVE 방식에서도 똑같았으므로 회귀가 아닙니다.
