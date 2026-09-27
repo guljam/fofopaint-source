@@ -903,7 +903,7 @@ package Modules
             var subY:Number = 0;
             const min:Number = CANVAS_MIN_SIZE;
             const max:Number = CANVAS_MAX_SIZE;
-            const ratioSizeArr:Array = [];
+            var ratioSizeArr:Array = [];
             const ratioArr:Array = [
                     "1:2", (1.0 / 2.0),
                     "9:16", (9.0 / 16.0),
@@ -966,12 +966,13 @@ package Modules
                     });
                 return ratioSizeArr[index + 1];
             }
+
             function drawRatioSnapGuide(w:Number, h:Number, targetName:String):void
             {
                 isResizingWidth = (targetName === "resizeButtonL" || targetName === "resizeButtonR") ? true : false;
                 function _drawRatioLine(referenceSize:Number, offset:Number):void
                 {
-                    ratioSizeArr.length = 0;
+                    ratioSizeArr = [];
                     // hittestpoint를 위해서 배경을 그려줌
                     resizePreviewRatioRect.graphics.beginFill(0xFFFF00, 0.0);
                     if (isResizingWidth)

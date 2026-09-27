@@ -12,9 +12,9 @@ package Modules
 
     public class FillPenTool
     {
-        //todo 다른 메서드들도 마찬가지지만 클래스 정적 변수 직접 접근하는 부분은 메서드로 호출하게 만들어야함
-        //todo 왼쪽 클릭 뭔가 타이밍 잘맞춰서하면 선이 캔버스에 그려지는 버그있음 초반에 버그 구현되다가 갑자기 안됨
-        //새로 추가한 라인툴 이벤트랑 섞였을 가능성도 있음
+        // todo 다른 메서드들도 마찬가지지만 클래스 정적 변수 직접 접근하는 부분은 메서드로 호출하게 만들어야함
+        // todo 왼쪽 클릭 뭔가 타이밍 잘맞춰서하면 선이 캔버스에 그려지는 버그있음 초반에 버그 구현되다가 갑자기 안됨
+        // 새로 추가한 라인툴 이벤트랑 섞였을 가능성도 있음
         public static var main:Main;
 
         public static function setMainInstance(instance:Main):void
@@ -37,14 +37,14 @@ package Modules
         private static var xBlendMode:String;
 
         private static var mouseMoveCount:int;
-        private static var _afterKeyUpOK:Boolean = false; //단축키를 떼고 나서 마우스 키를 땠을때 적용해주는 플래그
+        private static var _afterKeyUpOK:Boolean = false; // 단축키를 떼고 나서 마우스 키를 땠을때 적용해주는 플래그
         private static var _pos05Offset:Number;
         private static var clickedButtonName:String;
 
         private static var canvasDrawZIndexSave:int = 0;
         private static const _lastPosOnMouseMove:Point = new Point();
         private static var lastFillPenBoxUsedButton:SimpleButton;
-        private static var turnOffFillPenPreviewTimerCount:int = 0; //프리뷰 일정시간 지나면 사라지게 함
+        private static var turnOffFillPenPreviewTimerCount:int = 0; // 프리뷰 일정시간 지나면 사라지게 함
         private static var isStartedFromShortCut:Boolean = false;
 
         public static function handleOnMouseUp():void
@@ -92,14 +92,14 @@ package Modules
 
         public static function isInputDataEmpty():Boolean
         {
-            return command.length === 0
+            return command.length === 0;
         }
 
         public static function setPreviewOFFTimerCount():void
         {
             turnOffFillPenPreviewTimerCount = main.stage.frameRate;
         }
-    
+
         public static function resetPreviewOFFTimerCount():void
         {
             turnOffFillPenPreviewTimerCount = 0;
@@ -122,20 +122,20 @@ package Modules
 
         }
 
-        public static function inputLineToData(posX:Number,posY:Number):void
+        public static function inputLineToData(posX:Number, posY:Number):void
         {
             command.push(2);
             data.push(posX);
             data.push(posY);
         }
 
-        public static function inputMoveToData(posX:Number,posY:Number):void
+        public static function inputMoveToData(posX:Number, posY:Number):void
         {
             command.push(1);
             data.push(posX);
             data.push(posY);
         }
-        
+
         public static function set pos05Offset(value:Number):void
         {
             _pos05Offset = value;
@@ -311,7 +311,7 @@ package Modules
 
             DottedLineTool.moveTo(CanvasController.canvasDrawLayerChild.graphics, data[0], data[1]);
 
-            for (var i:uint = 2; i < len; i += 2)
+            for (var i:uint = 2;i < len;i += 2)
             {
                 DottedLineTool.lineTo(data[i], data[i + 1]);
             }
@@ -335,9 +335,9 @@ package Modules
             mouseMoveCount = 0;
             _isStarted = false;
 
-            command.length = 0;
-            data.length = 0;
-            commandUndoIndexArr.length = 0;
+            command = new <int>[];
+            data = new <Number>[];
+            commandUndoIndexArr = [];
 
             CanvasController.canvasDrawLayerChild.graphics.clear();
 

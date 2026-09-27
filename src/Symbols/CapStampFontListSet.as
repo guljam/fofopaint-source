@@ -22,7 +22,7 @@
 		public var capFontListNext:SimpleButton;
 		private const capFontListBG:Shape = new Shape();
 		private const capFontListWapper:Sprite = new Sprite();
-		private const fontList:Array = [];
+		private var fontList:Array = [];
 		private const fontBoxWidth:Number = 200;
 		private const fontBoxHeight:Number = 25;
 		private const fontBoxRow:Number = 1;
@@ -208,7 +208,7 @@
 			const len:int = rawFontList.length;
 			var selectedFontIndex:int = -1;
 
-			fontList.length = 0;
+			fontList = [];
 
 			for (var i:int = 0;i < len;i++)
 			{

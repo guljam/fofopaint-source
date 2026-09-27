@@ -38,8 +38,8 @@ package Modules.Tools
         private static var xShape:Boolean;
         private static var xBlendMode:String;
         private static var subLayerFlag:Boolean;
-        private static var command:Vector.<int>;
-        private static var data:Vector.<Number>;
+        private static var command:Vector.<int> = new Vector.<int>();
+        private static var data:Vector.<Number> = new Vector.<Number>();
         private static var _isStarted:Boolean = false;
         private static var startFromShortCut:Boolean = false;
         private static var hasLineTouchedCanvas:Boolean = false;
@@ -143,8 +143,8 @@ package Modules.Tools
                 main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool);
             }
 
-            command.length = 0;
-            data.length = 0;
+            command = new Vector.<int>();
+            data = new Vector.<Number>();
             hasLineTouchedCanvas = false;
             _isStarted = false;
 

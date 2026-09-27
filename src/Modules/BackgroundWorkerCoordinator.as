@@ -17,6 +17,7 @@ package Modules
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
+    import flash.text.TextInteractionMode;
 
     public final class BackgroundWorkerCoordinator
     {
@@ -26,7 +27,7 @@ package Modules
             main = instance;
         }
 
-        public static const WORKER_WAIT_INTERVAL:Number = 0.5,
+        public static const WORKER_WAIT_INTERVAL:Number = 1.0,
             WORKER_STATE_STOPPED:int = 0,
             WORKER_STATE_INIT:int = (1 << 0),
             WORKER_STATE_RUNNING:int = (1 << 1);
@@ -58,6 +59,12 @@ package Modules
         {
             return workerState === WORKER_STATE_STOPPED;
         }
+
+        public static function isWorkerBusy():Boolean
+        {
+            return worker!== null || workerFunctionsBeforeStart.length > 0
+        }
+
         public static function isWorkerRunning():Boolean
         {
             return workerState === WORKER_STATE_RUNNING;
@@ -183,6 +190,7 @@ package Modules
                     AppUpdater.startUpdate();
                 }
 
+trace('end');
                 FileManager.enableFileOperationButtonsTopbar();
                 return false;
             }

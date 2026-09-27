@@ -23,8 +23,8 @@ package Modules.ReplayEngine
         // tempdone에서 쓰는 플래그임
         public static var index:uint = 0;
         public static var data:Array = []; // 데이터 뭉치
-        public static const cmd:Vector.<int> = new Vector.<int>();
-        public static const pos:Vector.<Number> = new Vector.<Number>();
+        public static var cmd:Vector.<int> = new Vector.<int>();
+        public static var pos:Vector.<Number> = new Vector.<Number>();
 
         public static function updateLineStyleBackup(alpha:Number, blendMode:String):void
         {
@@ -521,8 +521,8 @@ package Modules.ReplayEngine
 
             if (shape)
             {
-                cmd.length = 0;
-                pos.length = 0;
+                cmd = new Vector.<int>();
+                pos =  new Vector.<Number>();
                 const halfSize:Number = size / 2;
                 var point:Point = Utils.rotatePoint(-halfSize, -halfSize, rotation);
                 cmd.push(1);
@@ -574,8 +574,9 @@ package Modules.ReplayEngine
 
             if (shape)
             {
-                cmd.length = 0;
-                pos.length = 0;
+                cmd = new Vector.<int>();
+                pos = new Vector.<Number>();
+                 
                 const p0:Point = Utils.rotatePoint(-size / 2, -size / 2, rotation);
                 cmd.push(1);
                 pos.push(startX + p0.x);

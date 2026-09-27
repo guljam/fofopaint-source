@@ -1116,6 +1116,7 @@ package Modules
                 ReplayController.updateDeleteReplayDataButtonsState();
             }
         }
+
         private static function disableFileOperationButtonsTopbar():void
         {
             if (BackgroundWorkerCoordinator.isSaveInProgress === 0)
@@ -1132,18 +1133,14 @@ package Modules
         {
             if (replayDataFilePath.exists)
             {
-                rLayer1FirstImageData.position = 0;
-                rLayer2FirstImageData.position = 0;
-                rLayer1CurrentImageData.position = 0;
-                rLayer2CurrentImageData.position = 0;
+                rLayer1FirstImageData = new ByteArray();
+                rLayer2FirstImageData = new ByteArray();
+                rLayer1CurrentImageData = new ByteArray();
+                rLayer2CurrentImageData = new ByteArray();
+
                 ReferenceLayerController.refLayerImageData.position = 0;
-                replayDataReadBytes.position = 0;
-                rLayer1FirstImageData.length = 0;
-                rLayer2FirstImageData.length = 0;
-                rLayer1CurrentImageData.length = 0;
-                rLayer2CurrentImageData.length = 0;
-                ReferenceLayerController.refLayerImageData.length = 0;
-                replayDataReadBytes.length = 0;
+                ReferenceLayerController.refLayerImageData = new ByteArray();
+                replayDataReadBytes = new ByteArray();
                 ReplayState.lastMirrorReadyFlag = UndoManager.mirrorCommandReady;
 
                 // 첫번째 이미지 레이어 1 2 저장

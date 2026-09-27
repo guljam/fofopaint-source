@@ -35,8 +35,8 @@ package Modules.Tools
                 pos.push(posX + p3.x);
                 pos.push(posY + p3.y);
                 CanvasController.canvasDrawLayerChild.graphics.drawPath(cmd, pos);
-                cmd.length = 0;
-                pos.length = 0;
+                cmd = new Vector.<int>();
+                pos = new Vector.<Number>();
             }
             else
             {

@@ -18,8 +18,8 @@ package Modules
         private static const GRID_NORMAL_COLOR:uint = 0x808080;
 
         public static const canvasGrid:Shape = new Shape();
-        private static const gridGraphicsCommands:Vector.<int> = new Vector.<int>();
-        private static const gridGraphicsData:Vector.<Number> = new Vector.<Number>();
+        private static var gridGraphicsCommands:Vector.<int> = new Vector.<int>();
+        private static var gridGraphicsData:Vector.<Number> = new Vector.<Number>();
 
         public static var gridGapMultiplier:uint = 0;
         private static var lastGridGapValue:Number = 0.0;
@@ -82,8 +82,8 @@ package Modules
                 else if (offsetY > 0)
                     i = 0;
 
-                gridGraphicsCommands.length = 0;
-                gridGraphicsData.length = 0;
+                gridGraphicsCommands = new Vector.<int>();
+                gridGraphicsData == new Vector.<Number>();
 
                 for (;i <= len;i++)
                 {

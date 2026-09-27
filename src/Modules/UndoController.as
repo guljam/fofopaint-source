@@ -192,8 +192,8 @@ package Modules
 
                 ReplayState.rMemoryData[0].length = 0;
                 ReplayState.rMemoryData[0] = null;
-                ReplayState.rMemoryDataFrame[0] = null;
                 ReplayState.rMemoryData.shift();
+                ReplayState.rMemoryDataFrame[0] = null;
                 ReplayState.rMemoryDataFrame.shift();
             }
 

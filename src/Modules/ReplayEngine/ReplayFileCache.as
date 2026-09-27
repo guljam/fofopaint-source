@@ -82,9 +82,9 @@ package Modules.ReplayEngine
                             ReplaySaveMetaData.refImageHeight,
                             ReplaySaveMetaData.refImageBitmapX,
                             ReplaySaveMetaData.refImageBitmapY,
+                            ReplaySaveMetaData.refImageBitmapRotation,
                             ReplaySaveMetaData.refImageBitmapScaleX,
                             ReplaySaveMetaData.refImageBitmapScaleY,
-                            ReplaySaveMetaData.refImageBitmapRotation,
                             ReplaySaveMetaData.refImageBitmapMirrorFlag,
                             ReplaySaveMetaData.refImageBitmapMoveSum,
                             ReplaySaveMetaData.refImageAlpha]);
@@ -118,7 +118,6 @@ package Modules.ReplayEngine
                     BackgroundWorkerCoordinator.isSaveInProgress = 0;
                 }
 
-                FileManager.enableFileOperationButtonsTopbar();
                 FileManager.openSaveFileBrowser(true, true);
                 return;
             }
@@ -127,8 +126,6 @@ package Modules.ReplayEngine
             {
                 BackgroundWorkerCoordinator.isSaveInProgress = 0;
             }
-
-            FileManager.enableFileOperationButtonsTopbar();
         }
 
         public static function loadReplayCacheImage(index:int):Object
@@ -176,7 +173,8 @@ package Modules.ReplayEngine
             const h:Number = bmpd1.height;
             const newRectangle:Rectangle = new Rectangle(0, 0, w, h);
 
-            rJumpImageFrameData.length = 0;
+            //배열 버리고 새로 만들어주는데 메모메와 gc면에서 나은것같음
+            rJumpImageFrameData = [];
             bmpd1.copyPixelsToByteArray(newRectangle, ba1);
             ba1.compress();
             rFirstImageLayer1BitmapData = CanvasController.updateBitmapData(rFirstImageLayer1BitmapData, bmpd1, null);
@@ -213,7 +211,7 @@ package Modules.ReplayEngine
                     rFrameTempCachedImages[i][1].dispose();
                 }
 
-                rFrameTempCachedImages.length = 0;
+                rFrameTempCachedImages = [];
                 rLastCacheImageIndex = -2;
                 rLastMemoryCachedImageIndex = -2;
                 refreshRFrameTempCachedImages();
