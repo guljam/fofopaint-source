@@ -21,7 +21,7 @@ package Modules.ReplayEngine
         public static var isReplayRepeatON:Boolean = true; // 리플레이 반복 켜기 끄기
 
         private static var rFileDataTotalFrame:Number = 0; // file에저장된 프레임수 누적해서 저장
-      
+
         public static var rLastLayer2Selcted:Boolean = false; // 리플레이 실행할때 이걸로 비교해서 캔버스 스왑해줌
         public static var rLastCanvasBGColor:uint = RCANVAS_BG_COLOR; // load replay에서 씀
         public static var rReplaySpeedMultipler:Number = 1; // 리플레이 속도 for루프로 2번씩혹은 3번씩 읽히게 만듬
@@ -47,7 +47,6 @@ package Modules.ReplayEngine
         public static var rFileLastBytePosition:Number = 0; // fs position 저장
         public static var rFileCutBytePosition:Number = 0; // super undo에서 파일 잘라줄때 필요함
 
-        
         // undo index까지의 프레임 합을 구함
         public static function getRMemoryDataTotalFrame(index:int):Number
         {
@@ -165,19 +164,19 @@ package Modules.ReplayEngine
             }
             else
             {
-                const len:uint = rMemoryData[index].length;
-
-                for (var i:uint = 0;i < len;i++)
+                for (var i:int = rMemoryData[index].length - 1;i >= 0;i--)
                 {
                     if (command === rMemoryData[index][i][0])
                     {
                         rMemoryData[index].splice(i, 1);
-                        --i;
+                        break;
                     }
                 }
 
                 rMemoryData.splice(index + 1);
                 rMemoryDataFrame.splice(index + 1);
+                // 복수 명령일때만 해당 프레임수로 갱신함
+                rMemoryDataFrame[index] = rMemoryData[index].length;
             }
 
             updateLastRMemoryDataMirror();
@@ -210,7 +209,6 @@ package Modules.ReplayEngine
             return rReplayImageCacheState === REPLAY_IMAGE_CAHCHE_PROCESSING;
         }
 
-        
         // 미러가 되어있는지 확인해서 mirror커맨드를 무조건 앞으로 보냄
         // 그게 아니면 미러 커맨드 지워줌
         public static function updateLastRMemoryDataMirror():void

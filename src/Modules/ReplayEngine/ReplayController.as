@@ -1223,7 +1223,7 @@ package Modules.ReplayEngine
 
             if (ReplayState.rNowFrame !== UndoManager.lastReplayFrameOnDeepUndoStart)
             {
-                // after로 해주는 이유는 캐쉬 안만들어줄라고
+                // next로 해주는 이유는 캐쉬 안만들어줄라고 prev로 하면 캐쉬 만들어줌
                 ReplayDrawer.renderReplayFrame(UndoManager.lastReplayFrameOnDeepUndoStart, ReplayDrawer.JUMP_FRAME_NEXT);
             }
 
