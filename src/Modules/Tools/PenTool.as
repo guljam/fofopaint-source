@@ -21,7 +21,7 @@ package Modules.Tools
 
 	public final class PenTool
 	{
-		//todo 펜 스무딩 관련기능 따로 나누기, 스무딩 슬라이더가 중간 부분이 체감이 별로 안됨 좀더 체감될수있도록 수치를 조정해야함
+		// todo 펜 스무딩 관련기능 따로 나누기, 스무딩 슬라이더가 중간 부분이 체감이 별로 안됨 좀더 체감될수있도록 수치를 조정해야함
 		public static var main:Main;
 		public static function setMainInstance(instance:Main):void
 		{
@@ -29,6 +29,7 @@ package Modules.Tools
 		}
 
 		private static const clickPos:Point = new Point(); // 점찍어 줄 때 판단하는 클릭한 자리 저장
+		private static const clickPosDot:Point = new Point(); // 점 찍어주는지 검사할때 sharpline offset이 적용된 지점을 비교하는 변수
 		private static const smoothPos:Point = new Point(); // 펜 스무딩에서 커서 뒤에 따라가는 실제 선의 죄표를 저장
 		private static const smoothLast:Point = new Point(); // 펜 스무딩에서 현재 마우스 커서 위치를 저장
 		private static const moveEventLast:Point = new Point(); // 마우스 move이벤트에서 브러시 크기 필터 해주기 위해 현재 위치 저장
@@ -37,7 +38,6 @@ package Modules.Tools
 		private static const sqPenCursorLast:Point = new Point(); // 사각형 커서 각도를 위한 위치저장
 		private static const sqLinePosLast:Point = new Point(); // 사각형라인일 때 일정 길이이상 일때만 그려주기 위한 위치
 		private static const extendedPos:Point = new Point(); // 사각형라인일 때 양끝점을 약간 확장해주기 위한 위치
-		private static const penCommand:Vector.<int> = new Vector.<int>(); // 그냥 펜 명령
 		private static const penPoints:Vector.<Number> = new Vector.<Number>(); // 그냥 펜 좌표
 		private static const canvasSizeRect:Rectangle = new Rectangle();
 
@@ -47,7 +47,6 @@ package Modules.Tools
 		private static var xAlpha:Number;
 		private static var xShape:Boolean;
 		private static var xBlendMode:String;
-		private static var xAirBrushON:Boolean;
 		private static var offsetForSharpline:Number; // 경계선 0.5를 조절해서 번지게 보이느냐 샤프하게 보이느냐
 		private static var mouseMovedCount:int; // 마우스 이벤트에서 움직일때 올려주는 카운터 한번에 너무 많이 움직여주면 cpu부하 먹어서 100카운트 마다 bmp에 그려줌
 		private static var isMouseMoved:Boolean;
@@ -130,17 +129,18 @@ package Modules.Tools
 			ox += (smoothLast.x - ox) * penSmoothValue;
 			oy += (smoothLast.y - oy) * penSmoothValue;
 
-			handleMouseMove(ox, oy);
-
-			if (Math.abs(smoothLast.x - ox) < 0.02 && Math.abs(smoothLast.y - oy) < 0.02)
+			// 남은 거리가 서브픽셀이면 목표점으로 스냅하고 종료
+			if (Math.abs(smoothLast.x - ox) < 0.3 && Math.abs(smoothLast.y - oy) < 0.3)
 			{
+				handleMouseMove(smoothLast.x, smoothLast.y);
+				smoothPos.copyFrom(smoothLast);
 				return false;
 			}
-			else
-			{
-				smoothPos.setTo(ox, oy);
-				FOFOTimer.addByName("lineSmoothingTimer1", 0.02, true, lineSmoothing);
-			}
+
+			handleMouseMove(ox, oy);
+			smoothPos.setTo(ox, oy);
+
+			FOFOTimer.addByName("lineSmoothingTimer1", 0.02, true, lineSmoothing);
 
 			return true;
 		}
@@ -155,6 +155,12 @@ package Modules.Tools
 			// 선분 길이 계산
 			const length:Number = Math.sqrt(directionX * directionX + directionY * directionY);
 
+			if (length === 0)
+			{
+				extendedPos.setTo(x2, y2);
+				return;
+			}
+		
 			// 선분 방향 벡터 정규화
 			const normalizedDirectionX:Number = directionX / length;
 			const normalizedDirectionY:Number = directionY / length;
@@ -226,7 +232,6 @@ package Modules.Tools
 				}
 
 				ReplayState.rMemoryDataBuffer.push(["lineTo", mx, my]);
-				penCommand.push(2);
 				penPoints.push(mx);
 				penPoints.push(my);
 
@@ -260,7 +265,6 @@ package Modules.Tools
 					const prevX:Number = penPoints[penPoints.length - 4];
 					const prevY:Number = penPoints[penPoints.length - 3];
 
-					penCommand.length = 0;
 					penPoints.length = 0;
 
 					ReplayState.rMemoryDataBuffer.push(["tempDone4"]);
@@ -268,7 +272,6 @@ package Modules.Tools
 					if (xShape === true)
 					{
 						ReplayState.rMemoryDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
-						penCommand.push(1);
 						penPoints.push(prevX);
 						penPoints.push(prevY);
 						CanvasController.canvasDrawLayerChild.graphics.moveTo(prevX, prevY);
@@ -276,7 +279,6 @@ package Modules.Tools
 					else
 					{
 						ReplayState.rMemoryDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
-						penCommand.push(1);
 						penPoints.push(mx);
 						penPoints.push(my);
 						CanvasController.canvasDrawLayerChild.graphics.moveTo(mx, my);
@@ -294,7 +296,7 @@ package Modules.Tools
 					sqPenCursorLast.y = my;
 				}
 
-				if (Point.distance(clickPos, moveEvent2Last) >= 0.2)
+				if (Point.distance(clickPosDot, moveEvent2Last) >= 0.2)
 				{
 					dotflag = false;
 				}
@@ -303,6 +305,10 @@ package Modules.Tools
 
 		private static function skipMouseMovePos(mx:Number, my:Number):Boolean
 		{
+			var filteredPos:Point = CanvasController.getRefinedPoint(mx, my);
+			mx = filteredPos.x;
+			my = filteredPos.y;
+
 			moveEventDistSave.setTo(mx, my);
 			const dist:Number = Point.distance(moveEventDistSave, moveEventLast);
 
@@ -332,9 +338,8 @@ package Modules.Tools
 
 		private static function onMouseMovePenTool(e:MouseEvent):void
 		{
-			var filteredPos:Point = CanvasController.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
-			const mx:Number = filteredPos.x;
-			const my:Number = filteredPos.y;
+			const mx:Number = CanvasController.canvasDrawLayerChild.mouseX;
+			const my:Number = CanvasController.canvasDrawLayerChild.mouseY;
 
 			if (skipMouseMovePos(mx, my))
 			{
@@ -352,7 +357,7 @@ package Modules.Tools
 				handleMouseMove(ox, oy);
 
 				smoothPos.setTo(ox, oy);
-				smoothLast.setTo(mx, my);
+				smoothLast.copyFrom(moveEventLast);
 
 				FOFOTimer.addByName("lineSmoothingTimer", 0.03, false, lineSmoothing);
 			}
@@ -406,7 +411,6 @@ package Modules.Tools
 				CanvasController.resetCanvasDrawLayerCliprect();
 			}
 
-			penCommand.length = 0;
 			penPoints.length = 0;
 
 			DrawingFinish.run();
@@ -414,15 +418,15 @@ package Modules.Tools
 
 		public static function start():void
 		{
-			firstStart(true);
+			startStroke(true);
 		}
 
 		public static function startWithEraserMode():void
 		{
-			firstStart(false);
+			startStroke(false);
 		}
 
-		public static function firstStart(flag:Boolean):void
+		public static function startStroke(flag:Boolean):void
 		{
 			isPenTool = flag;
 
@@ -431,7 +435,6 @@ package Modules.Tools
 				xSize = penSize;
 				xAlpha = penAlpha;
 				xShape = penIsSquare;
-				xAirBrushON = ToolController.isPenAirBrushON;
 				dotflag = true;
 
 				if (isTransparentPenColor)
@@ -458,7 +461,6 @@ package Modules.Tools
 				xAlpha = eraserAlpha;
 				xShape = eraserIsSquare;
 				xBlendMode = "erase";
-				xAirBrushON = isEraserAirBrushON;
 			}
 
 			if (xSize === 1)
@@ -488,13 +490,19 @@ package Modules.Tools
 			const filteredPos:Point = CanvasController.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
 
 			clickPos.copyFrom(filteredPos);
+			clickPosDot.setTo(filteredPos.x + offsetForSharpline, filteredPos.y + offsetForSharpline);
 			smoothPos.copyFrom(filteredPos);
 			smoothLast.copyFrom(filteredPos);
 			moveEventLast.copyFrom(filteredPos);
+			moveEvent2Last.setTo(NaN, NaN);
+
+			if (xShape === true || sq1pxCursor)
+			{
+				sqPenCursorLast.copyFrom(smoothPos);
+			}
 
 			if (xShape === true)
 			{
-				sqPenCursorLast.copyFrom(smoothPos);
 				sqLinePosLast.copyFrom(smoothPos);
 			}
 
