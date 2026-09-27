@@ -2418,7 +2418,7 @@ package Modules
                             LineTool.start();
                         break;
                     case ToolController.TOOL_LASSO:
-                        LassoTool.lassoToolFunction.start();
+                        LassoTool.startLassoSelection();
                         break;
                     case ToolController.TOOL_MOVE:
                         MoveTool.start();
