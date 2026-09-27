@@ -614,7 +614,7 @@ package Modules.ReplayEngine
             ReplayDrawer.updateCanvasSizeReplayMode(ReplayDrawer.rCanvasLayer1BitmapData.width, ReplayDrawer.rCanvasLayer1BitmapData.height);
             fs.open(FileManager.replayDataFilePath, FileMode.READ);
             fs.position = 0;
-            ReplayState.rMirrorON = ReplayFileCache.rFirstImageMirrorFlag;
+            ReplayState.rMirrorON = ReplaySaveMetaData.firstImageMirrorFlag;
             FileManager.loadMenuBox.visible = false;
 
             function printPrograssHint(bytes:Number):void

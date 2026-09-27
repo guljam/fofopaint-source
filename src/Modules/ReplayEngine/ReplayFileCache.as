@@ -20,8 +20,6 @@ package Modules.ReplayEngine
       
         public static var rFirstImageLayer1BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
         public static var rFirstImageLayer2BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-        public static var rFirstImageMirrorFlag:Boolean = false; // 첫이미지 캔버스 미러 상태 저장
-        public static var rFirstImageBGColor:uint = CanvasController.CANVAS_BG_COLOR;
         public static var rLastCacheImageIndex:int = -2; // 썸네일 인덱스 바뀌면 여기다 저장
         public static var rLastMemoryCachedImageIndex:int = -2; // 마지막에 그려준 캐쉬 이미지 번호를 저장
         public static var rTempCachedLastImageIndex:int = -2; // 더 잘게 쪼개준 이미지 인덱스 바뀌면 여기다 저장
@@ -45,24 +43,22 @@ package Modules.ReplayEngine
             }
         }
 
-        public static function writeReplayFile(dataA:ByteArray
-                , dataA1:ByteArray
-                , dataB:ByteArray
-                , dataB1:ByteArray
-                , dataC:ByteArray
-                , dataD:ByteArray):void
+        public static function writeReplayFile(
+                firstImageLayer1:ByteArray,
+                firstImageLayer2:ByteArray,
+                finalImageLayer1:ByteArray,
+                finalImageLayer2:ByteArray,
+                referenceImage:ByteArray,
+                replayFileByteArray:ByteArray):void
         {
             const fs:FileStream = new FileStream();
-            const rImgDataW:int = rFirstImageLayer1BitmapData.width;
-            const rImgDataH:int = rFirstImageLayer1BitmapData.height;
-            const refImgWidth:Number = ReferenceLayerController.canvasRefLayerBitmapData.width;
-            const refImgHeight:Number = ReferenceLayerController.canvasRefLayerBitmapData.height;
+
             // 실제 저장할 파일을 다시 써줌
             fs.open(FileManager.repFileTemp, FileMode.WRITE);
             fs.position = 0;
             fs.writeUTFBytes("FOFOPAINT"); // 파일 헤더
-            fs.writeUnsignedInt(dataD.length); // 뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
-            fs.writeBytes(dataD);
+            fs.writeUnsignedInt(replayFileByteArray.length); // 뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
+            fs.writeBytes(replayFileByteArray);
 
             // 임시 미러 플래그임
             if (ReplayState.lastMirrorReadyFlag) // 임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
@@ -71,14 +67,19 @@ package Modules.ReplayEngine
                 fs.writeObject(tempMirrorData);
             }
 
-            fs.writeObject(["rFirstImage", dataA, dataA1, rImgDataW, rImgDataH, rFirstImageBGColor, rFirstImageMirrorFlag]);
-            fs.writeObject(["rFinalImage", dataB, dataB1, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, CanvasController.CANVAS_BG_COLOR]);
+            fs.writeObject(["rFirstImage", firstImageLayer1,
+                                        firstImageLayer2,
+                                        ReplaySaveMetaData.firstImageWidth,
+                                        ReplaySaveMetaData.firstImageHeight,
+                                        ReplaySaveMetaData.firstImageBG,
+                                        ReplaySaveMetaData.firstImageMirrorFlag]);
+            fs.writeObject(["rFinalImage", finalImageLayer1, finalImageLayer2, ReplaySaveMetaData.finalImageWidth,ReplaySaveMetaData.finalImageHeight,ReplaySaveMetaData.finalImageBG]);
 
             if (ReferenceLayerController.canvasRefLayerBitmapData)
             {
-                fs.writeObject(["refimage", dataC, // 1
-                            refImgWidth,
-                            refImgHeight,
+                fs.writeObject(["refimage", referenceImage, // 1
+                            ReplaySaveMetaData.refImageWidth,
+                            ReplaySaveMetaData.refImageHeight,
                             ReferenceLayerController.canvasRefLayerBitmap.x,
                             ReferenceLayerController.canvasRefLayerBitmap.y,
                             ReferenceLayerController.canvasRefLayer.rotation,
@@ -90,18 +91,18 @@ package Modules.ReplayEngine
             }
 
             fs.close();
-            dataA.clear();
-            dataA1.clear();
-            dataB.clear();
-            dataB1.clear();
-            dataC.clear();
-            dataD.clear();
-            dataA = null;
-            dataA1 = null;
-            dataB = null;
-            dataB1 = null;
-            dataC = null;
-            dataD = null;
+            firstImageLayer1.clear();
+            firstImageLayer2.clear();
+            finalImageLayer1.clear();
+            finalImageLayer2.clear();
+            referenceImage.clear();
+            replayFileByteArray.clear();
+            firstImageLayer1 = null;
+            firstImageLayer2 = null;
+            finalImageLayer1 = null;
+            finalImageLayer2 = null;
+            referenceImage = null;
+            replayFileByteArray = null;
 
             try
             {
@@ -175,18 +176,23 @@ package Modules.ReplayEngine
             const h:Number = bmpd1.height;
             const newRectangle:Rectangle = new Rectangle(0, 0, w, h);
 
-            rFirstImageMirrorFlag = mirrorFlag;
             rJumpImageFrameData.length = 0;
             bmpd1.copyPixelsToByteArray(newRectangle, ba1);
             ba1.compress();
             rFirstImageLayer1BitmapData = CanvasController.updateBitmapData(rFirstImageLayer1BitmapData, bmpd1, null);
 
             if (bmpd2 === null)
+            {
                 bmpd2 = new BitmapData(w, h, true, 0);
+            }
+
             bmpd2.copyPixelsToByteArray(newRectangle, ba2);
             ba2.compress();
             rFirstImageLayer2BitmapData = CanvasController.updateBitmapData(rFirstImageLayer2BitmapData, bmpd2, null);
-            rFirstImageBGColor = bgColor;
+
+            ReplaySaveMetaData.firstImageMirrorFlag = mirrorFlag;
+            ReplaySaveMetaData.firstImageBG= bgColor;
+
             createCacheImage(ba1, ba2, new CacheImageMetaData(w, h, bgColor, 0, 0, 0, mirrorFlag, 0.0, 0.0));
             ba1.clear();
             ba2.clear();

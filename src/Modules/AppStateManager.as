@@ -13,6 +13,7 @@ package Modules
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.ReplayEngine.ReplaySaveMetaData;
 
     public class AppStateManager
     {
@@ -171,8 +172,8 @@ package Modules
                     ReplayFileCache.rFirstImageLayer2BitmapData.setPixels(newRectangle, arr[1]);
                     ReplayFileCache.rFirstImageLayer2BitmapData.unlock();
 
-                    ReplayFileCache.rFirstImageBGColor = metaData.bgColor;
-                    ReplayFileCache.rFirstImageMirrorFlag = metaData.mirrorFlag;
+                    ReplaySaveMetaData.firstImageBG = metaData.bgColor;
+                    ReplaySaveMetaData.firstImageMirrorFlag = metaData.mirrorFlag;
                 }
                 else //구버전
                 {
@@ -194,7 +195,7 @@ package Modules
                     }
                     ReplayFileCache.rFirstImageLayer2BitmapData = new BitmapData(arr[1], arr[2], true, 0);
 
-                    ReplayFileCache.rFirstImageBGColor = arr[3];
+                    ReplaySaveMetaData.firstImageBG = arr[3];
                 }
             }
             else
@@ -476,8 +477,8 @@ package Modules
                             ReplayFileCache.createFirstImageCache(
                                 ReplayFileCache.rFirstImageLayer1BitmapData,
                                 ReplayFileCache.rFirstImageLayer2BitmapData,
-                                ReplayFileCache.rFirstImageBGColor,
-                                ReplayFileCache.rFirstImageMirrorFlag);
+                                ReplaySaveMetaData.firstImageBG,
+                                ReplaySaveMetaData.firstImageMirrorFlag);
                             ReplayController.startGeneratingReplayCacheImage(true,null);
                         }
                     });

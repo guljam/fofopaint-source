@@ -34,6 +34,7 @@ package Modules
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.ReplayEngine.ReplaySaveMetaData;
 
     public class FileManager
     {
@@ -1126,6 +1127,7 @@ package Modules
                 MainUI.topBar.disableFileOperationButtons();
             }
         }
+
         private static function saveFOFOFile():void
         {
             if (replayDataFilePath.exists)
@@ -1198,6 +1200,8 @@ package Modules
                         replayDataReadBytes.writeObject(ReplayState.rMemoryData[i]);
                     }
                 }
+
+                ReplaySaveMetaData.update();
                 BackgroundWorkerCoordinator.startReplayDataCompressionWorker(rLayer1FirstImageData, rLayer2FirstImageData, rLayer1CurrentImageData, rLayer2CurrentImageData, ReferenceLayerController.refLayerImageData, replayDataReadBytes);
             }
         }

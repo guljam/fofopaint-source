@@ -130,6 +130,7 @@ package Modules.Tools
                 lassoLayer1.scaleY = 1.0;
                 lassoLayer2.scaleX = lassoLayer1.scaleX;
                 lassoLayer2.scaleY = lassoLayer1.scaleY;
+                LassoTool.redrawLassoOutline();
             }
         }
         public static function resetLassoLayerRotation():void
@@ -162,7 +163,6 @@ package Modules.Tools
 
         public static function showLassoMenuBox():void
         {
-            trace('hello');
             _lassoMenuBox.visible = true;
             _isLassoMenuHiddenTemp = false;
             InputManager.resetLastKey();
@@ -382,9 +382,10 @@ package Modules.Tools
         {
             const mirrorScale:Number = (lassoLayer1.scaleX < 0) ? -1.0 : 1.0;
             var getScale:Function = Utils.updateImageScaleMouseDrag(lassoLayer1.scaleX);
+
             function onDragStart():void
             {
-                setOptimizeView(false);
+                setOptimizeView(true);
                 MainUI.showMouseHint(MainUI.getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
             }
             function onMouseUp():void
@@ -393,7 +394,7 @@ package Modules.Tools
                 MainUIController.keepBoxInsideViewPort(_lassoMenuBox);
                 MainUI.hideMouseHint();
                 LassoTool.redrawLassoOutline();
-                setOptimizeView(true);
+                setOptimizeView(false);
             }
             function onMouseMove():void
             {
@@ -1025,6 +1026,8 @@ package Modules.Tools
             lassoLayer2.rotation = 0;
             _lassoMenuBox.lassoCopy.alpha = 1.0;
             _lassoMenuBox.lassoLayerMerge.alpha = 1.0;
+            lassoDraw.visible = true;
+            lassoDrawCloseLine.visible = true;
             resetLassoSelectionData();
             if (lassoLayer1LastBitmapdata)
             {
