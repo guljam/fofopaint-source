@@ -203,7 +203,7 @@ package Modules
                 const dy:Number = main.stage.mouseY - my;
                 const newPos:Point = Utils.rotatePoint(dx, dy, angle);
 
-                newPos.setTo(oldX + newPos.x / zoom / customScaleX, oldY + newPos.y / zoom / customScaleY);
+                newPos.setTo(Math.round(oldX + newPos.x / zoom / customScaleX), Math.round(oldY + newPos.y / zoom / customScaleY));
 
                 return newPos;
             };

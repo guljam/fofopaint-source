@@ -24,6 +24,14 @@ package Modules.Tools
 
         private static var getMovedPos:Function;
 
+        private static function resetLayerBitmapPos():void
+        {
+            CanvasController.canvasLayer1Bitmap.x = 0;
+            CanvasController.canvasLayer1Bitmap.y = 0;
+            CanvasController.canvasLayer2Bitmap.x = 0;
+            CanvasController.canvasLayer2Bitmap.y = 0;
+        }
+
         private static function onMouseUpMoveTool(e:MouseEvent):void
         {
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);
@@ -35,22 +43,26 @@ package Modules.Tools
 
             getMovedPos = null;
 
-            var tmpbmpd:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-
             const movex:Number = Math.floor(CanvasController.canvasLayer1Bitmap.x);
             const movey:Number = Math.floor(CanvasController.canvasLayer1Bitmap.y);
             const movex1:Number = Math.floor(CanvasController.canvasLayer2Bitmap.x);
             const movey1:Number = Math.floor(CanvasController.canvasLayer2Bitmap.y);
 
-            if (CanvasController.checkedLayer <= 1 && movex === 0.0 && movey === 0.0)
+            // onMouseMoveMovetool 과 같은 기준으로 "실제로 움직인 레이어"를 판단
+            const checked:int = CanvasController.checkedLayer;
+            const layer1Moved:Boolean = (checked === 1 || (checked === 0 && CanvasController.canvasLayer1Bitmap.visible))
+                && (movex !== 0.0 || movey !== 0.0);
+            const layer2Moved:Boolean = (checked === 2 || (checked === 0 && CanvasController.canvasLayer2Bitmap.visible))
+                && (movex1 !== 0.0 || movey1 !== 0.0);
+
+            if (!layer1Moved && !layer2Moved)
             {
-                return;
-            }
-            else if (CanvasController.checkedLayer === 2 && movex1 === 0.0 && movey1 === 0.0)
-            {
+                // B2: 1px 미만 이동으로 남은 소수점 오프셋도 원위치
+                resetLayerBitmapPos();
                 return;
             }
 
+            var tmpbmpd:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
             const rect:Rectangle = new Rectangle(0, 0, CanvasController.canvasLayer1BitmapData.width, CanvasController.canvasLayer1BitmapData.height);
             var movedMat:Matrix = new Matrix();
 
@@ -62,7 +74,6 @@ package Modules.Tools
             // 최종적으로 움직인 거리를 실제로 비트맵 데이터 조작
             if (CanvasController.checkedLayer === 0)
             {
-
                 if (CanvasController.canvasLayer1Bitmap.visible)
                 {
                     movedMat.translate(movex, movey);
@@ -84,7 +95,6 @@ package Modules.Tools
                 movedMat.translate(movex, movey);
                 tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, movedMat);
                 CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData, tmpbmpd);
-
             }
             else if (CanvasController.checkedLayer === 2)
             {
@@ -99,10 +109,7 @@ package Modules.Tools
             tmpbmpd.dispose();
             tmpbmpd = null;
 
-            CanvasController.canvasLayer1Bitmap.x = 0;
-            CanvasController.canvasLayer1Bitmap.y = 0;
-            CanvasController.canvasLayer2Bitmap.x = 0;
-            CanvasController.canvasLayer2Bitmap.y = 0;
+            resetLayerBitmapPos();
 
             if (LassoTool._isLassoToolStarted === false)
             {
