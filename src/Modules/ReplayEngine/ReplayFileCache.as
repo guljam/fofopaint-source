@@ -80,14 +80,14 @@ package Modules.ReplayEngine
                 fs.writeObject(["refimage", referenceImage, // 1
                             ReplaySaveMetaData.refImageWidth,
                             ReplaySaveMetaData.refImageHeight,
-                            ReferenceLayerController.canvasRefLayerBitmap.x,
-                            ReferenceLayerController.canvasRefLayerBitmap.y,
-                            ReferenceLayerController.canvasRefLayer.rotation,
-                            ReferenceLayerController.canvasRefLayer.scaleX,
-                            ReferenceLayerController.canvasRefLayer.scaleY,
-                            Boolean(ReferenceLayerController.canvasRefLayer.scaleX < 0),
-                            ReferenceLayerController.refLayerMenuDragXMoveSum, // 10
-                            ReferenceLayerController.refLayerLastAlpha]); // 11
+                            ReplaySaveMetaData.refImageBitmapX,
+                            ReplaySaveMetaData.refImageBitmapY,
+                            ReplaySaveMetaData.refImageBitmapScaleX,
+                            ReplaySaveMetaData.refImageBitmapScaleY,
+                            ReplaySaveMetaData.refImageBitmapRotation,
+                            ReplaySaveMetaData.refImageBitmapMirrorFlag,
+                            ReplaySaveMetaData.refImageBitmapMoveSum,
+                            ReplaySaveMetaData.refImageAlpha]);
             }
 
             fs.close();
