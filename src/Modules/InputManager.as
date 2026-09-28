@@ -706,7 +706,6 @@ package Modules
             CanvasController.isRightMouseClicked = true;
         }
 
-
         public static function onRightMouseUpStage(e:MouseEvent):void
         {
             InputManager.checkInvalidKey();
@@ -852,7 +851,7 @@ package Modules
 
         public static function isPressedKey(key:int):Boolean
         {
-            if(keyBuffer.lastIndexOf(key) > -1)
+            if (keyBuffer.lastIndexOf(key) > -1)
             {
                 return true;
             }
@@ -879,23 +878,22 @@ package Modules
 
         public static function onKeyUpStage(e:KeyboardEvent):void
         {
-            //디버그 확인용
+            // 디버그 확인용
             // if(isPressedKey(KEY.f12))
             // {
             // }
 
-            tryDisableIME();
             checkInvalidKey();
             const index:int = getPressedKeyIndex(e.keyCode);
             if (index > -1)
             {
                 keyBuffer.splice(index, 1);
             }
+            tryDisableIME();
         }
 
         public static function onKeyDownStage(e:KeyboardEvent):void
         {
-            tryDisableIME();
             checkInvalidKey();
             const keyCode:uint = e.keyCode;
             if (keyCode === KEY.window)
@@ -910,6 +908,7 @@ package Modules
             {
                 keyBuffer.push(keyCode);
             }
+            tryDisableIME();
         }
 
         public static function removeInputEventsDrawMode():void
@@ -1153,9 +1152,9 @@ package Modules
             const target:DisplayObject = e.target as DisplayObject;
 
             if (CanvasController.isMouseLeftClicked
-            || SidebarController.isQuickSidebarActive
-            || !target
-            || ColorPickerController.numPadBox.visible)
+                    || SidebarController.isQuickSidebarActive
+                    || !target
+                    || ColorPickerController.numPadBox.visible)
             {
                 return;
             }
@@ -1425,20 +1424,40 @@ package Modules
 
         public static function enableIME():void
         {
-            IME.enabled = true;
+            if (!Capabilities.hasIME)
+            {
+                return;
+            }
+            try
+            {
+                IME.enabled = true;
+            }
+            catch (e:Error) {}
         }
 
         public static function tryDisableIME():void
         {
-            if (CaptureStamp.isCaptureStampTextFieldFocused)
+            if (!Capabilities.hasIME)
             {
-                IME.enabled = true;
                 return;
             }
-            if (Capabilities.hasIME && IME.enabled) // 다른 언어로 하면 자판 안먹어서 그냥 ime자체를안씀
+            try
             {
-                IME.compositionAbandoned();
-                IME.enabled = false;
+                if (CaptureStamp.isCaptureStampTextFieldFocused)
+                {
+                    IME.enabled = true;
+                    return;
+                }
+                if (IME.enabled) // 다른 언어로 하면 자판 안먹어서 그냥 ime자체를안씀
+                {
+                    IME.compositionAbandoned();
+                    IME.enabled = false;
+                }
+            }
+            catch (e:Error)
+            {
+                // IME가 비활성 상태이거나 환경(TSF IME, PC방 후킹 등)에 따라 조작 실패할 수 있음
+                // 여기서 예외가 올라가면 onKeyDownStage에서 keyBuffer.push가 안 돼서 단축키 전체가 죽음
             }
         }
 
@@ -1527,11 +1546,11 @@ package Modules
         public static function onKeyDownDrawMode(e:KeyboardEvent):void
         {
             if (CanvasController.isMouseLeftClicked
-            || CanvasController.isRightMouseClicked 
-            || CanvasController.isKeyReleasedBeforeMouseUp 
-            || FillPenTool.isStarted
-            || LineTool.isStarted
-            || MainUIController.isPopUpWindowOpened())
+                    || CanvasController.isRightMouseClicked
+                    || CanvasController.isKeyReleasedBeforeMouseUp
+                    || FillPenTool.isStarted
+                    || LineTool.isStarted
+                    || MainUIController.isPopUpWindowOpened())
             {
                 return;
             }
@@ -2232,7 +2251,7 @@ package Modules
         public static function onMouseDownDrawMode(e:MouseEvent):void
         {
             if (FillPenTool.isStarted || LineTool.isStarted || FileManager.loadMenuBox.visible
-            || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
+                    || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;
             }
@@ -2443,7 +2462,7 @@ package Modules
         public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
         {
             if (CanvasController.isMouseLeftClicked || isKeyPressed() || isPressingControl() || SidebarController.isQuickSidebarActive
-                    || FillPenTool.isStarted  || LineTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
+                    || FillPenTool.isStarted || LineTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
                     || FileManager.loadMenuBox.visible || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;
