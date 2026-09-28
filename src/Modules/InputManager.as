@@ -139,7 +139,8 @@ package Modules
                 });
         }
 
-        public static function startPressHoldKey(button:DisplayObject, hintStr:String, readyFunc:Function, okFunc:Function, cancelFunc:Function):void
+        // abortFunc: 길게 누르는 도중에 true를 반환하면 취소함 (예: worker가 시작되어 리플레이 데이터가 잠겼을때)
+        public static function startPressHoldKey(button:DisplayObject, hintStr:String, readyFunc:Function, okFunc:Function, cancelFunc:Function, abortFunc:Function = null):void
         {
             if (!FOFOTimer.hasTimer("pressholdtimer"))
             {
@@ -172,7 +173,8 @@ package Modules
                         if (CanvasController.isMouseLeftClicked !== mouseClickONSave
                                 || CanvasController.isRightMouseClicked !== rightMouseClickONSave
                                 || keyBufferLenSave !== getPressedKeyCount()
-                                || (button && button.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false))
+                                || (button && button.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+                                || (abortFunc !== null && abortFunc() === true))
                         {
                             if (cancelFunc !== null)
                             {
@@ -2317,7 +2319,7 @@ package Modules
                     return;
                 case "newFileButton":
                     {
-                        if (MainUI.topBar.newFileButton.alpha === 1.0 && !BackgroundWorkerCoordinator.isSaveInProgress)
+                        if (FileManager.canCreateNewFile())
                         {
                             FileManager.createNewFile(false);
                         }
@@ -2960,7 +2962,8 @@ package Modules
                                 function ():void
                                 {
                                     MainUI.seekBarBox.setDeleteRangeBarVisible(false);
-                                });
+                                },
+                                FileManager.isReplayDataLocked);
                     }
                     break;
                 case "cutPrevDataButton":
@@ -2975,7 +2978,8 @@ package Modules
                                     function ():void
                                     {
                                         MainUI.seekBarBox.setDeleteRangeBarVisible(false);
-                                    });
+                                    },
+                                    FileManager.isReplayDataLocked);
                         }
                     }
                     break;
@@ -2990,7 +2994,8 @@ package Modules
                                     ReplayController.deleteReplayDataAfterCurrentFrame, function ():void
                                     {
                                         MainUI.seekBarBox.setDeleteRangeBarVisible(false);
-                                    });
+                                    },
+                                    FileManager.isReplayDataLocked);
                         }
                     }
                     break;

@@ -75,6 +75,12 @@ package Modules.ReplayEngine
         public static function createNewFileFromReplayCanvas():void
         {
             MainUI.seekBarBox.setDeleteRangeBarVisible(false);
+            // 길게 누르는 동안 worker가 시작되었을 수 있음
+            if (FileManager.isReplayDataLocked())
+            {
+                FileManager.showReplayDataLockedHint();
+                return;
+            }
             copyReplayCanvasDataToDrawCanvas();
             clearDataAndResetVars();
             syncDrawCanvasWithReplayCanvas();
@@ -127,6 +133,12 @@ package Modules.ReplayEngine
 
         public static function deleteReplayDataBeforeCurrentFrame():void
         {
+            if (FileManager.isReplayDataLocked())
+            {
+                MainUI.seekBarBox.setDeleteRangeBarVisible(false);
+                FileManager.showReplayDataLockedHint();
+                return;
+            }
             // 미러 되어있을 수도 있기 때문에 원래 프레임으로 점프해준뒤에 실행해줌
             ensureReplayCanvasState();
             MainUI.seekBarBox.setDeleteRangeBarVisible(false);
@@ -210,6 +222,12 @@ package Modules.ReplayEngine
 
         public static function deleteReplayDataAfterCurrentFrame():void
         {
+            if (FileManager.isReplayDataLocked())
+            {
+                MainUI.seekBarBox.setDeleteRangeBarVisible(false);
+                FileManager.showReplayDataLockedHint();
+                return;
+            }
             ensureReplayCanvasState();
             MainUI.seekBarBox.setDeleteRangeBarVisible(false);
 
@@ -285,6 +303,11 @@ package Modules.ReplayEngine
 
         public static function prepareDeleteReplayData(mode:String):Boolean
         {
+            // true를 반환하면 길게 누르기가 시작되지 않음
+            if (FileManager.isReplayDataLocked())
+            {
+                return true;
+            }
             if (mode !== "total")
             {
                 if (ReplayDrawCommands.getCurrentPosition() < ReplayDrawCommands.getDataLength())
@@ -337,7 +360,7 @@ package Modules.ReplayEngine
 
         public static function updateDeleteReplayDataButtonsState():void
         {
-            if (ReplayState.isGeneratingCacheImages() || BackgroundWorkerCoordinator.isSaveInProgress || ReplayState.isReplayStarted)
+            if (ReplayState.isGeneratingCacheImages() || FileManager.isReplayDataLocked() || ReplayState.isReplayStarted)
             {
                 MainUI.topBar.superUndoButton.alpha = Global.OFFALPHA;
                 MainUI.topBar.cutPrevDataButton.alpha = Global.OFFALPHA;

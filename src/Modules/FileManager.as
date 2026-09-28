@@ -80,6 +80,7 @@ package Modules
         private static var replayDataReadBytes:ByteArray = new ByteArray();
 
         public static var isLoadPendingAfterSaving:Boolean = false;
+        private static var isNewFileAvailable:Boolean = true; // 새 파일 만들기 가능 여부, 아이콘 alpha는 refreshFileOperationButtonsTopbar에서 잠금 상태와 합쳐서 계산
         public static var isFileBrowserOpened:Boolean = false;
         public static var lastLoadedFile:File;
         private static var loadMenuBoxBitmapData:BitmapData;
@@ -498,7 +499,7 @@ package Modules
             CanvasController.canvasLayer1Bitmap.visible = true;
             CanvasController.canvasLayer2Bitmap.visible = true;
             MainUI.topBar.captureButton.alpha = 1.0;
-            MainUI.topBar.newFileButton.alpha = 1.0;
+            setNewFileAvailable(true);
             ReferenceLayerController.refLayerMenuBox.refTransferCanvasImageButton.alpha = 1.0;
             ColorPickerController.selectCurrentColor(false);
             ToolController.selectPenToolIfNotDrawingTool(false);
@@ -577,6 +578,13 @@ package Modules
                             {
                                 if (!loadMenuBox.isRefLayerLoadMode())
                                 {
+                                    if (isReplayDataLocked())
+                                    {
+                                        // worker 작업이 끝나면 stopWorkerIfIdle에서 불러옴
+                                        isLoadPendingAfterSaving = true;
+                                        loadMenuBox.showPleaseWait("Waiting for background tasks...");
+                                        return;
+                                    }
                                     closeLoadMenuBox();
                                     loadFileTo("canvas");
                                 }
@@ -644,10 +652,7 @@ package Modules
 
         public static function enableNewFileButton():void
         {
-            if (!BackgroundWorkerCoordinator.isSaveInProgress && MainUI.topBar.newFileButton.alpha < 1.0)
-            {
-                MainUI.topBar.newFileButton.alpha = 1.0;
-            }
+            setNewFileAvailable(true);
             if (ToolController.toolOptionsBox.layerMergeButton.alpha < 1.0)
             {
                 ToolController.toolOptionsBox.layerMergeButton.alpha = 1.0;
@@ -799,8 +804,13 @@ package Modules
         }
         public static function createNewFile(fromShortcut:Boolean):void
         {
-            InputManager.startPressHoldKey((!fromShortcut) ? MainUI.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, CanvasController.resetAllCanvasAndReplayData, null);
+            if (!canCreateNewFile())
+            {
+                return;
+            }
+            InputManager.startPressHoldKey((!fromShortcut) ? MainUI.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, CanvasController.resetAllCanvasAndReplayData, null, isReplayDataLocked);
         }
+        
         public static function openLocalManualFolder():void
         {
             var targetFolder:File = File.applicationDirectory.resolvePath("manual");
@@ -977,10 +987,41 @@ package Modules
                 && file1.creationDate.getTime() === file2.creationDate.getTime();
         }
 
+        // 캔버스로 불러오기 (드래그 드롭, 운영체제 파일 연결, 클립보드)
         public static function isFileLoadBlocked():Boolean
+        {
+            return isRefLayerLoadBlocked() || isReplayDataLocked();
+        }
+
+        // 참고 레이어로 불러오기는 리플레이 데이터를 건드리지 않으므로 worker 잠금과 무관
+        public static function isRefLayerLoadBlocked():Boolean
         {
             return isFileBrowserOpened || BackgroundWorkerCoordinator.isSaveInProgress
                 || ReplayState.isGeneratingCacheImages();
+        }
+
+        // worker의 저장, 캡처, undo 캐시 작업 결과가 바뀐 리플레이 데이터에 섞이지 않도록
+        // worker가 완전히 멈출때까지 리플레이 데이터를 초기화하거나 잘라내는 작업을 막음
+        // (파일 불러오기, 새 파일, 리플레이 앞/뒤 삭제, 현재 프레임으로 새 파일)
+        public static function isReplayDataLocked():Boolean
+        {
+            return BackgroundWorkerCoordinator.isSaveInProgress !== 0 || BackgroundWorkerCoordinator.isWorkerBusy();
+        }
+
+        public static function showReplayDataLockedHint():void
+        {
+            MainUI.showMouseHintTemp("Waiting for background tasks...");
+        }
+
+        public static function canCreateNewFile():Boolean
+        {
+            return isNewFileAvailable && !isReplayDataLocked();
+        }
+
+        public static function setNewFileAvailable(flag:Boolean):void
+        {
+            isNewFileAvailable = flag;
+            refreshFileOperationButtonsTopbar();
         }
 
         // 운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
@@ -1041,6 +1082,12 @@ package Modules
 
         public static function loadFileTo(where:String):void
         {
+            if (where !== "reflayer" && isReplayDataLocked())
+            {
+                // worker 작업이 끝나면 stopWorkerIfIdle에서 다시 불러옴
+                isLoadPendingAfterSaving = true;
+                return;
+            }
             if (where === "reflayer")
             {
                 if (loadMenuBoxBitmapData)
@@ -1067,6 +1114,12 @@ package Modules
                             fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
                             fs.close();
                             fs = null;
+                            // 비동기로 파일을 여는 사이에 worker가 시작되었을 수 있음
+                            if (isReplayDataLocked())
+                            {
+                                isLoadPendingAfterSaving = true;
+                                return;
+                            }
                             lastSaveFileName = loadMenuBoxFile.name;
                             lastSaveFilePath = loadMenuBoxFile.nativePath;
                             enterDrawModeOnLoadFile();
@@ -1108,9 +1161,16 @@ package Modules
             }
         }
 
-        public static function enableFileOperationButtonsTopbar():void
+        // 각 버튼의 사용 가능 상태와 잠금 상태로 아이콘을 다시 계산함
+        // 잠금 중에 클립보드가 바뀌거나 스트로크로 새 파일이 가능해져도 잠금이 풀릴때 그대로 반영됨
+        public static function refreshFileOperationButtonsTopbar():void
         {
-            MainUI.topBar.enableFileOperationButtons(ClipboardManager.isClipBoardButtonActivated);
+            const locked:Boolean = isReplayDataLocked();
+            const offAlpha:Number = Global.OFFALPHA;
+            MainUI.topBar.saveButton.alpha = (BackgroundWorkerCoordinator.isSaveInProgress) ? offAlpha : 1.0;
+            MainUI.topBar.loadButton.alpha = (locked) ? offAlpha : 1.0;
+            MainUI.topBar.clipBoardButton.alpha = (!locked && ClipboardManager.isClipBoardButtonActivated) ? 1.0 : offAlpha;
+            MainUI.topBar.newFileButton.alpha = (!locked && isNewFileAvailable) ? 1.0 : offAlpha;
             if (ReplayState.isReplayModeON)
             {
                 ReplayController.updateDeleteReplayDataButtonsState();
@@ -1119,14 +1179,8 @@ package Modules
 
         private static function disableFileOperationButtonsTopbar():void
         {
-            if (BackgroundWorkerCoordinator.isSaveInProgress === 0)
-            {
-                BackgroundWorkerCoordinator.isSaveInProgress = 1;
-            }
-            if (MainUI.topBar.saveButton.alpha === 1.0)
-            {
-                MainUI.topBar.disableFileOperationButtons();
-            }
+            BackgroundWorkerCoordinator.isSaveInProgress = 1;
+            refreshFileOperationButtonsTopbar();
         }
 
         private static function saveFOFOFile():void
@@ -1211,7 +1265,8 @@ package Modules
             }
             if (LassoTool._isLassoToolStarted || isFileBrowserOpened
             || FillPenTool.isStarted || LineTool.isStarted
-            || BackgroundWorkerCoordinator.isSaveInProgress)
+            || BackgroundWorkerCoordinator.isSaveInProgress
+            || (!toRefLayer && isReplayDataLocked()))
             {
                 return;
             }
@@ -1728,7 +1783,7 @@ package Modules
                 LassoTool.cancelLassoTool();
             }
 
-            if (BackgroundWorkerCoordinator.isWorkerRunning())
+            if (BackgroundWorkerCoordinator.isWorkerBusy())
             {
                 if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
                 {

@@ -83,7 +83,7 @@ package Modules
                     i = 0;
 
                 gridGraphicsCommands = new Vector.<int>();
-                gridGraphicsData == new Vector.<Number>();
+                gridGraphicsData = new Vector.<Number>();
 
                 for (;i <= len;i++)
                 {

@@ -19,7 +19,7 @@ package Modules
 
         public static function tryLoadClipboardImage(toRefLayer:Boolean):void
         {
-            if (FileManager.isFileLoadBlocked())
+            if ((toRefLayer) ? FileManager.isRefLayerLoadBlocked() : FileManager.isFileLoadBlocked())
             {
                 return;
             }
@@ -55,18 +55,19 @@ package Modules
                 || Clipboard.generalClipboard.getData(ClipboardFormats.FILE_LIST_FORMAT);
         }
 
+        // 상단 클립보드 버튼은 캔버스로 불러오기라서 worker 잠금 상태와 합쳐서 계산함
         private static function disableTopBarClipboardButton():void
         {
-            MainUI.topBar.clipBoardButton.alpha = Global.OFFALPHA;
             ReferenceLayerController.refLayerMenuBox.refClipBoardButton.alpha = Global.OFFALPHA;
             isClipBoardButtonActivated = false;
+            FileManager.refreshFileOperationButtonsTopbar();
         }
 
         private static function enableTopBarClipboardButton():void
         {
-            MainUI.topBar.clipBoardButton.alpha = 1.0;
             ReferenceLayerController.refLayerMenuBox.refClipBoardButton.alpha = 1.0;
             isClipBoardButtonActivated = true;
+            FileManager.refreshFileOperationButtonsTopbar();
         }
 
         public static function checkCanUseClipBoardButton():void

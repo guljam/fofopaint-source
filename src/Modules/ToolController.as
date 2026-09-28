@@ -1005,7 +1005,7 @@ package Modules
                 case InputManager.KEY.del:
                 case InputManager.KEY.backspace:
                     {
-                        if (MainUI.topBar.newFileButton.alpha === 1.0 && !BackgroundWorkerCoordinator.isSaveInProgress)
+                        if (FileManager.canCreateNewFile())
                         {
                             FileManager.createNewFile(true);
                         }

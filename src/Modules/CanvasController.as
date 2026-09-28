@@ -1599,6 +1599,12 @@ package Modules
 
         public static function resetAllCanvasAndReplayData():void
         {
+            // 길게 누르는 동안 worker가 시작되었을 수 있음
+            if (FileManager.isReplayDataLocked())
+            {
+                FileManager.showReplayDataLockedHint();
+                return;
+            }
             clearCanvas();
             centerCanvas("replay");
             centerCanvas("draw");
@@ -1608,7 +1614,7 @@ package Modules
 
             // reset vars보다 뒤에 와야함
             // addundo에서 활성화 해주고 있기 때문에
-            MainUI.topBar.newFileButton.alpha = Global.OFFALPHA;
+            FileManager.setNewFileAvailable(false);
             MainUIController.markWindowTitleAsDirty();
             MainUIController.updateCanvasNaigatorCursor();
         }

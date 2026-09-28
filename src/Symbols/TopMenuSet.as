@@ -279,33 +279,6 @@
 			gridButtonWrapper.y = -gridButtonWrapper.height;
 		}
 
-		public function enableFileOperationButtons(clipFlag:Boolean):void
-		{
-			saveButton.alpha = 1.0;
-			loadButton.alpha = 1.0;
-			newFileButton.alpha = 1.0;
-			repNewFileButton.alpha = 1.0;
-			superUndoButton.alpha = 1.0;
-			cutPrevDataButton.alpha = 1.0;
-
-			if (clipFlag)
-			{
-				clipBoardButton.alpha = 1.0;
-			}
-		}
-
-		public function disableFileOperationButtons():void
-		{
-			const offAlpha:Number = Global.OFFALPHA;
-			saveButton.alpha = offAlpha;
-			loadButton.alpha = offAlpha;
-			clipBoardButton.alpha = offAlpha;
-			newFileButton.alpha = offAlpha;
-			repNewFileButton.alpha = offAlpha;
-			superUndoButton.alpha = offAlpha;
-			cutPrevDataButton.alpha = offAlpha;
-		}
-
 		public function hideUpdateButton():void
 		{
 			updateButton.visible = false;

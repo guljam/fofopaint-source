@@ -17,7 +17,6 @@ package Modules
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
-    import flash.text.TextInteractionMode;
 
     public final class BackgroundWorkerCoordinator
     {
@@ -62,7 +61,7 @@ package Modules
 
         public static function isWorkerBusy():Boolean
         {
-            return worker!== null || workerFunctionsBeforeStart.length > 0
+            return worker !== null || workerFunctionsBeforeStart.length > 0;
         }
 
         public static function isWorkerRunning():Boolean
@@ -190,8 +189,8 @@ package Modules
                     AppUpdater.startUpdate();
                 }
 
-trace('end');
-                FileManager.enableFileOperationButtonsTopbar();
+                // worker가 완전히 멈춘 뒤에만 파일 불러오기, 새 파일, 리플레이 데이터 삭제 잠금을 풀어줌
+                FileManager.refreshFileOperationButtonsTopbar();
                 return false;
             }
             return true;
@@ -209,6 +208,8 @@ trace('end');
                 worker.setSharedProperty("backToMain", backToMain);
                 worker.setSharedProperty("mainToBack", mainToBack);
                 worker.start();
+                // worker가 시작되는 즉시 파일 불러오기, 새 파일, 리플레이 데이터 삭제를 잠금
+                FileManager.refreshFileOperationButtonsTopbar();
             }
         }
 
