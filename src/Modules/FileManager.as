@@ -1393,23 +1393,13 @@ package Modules
             return path;
         }
 
-        private static function convertToPNGFilePath(path:String):String
+        public static function convertToPNGFilePath(path:String):String
         {
-            const extArr:Array = [".2020", ".jpg", ".jpeg", ".gif", "jfif"];
-            var pathOnly:String = getDirectoryOnly(path) + File.separator;
             var name:String = getFileNameFromPath(path);
-            for (var i:uint = 0;i < 3;i++)
-            {
-                if (name.toLowerCase().lastIndexOf(extArr[i]) !== -1)
-                {
-                    return pathOnly + name.substr(0, name.lastIndexOf(extArr[i])) + ".png";
-                }
-            }
-            if (name.lastIndexOf(".png") === -1)
-            {
-                return pathOnly + name + ".png";
-            }
-            return path;
+            const directory:String = getDirectoryOnly(path);
+            const ext:RegExp = /\.(2020|jpg|jpeg|gif|jfif|webp|png)$/i;
+            name = ext.test(name) ? name.replace(ext, ".png") : name + ".png";
+            return directory.length > 0 ? directory + File.separator + name : name;
         }
 
         // 끝의 파일 구분자가 있으면 제거해줌
