@@ -70,7 +70,7 @@ package Modules
         public static var replayCachePreviewFilePath:File; // 그때 로드박스에 깔려있던 흐린 배경 이미지
         public static const appUpTimePath:File = File.applicationStorageDirectory.resolvePath("appuptime");
         public static var repFileTemp:File; // 파일을 저장하거나 불러올때 씀
-        public static const REPLAY_FILE_HEADER:String = "FOFOPAINT"; // 리플레이 블록이 zlib
+        public static const REPLAY_FILE_HEADER_V1:String = "FOFOPAINT"; // 리플레이 블록이 zlib
         public static const REPLAY_FILE_HEADER_V2:String = "V2FOFOPAINT"; // 리플레이 블록이 ReplayDataCodec, 이전 버전 앱에서 못 읽음
 
         public static const loadMenuBox:LoadBoxSet = new LoadBoxSet();
@@ -550,7 +550,7 @@ package Modules
                     bmpd.dispose();
                 }
 
-                loadMenuBox.showPleaseWait("Closing fofo paint...");
+                loadMenuBox.showPleaseWaitTextOrCustomText("Closing fofo paint...");
                 loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
                 Utils.setAsTopChild(loadMenuBox);
                 loadMenuBox.visible = true;
@@ -597,7 +597,7 @@ package Modules
                                     {
                                         // worker 작업이 끝나면 stopWorkerIfIdle에서 불러옴
                                         isLoadPendingAfterSaving = true;
-                                        loadMenuBox.showPleaseWait("Waiting for background tasks...");
+                                        loadMenuBox.showPleaseWaitTextOrCustomText("Waiting for background tasks...");
                                         return;
                                     }
                                     closeLoadMenuBox();
@@ -610,7 +610,7 @@ package Modules
                                 if (!loadMenuBox.isRefLayerLoadMode())
                                 {
                                     isLoadPendingAfterSaving = true;
-                                    loadMenuBox.showPleaseWait("Saving in progress...");
+                                    loadMenuBox.showPleaseWaitTextOrCustomText("Saving in progress...");
                                     openSaveFileBrowser(false);
                                 }
                             }
@@ -775,11 +775,11 @@ package Modules
                     return REPLAY_FILE_HEADER_V2.length;
                 }
                 fs.position = 0;
-                if (fs.bytesAvailable < REPLAY_FILE_HEADER.length || fs.readUTFBytes(REPLAY_FILE_HEADER.length) !== REPLAY_FILE_HEADER)
+                if (fs.bytesAvailable < REPLAY_FILE_HEADER_V1.length || fs.readUTFBytes(REPLAY_FILE_HEADER_V1.length) !== REPLAY_FILE_HEADER_V1)
                 {
                     return 0;
                 }
-                return REPLAY_FILE_HEADER.length;
+                return REPLAY_FILE_HEADER_V1.length;
             }
             catch (error:Error)
             {
@@ -932,7 +932,7 @@ package Modules
                 loadMenuBox.updateUIColor();
                 if (fromUpdate)
                 {
-                    loadMenuBox.showPleaseWait("Waiting for the file to be saved");
+                    loadMenuBox.showPleaseWaitTextOrCustomText("Waiting for the file to be saved");
                 }
                 else
                 {

@@ -664,7 +664,7 @@ package Modules.ReplayEngine
                 FileManager.loadMenuBox.updatePlaseWaitPrograss(perc + "%");
             }
 
-            FileManager.loadMenuBox.showPleaseWait("Reading replay file");
+            FileManager.loadMenuBox.showPleaseWaitTextOrCustomText("Reading replay file");
             FileManager.openLoadMenuBox();
 
             function onFrameEnter(e:Event):void

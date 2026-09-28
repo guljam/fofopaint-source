@@ -64,7 +64,7 @@
 			pleaseWaitText.text = plaseWaitTextBase + " " + prograss;
 		}
 
-		public function showPleaseWait(str:String = "Please Wait..."):void
+		public function showPleaseWaitTextOrCustomText(str:String = "Please Wait..."):void
 		{
 			plaseWaitTextBase = str;
 			pleaseWaitText.text = str;
