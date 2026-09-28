@@ -710,7 +710,7 @@ package Modules.ReplayEngine
                                 (
                                     ReplayDrawer.rCanvasLayer1BitmapData.width,
                                     ReplayDrawer.rCanvasLayer1BitmapData.height,
-                                    ReplayState.rLastCanvasBGColor,
+                                    ReplayState.RCANVAS_BG_COLOR,
                                     fs.position,
                                     _LastframeSum,
                                     _frameSum,

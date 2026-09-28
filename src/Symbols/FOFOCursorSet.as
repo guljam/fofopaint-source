@@ -2,7 +2,6 @@
 {
 	import flash.display.SimpleButton;
 	import flash.display.Sprite;
-	import assets.VisualFieldCollector;
 
 	public class FOFOCursorSet extends Sprite
 	{
