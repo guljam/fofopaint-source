@@ -49,6 +49,7 @@ package Modules
             myPaletteDataFilePath = dataFolderPath.resolvePath("mypalettedata");
             replayDataFilePath = dataFolderPath.resolvePath("repdata");
             replayCacheImageFolderPath = dataFolderPath.resolvePath("imagecache");
+            replayCacheImageTempFolderPath = dataFolderPath.resolvePath("imagecache_tmp");
             replayCacheImageFrameDataFilePath = dataFolderPath.resolvePath("jumpframedata");
         }
         // todo load box는 load box controller로 따로 분리, app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
@@ -61,6 +62,7 @@ package Modules
         public static var myPaletteDataFilePath:File;
         public static var replayDataFilePath:File;
         public static var replayCacheImageFolderPath:File;
+        public static var replayCacheImageTempFolderPath:File; // worker가 캐시 이미지를 쓰는 곳, main이 확인 후 imagecache로 옮김
         public static var replayCacheImageFrameDataFilePath:File;
         public static const appUpTimePath:File = File.applicationStorageDirectory.resolvePath("appuptime");
         public static var repFileTemp:File; // 파일을 저장하거나 불러올때 씀

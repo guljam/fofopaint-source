@@ -15,7 +15,7 @@ package Modules.ReplayEngine
 
     public class ReplayFileCache
     {
-        public static const REPLAY_DISK_CACHE_FRAME_INTERVAL:Number = 10000;
+        public static const REPLAY_DISK_CACHE_FRAME_INTERVAL:Number = 1;
         public static const REPLAY_MEMORY_CACHE_FRAME_INTERVAL:Number = 700;
       
         public static var rFirstImageLayer1BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
@@ -160,6 +160,8 @@ package Modules.ReplayEngine
 
         public static function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint, mirrorFlag:Boolean = false):void
         {
+            BackgroundWorkerCoordinator.cancelPendingCacheImages();
+
             if (FileManager.replayCacheImageFolderPath.exists)
             {
                 FileManager.replayCacheImageFolderPath.deleteDirectory(true);
@@ -266,6 +268,52 @@ package Modules.ReplayEngine
             fs.open(FileManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length - 1)), FileMode.WRITE);
             fs.writeObject([bmpd1, bmpd2, metadata]);
             fs.close();
+        }
+
+        // worker가 임시 파일로 써둔 캐시 이미지를 다음 번호로 확정해줌
+        public static function commitCacheImage(tempFile:File, metadata:CacheImageMetaData):Boolean
+        {
+            // 이진 탐색이 깨지지 않게 마지막 캐시보다 뒤이고 리플레이 파일 안에 있는 프레임만 받음
+            if (rJumpImageFrameData.length === 0
+                    || metadata.nowFrame <= rJumpImageFrameData[rJumpImageFrameData.length - 1]
+                    || metadata.nowFrame > ReplayState.getRFileDataTotalFrame())
+            {
+                return false;
+            }
+
+            try
+            {
+                tempFile.moveTo(FileManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length)), true);
+            }
+            catch (error:Error)
+            {
+                trace("Cache image commit failed: " + error);
+                return false;
+            }
+
+            rJumpImageFrameData.push(metadata.nowFrame);
+            return true;
+        }
+
+        // frame 이후의 캐시 이미지를 지우고, worker에서 아직 만들고 있는 캐시 이미지도 무효로 만듬
+        public static function truncateCacheImagesAfterFrame(frame:Number):void
+        {
+            BackgroundWorkerCoordinator.cancelPendingCacheImages();
+
+            const list:Array = FileManager.replayCacheImageFolderPath.getDirectoryListing();
+            const index:int = getCachedFrameImageIndex(frame);
+
+            // index번 이후 파일 삭제
+            for (var i:uint = 0, len:uint = list.length;i < len;i++)
+            {
+                if (parseInt(list[i].name) > index)
+                {
+                    list[i].deleteFile();
+                }
+            }
+
+            // framedata도 인덱스 이후꺼 날려줌
+            rJumpImageFrameData.splice(index + 1);
         }
     }
 }

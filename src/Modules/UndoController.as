@@ -4,8 +4,6 @@ package Modules
     import flash.filesystem.FileStream;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
-    import flash.utils.ByteArray;
-    import flash.geom.Rectangle;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
@@ -156,36 +154,18 @@ package Modules
                             dataWriteCount = 0;
 
                             const data:Array = undoBaseImage;
-                            const bmpd:BitmapData = data[0];
-                            const bmpd1:BitmapData = data[1];
-                            const w:int = data[2];
-                            const h:int = data[3];
-                            const bgColor:uint = data[4];
 
-                            var imgData:ByteArray = new ByteArray();
-                            var imgData1:ByteArray = new ByteArray();
-                            const newRectangle:Rectangle = new Rectangle(0, 0, w, h);
-
-                            bmpd.copyPixelsToByteArray(newRectangle, imgData);
-                            bmpd1.copyPixelsToByteArray(newRectangle, imgData1);
-
-                            if (BackgroundWorkerCoordinator.receivedUndoImageQueueFromWorker === null)
-                                BackgroundWorkerCoordinator.receivedUndoImageQueueFromWorker = [];
-
-                            if (BackgroundWorkerCoordinator.undoDataQueue === null)
-                                BackgroundWorkerCoordinator.undoDataQueue = [];
-
-                            BackgroundWorkerCoordinator.undoDataQueue.push(
+                            BackgroundWorkerCoordinator.startCacheImageWorker(
+                                    data[0],
+                                    data[1],
                                     new CacheImageMetaData(
-                                        w,
-                                        h,
-                                        bgColor,
+                                        data[2],
+                                        data[3],
+                                        data[4],
                                         rf.size,
                                         lastRDataTotalFrame,
                                         ReplayState.getRFileDataTotalFrame(),
                                         data[5]));
-                            BackgroundWorkerCoordinator.startUndoImageCompressionWorker(imgData, imgData1);
-                            BackgroundWorkerCoordinator.pollTimerWaitWorkerForCacheUndoData();
                         }
                     }
                 }
