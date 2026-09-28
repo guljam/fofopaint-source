@@ -199,6 +199,7 @@ package Modules.ReplayEngine
                 ReplayDrawer.rReplayFOFOCursor.visible = false;
                 MainUI.seekBarBox.resetReplayPrograssBarWidth();
                 FileManager.isFileAlreadySaved = false;
+                FileManager.loadMenuBox.clearPreviewImage(); // 이 경우 로드박스에 배경 이미지를 깔지 않음
                 startGeneratingReplayCacheImage(false, finalize);
             }
 
@@ -596,6 +597,7 @@ package Modules.ReplayEngine
             }
 
             FileManager.closeLoadMenuBox();
+            FileManager.loadMenuBox.clearPreviewImage(); // 캐시 이미지 만드는 동안만 쓰던 배경
             InputManager.clearKeyBuffer();
 
             if (finalizeFunc !== null)

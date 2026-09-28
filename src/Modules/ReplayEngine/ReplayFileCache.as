@@ -186,6 +186,7 @@ package Modules.ReplayEngine
             }
         }
 
+        // 진행 기록과 로드박스 배경 이미지 기록을 같이 지움
         public static function deleteCacheProgress():void
         {
             try
@@ -194,11 +195,77 @@ package Modules.ReplayEngine
                 {
                     FileManager.replayCacheProgressFilePath.deleteFile();
                 }
+
+                if (FileManager.replayCachePreviewFilePath.exists)
+                {
+                    FileManager.replayCachePreviewFilePath.deleteFile();
+                }
             }
             catch (error:Error)
             {
                 trace("Cache progress delete failed: " + error);
             }
+        }
+
+        // 캐시 이미지 만드는 도중 앱을 닫을때 로드박스에 깔려있던 흐린 배경 이미지를 저장해서 다음 실행때 이어 만들때 다시 깔아줌
+        // 배경 이미지가 없으면 기록을 지움
+        public static function saveCachePreview(bmpd:BitmapData):void
+        {
+            try
+            {
+                if (bmpd === null)
+                {
+                    if (FileManager.replayCachePreviewFilePath.exists)
+                    {
+                        FileManager.replayCachePreviewFilePath.deleteFile();
+                    }
+                    return;
+                }
+
+                const ba:ByteArray = new ByteArray();
+                bmpd.copyPixelsToByteArray(bmpd.rect, ba);
+                ba.compress();
+
+                const fs:FileStream = new FileStream();
+                fs.open(FileManager.replayCachePreviewFilePath, FileMode.WRITE);
+                fs.writeObject([bmpd.width, bmpd.height, bmpd.transparent, ba]);
+                fs.close();
+                ba.clear();
+            }
+            catch (error:Error)
+            {
+                trace("Cache preview save failed: " + error);
+            }
+        }
+
+        // 저장된 배경 이미지가 없거나 읽지 못하면 null
+        public static function loadCachePreview():BitmapData
+        {
+            try
+            {
+                if (!FileManager.replayCachePreviewFilePath.exists)
+                {
+                    return null;
+                }
+
+                const fs:FileStream = new FileStream();
+                fs.open(FileManager.replayCachePreviewFilePath, FileMode.READ);
+                const data:Array = fs.readObject() as Array;
+                fs.close();
+
+                const ba:ByteArray = data[3] as ByteArray;
+                ba.uncompress();
+                const bmpd:BitmapData = new BitmapData(data[0], data[1], data[2], 0);
+                PixelRestore.setPixels(bmpd, bmpd.rect, ba);
+                ba.clear();
+                return bmpd;
+            }
+            catch (error:Error)
+            {
+                trace("Cache preview load failed: " + error);
+            }
+
+            return null;
         }
 
         // 이어서 만들수 있으면 rJumpImageFrameData를 기록대로 되돌리고 이어서 시작할 캐시 번호를 돌려줌, 못하면 -1

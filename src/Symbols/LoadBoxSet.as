@@ -24,10 +24,10 @@
 		public var stageClickBlocker:Sprite = new Sprite();
 
 		private var plaseWaitTextBase:String = "";
-		private var clickBlockerBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, true, 0));
+		private static const PREVIEW_MAX_SIZE:Number = 1024; // 배경 이미지 긴 변 최대 크기
+		private var clickBlockerBitmap:Bitmap = new Bitmap(); // 흐린 배경 이미지, 없으면 bitmapData가 null
 		private var menuBox:Sprite = new Sprite();
 		private var mainBox:Sprite = new Sprite();
-		private var bitmapSize:Number = 180;
 		private var refLayerLoadMode:Boolean = false;
 
 		public function isShowing():Boolean
@@ -75,11 +75,7 @@
 
 		public function hide():void
 		{
-			if (clickBlockerBitmap.bitmapData)
-			{
-				clickBlockerBitmap.bitmapData.dispose();
-			}
-
+			clearPreviewImage();
 			this.visible = false;
 		}
 
@@ -105,35 +101,49 @@
 			clickBlockerBitmap.height = stageClickBlocker.height + 20;
 		}
 
+		// 배경 이미지는 흐리게 깔아주는 용도라 긴 변이 PREVIEW_MAX_SIZE를 넘을때만 줄인 복사본을 만들어 씀
+		// 넘지 않으면 받은 bmpd를 그대로 씀 (부르는 쪽은 isPreviewImage로 확인해서 해제하지 않게 해야함)
+		// 이전 배경 이미지는 해제함
 		public function setPreviewImage(bmpd:BitmapData):void
 		{
-			const tmpbmpd:BitmapData = new BitmapData(bitmapSize, bitmapSize, true, 0);
-			var longWidth:Number = (bmpd.width > bmpd.height) ? bmpd.width : bmpd.height;
-			var f:Number = bitmapSize / longWidth;
-			var imageOffsetX:Number = 0.0;
-			var imageOffsetY:Number = 0.0;
+			const longWidth:Number = (bmpd.width > bmpd.height) ? bmpd.width : bmpd.height;
+			var preview:BitmapData = bmpd;
 
-			// if (bmpd.width > bmpd.height)
-			// {
-			// imageOffsetY = (bitmapSize / 2) - (bmpd.height * f) / 2;
-			// }
-			// else
-			// {
-			// imageOffsetX = (bitmapSize / 2) - (bmpd.width * f) / 2;
-			// }
+			if (longWidth > PREVIEW_MAX_SIZE)
+			{
+				const f:Number = PREVIEW_MAX_SIZE / longWidth;
+				const mat:Matrix = new Matrix();
+				mat.scale(f, f);
+				preview = new BitmapData(Math.max(1, Math.round(bmpd.width * f)), Math.max(1, Math.round(bmpd.height * f)), bmpd.transparent, 0);
+				preview.draw(bmpd, mat, null, null, null, true);
+			}
 
-			trace('setpreview image');
+			if (clickBlockerBitmap.bitmapData !== preview)
+			{
+				clearPreviewImage();
+			}
 
-			const mat:Matrix = new Matrix();
-			mat.scale(f, f);
-			mat.translate(imageOffsetX, imageOffsetY);
-			tmpbmpd.draw(bmpd, mat, null, null, null, true);
+			clickBlockerBitmap.bitmapData = preview;
+		}
 
+		public function clearPreviewImage():void
+		{
 			if (clickBlockerBitmap.bitmapData)
 			{
 				clickBlockerBitmap.bitmapData.dispose();
+				clickBlockerBitmap.bitmapData = null;
 			}
-			clickBlockerBitmap.bitmapData = tmpbmpd;
+		}
+
+		// 배경 이미지가 없으면 null
+		public function getPreviewImage():BitmapData
+		{
+			return clickBlockerBitmap.bitmapData;
+		}
+
+		public function isPreviewImage(bmpd:BitmapData):Boolean
+		{
+			return bmpd !== null && clickBlockerBitmap.bitmapData === bmpd;
 		}
 
 		public function updateUIColor():void

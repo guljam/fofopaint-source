@@ -52,6 +52,7 @@ package Modules
             replayCacheImageTempFolderPath = dataFolderPath.resolvePath("imagecache_tmp");
             replayCacheImageFrameDataFilePath = dataFolderPath.resolvePath("jumpframedata");
             replayCacheProgressFilePath = dataFolderPath.resolvePath("imagecacheprogress");
+            replayCachePreviewFilePath = dataFolderPath.resolvePath("imagecachepreview");
         }
         // todo load box는 load box controller로 따로 분리, app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
         // todo 저장할때 rdata undo 되어있을때 데이터가 사라짐 deepundo쪽은 그대로 살아있음
@@ -66,6 +67,7 @@ package Modules
         public static var replayCacheImageTempFolderPath:File; // worker가 캐시 이미지를 쓰는 곳, main이 확인 후 imagecache로 옮김
         public static var replayCacheImageFrameDataFilePath:File;
         public static var replayCacheProgressFilePath:File; // 캐시 이미지 만드는 도중 앱을 닫았을때 이어서 만들기 위한 진행 기록
+        public static var replayCachePreviewFilePath:File; // 그때 로드박스에 깔려있던 흐린 배경 이미지
         public static const appUpTimePath:File = File.applicationStorageDirectory.resolvePath("appuptime");
         public static var repFileTemp:File; // 파일을 저장하거나 불러올때 씀
         public static const REPLAY_FILE_HEADER:String = "FOFOPAINT"; // 리플레이 블록이 zlib
@@ -541,6 +543,13 @@ package Modules
             {
                 const bmpd:BitmapData = CanvasController.getMergedBitmapdtata(false, true, true, null);
                 loadMenuBox.setPreviewImage(bmpd);
+
+                // 줄인 복사본을 배경으로 썼으면 합성 이미지는 필요 없음
+                if (!loadMenuBox.isPreviewImage(bmpd))
+                {
+                    bmpd.dispose();
+                }
+
                 loadMenuBox.showPleaseWait("Closing fofo paint...");
                 loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
                 Utils.setAsTopChild(loadMenuBox);
@@ -615,6 +624,7 @@ package Modules
                         case "dragDropCancelButton":
                             {
                                 closeLoadMenuBox();
+                                releaseLoadMenuBoxBitmapData(true);
                             }
                             break;
                     }
@@ -858,7 +868,37 @@ package Modules
             if (firstKey === InputManager.KEY.esc || firstKey === InputManager.KEY.backspace)
             {
                 closeLoadMenuBox();
+
+                // 저장 후 불러오기 대기중이거나 캐시 이미지를 만드는 중이면 이미지가 아직 필요함
+                if (!isLoadPendingAfterSaving && BackgroundWorkerCoordinator.isSaveInProgress === 0 && !ReplayState.isGeneratingCacheImages())
+                {
+                    releaseLoadMenuBoxBitmapData(true);
+                }
             }
+        }
+
+        // 불러오기 메뉴에 쓰던 이미지를 해제함
+        // 로드박스 배경으로 그대로 쓰고 있으면 clearPreview가 true일때만 배경까지 해제하고, false면 배경으로 남겨둠
+        private static function releaseLoadMenuBoxBitmapData(clearPreview:Boolean):void
+        {
+            if (loadMenuBoxBitmapData === null)
+            {
+                return;
+            }
+
+            if (loadMenuBox.isPreviewImage(loadMenuBoxBitmapData))
+            {
+                if (clearPreview)
+                {
+                    loadMenuBox.clearPreviewImage();
+                }
+            }
+            else
+            {
+                loadMenuBoxBitmapData.dispose();
+            }
+
+            loadMenuBoxBitmapData = null;
         }
         public static function prepareOpenLoadBox(fromUpdate:Boolean, reflayermenu:Boolean, file:File, bmpd:BitmapData, filetype:String):void
         {
@@ -866,6 +906,13 @@ package Modules
             ToolController.closeToolBox2();
             loadMenuBoxFileType = filetype;
             loadMenuBoxFile = file;
+
+            // 이전에 불러오려던 이미지가 남아있으면 해제 (배경으로 쓰던건 setPreviewImage에서 해제됨)
+            if (loadMenuBoxBitmapData !== bmpd)
+            {
+                releaseLoadMenuBoxBitmapData(false);
+            }
+
             loadMenuBoxBitmapData = bmpd;
 
             if (LassoTool._isLassoToolStarted === true)
@@ -1128,8 +1175,7 @@ package Modules
                     {
                         ReferenceLayerController.openRefLayerMenu();
                     }
-                    loadMenuBoxBitmapData.dispose();
-                    loadMenuBoxBitmapData = null;
+                    releaseLoadMenuBoxBitmapData(true);
                 }
             }
             else if (loadMenuBoxFile !== null)
@@ -1157,6 +1203,8 @@ package Modules
                             // todo : load repllay file은 따로?
                             loadFOFOFile(loadMenuBoxFile);
                             loadMenuBoxFile = null;
+                            // 캐시 이미지 만드는 동안 로드박스 배경으로 쓰므로 배경은 남겨둠
+                            releaseLoadMenuBoxBitmapData(false);
                         }
                         function onErrorFileStream(e:Event):void
                         {
@@ -1177,6 +1225,7 @@ package Modules
                         lastSaveFileName = loadMenuBoxFile.name;
                         lastSaveFilePath = loadMenuBoxFile.nativePath;
                         loadImageFile(loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height, loadMenuBoxBitmapData, null);
+                        releaseLoadMenuBoxBitmapData(true);
                     }
                 }
                 else
@@ -1189,6 +1238,7 @@ package Modules
                 enterDrawModeOnLoadFile();
                 lastSaveFileName = getRandomFileName();
                 loadImageFile(loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height, loadMenuBoxBitmapData, null);
+                releaseLoadMenuBoxBitmapData(true);
             }
         }
 
@@ -1812,7 +1862,12 @@ package Modules
             }
 
             // 캐시 이미지 만드는 중이면 멈춰야 앱이 종료됨 (다음 실행때 이어서 만듬)
-            ReplayController.stopGeneratingReplayCacheImage();
+            // 이어 만들때 다시 깔아주도록 지금 로드박스 배경 이미지도 저장
+            if (ReplayState.isGeneratingCacheImages())
+            {
+                ReplayController.stopGeneratingReplayCacheImage();
+                ReplayFileCache.saveCachePreview(loadMenuBox.getPreviewImage());
+            }
 
             if (BackgroundWorkerCoordinator.isWorkerBusy())
             {

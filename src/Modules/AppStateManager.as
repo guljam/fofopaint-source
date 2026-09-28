@@ -474,6 +474,14 @@ package Modules
 
                         if(ReplayState.isGeneratingCacheImages())
                         {
+                            // 닫을때 로드박스에 깔려있던 흐린 배경 이미지를 다시 깔아줌
+                            const preview:BitmapData = ReplayFileCache.loadCachePreview();
+
+                            if (preview)
+                            {
+                                FileManager.loadMenuBox.setPreviewImage(preview);
+                            }
+
                             // 캐시 이미지 만드는 도중에 닫았으면 마지막으로 확정된 캐시 이미지부터 이어서 만듬
                             const resumeIndex:int = ReplayFileCache.restoreCacheProgress();
 
