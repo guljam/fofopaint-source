@@ -1473,10 +1473,12 @@ package Modules
             {
                 ReplayController.stopReplay();
             }
+
             const continueFlag:Boolean = (isContinueSaveON === true && asFlag === false);
             const nextPath:String = getExistingParentDirectory(lastSaveFilePath);
             const replayFilePath:String = ReplayFileCache.getReplayFileNameFromPath(lastSaveFilePath);
             const rawFile:File = new File(replayFilePath);
+
             if (nextPath === lastSaveFilePath && isFileAlreadySaved && continueFlag && rawFile.exists)
             {
                 if (AppUpdater.isUpdatePendingAfterSaving)
@@ -1493,16 +1495,19 @@ package Modules
                 }
                 return;
             }
+
             if (LassoTool._isLassoToolStarted || FillPenTool.isStarted || LineTool.isStarted || BackgroundWorkerCoordinator.isSaveInProgress)
             {
                 return;
             }
+
             const fs:FileStream = new FileStream();
-            const mergedImage:BitmapData = CanvasController.getMergedBitmapdtata(false, true, true, null);
+
             if (nextPath !== lastSaveFilePath)
             {
                 lastSaveFilePath = nextPath;
             }
+
             function onErrorSaveFileContinue(e:Event):void
             {
                 fs.close();
@@ -1517,6 +1522,7 @@ package Modules
                     openSaveFileBrowser(true, true);
                 }
             }
+
             function pollTimerWaitWorkerForImageSave(lastPath:String, isContinueSave:Boolean):void
             {
                 if (isContinueSave)
@@ -1541,13 +1547,15 @@ package Modules
                         return true;
                     }, [lastPath]);
             }
+
             if (continueFlag)
             {
                 if (rawFile.exists)
                 {
                     disableFileOperationButtonsTopbar();
                     BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
-                    BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage.clone(), CanvasController.CANVAS_BG_COLOR, false, false);
+                    // 병합 이미지는 Worker 전송 후 Worker 쪽에서 dispose함
+                    BackgroundWorkerCoordinator.startPngEncodingWorker(CanvasController.getMergedBitmapdtata(false, true, true, null), CanvasController.CANVAS_BG_COLOR, false, false);
                     saveFOFOFile();
                     MainUIController.updateWindowTitle();
                     InputManager.clearKeyBuffer();
@@ -1571,6 +1579,8 @@ package Modules
                     : (asFlag === true) ? "Save file As.."
                     : (isLoadPendingAfterSaving) ? "Save file before load file"
                     : (AppUpdater.isUpdatePendingAfterSaving) ? "Save file before update" : "Save file";
+                // 대화상자 연 시점의 이미지로 저장, 선택하면 Worker로 넘기고 취소하면 여기서 dispose
+                var mergedImage:BitmapData = CanvasController.getMergedBitmapdtata(false, true, true, null);
                 file.addEventListener(IOErrorEvent.IO_ERROR, onErrorEvent);
                 file.addEventListener(Event.CANCEL, onErrorEvent);
                 file.addEventListener(Event.SELECT, onSelectEvent);
@@ -1584,6 +1594,11 @@ package Modules
                 }
                 function onErrorEvent(e:Event):void
                 {
+                    if (mergedImage !== null)
+                    {
+                        mergedImage.dispose();
+                        mergedImage = null;
+                    }
                     setFileBrowserIsOpen(false);
                     file.cancel();
                     removeEvent();
@@ -1606,7 +1621,9 @@ package Modules
                     lastSaveFilePath = convertToPNGFilePath(e.target.nativePath);
                     lastSaveFileName = getFileNameFromPath(lastSaveFilePath);
                     BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
-                    BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage.clone(), CanvasController.CANVAS_BG_COLOR, false, false);
+                    // 소유권을 Worker로 넘김, Worker 쪽에서 dispose함
+                    BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage, CanvasController.CANVAS_BG_COLOR, false, false);
+                    mergedImage = null;
                     saveFOFOFile();
                     MainUIController.updateWindowTitle();
                     pollTimerWaitWorkerForImageSave(lastSaveFilePath, false);
