@@ -21,10 +21,10 @@
 		"verbose-stacktraces": true
 	},
 	"airOptions": {
-		// com.fofo.pixeldump.ane를 디버그 실행(adl)과 패키징(adt)에 넣어줌
-		"extdir": [
-			"extension"
-		]
+		// com.fofo.pixeldump.ane를 디버그 실행(adl)과 패키징(adt)에 넣어줌 (.air 패키징 때문에 비활성화)
+		// "extdir": [
+		// 	"extension"
+		// ]
 	},
 	"application": "fofoPaint-app.xml",
 	"mainClass": "Main",

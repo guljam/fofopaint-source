@@ -21,6 +21,8 @@ package Modules
     {
         // ANE의 library.swf에 있는 클래스 (anesrc/pixeldump), 워커에는 ANE가 로드되지 않아서 직접 참조하지 않고 이름으로 찾음
         private static const NATIVE_CLASS_NAME:String = "com.fofo.pixeldump.PixelDump";
+        // .air 패키징(-target air)은 ANE를 넣을 수 없어서 끔, 다시 쓰려면 fofoPaint-app.xml의 extensions도 되살려야함
+        private static const USE_NATIVE:Boolean = false;
         private static const NATIVE_OK:int = 1;
         private static const TABLE_LENGTH:int = 65536; // 표 인덱스: 알파 << 8 | copyPixelsToByteArray 출력값
         private static const CHUNK_LENGTH:int = 1 << 20; // 한번에 작업 영역으로 복사해서 바꾸는 픽셀 바이트 수
@@ -152,7 +154,7 @@ package Modules
             var api:Object;
 
             // 워커에서도 ANE 클래스는 보이지만 ExtensionContext를 만들 수 없음(#3731), AS3 경로만 씀
-            if (!Worker.current.isPrimordial)
+            if (!USE_NATIVE || !Worker.current.isPrimordial)
             {
                 return;
             }
