@@ -163,12 +163,28 @@ package Modules.ReplayEngine
         {
             BackgroundWorkerCoordinator.cancelPendingCacheImages();
 
+            // 폴더를 지우고 바로 다시 만들면 다른 프로그램이 안의 파일을 잡고 있을때 삭제 대기 상태가 되어 생성이 실패할수 있어서 안의 파일만 지움
+            // 캐시는 번호 목록 범위 안에서만 읽고 새 캐시는 덮어쓰기로 쓰니 못 지운 파일이 남아도 결과는 같음
             if (FileManager.replayCacheImageFolderPath.exists)
             {
-                FileManager.replayCacheImageFolderPath.deleteDirectory(true);
-            }
+                const list:Array = FileManager.replayCacheImageFolderPath.getDirectoryListing();
 
-            FileManager.replayCacheImageFolderPath.createDirectory();
+                for (var i:int = 0;i < list.length;i++)
+                {
+                    try
+                    {
+                        list[i].deleteFile();
+                    }
+                    catch (error:Error)
+                    {
+                        trace("Cache image cleanup failed: " + error);
+                    }
+                }
+            }
+            else
+            {
+                FileManager.replayCacheImageFolderPath.createDirectory();
+            }
 
             var ba1:ByteArray = new ByteArray();
             var ba2:ByteArray = new ByteArray();
@@ -282,9 +298,20 @@ package Modules.ReplayEngine
                 return false;
             }
 
+            const dest:File = FileManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length));
+
             try
             {
-                tempFile.moveTo(FileManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length)), true);
+                const size:Number = tempFile.size;
+                tempFile.moveTo(dest, true);
+
+                // 권한 문제등으로 moveTo가 예외 없이 끝나도 옮겨지지 않은 경우가 있어서 실제로 옮겨졌는지 확인한 뒤에만 번호를 확정
+                // 같은 번호의 오래된 파일이 남아있을수 있으니 크기까지 비교
+                if (size <= 0 || !dest.exists || dest.size !== size || tempFile.exists)
+                {
+                    FileManager.writeCrashLog("Cache image commit not moved: " + dest.nativePath);
+                    return false;
+                }
             }
             catch (error:Error)
             {
