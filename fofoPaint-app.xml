@@ -47,4 +47,8 @@
   <!-- <extensions>
     <extensionID>com.fofo.threadtest</extensionID>
 </extensions> -->
+  <!-- 픽셀 복원 ANE, adl/adt 실행시 -extdir extension 필요 (asconfig.json airOptions.extdir) -->
+  <extensions>
+    <extensionID>com.fofo.pixeldump</extensionID>
+  </extensions>
 </application>
