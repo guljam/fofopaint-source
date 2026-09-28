@@ -634,7 +634,7 @@ package Modules.ReplayEngine
             ReplayDrawer.rCanvasLayer1BitmapData = CanvasController.updateBitmapData(ReplayDrawer.rCanvasLayer1BitmapData, ReplayFileCache.rFirstImageLayer1BitmapData, ReplayDrawer.rCanvasLayer1Bitmap);
             ReplayDrawer.rCanvasLayer2BitmapData = CanvasController.updateBitmapData(ReplayDrawer.rCanvasLayer2BitmapData, ReplayFileCache.rFirstImageLayer2BitmapData, ReplayDrawer.rCanvasLayer2Bitmap);
             // 크기도 바꿔주고
-            ReplayDrawer.updateCanvasSizeReplayMode(ReplayDrawer.rCanvasLayer1BitmapData.width, ReplayDrawer.rCanvasLayer1BitmapData.height);
+            ReplayDrawer.syncCanvasSizeReplayMode(ReplayDrawer.rCanvasLayer1BitmapData.width, ReplayDrawer.rCanvasLayer1BitmapData.height);
             fs.open(FileManager.replayDataFilePath, FileMode.READ);
             fs.position = 0;
             ReplayState.rMirrorON = ReplaySaveMetaData.firstImageMirrorFlag;

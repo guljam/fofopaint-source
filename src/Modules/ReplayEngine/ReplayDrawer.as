@@ -55,9 +55,13 @@ package Modules.ReplayEngine
         {
             const undoBaseImage:Array = UndoController.getUndoBaseImage();
 
+            // 레이어를 먼저 교체하고 크기 정보를 맞춰줌
+            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoBaseImage[0], rCanvasLayer1Bitmap);
+            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoBaseImage[1], rCanvasLayer2Bitmap);
+
             if (undoBaseImage[2] !== ReplayState.RCANVAS_WIDTH || undoBaseImage[3] !== ReplayState.RCANVAS_HEIGHT)
             {
-                updateCanvasSizeReplayMode(undoBaseImage[2], undoBaseImage[3], 0, 0, false);
+                syncCanvasSizeReplayMode(undoBaseImage[2], undoBaseImage[3]);
             }
 
             if (undoBaseImage[4] !== ReplayState.RCANVAS_BG_COLOR)
@@ -65,8 +69,6 @@ package Modules.ReplayEngine
                 updateCanvasBGColorReplayMode(undoBaseImage[4]);
             }
 
-            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoBaseImage[0], rCanvasLayer1Bitmap);
-            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoBaseImage[1], rCanvasLayer2Bitmap);
             ReplayState.rMirrorON = undoBaseImage[5];
 
             ReplayDrawCommands.setData(ReplayState.rMemoryData[0]);
@@ -102,9 +104,13 @@ package Modules.ReplayEngine
             ReplayState.rMirrorON = undoRefData[5];
             const rect:Rectangle = new Rectangle(0, 0, undoRefData[2], undoRefData[3]);
 
+            // 레이어를 먼저 교체하고 크기 정보를 맞춰줌
+            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoRefData[0], rCanvasLayer1Bitmap);
+            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoRefData[1], rCanvasLayer2Bitmap);
+
             if (undoRefData[2] !== ReplayState.RCANVAS_WIDTH || undoRefData[3] !== ReplayState.RCANVAS_HEIGHT)
             {
-                updateCanvasSizeReplayMode(undoRefData[2], undoRefData[3], 0, 0, false);
+                syncCanvasSizeReplayMode(undoRefData[2], undoRefData[3]);
             }
 
             if (undoRefData[4] !== ReplayState.RCANVAS_BG_COLOR)
@@ -113,9 +119,6 @@ package Modules.ReplayEngine
             }
 
             rCanvasDrawShape.graphics.clear();
-
-            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoRefData[0], rCanvasLayer1Bitmap);
-            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoRefData[1], rCanvasLayer2Bitmap);
 
             if (ReplayState.rMemoryData.length > 0)
             {
@@ -139,7 +142,7 @@ package Modules.ReplayEngine
             rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
 
-            updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
+            syncCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
             updateCanvasBGColorReplayMode(cacheImageData.metadata.bgColor);
             ReplayState.rMirrorON = cacheImageData.metadata.mirrorFlag;
         }
@@ -225,7 +228,7 @@ package Modules.ReplayEngine
 
                 layer1bmpd = null;
                 layer2bmpd = null;
-                updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
+                syncCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
                 updateCanvasBGColorReplayMode(metaData.bgColor);
                 ReplayDrawCommands.setRCursorPos(metaData.rCursorPosX, metaData.rCursorPosY);
 
@@ -482,18 +485,8 @@ package Modules.ReplayEngine
                 return;
             }
 
-            const bgColor:uint = ReplayState.RCANVAS_BG_COLOR;
-            // 캔버스가 회전되어있으면 회전된 방향으로 움직여줘야함
-            rCanvasPanel.graphics.clear();
-            rCanvasPanel.graphics.beginFill(bgColor);
-            rCanvasPanel.graphics.drawRect(0, 0, w, h);
-            rCanvasPanel.graphics.endFill();
-            rCanvasPanel.scrollRect = new Rectangle(0, 0, w, h); // 마스크 다시 씌워줌
             rCanvasLayer1BitmapData = new BitmapData(w, h, true, 0);
             rCanvasLayer2BitmapData = new BitmapData(w, h, true, 0);
-            rCanvasDrawLayerBitmapData = new BitmapData(w, h, true, 0);
-            ReplayState.RCANVAS_WIDTH = w;
-            ReplayState.RCANVAS_HEIGHT = h;
 
             if (movedFlag)
             {
@@ -518,6 +511,42 @@ package Modules.ReplayEngine
                 rCanvasLayer2Bitmap.bitmapData.dispose();
 
             rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
+            syncCanvasSizeReplayMode(w, h);
+        }
+
+        // 레이어 픽셀은 건드리지 않고 패널, draw 버퍼, 크기 정보만 w h에 맞춰줌
+        // 호출 전에 layer1 layer2가 이미 w h 크기의 이미지로 교체되어 있어야함
+        // 기존 이미지를 새 크기로 옮겨야 하는 canvasSize 명령은 updateCanvasSizeReplayMode를 씀
+        public static function syncCanvasSizeReplayMode(w:Number, h:Number):void
+        {
+            if (w === ReplayState.RCANVAS_WIDTH && h === ReplayState.RCANVAS_HEIGHT)
+            {
+                return;
+            }
+
+            if (rCanvasLayer1BitmapData.width !== w || rCanvasLayer1BitmapData.height !== h)
+            {
+                trace("[syncCanvasSizeReplayMode] layer size mismatch", rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height, w, h);
+            }
+
+            const bgColor:uint = ReplayState.RCANVAS_BG_COLOR;
+            // 캔버스가 회전되어있으면 회전된 방향으로 움직여줘야함
+            rCanvasPanel.graphics.clear();
+            rCanvasPanel.graphics.beginFill(bgColor);
+            rCanvasPanel.graphics.drawRect(0, 0, w, h);
+            rCanvasPanel.graphics.endFill();
+            rCanvasPanel.scrollRect = new Rectangle(0, 0, w, h); // 마스크 다시 씌워줌
+
+            // draw 버퍼는 새 버퍼를 먼저 연결하고 이전 버퍼를 해제함
+            const previousDrawLayerBitmapData:BitmapData = rCanvasDrawLayerBitmapData;
+            rCanvasDrawLayerBitmapData = new BitmapData(w, h, true, 0);
+            rCanvasDrawLayerBitmap.bitmapData = rCanvasDrawLayerBitmapData;
+
+            if (previousDrawLayerBitmapData !== null)
+                previousDrawLayerBitmapData.dispose();
+
+            ReplayState.RCANVAS_WIDTH = w;
+            ReplayState.RCANVAS_HEIGHT = h;
             ReplayController.rFollowMouse.updateBounds();
             CanvasController.keepCanvasPanelInStage(true);
 
@@ -541,7 +570,7 @@ package Modules.ReplayEngine
             rCanvasDrawShape.graphics.clear();
             rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, CanvasController.canvasLayer1BitmapData, rCanvasLayer1Bitmap);
             rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, CanvasController.canvasLayer2BitmapData, rCanvasLayer2Bitmap);
-            updateCanvasSizeReplayMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height);
+            syncCanvasSizeReplayMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height);
             updateCanvasBGColorReplayMode(CanvasController.CANVAS_BG_COLOR);
         }
 
