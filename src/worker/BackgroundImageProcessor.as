@@ -1,7 +1,7 @@
 package worker
 {
-    import Modules.PixelRestore;
     import Modules.ReplayDataCodec;
+    import Modules.PixelRestore;
     import flash.display.BitmapData;
     import flash.display.PNGEncoderOptions;
     import flash.display.Sprite;
@@ -147,28 +147,19 @@ package worker
             ba3.compress();
             ba4.compress();
             ba5.compress();
-            // Command coordinates are transformed before zlib. Keep the old
-            // representation when it is smaller or an old stream is malformed.
-            var encoded:ByteArray;
-            try
-            {
-                encoded = ReplayDataCodec.encode(ba6);
-                encoded.compress();
-            }
-            catch (error:Error)
-            {
-                trace("Replay transform skipped: " + error);
-                encoded = null;
-            }
-            ba6.compress();
-            if (encoded != null && encoded.length < ba6.length)
+            // 리플레이 명령은 전용 변환(LZMA 포함)으로 저장하고, 복원 결과가 원본과 다르면 기존 zlib으로 저장
+            const encoded:ByteArray = ReplayDataCodec.encodeVerified(ba6);
+            if (encoded != null)
             {
                 ba6.clear();
                 ba6.writeBytes(encoded);
                 ba6.position = 0;
-            }
-            if (encoded != null)
                 encoded.clear();
+            }
+            else
+            {
+                ba6.compress();
+            }
             this.backToMain.send("compress_ReplayDataDone");
             this.backToMain.send(ba1);
             this.backToMain.send(ba2);

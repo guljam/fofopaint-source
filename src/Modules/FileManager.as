@@ -66,6 +66,8 @@ package Modules
         public static var replayCacheImageFrameDataFilePath:File;
         public static const appUpTimePath:File = File.applicationStorageDirectory.resolvePath("appuptime");
         public static var repFileTemp:File; // 파일을 저장하거나 불러올때 씀
+        public static const REPLAY_FILE_HEADER:String = "FOFOPAINT"; // 리플레이 블록이 zlib
+        public static const REPLAY_FILE_HEADER_V2:String = "V2FOFOPAINT"; // 리플레이 블록이 ReplayDataCodec, 이전 버전 앱에서 못 읽음
 
         public static const loadMenuBox:LoadBoxSet = new LoadBoxSet();
 
@@ -206,24 +208,27 @@ package Modules
             var d:Array;
             var ba:ByteArray;
             var replayData:ByteArray = new ByteArray();
-            const isNew2020FileFlag:Boolean = isNew2020File(oldFile);
+            const headerLength:int = get2020FileHeaderLength(oldFile);
+            const isNew2020FileFlag:Boolean = headerLength > 0;
 
             if (isNew2020FileFlag)
             {
-                const a:String = fs.readUTFBytes(9); // FOFOPAINT헤더 읽어줌
+                fs.readUTFBytes(headerLength); // FOFOPAINT / V2FOFOPAINT 헤더 읽어줌
                 const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
 
                 if (compBytes > 0)
                 {
                     // 압축된 데이터 써주고 압축 풀어줌
                     fs.readBytes(replayData, 0, compBytes);
-                    replayData.uncompress();
-                    // 이거 gpt가 멋대로 설정함 나중에 손봐야함
-                    if (ReplayDataCodec.isEncoded(replayData))
+                    if (headerLength === REPLAY_FILE_HEADER_V2.length)
                     {
                         const decodedReplayData:ByteArray = ReplayDataCodec.decode(replayData);
                         replayData.clear();
                         replayData = decodedReplayData;
+                    }
+                    else
+                    {
+                        replayData.uncompress();
                     }
                 }
             }
@@ -665,9 +670,10 @@ package Modules
             fs.open(file, FileMode.READ);
             var finalIMGBMPD:BitmapData;
             var finalIMGBMPD1:BitmapData;
-            if (isNew2020File(file))
+            const headerLength:int = get2020FileHeaderLength(file);
+            if (headerLength > 0)
             {
-                fs.readUTFBytes(9); // FOFOPAINT헤더 읽어줌
+                fs.readUTFBytes(headerLength); // FOFOPAINT / V2FOFOPAINT 헤더 읽어줌
                 const compBytes:uint = fs.readUnsignedInt(); // 압축된 데이터 길이 읽어줌
                 fs.position += compBytes;
             }
@@ -732,9 +738,16 @@ package Modules
         // 열기 실패, 짧은 파일은 false. 어느 경로로 나가도 finally에서 닫아줌
         public static function isNew2020File(file:File):Boolean
         {
+            return get2020FileHeaderLength(file) > 0;
+        }
+
+        // .fofo / .2020 파일 헤더 길이
+        // 0 = 헤더 없는 구버전, 9 = "FOFOPAINT"(zlib 리플레이 블록), 11 = "V2FOFOPAINT"(ReplayDataCodec 블록)
+        public static function get2020FileHeaderLength(file:File):int
+        {
             if (!file)
             {
-                return false;
+                return 0;
             }
 
             const fs:FileStream = new FileStream();
@@ -744,11 +757,21 @@ package Modules
             {
                 fs.open(file, FileMode.READ);
                 opened = true;
-                return fs.bytesAvailable >= 9 && fs.readUTFBytes(9) === "FOFOPAINT";
+                // 이전 버전 앱이 앞 9바이트를 "FOFOPAINT"로 오인하지 않게 V2 헤더는 앞에 붙임
+                if (fs.bytesAvailable >= REPLAY_FILE_HEADER_V2.length && fs.readUTFBytes(REPLAY_FILE_HEADER_V2.length) === REPLAY_FILE_HEADER_V2)
+                {
+                    return REPLAY_FILE_HEADER_V2.length;
+                }
+                fs.position = 0;
+                if (fs.bytesAvailable < REPLAY_FILE_HEADER.length || fs.readUTFBytes(REPLAY_FILE_HEADER.length) !== REPLAY_FILE_HEADER)
+                {
+                    return 0;
+                }
+                return REPLAY_FILE_HEADER.length;
             }
             catch (error:Error)
             {
-                return false;
+                return 0;
             }
             finally
             {
@@ -758,7 +781,7 @@ package Modules
                 }
             }
 
-            return false; // 실행되지 않음, 컴파일러용
+            return 0; // 실행되지 않음, 컴파일러용
         }
 
         private static function isOld2020File(file:File):Boolean
@@ -1030,7 +1053,7 @@ package Modules
             refreshFileOperationButtonsTopbar();
         }
 
-        // 운영체제에서 2020파일 연결을 FOFOPAINT로 해줬을때
+        // 운영체제에서 fofo/2020파일 연결을 FOFOPAINT로 해줬을때
         public static function onInvokeEvent(e:InvokeEvent):void
         {
             if (isFileLoadBlocked())
@@ -1312,7 +1335,7 @@ package Modules
             MainUIController.showCanvasResizeButtonVisibleDelay(false);
             InputManager.removeInputEventsReplayMode();
             InputManager.removeInputEventsDrawMode();
-            file.browseForOpen(windowTitle, [new FileFilter("All supported formats", "*.2020;*.png;*.jpg;*.jpeg;*.jfif;*.gif;*.webp")]);
+            file.browseForOpen(windowTitle, [new FileFilter("All supported formats", "*.fofo;*.2020;*.png;*.jpg;*.jpeg;*.jfif;*.gif;*.webp")]);
             file.addEventListener(Event.SELECT, onFileSelected);
             file.addEventListener(Event.COMPLETE, onFileSelectComplete);
             file.addEventListener(Event.CANCEL, onFileSelectCancel);
@@ -1401,7 +1424,7 @@ package Modules
         {
             var name:String = getFileNameFromPath(path);
             const directory:String = getDirectoryOnly(path);
-            const ext:RegExp = /\.(2020|jpg|jpeg|gif|jfif|webp|png)$/i;
+            const ext:RegExp = /\.(fofo|2020|jpg|jpeg|gif|jfif|webp|png)$/i;
             name = ext.test(name) ? name.replace(ext, ".png") : name + ".png";
             return directory.length > 0 ? directory + File.separator + name : name;
         }

@@ -10,6 +10,7 @@ package Modules.ReplayEngine
     import Modules.CacheImageMetaData;
     import Modules.CanvasController;
     import Modules.FileManager;
+    import Modules.ReplayDataCodec;
     import Modules.PixelRestore;
     import Modules.ReferenceLayerController;
     import Modules.Utils;
@@ -29,7 +30,8 @@ package Modules.ReplayEngine
 
         public static function getReplayFileNameFromPath(path:String):String
         {
-            return path.substr(0, path.lastIndexOf(".png")) + ".2020";
+            // 저장은 .fofo, 불러오기는 내용(헤더)으로 판단해서 이전 .2020 파일도 열림
+            return path.substr(0, path.lastIndexOf(".png")) + ".fofo";
         }
 
         public static function initializeReplayDataFile(overWrite:Boolean = false):void // 기본 리플레이 파일 만들어줌
@@ -57,7 +59,8 @@ package Modules.ReplayEngine
             // 실제 저장할 파일을 다시 써줌
             fs.open(FileManager.repFileTemp, FileMode.WRITE);
             fs.position = 0;
-            fs.writeUTFBytes("FOFOPAINT"); // 파일 헤더
+            // 파일 헤더, 리플레이 블록이 코덱 형식이면 이전 버전과 구분되게 V2FOFOPAINT
+            fs.writeUTFBytes(ReplayDataCodec.isEncoded(replayFileByteArray) ? FileManager.REPLAY_FILE_HEADER_V2 : FileManager.REPLAY_FILE_HEADER);
             fs.writeUnsignedInt(replayFileByteArray.length); // 뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
             fs.writeBytes(replayFileByteArray);
 
