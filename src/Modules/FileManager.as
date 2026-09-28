@@ -732,53 +732,69 @@ package Modules
             return finalIMGBMPD;
         }
 
+        // 열기 실패, 짧은 파일은 false. 어느 경로로 나가도 finally에서 닫아줌
         public static function isNew2020File(file:File):Boolean
         {
             if (!file)
             {
                 return false;
             }
+
             const fs:FileStream = new FileStream();
-            fs.open(file, FileMode.READ);
+            var opened:Boolean = false;
+
             try
             {
-                const header:String = fs.readUTFBytes(9);
-                if (header === "FOFOPAINT")
+                fs.open(file, FileMode.READ);
+                opened = true;
+                return fs.bytesAvailable >= 9 && fs.readUTFBytes(9) === "FOFOPAINT";
+            }
+            catch (error:Error)
+            {
+                return false;
+            }
+            finally
+            {
+                if (opened)
                 {
                     fs.close();
-                    return true;
                 }
-                fs.close();
-                fs.open(file, FileMode.READ);
             }
-            catch (err:Error)
-            {
-                fs.close();
-                return false;
-            }
-            return false;
+
+            return false; // 실행되지 않음, 컴파일러용
         }
+
         private static function isOld2020File(file:File):Boolean
         {
+            if (!file)
+            {
+                return false;
+            }
+
             const fs:FileStream = new FileStream();
-            fs.open(file, FileMode.READ);
+            var opened:Boolean = false;
+
             try
             {
+                fs.open(file, FileMode.READ);
+                opened = true;
                 // 구버전 파일 읽기 헤더가 없고 바로 배열임
                 const arr:Array = (fs.readObject() as Array);
-                if (!arr)
-                    return false;
-                if (!(arr[0][0] is String))
-                    return false;
-                fs.close();
-                return true;
+                return arr !== null && arr[0][0] is String;
             }
             catch (err:Error)
             {
-                fs.close();
                 return false;
             }
-            return false;
+            finally
+            {
+                if (opened)
+                {
+                    fs.close();
+                }
+            }
+
+            return false; // 실행되지 않음, 컴파일러용
         }
         public static function isTrue2020File(file:File):Boolean
         {
