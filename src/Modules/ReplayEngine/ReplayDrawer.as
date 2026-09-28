@@ -133,10 +133,11 @@ package Modules.ReplayEngine
         {
             const cacheImageData:Object = ReplayFileCache.loadReplayCacheImage(0);
 
-            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, cacheImageData.bmpd1, rCanvasLayer1Bitmap);
-            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, cacheImageData.bmpd2, rCanvasLayer2Bitmap);
-            cacheImageData.bmpd1.dispose();
-            cacheImageData.bmpd2.dispose();
+            // 파일 캐시에서 새로 만든 bmpd라 clone 없이 그대로 넘겨줌
+            rCanvasLayer1BitmapData = cacheImageData.bmpd1;
+            rCanvasLayer2BitmapData = cacheImageData.bmpd2;
+            rCanvasLayer1Bitmap.bitmapData = rCanvasLayer1BitmapData;
+            rCanvasLayer2Bitmap.bitmapData = rCanvasLayer2BitmapData;
 
             updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
             updateCanvasBGColorReplayMode(cacheImageData.metadata.bgColor);
@@ -206,8 +207,24 @@ package Modules.ReplayEngine
                 ReplayDrawCommands.clearData();
                 clearCanvasReplayMode();
                 ReplayState.rMirrorON = metaData.mirrorFlag;
-                rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, layer1bmpd, rCanvasLayer1Bitmap);
-                rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, layer2bmpd, rCanvasLayer2Bitmap);
+
+                if (loadCacheFlag === 2)
+                {
+                    // 메모리 캐시는 계속 보관해야 하므로 clone해서 씀
+                    rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, layer1bmpd, rCanvasLayer1Bitmap);
+                    rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, layer2bmpd, rCanvasLayer2Bitmap);
+                }
+                else
+                {
+                    // 파일 캐시에서 새로 만든 bmpd라 clone 없이 그대로 넘겨줌
+                    rCanvasLayer1BitmapData = layer1bmpd;
+                    rCanvasLayer2BitmapData = layer2bmpd;
+                    rCanvasLayer1Bitmap.bitmapData = layer1bmpd;
+                    rCanvasLayer2Bitmap.bitmapData = layer2bmpd;
+                }
+
+                layer1bmpd = null;
+                layer2bmpd = null;
                 updateCanvasSizeReplayMode(rCanvasLayer1Bitmap.width, rCanvasLayer1Bitmap.height);
                 updateCanvasBGColorReplayMode(metaData.bgColor);
                 ReplayDrawCommands.setRCursorPos(metaData.rCursorPosX, metaData.rCursorPosY);
@@ -221,14 +238,6 @@ package Modules.ReplayEngine
                 cachedImageData = null;
                 ReplayState.rMemoryDataReadON = false;
                 ReplayState.rMemoryDataStartIndex = 0;
-
-                if (loadCacheFlag !== 2)
-                {
-                    layer1bmpd.dispose();
-                    layer2bmpd.dispose();
-                    layer1bmpd = null;
-                    layer2bmpd = null;
-                }
 
                 if (remainingFrameCount === 0.0)
                 {
