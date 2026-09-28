@@ -1185,7 +1185,7 @@ package Modules
                 return;
             }
 
-            ToolController.openFillPenMenuBoxDelay();
+            FillPenTool.showFillPenMenuBox()
         }
 
         public static function onMouseUpFillPen(e:MouseEvent):void
@@ -2532,7 +2532,7 @@ package Modules
                             }
                             else
                             {
-                                ToolController.openToolBox2Delay();
+                                ToolController.openToolBox2();
                             }
                         }
                     }

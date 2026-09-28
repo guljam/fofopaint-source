@@ -47,8 +47,6 @@ package Modules
         public static const toolBox2:ToolMenuSet2 = new ToolMenuSet2();
         public static const toolOptionsBox:ToolOptionsSet = new ToolOptionsSet();
 
-        private static var toolBoxShowDelayTimer:int = 0;
-
         public static var isToolBox2Showing:Boolean = false; // 툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
         public static var nowTool:int = 1; // 현재 툴 번호
         public static var lastTool:int = TOOL_NONE; // 툴백업
@@ -1199,41 +1197,8 @@ package Modules
             return false;
         }
 
-        public static function cancelToolMenuBox2Delay(event:MouseEvent):void
-        {
-            if (FOFOTimer.hasTimer("toolBoxShowDelayTimer"))
-            {
-                FOFOTimer.remove("toolBoxShowDelayTimer");
-                return;
-            }
-
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, cancelToolMenuBox2Delay);
-        }
-
-        public static function openFillPenMenuBoxDelay():void
-        {
-            openToolMenuBox(FillPenTool.showFillPenMenuBox);
-        }
-
-        public static function openToolBox2Delay():void
-        {
-            openToolMenuBox(openToolBox2);
-        }
-
-        private static function openToolMenuBox(callback:Function):void
-        {
-            if (FOFOTimer.hasTimer("toolBoxShowDelayTimer"))
-            {
-                return;
-            }
-
-            FOFOTimer.addByName("toolBoxShowDelayTimer", TOOL_BOX_ON_DELAY_TIME, false, callback);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, cancelToolMenuBox2Delay);
-        }
-
         public static function openToolBox2():void
         {
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, cancelToolMenuBox2Delay);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             PenSizePreviewCursor.setVisible(false);
             var pos:Point = toolBox2.getLastUsedToolPos();

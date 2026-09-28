@@ -4,15 +4,12 @@ package Modules
     import flash.filesystem.FileStream;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
-    import flash.utils.ByteArray;
-    import flash.geom.Rectangle;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
 
     public class UndoController
     {
-        private static var dataWriteCount:uint = 0; // 데이터로 저장할때  rDataFrame 카운터 누적
         private static const NATIVE_UNDO_LIMIT_COUNT:int = 10;
 
         // undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
@@ -24,11 +21,6 @@ package Modules
                 CanvasController.CANVAS_BG_COLOR,
                 CanvasController.mirrorON
             ];
-
-        public static function resetRJumpImageCount():void
-        {
-            dataWriteCount = 0;
-        }
 
         public static function updateUndoBaseImageMirrorFlag(flag:Boolean):void
         {
@@ -145,47 +137,28 @@ package Modules
 
                     oldData = null;
                     ReplayState.increaseRFileDataTotalFrame(firstElementFrameCount);
-                    dataWriteCount += firstElementFrameCount;
 
                     ReplayDrawer.updateReplayCanvasFromUndoBaseInfo();
 
                     if (ReplayState.rReplayImageCacheState === ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE)
                     {
-                        if (dataWriteCount > ReplayFileCache.REPLAY_DISK_CACHE_FRAME_INTERVAL)
+                        // 따로 카운트를 누적하지 않고 마지막 캐시 이미지 프레임과 비교해서
+                        // 딥 언두, 파일 불러오기, 리플레이 캐시 생성 이후에도 간격이 맞게 해줌
+                        if (ReplayState.getRFileDataTotalFrame() - BackgroundWorkerCoordinator.getLastCacheImageFrame() > ReplayFileCache.REPLAY_DISK_CACHE_FRAME_INTERVAL)
                         {
-                            dataWriteCount = 0;
-
                             const data:Array = undoBaseImage;
-                            const bmpd:BitmapData = data[0];
-                            const bmpd1:BitmapData = data[1];
-                            const w:int = data[2];
-                            const h:int = data[3];
-                            const bgColor:uint = data[4];
 
-                            var imgData:ByteArray = new ByteArray();
-                            var imgData1:ByteArray = new ByteArray();
-                            const newRectangle:Rectangle = new Rectangle(0, 0, w, h);
-
-                            bmpd.copyPixelsToByteArray(newRectangle, imgData);
-                            bmpd1.copyPixelsToByteArray(newRectangle, imgData1);
-
-                            if (BackgroundWorkerCoordinator.receivedUndoImageQueueFromWorker === null)
-                                BackgroundWorkerCoordinator.receivedUndoImageQueueFromWorker = [];
-
-                            if (BackgroundWorkerCoordinator.undoDataQueue === null)
-                                BackgroundWorkerCoordinator.undoDataQueue = [];
-
-                            BackgroundWorkerCoordinator.undoDataQueue.push(
+                            BackgroundWorkerCoordinator.startCacheImageWorker(
+                                    data[0],
+                                    data[1],
                                     new CacheImageMetaData(
-                                        w,
-                                        h,
-                                        bgColor,
+                                        data[2],
+                                        data[3],
+                                        data[4],
                                         rf.size,
                                         lastRDataTotalFrame,
                                         ReplayState.getRFileDataTotalFrame(),
                                         data[5]));
-                            BackgroundWorkerCoordinator.startUndoImageCompressionWorker(imgData, imgData1);
-                            BackgroundWorkerCoordinator.pollTimerWaitWorkerForCacheUndoData();
                         }
                     }
                 }

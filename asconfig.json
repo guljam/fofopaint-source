@@ -20,6 +20,12 @@
 		"warnings": true,
 		"verbose-stacktraces": true
 	},
+	"airOptions": {
+		// com.fofo.pixeldump.ane를 디버그 실행(adl)과 패키징(adt)에 넣어줌
+		"extdir": [
+			"extension"
+		]
+	},
 	"application": "fofoPaint-app.xml",
 	"mainClass": "Main",
 	"type": "app"

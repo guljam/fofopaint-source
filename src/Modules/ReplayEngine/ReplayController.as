@@ -251,20 +251,7 @@ package Modules.ReplayEngine
                 fs.close();
                 // 썸네일 이미지도 날려줌
                 const rNowFrameSave:Number = ReplayState.rNowFrame;
-                const list:Array = FileManager.replayCacheImageFolderPath.getDirectoryListing();
-                const index:Number = ReplayFileCache.getCachedFrameImageIndex(rNowFrameSave);
-                // index번 이후 파일 삭제
-
-                for (var i:uint = 0, len:uint = list.length;i < len;i++)
-                {
-                    if (parseInt(list[i].name) > index)
-                    {
-                        list[i].deleteFile();
-                    }
-                }
-
-                // framedata도 인덱스 이후꺼 날려줌
-                ReplayFileCache.rJumpImageFrameData.splice(index + 1);
+                ReplayFileCache.truncateCacheImagesAfterFrame(rNowFrameSave);
                 ReplayState.setRFileDataTotalFrame(rNowFrameSave);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
                 CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, ReplayDrawer.rCanvasLayer1BitmapData, CanvasController.canvasLayer1Bitmap);
@@ -628,7 +615,6 @@ package Modules.ReplayEngine
             CanvasController.canvasAnchorPoint.visible = false;
             ReplayDrawer.rCanvasAnchorPoint.visible = false;
             CanvasController.canvasNavigatorBox.visible = false;
-            UndoController.resetRJumpImageCount();
             ReplayDrawer.clearCanvasReplayMode(); // 리플레이 캔버스 먼저 깨끗하게
             // 첫 이미지 그려줌
             ReplayDrawer.rCanvasLayer1BitmapData = CanvasController.updateBitmapData(ReplayDrawer.rCanvasLayer1BitmapData, ReplayFileCache.rFirstImageLayer1BitmapData, ReplayDrawer.rCanvasLayer1Bitmap);

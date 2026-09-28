@@ -10,6 +10,8 @@ package Modules.ReplayEngine
     import Modules.CacheImageMetaData;
     import Modules.CanvasController;
     import Modules.FileManager;
+    import Modules.ReplayDataCodec;
+    import Modules.PixelRestore;
     import Modules.ReferenceLayerController;
     import Modules.Utils;
 
@@ -28,7 +30,8 @@ package Modules.ReplayEngine
 
         public static function getReplayFileNameFromPath(path:String):String
         {
-            return path.substr(0, path.lastIndexOf(".png")) + ".2020";
+            // 저장은 .fofo, 불러오기는 내용(헤더)으로 판단해서 이전 .2020 파일도 열림
+            return path.substr(0, path.lastIndexOf(".png")) + ".fofo";
         }
 
         public static function initializeReplayDataFile(overWrite:Boolean = false):void // 기본 리플레이 파일 만들어줌
@@ -56,7 +59,8 @@ package Modules.ReplayEngine
             // 실제 저장할 파일을 다시 써줌
             fs.open(FileManager.repFileTemp, FileMode.WRITE);
             fs.position = 0;
-            fs.writeUTFBytes("FOFOPAINT"); // 파일 헤더
+            // 파일 헤더, 리플레이 블록이 코덱 형식이면 이전 버전과 구분되게 V2FOFOPAINT
+            fs.writeUTFBytes(ReplayDataCodec.isEncoded(replayFileByteArray) ? FileManager.REPLAY_FILE_HEADER_V2 : FileManager.REPLAY_FILE_HEADER);
             fs.writeUnsignedInt(replayFileByteArray.length); // 뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
             fs.writeBytes(replayFileByteArray);
 
@@ -145,8 +149,8 @@ package Modules.ReplayEngine
             const layer1:BitmapData = new BitmapData(metadata.bmpdWidth,metadata.bmpdHeight,true,0);
             const layer2:BitmapData = new BitmapData( metadata.bmpdWidth,metadata.bmpdHeight,true,0);
 
-            layer1.setPixels(rect, data[0]);
-            layer2.setPixels(rect, data[1]);
+            PixelRestore.setPixels(layer1, rect, data[0]);
+            PixelRestore.setPixels(layer2, rect, data[1]);
 
             data[0].clear();
             data[1].clear();
@@ -160,12 +164,30 @@ package Modules.ReplayEngine
 
         public static function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint, mirrorFlag:Boolean = false):void
         {
+            BackgroundWorkerCoordinator.cancelPendingCacheImages();
+
+            // 폴더를 지우고 바로 다시 만들면 다른 프로그램이 안의 파일을 잡고 있을때 삭제 대기 상태가 되어 생성이 실패할수 있어서 안의 파일만 지움
+            // 캐시는 번호 목록 범위 안에서만 읽고 새 캐시는 덮어쓰기로 쓰니 못 지운 파일이 남아도 결과는 같음
             if (FileManager.replayCacheImageFolderPath.exists)
             {
-                FileManager.replayCacheImageFolderPath.deleteDirectory(true);
-            }
+                const list:Array = FileManager.replayCacheImageFolderPath.getDirectoryListing();
 
-            FileManager.replayCacheImageFolderPath.createDirectory();
+                for (var i:int = 0;i < list.length;i++)
+                {
+                    try
+                    {
+                        list[i].deleteFile();
+                    }
+                    catch (error:Error)
+                    {
+                        trace("Cache image cleanup failed: " + error);
+                    }
+                }
+            }
+            else
+            {
+                FileManager.replayCacheImageFolderPath.createDirectory();
+            }
 
             var ba1:ByteArray = new ByteArray();
             var ba2:ByteArray = new ByteArray();
@@ -266,6 +288,63 @@ package Modules.ReplayEngine
             fs.open(FileManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length - 1)), FileMode.WRITE);
             fs.writeObject([bmpd1, bmpd2, metadata]);
             fs.close();
+        }
+
+        // worker가 임시 파일로 써둔 캐시 이미지를 다음 번호로 확정해줌
+        public static function commitCacheImage(tempFile:File, metadata:CacheImageMetaData):Boolean
+        {
+            // 이진 탐색이 깨지지 않게 마지막 캐시보다 뒤이고 리플레이 파일 안에 있는 프레임만 받음
+            if (rJumpImageFrameData.length === 0
+                    || metadata.nowFrame <= rJumpImageFrameData[rJumpImageFrameData.length - 1]
+                    || metadata.nowFrame > ReplayState.getRFileDataTotalFrame())
+            {
+                return false;
+            }
+
+            const dest:File = FileManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length));
+
+            try
+            {
+                const size:Number = tempFile.size;
+                tempFile.moveTo(dest, true);
+
+                // 권한 문제등으로 moveTo가 예외 없이 끝나도 옮겨지지 않은 경우가 있어서 실제로 옮겨졌는지 확인한 뒤에만 번호를 확정
+                // 같은 번호의 오래된 파일이 남아있을수 있으니 크기까지 비교
+                if (size <= 0 || !dest.exists || dest.size !== size || tempFile.exists)
+                {
+                    FileManager.writeCrashLog("Cache image commit not moved: " + dest.nativePath);
+                    return false;
+                }
+            }
+            catch (error:Error)
+            {
+                trace("Cache image commit failed: " + error);
+                return false;
+            }
+
+            rJumpImageFrameData.push(metadata.nowFrame);
+            return true;
+        }
+
+        // frame 이후의 캐시 이미지를 지우고, worker에서 아직 만들고 있는 캐시 이미지도 무효로 만듬
+        public static function truncateCacheImagesAfterFrame(frame:Number):void
+        {
+            BackgroundWorkerCoordinator.cancelPendingCacheImages();
+
+            const list:Array = FileManager.replayCacheImageFolderPath.getDirectoryListing();
+            const index:int = getCachedFrameImageIndex(frame);
+
+            // index번 이후 파일 삭제
+            for (var i:uint = 0, len:uint = list.length;i < len;i++)
+            {
+                if (parseInt(list[i].name) > index)
+                {
+                    list[i].deleteFile();
+                }
+            }
+
+            // framedata도 인덱스 이후꺼 날려줌
+            rJumpImageFrameData.splice(index + 1);
         }
     }
 }

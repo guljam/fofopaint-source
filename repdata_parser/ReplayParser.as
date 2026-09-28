@@ -68,9 +68,13 @@ package
             const objects:Array = [];
             try
             {
-                if (source.extension && source.extension.toLowerCase() == "2020" && stream.bytesAvailable >= 13)
+                if (source.extension && (source.extension.toLowerCase() == "2020" || source.extension.toLowerCase() == "fofo") && stream.bytesAvailable >= 13)
                 {
-                    if (stream.readUTFBytes(9) == HEADER)
+                    // "V2FOFOPAINT"면 블록이 ReplayDataCodec 형식
+                    const isCodecFile:Boolean = stream.readUTFBytes(11) == "V2FOFOPAINT";
+                    if (!isCodecFile)
+                        stream.position = 0;
+                    if (isCodecFile || stream.readUTFBytes(9) == HEADER)
                     {
                         const length:uint = stream.readUnsignedInt();
                         if (length > stream.bytesAvailable)
@@ -79,12 +83,15 @@ package
                         {
                             const packed:ByteArray = new ByteArray();
                             stream.readBytes(packed, 0, length);
-                            packed.uncompress(CompressionAlgorithm.ZLIB);
-                            if (ReplayDataCodec.isEncoded(packed))
+                            if (isCodecFile)
                             {
                                 const decoded:ByteArray = ReplayDataCodec.decode(packed);
                                 packed.clear();
                                 packed.writeBytes(decoded);
+                            }
+                            else
+                            {
+                                packed.uncompress(CompressionAlgorithm.ZLIB);
                             }
                             packed.position = 0;
                             packed.objectEncoding = ObjectEncoding.AMF3;
