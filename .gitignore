@@ -4,6 +4,8 @@
 /.vscode/
 /.agents/
 /.as3mxml-unpackaged-anes/
+/anesrc/pixeldump/build/
+/.ane-debug/
 /native
 /tests
 /test-output

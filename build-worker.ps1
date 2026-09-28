@@ -1,7 +1,7 @@
 $src = "${PSScriptRoot}\src\worker\BackgroundImageProcessor.as"
 $codec = "${PSScriptRoot}\src\Modules\ReplayDataCodec.as"
 $out = "${PSScriptRoot}\worker.swf"
-$inputs = @(Get-ChildItem -Path "${PSScriptRoot}\src\worker" -Filter *.as) + @(Get-Item -Path $codec)
+$inputs = @(Get-ChildItem -Path "${PSScriptRoot}\src\worker" -Filter *.as) + @(Get-Item -Path $codec) + @(Get-Item -Path "${PSScriptRoot}\src\Modules\PixelRestore.as")
 
 if (-not (Test-Path -Path $out) -or ($inputs | Where-Object { $_.LastWriteTime -gt (Get-Item -Path $out).LastWriteTime })) {
     Write-Host "Compiling BackgroundImageProcessor.as..."

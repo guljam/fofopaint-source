@@ -1,5 +1,6 @@
 package worker
 {
+    import Modules.PixelRestore;
     import Modules.ReplayDataCodec;
     import flash.display.BitmapData;
     import flash.display.PNGEncoderOptions;
@@ -42,7 +43,8 @@ package worker
             var bmpd2:BitmapData = new BitmapData(w, h, true, 0);
             ba.position = 0;
             bmpd2.lock();
-            bmpd2.setPixels(new Rectangle(0, 0, w, h), ba);
+            // setPixels를 그대로 쓰면 반투명 픽셀이 1씩 어두워져서 PNG도 어두워짐
+            PixelRestore.setPixels(bmpd2, new Rectangle(0, 0, w, h), ba);
             bmpd2.unlock();
             bmpd.draw(bmpd2);
             ba.clear();
