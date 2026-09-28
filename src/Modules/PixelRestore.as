@@ -7,6 +7,7 @@ package Modules
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.system.ApplicationDomain;
+    import flash.system.Worker;
     import flash.utils.ByteArray;
     import flash.utils.getDefinitionByName;
 
@@ -150,9 +151,14 @@ package Modules
         {
             var api:Object;
 
+            // 워커에서도 ANE 클래스는 보이지만 ExtensionContext를 만들 수 없음(#3731), AS3 경로만 씀
+            if (!Worker.current.isPrimordial)
+            {
+                return;
+            }
+
             try
             {
-                // 워커에는 ANE가 로드되지 않아서 클래스가 없음
                 api = getDefinitionByName(NATIVE_CLASS_NAME);
             }
             catch (error:Error)
