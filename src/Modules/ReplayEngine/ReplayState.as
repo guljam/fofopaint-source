@@ -116,36 +116,25 @@ package Modules.ReplayEngine
             }
         }
 
-        private static function updateLastRMemoryDataCommand(command:String):void
+       private static function updateLastRMemoryDataCommand(command:String):void
         {
-            if (rMemoryData.length === 0)
+            const index:int = UndoManager.undoDataIndex;
+            if (index < 0 || index >= rMemoryData.length)
             {
                 return;
             }
 
-            const arr:Array = rMemoryData[rMemoryData.length - 1];
-
-            if (arr.length === 1)
+            const arr:Array = rMemoryData[index];
+            for (var i:int = 0; i < arr.length; i++)
             {
-                rMemoryData[rMemoryData.length - 1] = rMemoryDataBuffer.concat();
-                rMemoryDataBuffer = [];
-            }
-            else
-            {
-                for (var i:uint = 0;i < arr.length;i++)
+                if (arr[i][0] === command)
                 {
-                    if (command === arr[i][0])
-                    {
-                        // rdata버퍼가 배열이기 때문에 concat을 하면 배열안에 배열이 있어서 0번만 반환해줌
-                        // buffer.concat -> [["data",11]] //이런식으로 반환이됨
-                        arr[i] = rMemoryDataBuffer[0].concat();
-                        rMemoryDataBuffer = [];
-                        break;
-                    }
+                    arr[i] = rMemoryDataBuffer[0].concat();
+                    rMemoryDataBuffer = [];
+                    rMemoryDataFrame[index] = arr.length;
+                    return;
                 }
             }
-
-            rMemoryDataFrame[rMemoryDataFrame.length - 1] = rMemoryData[rMemoryData.length - 1].length;
         }
 
         public static function deleteLastRMemoryDataCommand(command:String):void

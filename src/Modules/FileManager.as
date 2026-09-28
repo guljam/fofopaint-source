@@ -89,10 +89,9 @@ package Modules
 
         // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
         public static var lastWindowDeactivateTime:int = 0;
-    
+
         // 앱종료할때 올려줌 창 최대화 되어있는 상태를 원래대로 하고 window resize이벤트에서 마지막에 종료 호출
         public static var isAppClosing:Boolean = false;
-
 
         public static function writeCrashLog(errorObject:*):void
         {
@@ -107,9 +106,11 @@ package Modules
             {
                 const now:Date = new Date();
                 var dateKey:String = String(now.fullYear);
-                if (now.month + 1 < 10) dateKey += "0";
+                if (now.month + 1 < 10)
+                    dateKey += "0";
                 dateKey += String(now.month + 1);
-                if (now.date < 10) dateKey += "0";
+                if (now.date < 10)
+                    dateKey += "0";
                 dateKey += String(now.date);
 
                 const logFolder:File = dataFolderPath.resolvePath("log");
@@ -215,7 +216,7 @@ package Modules
                     // 압축된 데이터 써주고 압축 풀어줌
                     fs.readBytes(replayData, 0, compBytes);
                     replayData.uncompress();
-                    //이거 gpt가 멋대로 설정함 나중에 손봐야함
+                    // 이거 gpt가 멋대로 설정함 나중에 손봐야함
                     if (ReplayDataCodec.isEncoded(replayData))
                     {
                         const decodedReplayData:ByteArray = ReplayDataCodec.decode(replayData);
@@ -337,7 +338,7 @@ package Modules
             replayData.clear();
             replayData = null;
             finalizeLoadFile(0, 0, null, null, false, 0);
-            ReplayController.startGeneratingReplayCacheImage(true,null);
+            ReplayController.startGeneratingReplayCacheImage(true, null);
         }
 
         public static function loadImageFile(width:Number, height:Number, layer1Image:IBitmapDrawable, layer2Image:IBitmapDrawable):void
@@ -352,7 +353,7 @@ package Modules
             ReplayFileCache.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
         }
 
-        public static function resetDrawAndReplayCanvasState(canvasWidth:Number,canvasHeight:Number):void
+        public static function resetDrawAndReplayCanvasState(canvasWidth:Number, canvasHeight:Number):void
         {
             CanvasController.canvasAnchorPoint.rotation = 0;
             ReplayDrawer.setRcursorRotation(0);
@@ -378,7 +379,7 @@ package Modules
             ReplayController.updateReplayPrograssText(true, 0);
             MainUI.seekBarBox.resetReplayPrograssBarWidth();
 
-            if(bgColor > 0)
+            if (bgColor > 0)
             {
                 CanvasController.setCanvasBGColorDrawMode(bgColor);
                 ReplayDrawer.updateCanvasBGColorReplayMode(bgColor);
@@ -402,17 +403,18 @@ package Modules
             {
                 FillPenTool.cancel();
             }
-            else if(LineTool.isStarted)            
+            else if (LineTool.isStarted)
             {
                 LineTool.cancel();
             }
 
-            if(width > 0 && height > 0 && (imageData || imageData1))
+            if (width > 0 && height > 0 && (imageData || imageData1))
             {
                 var maxLength:Number = (width > height) ? width : height;
                 var scaleLimitMultiplier:Number = (maxLength > CanvasController.CANVAS_MAX_SIZE) ? CanvasController.CANVAS_MAX_SIZE / maxLength : 1.0;
-                const limitedImageWidth:Number = Math.floor(width * scaleLimitMultiplier);
-                const limitedImageHeight:Number = Math.floor(height * scaleLimitMultiplier); // CANVAS_MAX_SIZE 값을 넘으면 리사이즈 해줌
+                // CANVAS_MAX_SIZE 값을 넘으면 리사이즈 해줌 최소길이는 1ㅎ
+                const limitedImageWidth:int = Math.max(1, Math.floor(width * scaleLimitMultiplier));
+                const limitedImageHeight:int = Math.max(1, Math.floor(height * scaleLimitMultiplier));
                 var scaleMat:Matrix = new Matrix();
                 scaleMat.scale(scaleLimitMultiplier, scaleLimitMultiplier);
                 // 최종표시이미지 깔아주ㄱ load fofo에서는 리플레이 명령그대로 입력을 최종 깔아주므로 필요가 없음
@@ -446,13 +448,13 @@ package Modules
                     CanvasController.canvasLayer2BitmapData = new BitmapData(CanvasController.canvasLayer1BitmapData.width, CanvasController.canvasLayer1BitmapData.height, true, 0);
                     CanvasController.canvasLayer2Bitmap.bitmapData = CanvasController.canvasLayer2BitmapData;
                 }
-                
+
                 tmpbmpd.dispose();
                 tmpbmpd = null;
-                resetDrawAndReplayCanvasState(limitedImageWidth,limitedImageHeight);
+                resetDrawAndReplayCanvasState(limitedImageWidth, limitedImageHeight);
                 UndoManager.resetUndoState();
             }
-    
+
             PenSizePreviewCursor.updateSizeAndShape();
             if (CanvasGridOverlay.gridGapMultiplier > 0)
             {
@@ -810,7 +812,7 @@ package Modules
             }
             InputManager.startPressHoldKey((!fromShortcut) ? MainUI.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, CanvasController.resetAllCanvasAndReplayData, null, isReplayDataLocked);
         }
-        
+
         public static function openLocalManualFolder():void
         {
             var targetFolder:File = File.applicationDirectory.resolvePath("manual");
@@ -1264,9 +1266,9 @@ package Modules
                 ReplayController.stopReplay();
             }
             if (LassoTool._isLassoToolStarted || isFileBrowserOpened
-            || FillPenTool.isStarted || LineTool.isStarted
-            || BackgroundWorkerCoordinator.isSaveInProgress
-            || (!toRefLayer && isReplayDataLocked()))
+                    || FillPenTool.isStarted || LineTool.isStarted
+                    || BackgroundWorkerCoordinator.isSaveInProgress
+                    || (!toRefLayer && isReplayDataLocked()))
             {
                 return;
             }

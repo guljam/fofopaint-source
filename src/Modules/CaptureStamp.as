@@ -332,8 +332,9 @@ package Modules
                 scale = 100 / longEdge;
             }
 
-            const scaledWidth:Number = areaWidth * scale;
-            const scaledHeight:Number = areaHeight * scale;
+            //최소길이 1로 유지
+            const scaledWidth:int = Math.max(1, Math.floor(areaWidth * scale));
+            const scaledHeight:int = Math.max(1, Math.floor(areaHeight * scale));
 
             const mat:Matrix = new Matrix();
             mat.scale(scale, scale);
