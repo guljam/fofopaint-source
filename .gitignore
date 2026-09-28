@@ -5,6 +5,7 @@
 /.agents/
 /.as3mxml-unpackaged-anes/
 /anesrc/pixeldump/build/
+/anesrc/pigmentmix/
 /.ane-debug/
 /native
 /tests
@@ -26,3 +27,4 @@ update_note.txt
 AGENT.md
 /repdata_parser
 /artifacts
+
