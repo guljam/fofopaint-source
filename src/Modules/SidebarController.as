@@ -818,7 +818,7 @@ package Modules
 
             checkFOFOPosition();
 
-            if (MainUI.bottomBar.visible)
+            if (MainUI.bottomBar.visible || MainUI.isHighlightBoxVisible())
             {
                 MainUI.hideBottomHint();
             }
