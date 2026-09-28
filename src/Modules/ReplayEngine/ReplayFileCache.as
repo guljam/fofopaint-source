@@ -162,9 +162,121 @@ package Modules.ReplayEngine
             };
         }
 
+        // 캐시 이미지 만드는 도중에 앱을 닫아도 다음 실행때 이어서 만들수 있게 지금까지 확정된 캐시 번호 목록을 기록
+        // repdata 크기, 수정 시간도 같이 넣어서 다른 리플레이 데이터의 캐시로 이어가지 않게 함
+        // 캐시 이미지 파일을 다 쓴 다음에 부르므로 기록에 있는 번호는 전부 온전한 파일임
+        public static function saveCacheProgress():void
+        {
+            const dataFile:File = FileManager.replayDataFilePath;
+            const tempFile:File = FileManager.replayCacheProgressFilePath.parent.resolvePath(FileManager.replayCacheProgressFilePath.name + ".tmp");
+            const fs:FileStream = new FileStream();
+
+            try
+            {
+                fs.open(tempFile, FileMode.WRITE);
+                fs.writeObject([dataFile.size, dataFile.modificationDate.getTime(), rJumpImageFrameData.concat()]);
+                fs.close();
+                tempFile.moveTo(FileManager.replayCacheProgressFilePath, true);
+            }
+            catch (error:Error)
+            {
+                // 기록을 못 남기면 다음 실행때 처음부터 다시 만들면 되니 캐시 생성은 계속함
+                trace("Cache progress save failed: " + error);
+                deleteCacheProgress();
+            }
+        }
+
+        public static function deleteCacheProgress():void
+        {
+            try
+            {
+                if (FileManager.replayCacheProgressFilePath.exists)
+                {
+                    FileManager.replayCacheProgressFilePath.deleteFile();
+                }
+            }
+            catch (error:Error)
+            {
+                trace("Cache progress delete failed: " + error);
+            }
+        }
+
+        // 이어서 만들수 있으면 rJumpImageFrameData를 기록대로 되돌리고 이어서 시작할 캐시 번호를 돌려줌, 못하면 -1
+        public static function restoreCacheProgress():int
+        {
+            const dataFile:File = FileManager.replayDataFilePath;
+            const fs:FileStream = new FileStream();
+
+            try
+            {
+                if (!FileManager.replayCacheProgressFilePath.exists || !dataFile.exists)
+                {
+                    return -1;
+                }
+
+                fs.open(FileManager.replayCacheProgressFilePath, FileMode.READ);
+                const progress:Array = fs.readObject() as Array;
+                fs.close();
+
+                if (progress === null || progress.length !== 3
+                        || progress[0] !== dataFile.size
+                        || progress[1] !== dataFile.modificationDate.getTime())
+                {
+                    return -1;
+                }
+
+                const frames:Array = progress[2] as Array;
+
+                if (frames === null || frames.length === 0 || frames[0] !== 0)
+                {
+                    return -1;
+                }
+
+                // 번호마다 파일이 온전한지, 기록된 프레임과 맞는지 확인
+                var lastByte:Number = 0;
+
+                for (var i:int = 0;i < frames.length;i++)
+                {
+                    if (i > 0 && !(frames[i] > frames[i - 1]))
+                    {
+                        return -1;
+                    }
+
+                    fs.open(FileManager.replayCacheImageFolderPath.resolvePath(String(i)), FileMode.READ);
+                    const data:Array = fs.readObject() as Array;
+                    fs.close();
+
+                    const metadata:CacheImageMetaData = data[2] as CacheImageMetaData;
+
+                    if (!(data[0] is ByteArray) || !(data[1] is ByteArray) || metadata === null
+                            || metadata.nowFrame !== frames[i]
+                            || metadata.lastByte < lastByte
+                            || metadata.lastByte > dataFile.size
+                            || metadata.bmpdWidth <= 0 || metadata.bmpdHeight <= 0)
+                    {
+                        return -1;
+                    }
+
+                    lastByte = metadata.lastByte;
+                }
+
+                rJumpImageFrameData = frames.concat();
+                return frames.length - 1;
+            }
+            catch (error:Error)
+            {
+                // 읽다가 실패한 파일을 잡고 있으면 처음부터 다시 만들때 지워지지 않으니 닫아줌
+                fs.close();
+                trace("Cache progress restore failed: " + error);
+            }
+
+            return -1;
+        }
+
         public static function createFirstImageCache(bmpd1:BitmapData, bmpd2:BitmapData, bgColor:uint, mirrorFlag:Boolean = false):void
         {
             BackgroundWorkerCoordinator.cancelPendingCacheImages();
+            deleteCacheProgress();
 
             // 폴더를 지우고 바로 다시 만들면 다른 프로그램이 안의 파일을 잡고 있을때 삭제 대기 상태가 되어 생성이 실패할수 있어서 안의 파일만 지움
             // 캐시는 번호 목록 범위 안에서만 읽고 새 캐시는 덮어쓰기로 쓰니 못 지운 파일이 남아도 결과는 같음

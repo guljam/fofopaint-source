@@ -122,6 +122,8 @@
 			// imageOffsetX = (bitmapSize / 2) - (bmpd.width * f) / 2;
 			// }
 
+			trace('setpreview image');
+
 			const mat:Matrix = new Matrix();
 			mat.scale(f, f);
 			mat.translate(imageOffsetX, imageOffsetY);
@@ -131,7 +133,7 @@
 			{
 				clickBlockerBitmap.bitmapData.dispose();
 			}
-			clickBlockerBitmap.bitmapData = bmpd;
+			clickBlockerBitmap.bitmapData = tmpbmpd;
 		}
 
 		public function updateUIColor():void

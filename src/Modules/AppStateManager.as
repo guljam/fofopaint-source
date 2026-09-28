@@ -474,6 +474,15 @@ package Modules
 
                         if(ReplayState.isGeneratingCacheImages())
                         {
+                            // 캐시 이미지 만드는 도중에 닫았으면 마지막으로 확정된 캐시 이미지부터 이어서 만듬
+                            const resumeIndex:int = ReplayFileCache.restoreCacheProgress();
+
+                            if (resumeIndex >= 0)
+                            {
+                                ReplayController.startGeneratingReplayCacheImage(true, null, resumeIndex);
+                                return;
+                            }
+
                             ReplayFileCache.createFirstImageCache(
                                 ReplayFileCache.rFirstImageLayer1BitmapData,
                                 ReplayFileCache.rFirstImageLayer2BitmapData,

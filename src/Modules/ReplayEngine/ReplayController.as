@@ -63,6 +63,7 @@ package Modules.ReplayEngine
         private static var updatePrograssBarStartTime:int = 0; // 리플레이 시작 시간저장 update prograss bar에서 프레임 오차 수정할때 참고하는 변수
         private static var rReplayRestartTimerCount:uint = 0; // 리스타트 타이머
         private static var rSeekbarTextUpdateTime:int = 0; // 프레임 바 딜레이
+        private static var stopGeneratingCacheImageFunc:Function = null; // 캐시 이미지 만드는 중이면 멈추는 함수
         public static var lastReplayTimeBoxYPos:Number = 0; // 리플레이 재생해줄때 WorkspaceView.topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
 
         public static function setMainInstance(instance:Main):void
@@ -547,9 +548,11 @@ package Modules.ReplayEngine
         {
             main.stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
             fs.close();
+            stopGeneratingCacheImageFunc = null;
             ReplayDrawCommands.clearData();
             ReplayState.setRFileDataTotalFrame(_frameSum);
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
+            ReplayFileCache.deleteCacheProgress();
             resetReplayTime();
             updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
             ReplayState.rNowFrame = ReplayState.TOTAL_FRAME;
@@ -601,7 +604,8 @@ package Modules.ReplayEngine
             }
         }
 
-        public static function generateReplayCacheImage(finalizeFunc:Function):void
+        // resumeIndex가 0 이상이면 그 번호의 캐시 이미지 상태에서 이어서 만듬 (rJumpImageFrameData는 미리 복원되어 있어야함)
+        public static function generateReplayCacheImage(finalizeFunc:Function, resumeIndex:int = -1):void
         {
             const fs:FileStream = new FileStream();
             const fs2:FileStream = new FileStream();
@@ -616,14 +620,39 @@ package Modules.ReplayEngine
             ReplayDrawer.rCanvasAnchorPoint.visible = false;
             CanvasController.canvasNavigatorBox.visible = false;
             ReplayDrawer.clearCanvasReplayMode(); // 리플레이 캔버스 먼저 깨끗하게
-            // 첫 이미지 그려줌
-            ReplayDrawer.rCanvasLayer1BitmapData = CanvasController.updateBitmapData(ReplayDrawer.rCanvasLayer1BitmapData, ReplayFileCache.rFirstImageLayer1BitmapData, ReplayDrawer.rCanvasLayer1Bitmap);
-            ReplayDrawer.rCanvasLayer2BitmapData = CanvasController.updateBitmapData(ReplayDrawer.rCanvasLayer2BitmapData, ReplayFileCache.rFirstImageLayer2BitmapData, ReplayDrawer.rCanvasLayer2Bitmap);
-            // 크기도 바꿔주고
-            ReplayDrawer.syncCanvasSizeReplayMode(ReplayDrawer.rCanvasLayer1BitmapData.width, ReplayDrawer.rCanvasLayer1BitmapData.height);
             fs.open(FileManager.replayDataFilePath, FileMode.READ);
-            fs.position = 0;
-            ReplayState.rMirrorON = ReplaySaveMetaData.firstImageMirrorFlag;
+
+            if (resumeIndex >= 0)
+            {
+                // 캐시 이미지를 만들던 그 시점 상태로 되돌려줌 (탐색할때 캐시 이미지에서 이어 그리는것과 같음)
+                const cacheImageData:Object = ReplayFileCache.loadReplayCacheImage(resumeIndex);
+                const metadata:CacheImageMetaData = cacheImageData.metadata as CacheImageMetaData;
+                // 파일 캐시에서 새로 만든 bmpd라 clone 없이 그대로 넘겨줌
+                ReplayDrawer.rCanvasLayer1BitmapData = cacheImageData.bmpd1;
+                ReplayDrawer.rCanvasLayer2BitmapData = cacheImageData.bmpd2;
+                ReplayDrawer.rCanvasLayer1Bitmap.bitmapData = ReplayDrawer.rCanvasLayer1BitmapData;
+                ReplayDrawer.rCanvasLayer2Bitmap.bitmapData = ReplayDrawer.rCanvasLayer2BitmapData;
+                ReplayState.rLastCanvasBGColor = metadata.bgColor;
+                ReplayDrawer.updateCanvasBGColorReplayMode(metadata.bgColor);
+                ReplayDrawer.syncCanvasSizeReplayMode(metadata.bmpdWidth, metadata.bmpdHeight);
+                ReplayDrawCommands.setRCursorPos(metadata.rCursorPosX, metadata.rCursorPosY);
+                ReplayState.rMirrorON = metadata.mirrorFlag;
+                fs.position = metadata.lastByte;
+                _frameSum = metadata.nowFrame;
+                _LastframeSum = metadata.lastFrame;
+            }
+            else
+            {
+                // 첫 이미지 그려줌
+                ReplayDrawer.rCanvasLayer1BitmapData = CanvasController.updateBitmapData(ReplayDrawer.rCanvasLayer1BitmapData, ReplayFileCache.rFirstImageLayer1BitmapData, ReplayDrawer.rCanvasLayer1Bitmap);
+                ReplayDrawer.rCanvasLayer2BitmapData = CanvasController.updateBitmapData(ReplayDrawer.rCanvasLayer2BitmapData, ReplayFileCache.rFirstImageLayer2BitmapData, ReplayDrawer.rCanvasLayer2Bitmap);
+                // 크기도 바꿔주고
+                ReplayDrawer.syncCanvasSizeReplayMode(ReplayDrawer.rCanvasLayer1BitmapData.width, ReplayDrawer.rCanvasLayer1BitmapData.height);
+                fs.position = 0;
+                ReplayState.rMirrorON = ReplaySaveMetaData.firstImageMirrorFlag;
+            }
+
+            ReplayFileCache.saveCacheProgress();
             FileManager.loadMenuBox.visible = false;
 
             function printPrograssHint(bytes:Number):void
@@ -687,6 +716,7 @@ package Modules.ReplayEngine
                                 ));
                         imgData1.clear();
                         imgData2.clear();
+                        ReplayFileCache.saveCacheProgress();
 
                         if (MainUI.seekBarBox.prograssBar.width > 0)
                         {
@@ -697,9 +727,25 @@ package Modules.ReplayEngine
             }
 
             main.stage.addEventListener(Event.ENTER_FRAME, onFrameEnter);
+            stopGeneratingCacheImageFunc = function ():void
+            {
+                main.stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
+                fs.close();
+            };
         }
 
-        public static function startGeneratingReplayCacheImage(fromLoadFile:Boolean, finalizeFunc:Function):void
+        // 앱을 닫을때 캐시 이미지 만드는걸 멈춤, 상태는 처리중으로 남겨서 다음 실행때 이어서 만들게 함
+        // 멈추지 않으면 창이 닫혀도 ENTER_FRAME이 계속 돌아서 앱이 종료되지 않음
+        public static function stopGeneratingReplayCacheImage():void
+        {
+            if (stopGeneratingCacheImageFunc !== null)
+            {
+                stopGeneratingCacheImageFunc();
+                stopGeneratingCacheImageFunc = null;
+            }
+        }
+
+        public static function startGeneratingReplayCacheImage(fromLoadFile:Boolean, finalizeFunc:Function, resumeIndex:int = -1):void
         {
             if (fromLoadFile)
             {
@@ -712,7 +758,7 @@ package Modules.ReplayEngine
             }
 
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_PROCESSING;
-            generateReplayCacheImage(finalizeFunc);
+            generateReplayCacheImage(finalizeFunc, resumeIndex);
         }
 
         public static function resetReplaySpeedBar():void

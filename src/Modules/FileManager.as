@@ -51,6 +51,7 @@ package Modules
             replayCacheImageFolderPath = dataFolderPath.resolvePath("imagecache");
             replayCacheImageTempFolderPath = dataFolderPath.resolvePath("imagecache_tmp");
             replayCacheImageFrameDataFilePath = dataFolderPath.resolvePath("jumpframedata");
+            replayCacheProgressFilePath = dataFolderPath.resolvePath("imagecacheprogress");
         }
         // todo load box는 load box controller로 따로 분리, app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
         // todo 저장할때 rdata undo 되어있을때 데이터가 사라짐 deepundo쪽은 그대로 살아있음
@@ -64,6 +65,7 @@ package Modules
         public static var replayCacheImageFolderPath:File;
         public static var replayCacheImageTempFolderPath:File; // worker가 캐시 이미지를 쓰는 곳, main이 확인 후 imagecache로 옮김
         public static var replayCacheImageFrameDataFilePath:File;
+        public static var replayCacheProgressFilePath:File; // 캐시 이미지 만드는 도중 앱을 닫았을때 이어서 만들기 위한 진행 기록
         public static const appUpTimePath:File = File.applicationStorageDirectory.resolvePath("appuptime");
         public static var repFileTemp:File; // 파일을 저장하거나 불러올때 씀
         public static const REPLAY_FILE_HEADER:String = "FOFOPAINT"; // 리플레이 블록이 zlib
@@ -1808,6 +1810,9 @@ package Modules
             {
                 LassoTool.cancelLassoTool();
             }
+
+            // 캐시 이미지 만드는 중이면 멈춰야 앱이 종료됨 (다음 실행때 이어서 만듬)
+            ReplayController.stopGeneratingReplayCacheImage();
 
             if (BackgroundWorkerCoordinator.isWorkerBusy())
             {
