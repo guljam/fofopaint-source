@@ -299,53 +299,17 @@ package Modules
             inputBMPD.draw(captureStampBitmap, mat, ct);
         }
 
+        // 대표색 추출용이라 긴 축 최대 100으로 처음부터 작게 합성함
         private static function getCaptureAreaBmpd(clipRect:Rectangle, layer1:Boolean, layer2:Boolean):BitmapData
         {
-            var longEdge:Number;
-            var areaWidth:Number;
-            var areaHeight:Number;
-
             const fullImageFlag:Boolean = clipRect.width === 0 && clipRect.height === 0;
 
-            if (fullImageFlag)
-            {
-                longEdge = CanvasController.CANVAS_HEIGHT > CanvasController.CANVAS_WIDTH ? CanvasController.CANVAS_HEIGHT : CanvasController.CANVAS_WIDTH;
-                areaWidth = CanvasController.CANVAS_WIDTH;
-                areaHeight = CanvasController.CANVAS_HEIGHT;
-            }
-            else
-            {
-                longEdge = clipRect.height > clipRect.width ? clipRect.height : clipRect.width;
-                areaWidth = clipRect.width;
-                areaHeight = clipRect.height;
-            }
-
-            if (areaWidth === 0 || areaHeight === 0)
+            if (!fullImageFlag && (clipRect.width === 0 || clipRect.height === 0))
             {
                 return null;
             }
 
-            var scale:Number = 1.0;
-
-            if (longEdge > 100)
-            {
-                scale = 100 / longEdge;
-            }
-
-            //최소길이 1로 유지
-            const scaledWidth:int = Math.max(1, Math.floor(areaWidth * scale));
-            const scaledHeight:int = Math.max(1, Math.floor(areaHeight * scale));
-
-            const mat:Matrix = new Matrix();
-            mat.scale(scale, scale);
-
-            const tmpbmpd:BitmapData = new BitmapData(scaledWidth, scaledHeight, true, 0);
-            const rawbmpd:BitmapData = CanvasController.getMergedBitmapdtata(false, layer1, layer2, (fullImageFlag) ? null : clipRect);
-
-            tmpbmpd.draw(rawbmpd, mat);
-            rawbmpd.dispose();
-
-            return tmpbmpd;
+            return CanvasController.getMergedBitmapdtata(false, layer1, layer2, (fullImageFlag) ? null : clipRect, 100);
         }
 
         private static function onFocusOutCaptureStampInput(e:FocusEvent):void
@@ -862,7 +826,7 @@ package Modules
                 {
                     const tegakiBGColorIndex:int = PaletteController.myPaletteTegakiPreset.indexOf((ReplayState.isReplayModeON) ? ReplayState.RCANVAS_BG_COLOR : CanvasController.CANVAS_BG_COLOR);
 
-                    if (tegakiBGColorIndex >= 0)
+                    if (tegakiBGColorIndex >= 10)
                     {
                         stampBGColor = PaletteController.myPaletteTegakiPreset[tegakiBGColorIndex - 10];
                     }

@@ -641,7 +641,8 @@ package Modules
             bringCanvasDrawLayerAboveLayer2();
         }
 
-        public static function getMergedBitmapdtata(transparentBG:Boolean, layer1merge:Boolean, layer2merge:Boolean, clipRect:Rectangle):BitmapData
+        // maxOutputEdge > 0이면 긴 축이 그 값 이하가 되도록 처음부터 작게 합성함 (대표색 추출처럼 큰 이미지가 필요 없을때)
+        public static function getMergedBitmapdtata(transparentBG:Boolean, layer1merge:Boolean, layer2merge:Boolean, clipRect:Rectangle, maxOutputEdge:Number = 0):BitmapData
         {
             var xBitmapData1:BitmapData;
             var xBitmapData11:BitmapData;
@@ -666,7 +667,22 @@ package Modules
                 xBGCOLOR = CANVAS_BG_COLOR;
                 alpha = 1.0;
             }
-            if (clipRect !== null)
+            const sourceWidth:Number = (clipRect !== null) ? clipRect.width : xBitmapData1.width;
+            const sourceHeight:Number = (clipRect !== null) ? clipRect.height : xBitmapData1.height;
+            const longEdge:Number = (sourceWidth > sourceHeight) ? sourceWidth : sourceHeight;
+            const scale:Number = (maxOutputEdge > 0 && longEdge > maxOutputEdge) ? maxOutputEdge / longEdge : 1.0;
+            if (scale !== 1.0)
+            {
+                // 축소할때 최소길이 1 유지
+                bmpd = new BitmapData(Math.max(1, Math.floor(sourceWidth * scale)), Math.max(1, Math.floor(sourceHeight * scale)), true, (transparentBG) ? 0 : 0xFF000000 | xBGCOLOR);
+                mat = new Matrix();
+                if (clipRect !== null)
+                {
+                    mat.translate(-clipRect.x, -clipRect.y);
+                }
+                mat.scale(scale, scale);
+            }
+            else if (clipRect !== null)
             {
                 bmpd = new BitmapData(clipRect.width, clipRect.height, true, (transparentBG) ? 0 : 0xFF000000 | xBGCOLOR);
                 mat = new Matrix();
