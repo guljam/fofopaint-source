@@ -21,8 +21,10 @@
 			fofoCursor = new EmbeddedClass() as SimpleButton;
 			this.addChild(fofoCursor);
 			visible = false;
-			mouseEnabled = false;
-			useHandCursor = false;
+			fofoCursor.mouseEnabled = false;
+			fofoCursor.useHandCursor = false;
+			this.mouseEnabled = false;
+			this.useHandCursor = false;
 		}
 	}
 }
