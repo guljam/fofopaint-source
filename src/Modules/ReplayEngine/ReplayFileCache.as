@@ -15,7 +15,7 @@ package Modules.ReplayEngine
 
     public class ReplayFileCache
     {
-        public static const REPLAY_DISK_CACHE_FRAME_INTERVAL:Number = 1;
+        public static const REPLAY_DISK_CACHE_FRAME_INTERVAL:Number = 10000;
         public static const REPLAY_MEMORY_CACHE_FRAME_INTERVAL:Number = 700;
       
         public static var rFirstImageLayer1BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
