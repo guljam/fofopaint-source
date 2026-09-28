@@ -246,7 +246,7 @@ package Modules
                         ba.uncompress();
                         ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(d[2], d[3], true, 0);
                         ReplayFileCache.rFirstImageLayer1BitmapData.lock();
-                        ReplayFileCache.rFirstImageLayer1BitmapData.setPixels(rect, ba);
+                        PixelRestore.setPixels(ReplayFileCache.rFirstImageLayer1BitmapData, rect, ba);
                         ReplayFileCache.rFirstImageLayer1BitmapData.unlock();
                         ba.clear();
                         ba = null;
@@ -261,14 +261,14 @@ package Modules
                         ba.uncompress();
                         ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(d[3], d[4], true, 0);
                         ReplayFileCache.rFirstImageLayer1BitmapData.lock();
-                        ReplayFileCache.rFirstImageLayer1BitmapData.setPixels(rect, ba);
+                        PixelRestore.setPixels(ReplayFileCache.rFirstImageLayer1BitmapData, rect, ba);
                         ReplayFileCache.rFirstImageLayer1BitmapData.unlock();
                         ba.clear();
                         ba = d[2] as ByteArray;
                         ba.uncompress();
                         ReplayFileCache.rFirstImageLayer2BitmapData = new BitmapData(d[3], d[4], true, 0);
                         ReplayFileCache.rFirstImageLayer2BitmapData.lock();
-                        ReplayFileCache.rFirstImageLayer2BitmapData.setPixels(rect, ba);
+                        PixelRestore.setPixels(ReplayFileCache.rFirstImageLayer2BitmapData, rect, ba);
                         ReplayFileCache.rFirstImageLayer2BitmapData.unlock();
                         ba.clear();
                         ba = null;
@@ -294,7 +294,7 @@ package Modules
                     ba.uncompress();
                     ReferenceLayerController.refLayerRawBitmapData = new BitmapData(d[2], d[3], true, 0);
                     ReferenceLayerController.refLayerRawBitmapData.lock();
-                    ReferenceLayerController.refLayerRawBitmapData.setPixels(rect, ba);
+                    PixelRestore.setPixels(ReferenceLayerController.refLayerRawBitmapData, rect, ba);
                     ReferenceLayerController.refLayerRawBitmapData.unlock();
                     ba.clear();
                     ba = null;
@@ -689,7 +689,7 @@ package Modules
                         ba.uncompress();
                         finalIMGBMPD = new BitmapData(d[2], d[3], true, 0);
                         finalIMGBMPD.lock();
-                        finalIMGBMPD.setPixels(newRectangle, ba);
+                        PixelRestore.setPixels(finalIMGBMPD, newRectangle, ba);
                         finalIMGBMPD.unlock();
                         ba.clear();
                         ba = null;
@@ -702,14 +702,14 @@ package Modules
                         ba.uncompress();
                         finalIMGBMPD = new BitmapData(d[3], d[4], true, 0);
                         finalIMGBMPD.lock();
-                        finalIMGBMPD.setPixels(newRectangle, ba);
+                        PixelRestore.setPixels(finalIMGBMPD, newRectangle, ba);
                         finalIMGBMPD.unlock();
                         ba.clear();
                         ba = d[1] as ByteArray;
                         ba.uncompress();
                         finalIMGBMPD1 = new BitmapData(d[3], d[4], true, 0);
                         finalIMGBMPD1.lock();
-                        finalIMGBMPD1.setPixels(newRectangle, ba);
+                        PixelRestore.setPixels(finalIMGBMPD1, newRectangle, ba);
                         finalIMGBMPD1.unlock();
                         ba.clear();
                         ba = null;
@@ -1634,7 +1634,7 @@ package Modules
             var arr:Array = fs.readObject() as Array;
             fs.close();
             bmpd.lock();
-            bmpd.setPixels(new Rectangle(0, 0, arr[1], arr[2]), arr[0]);
+            PixelRestore.setPixels(bmpd, new Rectangle(0, 0, arr[1], arr[2]), arr[0]);
             bmpd.unlock();
         }
 
@@ -1843,11 +1843,11 @@ package Modules
             UndoManager.undoDataIndex = lastUndoIndex;
 
             bmpd.lock();
-            bmpd.setPixels(bmpdRect, arr[0]);
+            PixelRestore.setPixels(bmpd, bmpdRect, arr[0]);
             bmpd.unlock();
 
             bmpd1.lock();
-            bmpd1.setPixels(bmpdRect, arr[1]);
+            PixelRestore.setPixels(bmpd1, bmpdRect, arr[1]);
             bmpd1.unlock();
 
             UndoController.updateUndoBaseImage(bmpd.clone(), bmpd1.clone(), arr[2], arr[3], arr[4], arr[5]);

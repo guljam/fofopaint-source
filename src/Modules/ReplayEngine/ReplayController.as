@@ -615,7 +615,6 @@ package Modules.ReplayEngine
             CanvasController.canvasAnchorPoint.visible = false;
             ReplayDrawer.rCanvasAnchorPoint.visible = false;
             CanvasController.canvasNavigatorBox.visible = false;
-            UndoController.resetRJumpImageCount();
             ReplayDrawer.clearCanvasReplayMode(); // 리플레이 캔버스 먼저 깨끗하게
             // 첫 이미지 그려줌
             ReplayDrawer.rCanvasLayer1BitmapData = CanvasController.updateBitmapData(ReplayDrawer.rCanvasLayer1BitmapData, ReplayFileCache.rFirstImageLayer1BitmapData, ReplayDrawer.rCanvasLayer1Bitmap);

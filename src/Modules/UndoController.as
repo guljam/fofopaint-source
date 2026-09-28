@@ -10,7 +10,6 @@ package Modules
 
     public class UndoController
     {
-        private static var dataWriteCount:uint = 0; // 데이터로 저장할때  rDataFrame 카운터 누적
         private static const NATIVE_UNDO_LIMIT_COUNT:int = 10;
 
         // undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
@@ -22,11 +21,6 @@ package Modules
                 CanvasController.CANVAS_BG_COLOR,
                 CanvasController.mirrorON
             ];
-
-        public static function resetRJumpImageCount():void
-        {
-            dataWriteCount = 0;
-        }
 
         public static function updateUndoBaseImageMirrorFlag(flag:Boolean):void
         {
@@ -143,16 +137,15 @@ package Modules
 
                     oldData = null;
                     ReplayState.increaseRFileDataTotalFrame(firstElementFrameCount);
-                    dataWriteCount += firstElementFrameCount;
 
                     ReplayDrawer.updateReplayCanvasFromUndoBaseInfo();
 
                     if (ReplayState.rReplayImageCacheState === ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE)
                     {
-                        if (dataWriteCount > ReplayFileCache.REPLAY_DISK_CACHE_FRAME_INTERVAL)
+                        // 따로 카운트를 누적하지 않고 마지막 캐시 이미지 프레임과 비교해서
+                        // 딥 언두, 파일 불러오기, 리플레이 캐시 생성 이후에도 간격이 맞게 해줌
+                        if (ReplayState.getRFileDataTotalFrame() - BackgroundWorkerCoordinator.getLastCacheImageFrame() > ReplayFileCache.REPLAY_DISK_CACHE_FRAME_INTERVAL)
                         {
-                            dataWriteCount = 0;
-
                             const data:Array = undoBaseImage;
 
                             BackgroundWorkerCoordinator.startCacheImageWorker(

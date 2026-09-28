@@ -10,6 +10,7 @@ package Modules.ReplayEngine
     import Modules.CacheImageMetaData;
     import Modules.CanvasController;
     import Modules.FileManager;
+    import Modules.PixelRestore;
     import Modules.ReferenceLayerController;
     import Modules.Utils;
 
@@ -145,8 +146,8 @@ package Modules.ReplayEngine
             const layer1:BitmapData = new BitmapData(metadata.bmpdWidth,metadata.bmpdHeight,true,0);
             const layer2:BitmapData = new BitmapData( metadata.bmpdWidth,metadata.bmpdHeight,true,0);
 
-            layer1.setPixels(rect, data[0]);
-            layer2.setPixels(rect, data[1]);
+            PixelRestore.setPixels(layer1, rect, data[0]);
+            PixelRestore.setPixels(layer2, rect, data[1]);
 
             data[0].clear();
             data[1].clear();

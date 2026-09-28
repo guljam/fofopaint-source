@@ -1,0 +1,238 @@
+package Modules
+{
+    import avm2.intrinsics.memory.li8;
+    import avm2.intrinsics.memory.si8;
+    import flash.display.BitmapData;
+    import flash.display.BitmapDataChannel;
+    import flash.geom.Point;
+    import flash.geom.Rectangle;
+    import flash.system.ApplicationDomain;
+    import flash.utils.ByteArray;
+
+    // 투명 BitmapData는 내부에 premultiplied(색 x 알파) 값으로 저장돼서
+    // copyPixelsToByteArray로 꺼낸 값을 setPixels로 다시 넣으면 반투명 픽셀이 1씩 어두워지고, 왕복할수록 누적됨
+    // 처음 쓸때 런타임 변환을 측정해서 원래 내부값을 그대로 만드는 입력값 표를 만들고 불러올때 적용해줌
+    // 저장쪽에는 적용하면 안됨 (두번 적용되면 틀어짐)
+    public final class PixelRestore
+    {
+        private static const TABLE_LENGTH:int = 65536; // [알파 << 8 | copyPixelsToByteArray 출력값] -> setPixels 입력값
+        private static const CHUNK_LENGTH:int = 1 << 20; // 한번에 작업 영역으로 복사해서 바꾸는 픽셀 바이트 수
+        // domainMemory로 쓰는 버퍼, 앞 TABLE_LENGTH는 표이고 뒤는 작업 영역
+        // 측정이나 자체 검증에 실패하면 null로 두고 기존 setPixels 그대로 씀
+        private static var workMemory:ByteArray = null;
+        private static var isTableReady:Boolean = false;
+
+        // bmpd.setPixels(rect, pixels)와 같지만 저장할때의 내부 픽셀값을 그대로 복원해줌
+        public static function setPixels(bmpd:BitmapData, rect:Rectangle, pixels:ByteArray):void
+        {
+            if (!isTableReady)
+            {
+                buildTable();
+            }
+
+            if (workMemory !== null && bmpd.transparent)
+            {
+                remap(pixels, rect.width * rect.height * 4);
+            }
+
+            bmpd.setPixels(rect, pixels);
+        }
+
+        // pixels의 현재 position부터 byteCount만큼 반투명 픽셀의 RGB를 표로 바꿔줌, position은 그대로 둠
+        private static function remap(pixels:ByteArray, byteCount:int):void
+        {
+            const work:ByteArray = workMemory;
+            const start:uint = pixels.position;
+            const pixelEnd:uint = Math.min(pixels.length, start + byteCount);
+            // libwebp(Crossbridge)도 domainMemory를 쓰므로 원래 값으로 돌려놔야함
+            const previousMemory:ByteArray = ApplicationDomain.currentDomain.domainMemory;
+            var offset:uint;
+            var length:int;
+            var end:int;
+            var i:int;
+            var alpha:int;
+            var row:int;
+
+            try
+            {
+                ApplicationDomain.currentDomain.domainMemory = work;
+
+                // 픽셀을 표 뒤 작업 영역으로 조금씩 복사해서 li8/si8로 바꾼 뒤 되돌려 씀 (원본 크기를 늘리지 않으려고)
+                for (offset = start;offset < pixelEnd;offset += CHUNK_LENGTH)
+                {
+                    length = Math.min(CHUNK_LENGTH, pixelEnd - offset);
+                    work.position = TABLE_LENGTH;
+                    work.writeBytes(pixels, offset, length);
+                    end = TABLE_LENGTH + length;
+                    // 디버그 빌드는 소스 줄마다 debugline 명령이 들어가서 반복문 본문을 한 줄로 두면 10배 가량 빨라짐
+                    for (i = TABLE_LENGTH;i < end;i += 4) { alpha = li8(i); if (alpha !== 0 && alpha !== 255) { row = alpha << 8; si8(li8(row | li8(i + 1)), i + 1); si8(li8(row | li8(i + 2)), i + 2); si8(li8(row | li8(i + 3)), i + 3); } }
+                    pixels.position = offset;
+                    pixels.writeBytes(work, TABLE_LENGTH, length);
+                }
+            }
+            finally
+            {
+                ApplicationDomain.currentDomain.domainMemory = previousMemory;
+                pixels.position = start;
+            }
+        }
+
+        private static function buildTable():void
+        {
+            isTableReady = true;
+
+            try
+            {
+                const table:ByteArray = measureTable();
+
+                if (table === null)
+                {
+                    trace("PixelRestore: runtime conversion is not reversible, using plain setPixels");
+                    return;
+                }
+
+                const work:ByteArray = new ByteArray();
+                work.length = TABLE_LENGTH + CHUNK_LENGTH;
+                work.writeBytes(table, 0, TABLE_LENGTH);
+                table.clear();
+
+                if (verifyTable(work))
+                {
+                    workMemory = work;
+                }
+                else
+                {
+                    work.clear();
+                    trace("PixelRestore: runtime conversion check failed, using plain setPixels");
+                }
+            }
+            catch (error:Error)
+            {
+                workMemory = null;
+                trace("PixelRestore: " + error);
+            }
+        }
+
+        // 모든 (알파, 입력값) 조합을 setPixels로 넣어보고 내부값과 출력값을 비교해서 표를 만듬
+        private static function measureTable():ByteArray
+        {
+            const rect:Rectangle = new Rectangle(0, 0, 256, 256);
+            const input:ByteArray = new ByteArray();
+            var alpha:int;
+            var value:int;
+
+            for (alpha = 0;alpha < 256;alpha++)
+            {
+                for (value = 0;value < 256;value++)
+                {
+                    input.writeByte(alpha);
+                    input.writeByte(value);
+                    input.writeByte(value);
+                    input.writeByte(value);
+                }
+            }
+
+            input.position = 0;
+            const grid:BitmapData = new BitmapData(256, 256, true, 0);
+            grid.setPixels(rect, input);
+
+            const premultiplied:BitmapData = getPremultipliedColor(grid);
+            const output:ByteArray = new ByteArray();
+            grid.copyPixelsToByteArray(rect, output);
+
+            // 출력값 -> 내부값, 내부값 -> 그 값을 만드는 입력값
+            const outputToInternal:Vector.<int> = new Vector.<int>(TABLE_LENGTH, true);
+            const internalToInput:Vector.<int> = new Vector.<int>(TABLE_LENGTH, true);
+
+            for (var i:int = 0;i < TABLE_LENGTH;i++)
+            {
+                outputToInternal[i] = -1;
+                internalToInput[i] = -1;
+            }
+
+            for (alpha = 0;alpha < 256;alpha++)
+            {
+                for (value = 0;value < 256;value++)
+                {
+                    const internalValue:int = premultiplied.getPixel(value, alpha) & 0xFF;
+                    const outputValue:int = output[((alpha << 8) | value) * 4 + 3];
+                    const outputKey:int = (alpha << 8) | outputValue;
+
+                    // 같은 출력값이 서로 다른 내부값에서 나오면 되돌릴 수 없음
+                    if (outputToInternal[outputKey] !== -1 && outputToInternal[outputKey] !== internalValue)
+                    {
+                        return null;
+                    }
+
+                    outputToInternal[outputKey] = internalValue;
+                    internalToInput[(alpha << 8) | internalValue] = value;
+                }
+            }
+
+            const table:ByteArray = new ByteArray();
+            table.length = TABLE_LENGTH;
+
+            for (i = 0;i < TABLE_LENGTH;i++)
+            {
+                const internalFromOutput:int = outputToInternal[i];
+                const restoredInput:int = (internalFromOutput !== -1) ? internalToInput[(i & 0xFF00) | internalFromOutput] : -1;
+                // 측정에 없던 값은 그대로 둠
+                table[i] = (restoredInput !== -1) ? restoredInput : (i & 0xFF);
+            }
+
+            grid.dispose();
+            premultiplied.dispose();
+            input.clear();
+            output.clear();
+            return table;
+        }
+
+        // 채널마다 다른 무작위 반투명 픽셀로 저장 -> 복원을 해보고 내부값이 그대로인지 확인
+        private static function verifyTable(work:ByteArray):Boolean
+        {
+            const source:BitmapData = new BitmapData(256, 256, true, 0);
+            source.noise(20260928, 0, 255, BitmapDataChannel.ALPHA | BitmapDataChannel.RED | BitmapDataChannel.GREEN | BitmapDataChannel.BLUE, false);
+
+            const saved:ByteArray = new ByteArray();
+            source.copyPixelsToByteArray(source.rect, saved);
+            saved.position = 0;
+
+            workMemory = work;
+            remap(saved, saved.length);
+            workMemory = null;
+
+            const restored:BitmapData = new BitmapData(256, 256, true, 0);
+            restored.setPixels(restored.rect, saved);
+
+            const sourceColor:BitmapData = getPremultipliedColor(source);
+            const restoredColor:BitmapData = getPremultipliedColor(restored);
+            const sourceAlpha:BitmapData = getAlpha(source);
+            const restoredAlpha:BitmapData = getAlpha(restored);
+            const isSame:Boolean = sourceColor.compare(restoredColor) === 0 && sourceAlpha.compare(restoredAlpha) === 0;
+
+            source.dispose();
+            restored.dispose();
+            sourceColor.dispose();
+            restoredColor.dispose();
+            sourceAlpha.dispose();
+            restoredAlpha.dispose();
+            saved.clear();
+            return isSame;
+        }
+
+        // 불투명 검정 위에 그리면 RGB가 내부 premultiplied 값이 됨
+        private static function getPremultipliedColor(bmpd:BitmapData):BitmapData
+        {
+            const color:BitmapData = new BitmapData(bmpd.width, bmpd.height, false, 0x000000);
+            color.draw(bmpd);
+            return color;
+        }
+
+        private static function getAlpha(bmpd:BitmapData):BitmapData
+        {
+            const alpha:BitmapData = new BitmapData(bmpd.width, bmpd.height, false, 0x000000);
+            alpha.copyChannel(bmpd, bmpd.rect, new Point(), BitmapDataChannel.ALPHA, BitmapDataChannel.RED);
+            return alpha;
+        }
+    }
+}

@@ -89,8 +89,6 @@ package Modules
                 UndoController.updateUndoBaseImageFromDrawMode();
             }
 
-            UndoController.resetRJumpImageCount();
-
             ReplayState.rMemoryData = [];
             ReplayState.rMemoryDataFrame = [];
             ReplayState.rMemoryDataBuffer = [];

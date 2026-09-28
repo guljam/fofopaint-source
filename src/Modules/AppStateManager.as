@@ -160,7 +160,7 @@ package Modules
                         ReplayFileCache.rFirstImageLayer1BitmapData.dispose();
                     ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(metaData.bmpdWidth,metaData.bmpdHeight, true, 0);
                     ReplayFileCache.rFirstImageLayer1BitmapData.lock();
-                    ReplayFileCache.rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
+                    PixelRestore.setPixels(ReplayFileCache.rFirstImageLayer1BitmapData, newRectangle, arr[0]);
                     ReplayFileCache.rFirstImageLayer1BitmapData.unlock();
 
                     arr[1].uncompress();
@@ -169,7 +169,7 @@ package Modules
                         ReplayFileCache.rFirstImageLayer2BitmapData.dispose();
                     ReplayFileCache.rFirstImageLayer2BitmapData = new BitmapData(metaData.bmpdWidth,metaData.bmpdHeight, true, 0);
                     ReplayFileCache.rFirstImageLayer2BitmapData.lock();
-                    ReplayFileCache.rFirstImageLayer2BitmapData.setPixels(newRectangle, arr[1]);
+                    PixelRestore.setPixels(ReplayFileCache.rFirstImageLayer2BitmapData, newRectangle, arr[1]);
                     ReplayFileCache.rFirstImageLayer2BitmapData.unlock();
 
                     ReplaySaveMetaData.firstImageBG = metaData.bgColor;
@@ -186,7 +186,7 @@ package Modules
                     }
                     ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(arr[1], arr[2], true, 0);
                     ReplayFileCache.rFirstImageLayer1BitmapData.lock();
-                    ReplayFileCache.rFirstImageLayer1BitmapData.setPixels(newRectangle, arr[0]);
+                    PixelRestore.setPixels(ReplayFileCache.rFirstImageLayer1BitmapData, newRectangle, arr[0]);
                     ReplayFileCache.rFirstImageLayer1BitmapData.unlock();
 
                     if (ReplayFileCache.rFirstImageLayer2BitmapData)
@@ -218,7 +218,7 @@ package Modules
 
                 var tmpbmpd:BitmapData = new BitmapData(arr[1], arr[2], true, 0);
                 tmpbmpd.lock();
-                tmpbmpd.setPixels(newRectangle, arr[0]);
+                PixelRestore.setPixels(tmpbmpd, newRectangle, arr[0]);
                 tmpbmpd.unlock();
 
                 ReferenceLayerController.canvasRefLayerBitmapData = CanvasController.updateBitmapData(ReferenceLayerController.canvasRefLayerBitmapData, tmpbmpd, ReferenceLayerController.canvasRefLayerBitmap);

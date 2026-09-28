@@ -296,6 +296,24 @@ package Modules
             cacheGenerationShared.atomicCompareAndSwapIntAt(0, oldGeneration, cacheGeneration);
         }
 
+        // 마지막으로 만들었거나 만들고 있는 캐시 이미지의 프레임, 취소된 이전 세대 작업은 빼고 봄
+        public static function getLastCacheImageFrame():Number
+        {
+            if (undoDataQueue !== null)
+            {
+                for (var i:int = undoDataQueue.length - 1;i >= 0;i--)
+                {
+                    if (undoDataQueue[i][1] === cacheGeneration)
+                    {
+                        return undoDataQueue[i][3].nowFrame;
+                    }
+                }
+            }
+
+            const jump:Array = ReplayFileCache.rJumpImageFrameData;
+            return (jump.length > 0) ? jump[jump.length - 1] : 0;
+        }
+
         // 캐시 이미지 압축과 파일 쓰기를 worker에 맡김
         // worker는 임시 파일에 쓰고, 캐시 번호는 main이 finishCacheImageJob에서 확정해줌
         public static function startCacheImageWorker(layer1:BitmapData, layer2:BitmapData, metadata:CacheImageMetaData):void
