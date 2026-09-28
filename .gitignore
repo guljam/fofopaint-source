@@ -9,6 +9,7 @@
 /native
 /tests
 /test-output
+/test_sample
 
 # 개별 파일 제외
 /_make_air_file.ps1
