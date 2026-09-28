@@ -57,10 +57,6 @@
 		public const svBoxHeight:uint = 170;
 		private const hueHeight:uint = 13; //hue 새로 세이즈
 		private const halfPI:Number = Math.PI/2;
-		private const angles:Array = [0,halfPI*2,halfPI,halfPI*3];
-		private var lastMixColor:uint = 0;
-		private var lastMixAlpha:uint = 0;
-		private var rotateCount:uint = 0;
 		public var svBaseColor:uint = 0xFF0000;
 
 		private var panelWidth:Number = 0;
@@ -190,16 +186,6 @@
 			}
 		}
 
-		private function getFirstRGBInfoColorText():String
-		{
-			return firstRGBInfoColorText;
-		}
-
-		private function updateFirstRGBInfoColorText():void
-		{
-			firstRGBInfoColorText = rgbInfoText.text;
-		}
-
 		public function setFillPenModeON():void
 		{
 			penColorButton.alpha = 0.2;
@@ -277,11 +263,6 @@
 			}
 
 			rgbInfoText.textColor = Global.getInvertedColor(rgbInfoBGColor);
-		}
-
-		private function setRGBInfoTextColor(color:uint):void
-		{
-			rgbInfoText.textColor = color;
 		}
 
 		public function getRGBInfoBGColor():uint

@@ -169,11 +169,6 @@ package Modules
             }
         }
 
-        private static function isDrawingToolSelected():Boolean
-        {
-            return isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN);
-        }
-
         public static function selectPenToolIfNotDrawingTool(checkErase:Boolean):void
         {
             if (!(isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN)

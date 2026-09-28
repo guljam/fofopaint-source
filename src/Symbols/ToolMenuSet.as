@@ -40,11 +40,8 @@
         private var bgBox:Shape = new Shape();
         private var deafultY:Number = 0;
 
-        private const base:ColorTransform = new ColorTransform();
-        private const iconLeft:ColorTransform = new ColorTransform();
         private const activeColor:ColorTransform = new ColorTransform();
         private const activeIconColor:ColorTransform = new ColorTransform();
-        private const defaultColor:ColorTransform = new ColorTransform();
         private var btn:SimpleButton;
         private var btnUp:DisplayObject;
         private var btnOver:DisplayObjectContainer;
@@ -187,19 +184,6 @@
             }
         }
 
-        private function bgBoxVisible(flag:Boolean):void
-        {
-            if (flag)
-            {
-                addChild(bgBox);
-                setChildIndex(bgBox, 0);
-            }
-            else
-            {
-                removeChild(bgBox);
-            }
-        }
-
         public function setCursorVisible(flag:Boolean):void
         {
             toolSelectCursor.visible = flag;
@@ -213,11 +197,6 @@
         public function setDeafultY(y:Number):void
         {
             deafultY = y;
-        }
-
-        private function checkBottomOFF():void
-        {
-            y = deafultY;
         }
 
         public function moveCanvasControlButtonsTo(newParent:DisplayObjectContainer):void

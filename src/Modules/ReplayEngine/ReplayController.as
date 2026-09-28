@@ -1623,13 +1623,6 @@ package Modules.ReplayEngine
             CaptureArea.updateDrawArea();
         }
 
-        private static function restoreZoomReplayMode():void
-        {
-            ReplayState.rCanvasZoomIndex = CanvasController.getNearZoomIndex(ReplayState.rLastCanvasZoomMultiplier);
-            CanvasController.updateCanvasScale(CanvasController.canvasZoomMultiplerList[ReplayState.rCanvasZoomIndex], true);
-            rFollowMouse.updateBounds();
-        }
-
         public static function resetZoomReplayMode():void
         {
             const center:Point = MainUIController.getStageCenterPos("replay");

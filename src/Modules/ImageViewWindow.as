@@ -58,11 +58,6 @@ package Modules
             canvasWindowCanvasPanelBgColor = color;
         }
 
-        private static function setCanvasWindowVisible(flag:Boolean):void
-        {
-            canvasWindow.visible = flag;
-        }
-
         public static function updateCanvasWindowBitmapSize():void
         {
             const bounds:Rectangle = CanvasController.canvasNavigatorBox.setFitBitmapforBox(CanvasController.canvasLayer1BitmapData.width,

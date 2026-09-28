@@ -6,7 +6,6 @@ package Modules.Tools
     public class DottedLineTool
     {
         private static const lastDotPos:Point = new Point(0, 0);
-        private static var lastLineLength:Number = 0;
         private static var dotLineLength:Number = 5;
         private static var subDotLength:Number;
         private static var startPos:Point = new Point(0, 0);

@@ -39,36 +39,6 @@
 			HEIGHT = sth;
 		}
 
-		private function setTempVisibleOFF(rightSide:Boolean):void
-		{
-			tempVisibleON = false;
-			visible = false;
-
-			if (rightSide)
-			{
-				x = stage.stageWidth - WIDTH * scaleX;
-			}
-			else
-			{
-				x = 0;
-			}
-		}
-
-		private function setTempVisibleON(toolBarWidth:Number, rightSide:Boolean):void
-		{
-			if (rightSide)
-			{
-				x = stage.stageWidth - (toolBarWidth - 1) * scaleX;
-			}
-			else
-			{
-				x = (-WIDTH + toolBarWidth) * scaleX;
-			}
-
-			tempVisibleON = true;
-			visible = true;
-		}
-
 		public function updateUIColor():void
 		{
 			Global.applyUIBGColor(sideBarBG);

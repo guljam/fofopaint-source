@@ -156,19 +156,6 @@ package Modules
             capTransparentBGBMPD.fillRect(new Rectangle(halfSize, halfSize, halfSize, halfSize), 0xCCCCCC);
         }
 
-        private static function updateCanvasFlipOnCaptureMode():void
-        {
-            const xAnc:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
-            if (captureCanvasRotationStep === 1)
-            {
-                xAnc.rotation = 90;
-            }
-            else if (captureCanvasRotationStep === 3)
-            {
-                xAnc.rotation = 270;
-            }
-        }
-
         public static function flipCaptureImage(flag:Boolean, initFlag:Boolean):void
         {
             isCaptureCanvasFlipped = flag;

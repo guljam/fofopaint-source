@@ -41,7 +41,6 @@ package Modules
         private static var _pos05Offset:Number;
         private static var clickedButtonName:String;
 
-        private static var canvasDrawZIndexSave:int = 0;
         private static const _lastPosOnMouseMove:Point = new Point();
         private static var lastFillPenBoxUsedButton:SimpleButton;
         private static var turnOffFillPenPreviewTimerCount:int = 0; // 프리뷰 일정시간 지나면 사라지게 함

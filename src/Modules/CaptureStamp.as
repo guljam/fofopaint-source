@@ -28,15 +28,12 @@ package Modules
         private static var captureStampBitmap:Bitmap = new Bitmap(captrueStampBMPD);
         private static const stampAlpha:uint = 0xCB000000;
         private static const textformat:TextFormat = new TextFormat();
-        private static const captureStampRect:Rectangle = new Rectangle();
         private static const bmpdMat:Matrix = new Matrix();
         private static const defaultFontSize:int = 13;
-        private static var defaultBmpdHeight:int = defaultFontSize + 2;
         private static var inputUpdateTimer:int = 0;
         private static var stampBGColor:* = null;
         private static const lastRectArea:Rectangle = new Rectangle();
         private static var lastBitmapVisibleFlag:int = 0;
-        private static var captureStampDominantColorRefBmpd:BitmapData = null;
         public static var isCaptureStampTextFieldFocused:Boolean = false; // 포커스 되면 올려줌
         public static var isCaptureStampEnabled:Boolean = false;
 
@@ -245,11 +242,6 @@ package Modules
         private static function getTextWidthDate(newLine:Boolean):Number
         {
             return getTextWidthText(getCaptureStampDate(newLine), 10);
-        }
-
-        private static function getTextWidthMain():Number
-        {
-            return getTextWidthText(MainUI.topBar.getCaptureInputString(), 2);
         }
 
         private static function kungStamp(textStr:String, textWidth:Number, align:String, posX:Number, offsetX:Number, testHeightFlag:Boolean):Number

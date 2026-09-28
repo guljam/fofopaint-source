@@ -289,26 +289,6 @@
             return "Version " + AppUpdater.newVersionStr + " is available!";
         }
 
-        static private function getOpacityButtonHintString(index:int):String
-        {
-            if (main === null)
-            {
-                return "";
-            }
-
-            return "Opacity " + (PenTool.penAlphaList[index] * 100) + "% [g / b]";
-        }
-
-        static private function getSizeButtonHintString(index:int):String
-        {
-            if (main === null)
-            {
-                return "";
-            }
-
-            return "Size " + (PenTool.penSizeList[index]) + "px [f / v, h / n]";
-        }
-
         static private function getCurrentColorHintString():String
         {
             if (main === null)

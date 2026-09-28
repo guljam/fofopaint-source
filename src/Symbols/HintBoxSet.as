@@ -32,11 +32,6 @@
 			this.scaleY = newScale;
 		}
 
-		private function getText():String
-		{
-			return hintText.text;
-		}
-
 		public function updateHintTextColor(color:uint):void
 		{
 			hintText.textColor = color;
@@ -47,11 +42,6 @@
 			_bgColor = Global.getHintBGColor();
 		}
 
-		private function getDefaultHeight():Number
-		{
-			return _hintHeight;
-		}
-
 		public function getScaledTextHeight():Number
 		{
 			return hintText.height * scaleX;
@@ -60,10 +50,6 @@
 		public function getScaledTextWidth():Number
 		{
 			return hintText.width * scaleX;
-		}
-		private function getScaledHeight():Number
-		{
-			return (_hintBG.height - 1) * scaleX;
 		}
 
 		public function setHintTextColor(color:uint):void

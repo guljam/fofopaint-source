@@ -92,25 +92,15 @@
 		private var gridBoxButtons:Array = [];
 		private var topbarBG:Shape = new Shape();
 		private var topbarBGColor:uint = 0;
-		private var hintOKBGColor:uint = 0;
-		private var hintFontColor:uint = 0;
 
 		public var replaySpeedSliderCursor:SimpleButton;
 		public var replaySpeedSlider:SimpleButton;
 		public var replaySpeedSliderWrapper:Sprite = new Sprite();
 
-		private var isHintLocked:Boolean = false;
-		private var hintWaitAnimTimer:int = 0;
-		private var hintWaitAnimCount:int = 0;
-
-		private var newWindowIconStateSaveLayerButton:Boolean = false; // 뉴윈도우인지 끄기 버튼인지 구분
-		private var newWindowIconStateDrawModeIcon:Boolean = false; // 뉴윈도우인지 끄기 버튼인지 구분
-
 		public var captureInputWarpper:Sprite = new Sprite();
 		public var captureInput:TextField;
 		public var captureInputFinal:TextField;
 		public var captureInputBorder:SimpleButton;
-		private var cpatureInputStringSave:String = "";
 
 		public function getCaptureInputFinalWidth():Number
 		{
@@ -127,24 +117,9 @@
 			return captureInputFinal.numLines;
 		}
 
-		private function getCaptureInputFinalHeight():Number
-		{
-			return captureInputFinal.height;
-		}
-
 		public function setCaptureInputFinalString(newText:String):void
 		{
 			captureInputFinal.text = newText;
-		}
-
-		private function setCaptureInputString(newText:String):void
-		{
-			captureInput.text = newText;
-		}
-
-		private function getCaptureInputFinalString():String
-		{
-			return captureInputFinal.text;
 		}
 
 		public function getCaptureInputString():String

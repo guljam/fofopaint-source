@@ -35,7 +35,6 @@ package Modules
         public static var mainToBack:MessageChannel;
         public static var backToMain:MessageChannel;
         public static var isSaveInProgress:int = 0;
-        private static var isSaveInProgressOFFDelayTimer:int = 0;
         public static var receivedSaveImageDataFromWorker:ByteArray = null;
         public static var captureImageDataQueue:Array = null;
         public static var receivedCaptureImageQueueFromWorker:Vector.<ByteArray>;

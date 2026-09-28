@@ -24,7 +24,6 @@ package Modules
 
         private static var _aboutBox:AboutWindowSet;
         private static var _isAboutBoxOpened:Boolean = false; // 어바웃 창 떴을때 킴
-        private static var driveUsageCalculationId:uint = 0;
         public static const FOFOPAINT_RELEASE_NOTE_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt";
         public static const FOFOPAINT_MANUAL_KOR_URL:String = "https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%EC%84%A4%EB%AA%85%EC%84%9C";
         public static const FOFOPAINT_MANUAL_JPN_URL:String = "https://github.com/guljam/2020FlashPaint/wiki/FOFO-Paint-%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB";

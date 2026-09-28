@@ -16,9 +16,6 @@ package Modules
     import flash.geom.Point;
     import flash.system.Capabilities;
     import flash.system.IME;
-    import flash.display.BitmapData;
-    import Symbols.TopMenuSet;
-    import flash.display.DisplayObjectContainer;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayState;
 

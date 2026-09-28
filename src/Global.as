@@ -185,16 +185,6 @@ package
             Utils.setColorTransform(target, uiToolBoxColorSets[uiColorIndex][4]);
         }
 
-        static private function applyToolBoxButtonOverFGColor(target:DisplayObject):void
-        {
-            Utils.setColorTransform(target, uiToolBoxColorSets[uiColorIndex][5]);
-        }
-
-        static private function getHintHighlightBoxColor():uint
-        {
-            return hintHighlightBoxColors[uiColorIndex];
-        }
-
         public static function setScale(target:DisplayObjectContainer, scale:Number):void
         {
             target.scaleX = scale;
@@ -338,19 +328,6 @@ package
             }
 
             return new <uint>[0, 0, 0];
-        }
-
-        static private function hexToRGBHSVVector(color:uint, lastHue:Number, isHSVMode:Boolean):Vector.<Number>
-        {
-            const rgb:Vector.<Number> = HEXtoRGB(color);
-            const hsv:Vector.<Number> = HEXtoHSV(color, lastHue);
-
-            if (isHSVMode === true)
-                return hsv;
-            if (isHSVMode === false)
-                return rgb;
-
-            return new <Number>[rgb[0], rgb[1], rgb[2], hsv[0], hsv[1], hsv[2]];
         }
 
         // 주어진 컬러 알파값을 기반으로 반전 컬러를 구함

@@ -22,11 +22,6 @@
             this.scaleY = newScale * constScale;
         }
 
-        private function isTopPos():Boolean
-        {
-            return topPos;
-        }
-
         public function setMirror(flag:Boolean):void
         {
             if (flag)

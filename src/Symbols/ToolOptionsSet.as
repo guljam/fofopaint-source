@@ -57,7 +57,6 @@
 		public var layerMergeButton:SimpleButton;
 		public var saperateLine:SimpleButton;
 
-		private var layerVisibleBackup:Array;
 		private const blurFilter:BlurFilter = new BlurFilter(3, 3, 2);
 
 		private const BOX_WIDTH:Number = 180;
@@ -114,11 +113,6 @@
 			layerInvisibledLine.alpha = layer2SelectButton.alpha;
 
 			layerInvisibledLine.visible = true;
-		}
-
-		private function isLayerCheckButtonsDisabled():Boolean
-		{
-			return layer1CheckedButton.alpha <= 1.0;
 		}
 
 		public function isSizeButtonsDisabled():Boolean

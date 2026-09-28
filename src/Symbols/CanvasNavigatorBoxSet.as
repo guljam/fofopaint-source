@@ -22,8 +22,6 @@
 		public const BOX_WIDTH:Number = 213;
 		public const BOX_HEIGHT:Number = 173;
 		// public const maskShape:Sprite = new Sprite();
-		private const navCursorOffsetX:Number = 0;
-		private const navCursorOffsetY:Number = 0;
 		public var navCursorMultiply:Number = 0;
 
 		private const stageColor:ColorTransform = new ColorTransform();

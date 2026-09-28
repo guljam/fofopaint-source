@@ -5,7 +5,6 @@ package Modules.ReplayEngine
 
     public class ReplayState
     {
-        private static const REPLAY_FASTEST_TOTAL_TIME:Number = 10;
         public static var REPLAY_MAX_SPEED:Number = 0.0;
 
         public static const REPLAY_IMAGE_CAHCHE_COMPLETE:int = (1 << 0);

@@ -551,11 +551,6 @@ package Modules
             Utils.setAsTopChild(loadMenuBox);
         }
 
-        private static function getJumpImageFolder():File
-        {
-            return File.applicationStorageDirectory.resolvePath("imagecache");
-        }
-
         public static function initializeRepTempFile():void
         {
             repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_" + Utils.getRandomString(32));
@@ -810,16 +805,7 @@ package Modules
             }
             return false;
         }
-        private static function isImageFileExt(path:String):Boolean
-        {
-            // 가장 마지막 확장자만 따짐
-            const gif:int = path.lastIndexOf(".gif");
-            const jpg:int = path.lastIndexOf(".jpg");
-            const png:int = path.lastIndexOf(".png");
-            const find2020:int = path.lastIndexOf(".2020");
-            const maxIndex:int = Math.max(gif, jpg, png, find2020);
-            return maxIndex === find2020;
-        }
+
         public static function createNewFile(fromShortcut:Boolean):void
         {
             if (!canCreateNewFile())
@@ -1416,16 +1402,6 @@ package Modules
             const ext:RegExp = /\.(2020|jpg|jpeg|gif|jfif|webp|png)$/i;
             name = ext.test(name) ? name.replace(ext, ".png") : name + ".png";
             return directory.length > 0 ? directory + File.separator + name : name;
-        }
-
-        // 끝의 파일 구분자가 있으면 제거해줌
-        private static function removeLastFileSeparator(path:String):String
-        {
-            if (path.charAt(path.length - 1) === File.separator)
-            {
-                return path.substring(0, path.length - 1);
-            }
-            return path;
         }
 
         private static function getDirectoryOnly(path:String):String

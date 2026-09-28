@@ -431,14 +431,6 @@ package Modules
             }
         }
 
-        private static function sidebarOFFRightMouseDownEvent(e:MouseEvent):void
-        {
-            CanvasController.isMouseClickBlocked = true;
-            InputManager.unblockMouseClickAfterDelay();
-
-            startHidingSidebarTemporary();
-        }
-
         private static function onMouseDownHideSidebar(e:MouseEvent):void
         {
             if (e.target && (e.target.name === "sideBarONButton" || e.target.name === "sideBarONButton2" || e.target.name === "fofo"))

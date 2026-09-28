@@ -51,11 +51,6 @@
 			}
 		}
 
-		private function increaseReplayPrograssBarWidth(inc:Number):void
-		{
-			setReplayPrograssBarWidth(prograssBar.width + inc);
-		}
-
 		public function setReplayPrograssBarMaxWidth():void
 		{
 			setReplayPrograssBarWidth(trackBar.width);
@@ -83,11 +78,6 @@
 				setPrograssBarMaxWidthFlag(false);
 				Global.applyToolBoxButtonOverBGColor(prograssBar);
 			}
-		}
-
-		private function getReplayPrograssBarWidth():Number
-		{
-			return prograssBar.width;
 		}
 
 		public function updatePos(stw:Number):void
@@ -269,12 +259,6 @@
 			setChildIndex(trackBar, 1);
 			setChildIndex(prograssBar, 2);
 			setChildIndex(deleteRangeBar, 3);
-		}
-
-		private function setReplayDeleteBarVisibleOFF():void
-		{
-			deleteRangeBar.visible = false;
-			prograssBar.visible = true;
 		}
 
 		[Embed(source="fofoPaint-animate-27.13.swf",symbol="seekBarSet")]
