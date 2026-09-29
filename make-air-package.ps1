@@ -1,1 +1,0 @@
-& "D:\adobe_air_sdk_manager\AIRSDK_51.3.4\bin\adt.bat" -package -storetype pkcs12 -keystore "F:\페인트앱_백업\fofopaintKey\secretkey3.p12" -storepass 123 "bin\fofoPaint.air" "fofoPaint-app.xml" "fofoPaint.swf" "worker.swf" "resource\icon" "manual"
