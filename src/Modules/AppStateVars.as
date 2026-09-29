@@ -49,7 +49,6 @@ package Modules
         public var svBaseColor:uint;
         public var isHSVInfoTextMode:Boolean;
         public var rReplayImageCacheState:int;
-        public var rLastCanvasBGColor:uint;
         public var isRightSidebar:Boolean;
         public var saveFilePath:String;
         public var isSidebarVisible:Boolean;

@@ -22,7 +22,6 @@ package Modules.ReplayEngine
         private static var rFileDataTotalFrame:Number = 0; // file에저장된 프레임수 누적해서 저장
 
         public static var rLastLayer2Selcted:Boolean = false; // 리플레이 실행할때 이걸로 비교해서 캔버스 스왑해줌
-        public static var rLastCanvasBGColor:uint = RCANVAS_BG_COLOR; // load replay에서 씀
         public static var rReplaySpeedMultipler:Number = 1; // 리플레이 속도 for루프로 2번씩혹은 3번씩 읽히게 만듬
         public static var rAirBrushSize:int = 0; // 레거시지원 변수
         public static var rAirBrushSize2:int = 0; // 새로운거

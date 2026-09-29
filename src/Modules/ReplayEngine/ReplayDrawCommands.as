@@ -1032,7 +1032,6 @@ package Modules.ReplayEngine
         public static function bgColor(data:Array):void
         {
             const color:uint = data[1];
-            ReplayState.rLastCanvasBGColor = color;
             ReplayDrawer.updateCanvasBGColorReplayMode(color);
             setRCursorPosToCenter();
         }

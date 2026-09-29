@@ -634,7 +634,6 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasLayer2BitmapData = cacheImageData.bmpd2;
                 ReplayDrawer.rCanvasLayer1Bitmap.bitmapData = ReplayDrawer.rCanvasLayer1BitmapData;
                 ReplayDrawer.rCanvasLayer2Bitmap.bitmapData = ReplayDrawer.rCanvasLayer2BitmapData;
-                ReplayState.rLastCanvasBGColor = metadata.bgColor;
                 ReplayDrawer.updateCanvasBGColorReplayMode(metadata.bgColor);
                 ReplayDrawer.syncCanvasSizeReplayMode(metadata.bmpdWidth, metadata.bmpdHeight);
                 ReplayDrawCommands.setRCursorPos(metadata.rCursorPosX, metadata.rCursorPosY);
@@ -652,6 +651,7 @@ package Modules.ReplayEngine
                 ReplayDrawer.syncCanvasSizeReplayMode(ReplayDrawer.rCanvasLayer1BitmapData.width, ReplayDrawer.rCanvasLayer1BitmapData.height);
                 fs.position = 0;
                 ReplayState.rMirrorON = ReplaySaveMetaData.firstImageMirrorFlag;
+                ReplayState.RCANVAS_BG_COLOR = ReplaySaveMetaData.firstImageBG;
                 ReplayDrawer.updateCanvasBGColorReplayMode(ReplaySaveMetaData.firstImageBG);
             }
 
@@ -1903,7 +1903,6 @@ package Modules.ReplayEngine
         public static function clearDataAndResetVars():void
         {
             FileManager.isContinueSaveON = false;
-            ReplayState.rLastCanvasBGColor = CanvasController.CANVAS_BG_COLOR;
             ReplayState.rMirrorON = false;
             CanvasController.mirrorON = false;
             ReplayState.rMemoryDataReadON = false;

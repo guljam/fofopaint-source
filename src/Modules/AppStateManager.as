@@ -100,7 +100,6 @@ package Modules
             appStateObject.isHSVInfoTextMode = ColorPickerController.isHSVInfoTextMode;
 
             appStateObject.rReplayImageCacheState = ReplayState.rReplayImageCacheState;
-            appStateObject.rLastCanvasBGColor = ReplayState.rLastCanvasBGColor;
 
             appStateObject.isRightSidebar = SidebarController.isRightSidebar;
             appStateObject.saveFilePath = FileManager.lastSaveFilePath;
@@ -380,7 +379,6 @@ package Modules
 
                         // Replay Controller
                         ReplayState.rReplayImageCacheState = appStateObject.rReplayImageCacheState;
-                        ReplayState.rLastCanvasBGColor = appStateObject.rLastCanvasBGColor;
                         ReplayDrawCommands.setFirstRCursorPos(appStateObject.getFirstRCursorPosX, appStateObject.getFirstRCursorPosY);
 
                         ReferenceLayerController.updateRefLayerImageTransform(

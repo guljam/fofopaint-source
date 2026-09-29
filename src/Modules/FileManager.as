@@ -259,8 +259,7 @@ package Modules
                         ReplayFileCache.rFirstImageLayer1BitmapData.unlock();
                         ba.clear();
                         ba = null;
-                        ReplayState.rLastCanvasBGColor = d[4];
-                        ReplayDrawer.updateCanvasBGColorReplayMode(ReplayState.rLastCanvasBGColor);
+                        ReplayDrawer.updateCanvasBGColorReplayMode(d[4]);
                         ReplayFileCache.createFirstImageCache(ReplayFileCache.rFirstImageLayer1BitmapData, null, d[4]);
                     }
                     else // 신버전
@@ -281,8 +280,7 @@ package Modules
                         ReplayFileCache.rFirstImageLayer2BitmapData.unlock();
                         ba.clear();
                         ba = null;
-                        ReplayState.rLastCanvasBGColor = d[5];
-                        ReplayDrawer.updateCanvasBGColorReplayMode(ReplayState.rLastCanvasBGColor);
+                        ReplayDrawer.updateCanvasBGColorReplayMode(d[5]);
                         // air sdk 이전이후 첫 패치된거라서 값이 있으면 읽어주어야함 불리언 값
                         const firstMirrorFlag:Boolean = d.length > 6 && d[6] === true;
                         if (d[6])
