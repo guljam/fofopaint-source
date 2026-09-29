@@ -12,7 +12,6 @@ package Modules
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.utils.getTimer;
-    import flash.events.KeyboardEvent;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
 

@@ -263,11 +263,7 @@ package Modules.Tools
 
         private static function onKeyDownLineTool(e:KeyboardEvent):void
         {
-            if (InputManager.isPressedKey(InputManager.KEY.esc))
-            {
-                cancel();
-            }
-            else if (InputManager.isPressedKey(InputManager.KEY.enter))
+            if (InputManager.isPressedKey(InputManager.KEY.enter) || InputManager.isPressedKey(InputManager.KEY.esc))
             {
                 apply();
             }

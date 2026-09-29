@@ -2554,7 +2554,7 @@ package Modules
 
             if (main.stage.focus === MainUI.topBar.captureInput)
             {
-                if (firstKey === KEY.esc || firstKey === KEY.enter || isPressingControl() || isPressingShift())
+                if (firstKey === KEY.esc || firstKey === KEY.enter || isPressingControl())
                 {
                     main.stage.focus = null;
                 }
