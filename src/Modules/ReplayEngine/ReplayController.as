@@ -652,6 +652,7 @@ package Modules.ReplayEngine
                 ReplayDrawer.syncCanvasSizeReplayMode(ReplayDrawer.rCanvasLayer1BitmapData.width, ReplayDrawer.rCanvasLayer1BitmapData.height);
                 fs.position = 0;
                 ReplayState.rMirrorON = ReplaySaveMetaData.firstImageMirrorFlag;
+                ReplayDrawer.updateCanvasBGColorReplayMode(ReplaySaveMetaData.firstImageBG);
             }
 
             ReplayFileCache.saveCacheProgress();
