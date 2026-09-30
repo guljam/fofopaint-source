@@ -355,6 +355,18 @@ package Modules.CaptureEngine
             }
         }
 
+        // 인덱스: rotationStep (+4: 대칭). 값: [rotation, xOffsetX, xHeight, yOffsetY, yHeight]
+        private static const STAMP_PLACEMENT:Vector.<Vector.<Number>> = new <Vector.<Number>>[
+                new <Number>[0, 0, 0, 1, -1], // 대칭 안함 0
+                new <Number>[-90, 1, -1, 1, 0], // 1
+                new <Number>[180, 1, 0, 0, 1], // 2
+                new <Number>[90, 0, 1, 0, 0], // 3
+                new <Number>[0, 1, 0, 1, -1], // 대칭 0
+                new <Number>[90, 0, 1, 1, 0], // 1
+                new <Number>[180, 0, 0, 0, 1], // 2
+                new <Number>[-90, 1, -1, 0, 0]  // 3
+            ];
+
         private static function checkPosition(bmpdHeight:Number):void
         {
             const rect:Rectangle = CaptureController.getCaptureArea();
@@ -374,69 +386,19 @@ package Modules.CaptureEngine
                 offsetY = rect.height;
             }
 
-            if (CaptureController.isCaptureCanvasFlipped)
-            {
-                captureStampBitmap.scaleX = -1.0;
+            // 회전/대칭 조합(대칭이면 +4)별 [rotation, x(offsetX 계수, bmpdHeight 계수), y(offsetY 계수, bmpdHeight 계수)]
+            const flipped:Boolean = CaptureController.isCaptureCanvasFlipped;
+            const row:Vector.<Number> = STAMP_PLACEMENT[(flipped ? 4 : 0) + rotateFlag];
 
-                if (rotateFlag === 0)
-                {
-                    captureStampBitmap.rotation = 0;
-                    captureStampBitmap.x = rect.x + offsetX;
-                    captureStampBitmap.y = rect.y + offsetY - bmpdHeight;
-                }
-                else if (rotateFlag === 1)
-                {
-                    captureStampBitmap.rotation = 90;
-                    captureStampBitmap.x = rect.x + bmpdHeight;
-                    captureStampBitmap.y = rect.y + offsetY;
-                }
-                else if (rotateFlag === 2)
-                {
-                    captureStampBitmap.rotation = 180;
-                    captureStampBitmap.x = rect.x;
-                    captureStampBitmap.y = rect.y + bmpdHeight;
-                }
-                else if (rotateFlag === 3)
-                {
-                    captureStampBitmap.rotation = -90;
-                    captureStampBitmap.x = rect.x + offsetX - bmpdHeight;
-                    captureStampBitmap.y = rect.y;
-                }
-            }
-            else
-            {
-                captureStampBitmap.scaleX = 1.0;
-
-                if (rotateFlag === 0)
-                {
-                    captureStampBitmap.rotation = 0;
-                    captureStampBitmap.x = rect.x;
-                    captureStampBitmap.y = rect.y + offsetY - bmpdHeight;
-                }
-                else if (rotateFlag === 1)
-                {
-                    captureStampBitmap.rotation = -90;
-                    captureStampBitmap.x = rect.x + offsetX - bmpdHeight;
-                    captureStampBitmap.y = rect.y + offsetY;
-                }
-                else if (rotateFlag === 2)
-                {
-                    captureStampBitmap.rotation = 180;
-                    captureStampBitmap.x = rect.x + offsetX;
-                    captureStampBitmap.y = rect.y + bmpdHeight;
-                }
-                else if (rotateFlag === 3)
-                {
-                    captureStampBitmap.rotation = 90;
-                    captureStampBitmap.x = rect.x + bmpdHeight;
-                    captureStampBitmap.y = rect.y;
-                }
-            }
+            captureStampBitmap.scaleX = (flipped) ? -1.0 : 1.0;
+            captureStampBitmap.rotation = row[0];
+            captureStampBitmap.x = rect.x + row[1] * offsetX + row[2] * bmpdHeight;
+            captureStampBitmap.y = rect.y + row[3] * offsetY + row[4] * bmpdHeight;
         }
 
         private static function getCaptureAreaWidth(rect:Rectangle):Number
         {
-            const notRotatedFlag:Boolean = CaptureController.captureCanvasRotationStep % 2 === 0;
+            const notRotatedFlag:Boolean = !CaptureController.isCaptureAxisSwapped();
 
             if (notRotatedFlag)
             {

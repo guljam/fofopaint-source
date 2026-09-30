@@ -77,6 +77,19 @@ package Modules.CaptureEngine
             return _drawModeCanvasStateForSaveAppState;
         }
 
+        // 회전/대칭 조합을 리사이즈 핸들이 있는 모서리 4방향으로 정규화
+        // 0: 우하단, 1: 우상단, 2: 좌상단, 3: 좌하단 (회전 step 기준, 대칭이면 반대 방향)
+        public static function getResizeCornerIndex():int
+        {
+            return (_isCaptureCanvasFlipped) ? 3 - _captureCanvasRotationStep : _captureCanvasRotationStep;
+        }
+
+        // 90도/270도 회전이라 가로세로가 바뀐 상태
+        public static function isCaptureAxisSwapped():Boolean
+        {
+            return _captureCanvasRotationStep % 2 === 1;
+        }
+
         public static function setCaptureWindowMove(dx:Number, dy:Number):void
         {
             _captureWindowMove.setTo(dx, dy);

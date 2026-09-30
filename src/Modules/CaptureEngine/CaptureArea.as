@@ -87,8 +87,8 @@ package Modules.CaptureEngine
             {
                 if (resizeFlag)
                 {
-                    if (!CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 0
-                            || CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 3)
+                    const corner:int = CaptureController.getResizeCornerIndex();
+                    if (corner === 0)
                     {
                         rectRaw.width += subX;
                         rectRaw.height += subY;
@@ -105,8 +105,7 @@ package Modules.CaptureEngine
                         else if (rectClamped.y + rectClamped.height > canvasHeight)
                             rectClamped.height = canvasHeight - rectClamped.y;
                     }
-                    else if (!CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 1
-                            || CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 2)
+                    else if (corner === 1)
                     {
                         rectRaw.width += subX;
                         rectRaw.height -= subY;
@@ -130,8 +129,7 @@ package Modules.CaptureEngine
                         else if (rectClamped.x + rectClamped.width > canvasWidth)
                             rectClamped.width = canvasWidth - rectClamped.x;
                     }
-                    else if (!CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 2
-                            || CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 1)
+                    else if (corner === 2)
                     {
                         rectRaw.width -= subX;
                         rectRaw.height -= subY;
@@ -163,8 +161,7 @@ package Modules.CaptureEngine
                             rectClamped.height = limitHeightSave;
                         }
                     }
-                    else if (!CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 3
-                            || CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 0)
+                    else if (corner === 3)
                     {
                         rectRaw.width -= subX;
                         rectRaw.height += subY;
@@ -323,25 +320,23 @@ package Modules.CaptureEngine
 
             captureDragAreaOverlay.graphics.lineStyle(1, 0xFFFFFF, 1.0, true);
             captureDragAreaOverlay.graphics.beginFill(0xFF6600);
+            const corner:int = CaptureController.getResizeCornerIndex();
 
             var posX:Number = rectClamped.x;
             var posY:Number = rectClamped.y;
             const offset:Number = 0;
 
-            if (!CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 0
-                    || CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 3)
+            if (corner === 0)
             {
                 posX += rectClamped.width + offset;
                 posY += rectClamped.height + offset;
             }
-            else if (!CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 1
-                    || CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 2)
+            else if (corner === 1)
             {
                 posX += rectClamped.width + offset;
                 posY += -offset;
             }
-            else if (!CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 3
-                    || CaptureController.isCaptureCanvasFlipped && CaptureController.captureCanvasRotationStep === 0)
+            else if (corner === 3)
             {
                 posY += rectClamped.height + offset;
                 posX += -offset;
@@ -414,11 +409,11 @@ package Modules.CaptureEngine
             {
                 if (ReplayState.isReplayModeON)
                 {
-                    return (CaptureController.captureCanvasRotationStep === 0 || CaptureController.captureCanvasRotationStep === 2) ? ReplayState.RCANVAS_WIDTH + " x " + ReplayState.RCANVAS_HEIGHT : ReplayState.RCANVAS_HEIGHT + " x " + ReplayState.RCANVAS_WIDTH;
+                    return !CaptureController.isCaptureAxisSwapped() ? ReplayState.RCANVAS_WIDTH + " x " + ReplayState.RCANVAS_HEIGHT : ReplayState.RCANVAS_HEIGHT + " x " + ReplayState.RCANVAS_WIDTH;
                 }
                 else
                 {
-                    return (CaptureController.captureCanvasRotationStep === 0 || CaptureController.captureCanvasRotationStep === 2) ? canvasWidth + " x " + canvasHeight : canvasHeight + " x " + canvasWidth;
+                    return !CaptureController.isCaptureAxisSwapped() ? canvasWidth + " x " + canvasHeight : canvasHeight + " x " + canvasWidth;
                 }
             }
 
@@ -427,7 +422,7 @@ package Modules.CaptureEngine
                 return "";
             }
 
-            return (CaptureController.captureCanvasRotationStep === 0 || CaptureController.captureCanvasRotationStep === 2) ? w + " x " + h : h + " x " + w;
+            return !CaptureController.isCaptureAxisSwapped() ? w + " x " + h : h + " x " + w;
         }
 
         public static function resetCaptureArea():void
