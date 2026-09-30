@@ -1,8 +1,9 @@
 package Modules.CaptureEngine
 {
-    import Modules.Utils;
     import Modules.MainUI;
     import Modules.CanvasController;
+    import flash.display.CapsStyle;
+    import flash.display.LineScaleMode;
     import flash.display.Shape;
     import flash.display.Sprite;
     import flash.events.MouseEvent;
@@ -25,18 +26,26 @@ package Modules.CaptureEngine
         private static var canvasWidth:Number = 0;
         private static var canvasHeight:Number = 0;
         private static var clickPos:Point = new Point(0, 0);
-        private static var limitWidthSave:Number = 0;
-        private static var limitHeightSave:Number = 0;
         private static const rectFull:Rectangle = new Rectangle();
-        private static const rectRaw:Rectangle = new Rectangle();
+        private static const rectRaw:Rectangle = new Rectangle(); // 새 영역 그리기 드래그 전용
         private static const rectClamped:Rectangle = new Rectangle();
-        private static var resizeFlag:Boolean = false;
-        private static const resizeButtonSize:Number = 14.0;
-        private static const resizeButtonPos:Point = new Point(0, 0);
+        private static const moveStartRect:Rectangle = new Rectangle(); // 영역 이동 드래그 시작 시점의 영역
         private static var minSize:Number = 10.0;
         private static const mouseMoveThreshold:Number = 5.0;
 
-// 캡쳐 영역 8방향으로 되게 ai한테 부탁하기
+        // 영역 변(테두리) 개별 크기 조정. 마우스 좌표는 xPanel 지역 좌표(캔버스 좌표)라 회전/대칭과 무관
+        private static const EDGE_NONE:int = -1;
+        private static const EDGE_TOP:int = 0;
+        private static const EDGE_BOTTOM:int = 1;
+        private static const EDGE_LEFT:int = 2;
+        private static const EDGE_RIGHT:int = 3;
+        private static const edgeHitPx:Number = 5.0; // 테두리 기준 +-5px(화면 px)에서 클릭 반응
+        private static const edgeHighlightPx:Number = 2.0; // 호버/드래그 중인 변 강조선 굵기(화면 px)
+        private static var highlightEdge:int = EDGE_NONE;
+        private static var activeEdge:int = EDGE_NONE;
+        private static var dragEdgeStartValue:Number = 0;
+        private static var isDragging:Boolean = false;
+
         private static function validateCaptureArea():void
         {
             var intersection:Rectangle = rectFull.intersection(rectClamped);
@@ -70,7 +79,125 @@ package Modules.CaptureEngine
             }
         }
 
-        private static function onMouseMoveCaptureAreaDraw(e:MouseEvent):void
+        // ---- 변(테두리) 조정: 4변을 edge 번호 하나로 통합 ----
+        private static function getEdgeValue(edge:int):Number
+        {
+            switch (edge)
+            {
+                case EDGE_TOP:
+                    return rectClamped.y;
+                case EDGE_BOTTOM:
+                    return rectClamped.y + rectClamped.height;
+                case EDGE_LEFT:
+                    return rectClamped.x;
+                default:
+                    return rectClamped.x + rectClamped.width;
+            }
+        }
+
+        // 위/왼쪽 변은 시작점, 아래/오른쪽 변은 끝점을 움직임. 반대 변과 minSize 이상 유지, 캔버스 안으로 제한
+        private static function setEdge(edge:int, value:Number):void
+        {
+            const vertical:Boolean = (edge === EDGE_TOP || edge === EDGE_BOTTOM);
+            const isStartEdge:Boolean = (edge === EDGE_TOP || edge === EDGE_LEFT);
+            const start:Number = (vertical) ? rectClamped.y : rectClamped.x;
+            const end:Number = start + ((vertical) ? rectClamped.height : rectClamped.width);
+            const limit:Number = (vertical) ? canvasHeight : canvasWidth;
+            var newStart:Number = start;
+            var newEnd:Number = end;
+
+            if (isStartEdge)
+            {
+                newStart = Math.max(0, Math.min(end - minSize, Math.round(value)));
+            }
+            else
+            {
+                newEnd = Math.max(start + minSize, Math.min(limit, Math.round(value)));
+            }
+
+            if (vertical)
+            {
+                rectClamped.y = newStart;
+                rectClamped.height = newEnd - newStart;
+            }
+            else
+            {
+                rectClamped.x = newStart;
+                rectClamped.width = newEnd - newStart;
+            }
+        }
+
+        // 테두리 중심 +-edgeHitPx(화면 px) 안에 들어온 변. 겹치면 위, 아래, 왼쪽, 오른쪽 순으로 먼저 탐지된 변
+        private static function hitEdge(mx:Number, my:Number):int
+        {
+            const band:Number = edgeHitPx / getCanvasScale();
+            const left:Number = rectClamped.x;
+            const right:Number = rectClamped.x + rectClamped.width;
+            const top:Number = rectClamped.y;
+            const bottom:Number = rectClamped.y + rectClamped.height;
+            const inX:Boolean = (mx >= left - band && mx <= right + band);
+            const inY:Boolean = (my >= top - band && my <= bottom + band);
+
+            if (inX && Math.abs(my - top) <= band)
+                return EDGE_TOP;
+            if (inX && Math.abs(my - bottom) <= band)
+                return EDGE_BOTTOM;
+            if (inY && Math.abs(mx - left) <= band)
+                return EDGE_LEFT;
+            if (inY && Math.abs(mx - right) <= band)
+                return EDGE_RIGHT;
+
+            return EDGE_NONE;
+        }
+
+        private static function getHoverEdge():int
+        {
+            if (!xPanel || isFullImageCapture())
+            {
+                return EDGE_NONE;
+            }
+
+            if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) || CaptureStamp.captureStampFontListBox.visible)
+            {
+                return EDGE_NONE;
+            }
+
+            return hitEdge(xPanel.mouseX, xPanel.mouseY);
+        }
+
+        private static function setHighlightEdge(edge:int):void
+        {
+            if (highlightEdge === edge)
+            {
+                return;
+            }
+
+            highlightEdge = edge;
+            drawArea();
+        }
+
+        private static function onMouseMoveHover(e:MouseEvent):void
+        {
+            if (!CaptureController.isCaptureModeON || isDragging)
+            {
+                return;
+            }
+
+            setHighlightEdge(getHoverEdge());
+        }
+
+        public static function startHoverTracking():void
+        {
+            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHover);
+        }
+
+        public static function stopHoverTracking():void
+        {
+            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHover);
+            highlightEdge = EDGE_NONE;
+        }
+
+        private static function onMouseMoveEdge(e:MouseEvent):void
         {
             if (!CaptureController.isCaptureModeON)
             {
@@ -78,157 +205,53 @@ package Modules.CaptureEngine
                 return;
             }
 
-            const mx:Number = xPanel.mouseX;
-            const my:Number = xPanel.mouseY;
-            var subX:Number = Math.round(mx - clickPos.x);
-            var subY:Number = Math.round(my - clickPos.y);
+            const vertical:Boolean = (activeEdge === EDGE_TOP || activeEdge === EDGE_BOTTOM);
+            const sub:Number = (vertical) ? xPanel.mouseY - clickPos.y : xPanel.mouseX - clickPos.x;
+            const before:Number = getEdgeValue(activeEdge);
 
-            if (mouseMoved === true)
+            setEdge(activeEdge, dragEdgeStartValue + Math.round(sub));
+
+            if (getEdgeValue(activeEdge) === before)
             {
-                if (resizeFlag)
-                {
-                    const corner:int = CaptureController.getResizeCornerIndex();
-                    if (corner === 0)
-                    {
-                        rectRaw.width += subX;
-                        rectRaw.height += subY;
-                        rectClamped.width = rectRaw.width;
-                        rectClamped.height = rectRaw.height;
-
-                        if (rectClamped.width < minSize)
-                            rectClamped.width = minSize;
-                        else if (rectClamped.x + rectClamped.width > canvasWidth)
-                            rectClamped.width = canvasWidth - rectClamped.x;
-
-                        if (rectClamped.height < minSize)
-                            rectClamped.height = minSize;
-                        else if (rectClamped.y + rectClamped.height > canvasHeight)
-                            rectClamped.height = canvasHeight - rectClamped.y;
-                    }
-                    else if (corner === 1)
-                    {
-                        rectRaw.width += subX;
-                        rectRaw.height -= subY;
-                        rectRaw.y += subY;
-                        rectClamped.width = rectRaw.width;
-                        rectClamped.height = rectRaw.height;
-                        rectClamped.y = rectRaw.y;
-
-                        if (rectClamped.y < 0.0)
-                        {
-                            rectClamped.y = 0.0;
-                            rectClamped.height = limitHeightSave;
-                        }
-                        if (rectClamped.height < minSize)
-                        {
-                            rectClamped.height = minSize;
-                            rectClamped.y = limitHeightSave - rectClamped.height;
-                        }
-                        if (rectClamped.width < minSize)
-                            rectClamped.width = minSize;
-                        else if (rectClamped.x + rectClamped.width > canvasWidth)
-                            rectClamped.width = canvasWidth - rectClamped.x;
-                    }
-                    else if (corner === 2)
-                    {
-                        rectRaw.width -= subX;
-                        rectRaw.height -= subY;
-                        rectRaw.x += subX;
-                        rectRaw.y += subY;
-                        rectClamped.width = rectRaw.width;
-                        rectClamped.height = rectRaw.height;
-                        rectClamped.x = rectRaw.x;
-                        rectClamped.y = rectRaw.y;
-
-                        if (rectClamped.width < minSize)
-                        {
-                            rectClamped.width = minSize;
-                            rectClamped.x = limitWidthSave - rectClamped.width;
-                        }
-                        if (rectClamped.height < minSize)
-                        {
-                            rectClamped.height = minSize;
-                            rectClamped.y = limitHeightSave - rectClamped.height;
-                        }
-                        if (rectClamped.x < 0.0)
-                        {
-                            rectClamped.x = 0.0;
-                            rectClamped.width = limitWidthSave;
-                        }
-                        if (rectClamped.y < 0.0)
-                        {
-                            rectClamped.y = 0.0;
-                            rectClamped.height = limitHeightSave;
-                        }
-                    }
-                    else if (corner === 3)
-                    {
-                        rectRaw.width -= subX;
-                        rectRaw.height += subY;
-                        rectRaw.x += subX;
-                        rectClamped.width = rectRaw.width;
-                        rectClamped.height = rectRaw.height;
-                        rectClamped.x = rectRaw.x;
-
-                        if (rectClamped.x < 0.0)
-                        {
-                            rectClamped.x = 0.0;
-                            rectClamped.width = limitWidthSave;
-                        }
-                        if (rectClamped.width < minSize)
-                        {
-                            rectClamped.width = minSize;
-                            rectClamped.x = limitWidthSave - rectClamped.width;
-                        }
-                        if (rectClamped.height < minSize)
-                        {
-                            rectClamped.height = minSize;
-                        }
-                        else if (rectClamped.y + rectClamped.height > canvasHeight)
-                        {
-                            rectClamped.height = canvasHeight - rectClamped.y;
-                        }
-                    }
-                    MainUI.showBottomHint(getRotatedRectSizeString());
-                }
-                else
-                {
-                    rectRaw.x += subX;
-                    rectRaw.y += subY;
-                    rectClamped.x = rectRaw.x;
-                    rectClamped.y = rectRaw.y;
-
-                    if (rectClamped.x < 0.0)
-                    {
-                        rectClamped.x = 0.0;
-                    }
-                    else if (rectClamped.x + rectClamped.width > canvasWidth)
-                    {
-                        rectClamped.x = canvasWidth - rectClamped.width;
-                    }
-
-                    if (rectClamped.y < 0.0)
-                    {
-                        rectClamped.y = 0.0;
-                    }
-                    else if (rectClamped.y + rectClamped.height > canvasHeight)
-                    {
-                        rectClamped.y = canvasHeight - rectClamped.height;
-                    }
-                }
-                rectClamped.x = Math.round(rectClamped.x);
-                rectClamped.y = Math.round(rectClamped.y);
-                rectClamped.width = Math.round(rectClamped.width);
-                rectClamped.height = Math.round(rectClamped.height);
-                clickPos.setTo(xPanel.mouseX, xPanel.mouseY);
-                drawArea(false);
+                return;
             }
-            else if (Math.abs(subX) >= mouseMoveThreshold || Math.abs(subY) >= mouseMoveThreshold)
+
+            if (!mouseMoved)
             {
                 mouseMoved = true;
-                // clickPos.setTo(mx, my);
                 CaptureController.onCaptureAreaDragStarted();
             }
+
+            MainUI.showBottomHint(getRotatedRectSizeString());
+            drawArea();
+        }
+
+        // 영역 이동: 드래그 시작 시점 위치 + 마우스 이동량으로 매번 새로 계산(누적 안 함)
+        private static function onMouseMoveAreaMove(e:MouseEvent):void
+        {
+            if (!CaptureController.isCaptureModeON)
+            {
+                removeCaptureAreaEvents();
+                return;
+            }
+
+            const subX:Number = Math.round(xPanel.mouseX - clickPos.x);
+            const subY:Number = Math.round(xPanel.mouseY - clickPos.y);
+
+            if (!mouseMoved)
+            {
+                if (Math.abs(subX) < mouseMoveThreshold && Math.abs(subY) < mouseMoveThreshold)
+                {
+                    return;
+                }
+
+                mouseMoved = true;
+                CaptureController.onCaptureAreaDragStarted();
+            }
+
+            rectClamped.x = Math.round(Math.max(0, Math.min(canvasWidth - rectClamped.width, moveStartRect.x + subX)));
+            rectClamped.y = Math.round(Math.max(0, Math.min(canvasHeight - rectClamped.height, moveStartRect.y + subY)));
+            drawArea();
         }
 
         private static function onMouseMoveDrawCaptureArea(e:MouseEvent):void
@@ -254,7 +277,7 @@ package Modules.CaptureEngine
                 rectClamped.height = rectRaw.height;
                 normalizeRectClamped();
                 MainUI.showBottomHint(getRotatedRectSizeString());
-                drawArea(false);
+                drawArea();
             }
             else if (Math.abs(subX) >= mouseMoveThreshold || Math.abs(subY) >= mouseMoveThreshold)
             {
@@ -266,7 +289,6 @@ package Modules.CaptureEngine
                 rectClamped.y = rectRaw.y;
                 rectClamped.width = rectRaw.width;
                 rectClamped.height = rectRaw.height;
-                // clickPos.setTo(mx, my);
                 MainUI.showBottomHint(getRotatedRectSizeString());
                 mouseMoved = true;
                 CaptureController.onCaptureAreaDragStarted();
@@ -284,16 +306,21 @@ package Modules.CaptureEngine
                 normalizeRectClamped();
                 validateCaptureArea();
                 MainUI.topBar.capClipBoard.alpha = 1.0;
-                drawArea(true);
+                drawArea();
                 CaptureController.onCaptureAreaChanged();
             }
+
             mouseMoved = false;
+            isDragging = false;
+            activeEdge = EDGE_NONE;
+            setHighlightEdge(getHoverEdge());
         }
 
         private static function removeCaptureAreaEvents():void
         {
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawCaptureArea);
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCaptureAreaDraw);
+            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveAreaMove);
+            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveEdge);
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
         }
 
@@ -301,7 +328,11 @@ package Modules.CaptureEngine
         {
             if ((rectClamped.width >= minSize && rectClamped.height >= minSize) || forceFlag)
             {
-                drawArea(true);
+                if (!isDragging)
+                {
+                    highlightEdge = getHoverEdge();
+                }
+                drawArea();
             }
             CaptureController.onCaptureAreaChanged();
         }
@@ -311,71 +342,7 @@ package Modules.CaptureEngine
             return (ReplayState.isReplayModeON) ? Math.abs(ReplayDrawer.rCanvasAnchorPoint.scaleX) : Math.abs(CanvasController.canvasAnchorPoint.scaleX);
         }
 
-        private static function drawResizeButton(scale:Number):void
-        {
-            if (isFullImageCapture())
-            {
-                return;
-            }
-
-            captureDragAreaOverlay.graphics.lineStyle(1, 0xFFFFFF, 1.0, true);
-            captureDragAreaOverlay.graphics.beginFill(0xFF6600);
-            const corner:int = CaptureController.getResizeCornerIndex();
-
-            var posX:Number = rectClamped.x;
-            var posY:Number = rectClamped.y;
-            const offset:Number = 0;
-
-            if (corner === 0)
-            {
-                posX += rectClamped.width + offset;
-                posY += rectClamped.height + offset;
-            }
-            else if (corner === 1)
-            {
-                posX += rectClamped.width + offset;
-                posY += -offset;
-            }
-            else if (corner === 3)
-            {
-                posY += rectClamped.height + offset;
-                posX += -offset;
-            }
-            else
-            {
-                posX += -offset;
-                posY += -offset;
-            }
-
-            resizeButtonPos.setTo(posX, posY);
-
-            const longEdge:Number = resizeButtonSize / scale;
-            const shortEdge:Number = (resizeButtonSize / 3) / scale;
-            const cmd:Vector.<int> = new <int>[1, 2, 2, 2, 2, 2, 2];
-            const pos:Vector.<Number> = new <Number>[
-                    0, 0,
-                    0, -longEdge,
-                    shortEdge, -longEdge,
-                    shortEdge, shortEdge,
-                    -longEdge, shortEdge,
-                    -longEdge, 0,
-                    0, 0
-                ];
-            const len:uint = pos.length;
-            var p:Point;
-
-            for (var i:uint = 0;i < len;i += 2)
-            {
-                p = Utils.rotatePoint(pos[i], pos[i + 1], CaptureController.captureCanvasRotationStep * 90.0);
-                pos[i] = posX + p.x * ((CaptureController.isCaptureCanvasFlipped) ? -1.0 : 1.0);
-                pos[i + 1] = posY + p.y;
-            }
-
-            captureDragAreaOverlay.graphics.drawPath(cmd, pos);
-            captureDragAreaOverlay.graphics.endFill();
-        }
-
-        private static function drawArea(resizeButtonON:Boolean):void
+        private static function drawArea():void
         {
             const zoomed:Number = getCanvasScale();
             const lineSize:Number = Math.ceil(1 / zoomed);
@@ -393,10 +360,36 @@ package Modules.CaptureEngine
             captureDragAreaOverlay.graphics.lineStyle(lineSize, 0xFFFFFF, 1.0, true);
             captureDragAreaOverlay.graphics.beginFill(0xFFFFFF, 0.0);
             captureDragAreaOverlay.graphics.drawRect(rectClamped.x, rectClamped.y, rectClamped.width, rectClamped.height);
+            captureDragAreaOverlay.graphics.endFill();
 
-            if (resizeButtonON)
+            if (highlightEdge !== EDGE_NONE && !isFullImageCapture())
             {
-                drawResizeButton(zoomed);
+                const left:Number = rectClamped.x;
+                const right:Number = rectClamped.x + rectClamped.width;
+                const top:Number = rectClamped.y;
+                const bottom:Number = rectClamped.y + rectClamped.height;
+
+                captureDragAreaOverlay.graphics.lineStyle(edgeHighlightPx / zoomed, 0xFF6600, 1.0, true, LineScaleMode.NORMAL, CapsStyle.NONE);
+
+                switch (highlightEdge)
+                {
+                    case EDGE_TOP:
+                        captureDragAreaOverlay.graphics.moveTo(left, top);
+                        captureDragAreaOverlay.graphics.lineTo(right, top);
+                        break;
+                    case EDGE_BOTTOM:
+                        captureDragAreaOverlay.graphics.moveTo(left, bottom);
+                        captureDragAreaOverlay.graphics.lineTo(right, bottom);
+                        break;
+                    case EDGE_LEFT:
+                        captureDragAreaOverlay.graphics.moveTo(left, top);
+                        captureDragAreaOverlay.graphics.lineTo(left, bottom);
+                        break;
+                    default:
+                        captureDragAreaOverlay.graphics.moveTo(right, top);
+                        captureDragAreaOverlay.graphics.lineTo(right, bottom);
+                        break;
+                }
             }
         }
 
@@ -425,25 +418,19 @@ package Modules.CaptureEngine
             return !CaptureController.isCaptureAxisSwapped() ? w + " x " + h : h + " x " + w;
         }
 
+        private static function clearAreaState():void
+        {
+            clickPos.setTo(0, 0);
+            rectClamped.setTo(0, 0, 0, 0);
+            rectRaw.setTo(0, 0, 0, 0);
+            rectFull.setTo(0, 0, 0, 0);
+            highlightEdge = EDGE_NONE;
+            activeEdge = EDGE_NONE;
+        }
+
         public static function resetCaptureArea():void
         {
-            resizeButtonPos.setTo(0, 0);
-            resizeFlag = false;
-            clickPos.setTo(0, 0);
-            rectClamped.x = 0;
-            rectClamped.y = 0;
-            rectClamped.width = 0;
-            rectClamped.height = 0;
-            rectRaw.x = 0;
-            rectRaw.y = 0;
-            rectRaw.width = 0;  
-            rectRaw.height = 0;
-            rectFull.x = 0;
-            rectFull.y = 0;
-            rectFull.width = 0;
-            rectFull.height = 0;
-            limitWidthSave = 0;
-            limitHeightSave = 0;
+            clearAreaState();
             captureDragAreaOverlay.graphics.clear();
             MainUI.topBar.capClipBoard.alpha = 1.0;
             CaptureController.onCaptureAreaChanged();
@@ -451,27 +438,12 @@ package Modules.CaptureEngine
 
         public static function reset():void
         {
-            resizeButtonPos.setTo(0, 0);
-            resizeFlag = false;
-            clickPos.setTo(0, 0);
-            rectClamped.x = 0;
-            rectClamped.y = 0;
-            rectClamped.width = 0;
-            rectClamped.height = 0;
-            rectRaw.x = 0;
-            rectRaw.y = 0;
-            rectRaw.width = 0;
-            rectRaw.height = 0;
-            rectFull.x = 0;
-            rectFull.y = 0;
-            rectFull.width = 0;
-            rectFull.height = 0;
-            limitWidthSave = 0;
-            limitHeightSave = 0;
+            clearAreaState();
             canvasWidth = 0;
             canvasHeight = 0;
             xPanel = null;
             mouseMoved = false;
+            isDragging = false;
             MainUI.topBar.capClipBoard.alpha = 1.0;
         }
 
@@ -494,38 +466,18 @@ package Modules.CaptureEngine
             return rectClamped.contains(xPanel.mouseX, xPanel.mouseY);
         }
 
-        public static function isCursorInResizeButton():Boolean
-        {
-            if (!xPanel)
-            {
-                return false;
-            }
-            const p1:Point = new Point(xPanel.mouseX, xPanel.mouseY);
-            if (Point.distance(p1, resizeButtonPos) * getCanvasScale() < resizeButtonSize)
-            {
-                return true;
-            }
-            return false;
-        }
-
-        private static function startUpdatingCaptureAreaPosSize(mx:Number, my:Number, flag:Boolean):void
+        private static function beginDrag(mx:Number, my:Number, moveListener:Function):void
         {
             CanvasController.isMouseDragging = true;
-            resizeFlag = flag;
-            rectRaw.x = rectClamped.x;
-            rectRaw.y = rectClamped.y;
-            rectRaw.width = rectClamped.width;
-            rectRaw.height = rectClamped.height;
-            limitWidthSave = rectClamped.x + rectClamped.width;
-            limitHeightSave = rectClamped.y + rectClamped.height;
+            isDragging = true;
+            mouseMoved = false;
             clickPos.setTo(mx, my);
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCaptureAreaDraw);
+            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, moveListener);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
         }
 
         public static function start():void
         {
-            
             if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
                 if (ReplayState.isReplayModeON) // 리플레이 변수로 변경
@@ -541,31 +493,31 @@ package Modules.CaptureEngine
                     xPanel = CanvasController.canvasPanel;
                 }
 
-                var mx:Number = xPanel.mouseX;
-                var my:Number = xPanel.mouseY;
+                const mx:Number = xPanel.mouseX;
+                const my:Number = xPanel.mouseY;
 
-                rectFull.x = 0;
-                rectFull.y = 0;
-                rectFull.width = canvasWidth;
-                rectFull.height = canvasHeight;
-                resizeFlag = false;
+                rectFull.setTo(0, 0, canvasWidth, canvasHeight);
 
                 const hasCaptureArea:Boolean = !isFullImageCapture();
+                const edge:int = (hasCaptureArea) ? hitEdge(mx, my) : EDGE_NONE;
 
-                if (hasCaptureArea && isCursorInResizeButton())
+                if (edge !== EDGE_NONE)
                 {
-                    startUpdatingCaptureAreaPosSize(mx, my, true);
+                    activeEdge = edge;
+                    highlightEdge = edge;
+                    dragEdgeStartValue = getEdgeValue(edge);
+                    beginDrag(mx, my, onMouseMoveEdge);
                 }
-                else if ( hasCaptureArea && isCursorInCaptureDrea())
+                else if (hasCaptureArea && isCursorInCaptureDrea())
                 {
-                    startUpdatingCaptureAreaPosSize(mx, my, false);
+                    moveStartRect.copyFrom(rectClamped);
+                    setHighlightEdge(EDGE_NONE);
+                    beginDrag(mx, my, onMouseMoveAreaMove);
                 }
                 else
                 {
-                    clickPos.setTo(mx, my);
-                    CanvasController.isMouseDragging = true;
-                    main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawCaptureArea);
-                    main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
+                    setHighlightEdge(EDGE_NONE);
+                    beginDrag(mx, my, onMouseMoveDrawCaptureArea);
                 }
             }
         }
