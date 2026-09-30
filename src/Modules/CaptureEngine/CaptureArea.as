@@ -39,7 +39,7 @@ package Modules.CaptureEngine
         private static const EDGE_BOTTOM:int = 1;
         private static const EDGE_LEFT:int = 2;
         private static const EDGE_RIGHT:int = 3;
-        private static const edgeHitPx:Number = 5.0; // 테두리 기준 +-5px(화면 px)에서 클릭 반응
+        private static const edgeHitPx:Number = 8.0; // 테두리 기준 +-8px(화면 px)에서 클릭 반응
         private static const edgeHighlightPx:Number = 2.0; // 호버/드래그 중인 변 강조선 굵기(화면 px)
         private static var highlightEdge:int = EDGE_NONE;
         private static var activeEdge:int = EDGE_NONE;
