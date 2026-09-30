@@ -18,12 +18,9 @@ package Modules.CaptureEngine
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import flash.utils.getTimer;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
-    import Symbols.CapStampFontListSet;
-    import flash.display.Shape;
 
     public class CaptureController
     {

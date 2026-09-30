@@ -6,17 +6,13 @@ package Modules
 	import Modules.SidebarController;
 	import Modules.Tools.LassoTool;
 
-	import Symbols.CapStampFontListSet;
 	import Symbols.HintBoxSet;
 	import Symbols.TopMenuSet;
-	import Symbols.SeekBarSet;
 
-	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
-	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import Modules.Tools.LineTool;
 	import Modules.ReplayEngine.ReplayController;
@@ -44,8 +40,6 @@ package Modules
 		public static const bottomBar:Sprite = new Sprite();
 		private static const hintHighlightBox:Shape = new Shape(); // 요소에 마우스 클릭하면 사각형으로 하이라이트 표시해줌
 		private static const lastBottomHintTargetRect:Rectangle = new Rectangle(); // bottomhint mosue move에서 자꾸 호출해주니까 저장해서 호출 덜하게 해줌
-		private static var canvasStateBeforeCaptureMode:Object = {}; // 캡쳐 키면 캔버스 이전 상태 저장함
-		public static var drawModeCanvasStateForSaveAppState:Object = {}; // save app state에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
 
 		public static function isSameWithLastBottomHintTargetRect(target:DisplayObject):Boolean
 		{

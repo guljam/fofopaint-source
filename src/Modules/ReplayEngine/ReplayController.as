@@ -6,7 +6,6 @@ package Modules.ReplayEngine
     import flash.desktop.NativeDragManager;
     import flash.display.Bitmap;
     import flash.display.BitmapData;
-    import flash.display.DisplayObject;
     import flash.display.Sprite;
     import flash.events.Event;
     import flash.events.MouseEvent;
@@ -22,7 +21,6 @@ package Modules.ReplayEngine
     import flash.ui.Mouse;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
-    import Modules.BackgroundWorkerCoordinator;
     import Modules.CacheImageMetaData;
     import Modules.CanvasController;
     import Modules.CanvasGridOverlay;
