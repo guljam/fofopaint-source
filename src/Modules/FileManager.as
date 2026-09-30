@@ -386,7 +386,7 @@ package Modules
             ReplayController.resetReplayTime();
             ReplayDrawer.clearCanvasReplayMode();
             ReplayController.updateReplayPrograssText(true, 0);
-            MainUI.seekBarBox.resetReplayPrograssBarWidth();
+            ReplayController.seekBarBox.resetReplayPrograssBarWidth();
 
             if (bgColor > 0)
             {

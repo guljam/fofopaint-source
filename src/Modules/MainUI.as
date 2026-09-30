@@ -35,7 +35,6 @@ package Modules
 		// todo ui색깔 변경 스케일 변경 등 클래스를더 쪼개야함
 		public static const stageBG:Sprite = new Sprite(); // 드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
 		public static const topBar:TopMenuSet = new TopMenuSet();
-		public static const seekBarBox:SeekBarSet = new SeekBarSet();
 		private static const BOTTOM_HINT_SCROLL_TIMER:String = "bottomHintScrollTimer";
 		private static var bottomHintScrollWaitFrames:int = 0;
 		private static var bottomHintScrollToLeft:Boolean = true;
@@ -43,19 +42,8 @@ package Modules
 		public static const bottomBar:Sprite = new Sprite();
 		private static const hintHighlightBox:Shape = new Shape(); // 요소에 마우스 클릭하면 사각형으로 하이라이트 표시해줌
 		private static const lastBottomHintTargetRect:Rectangle = new Rectangle(); // bottomhint mosue move에서 자꾸 호출해주니까 저장해서 호출 덜하게 해줌
-		private static var isCaptureModeInputEventsAdded:Boolean = false; // 이벤트 세트가 켜지거나 꺼지는거 보관, 중복 이벤트 추가 피하려고
-		public static var isCaptureCanvasFlipped:Boolean = false; // 캡쳐 대칭한 변수 저장
-		public static var isCaptureTransparentBGShowing:Boolean = false; // 배경 제외하고 저장하는 플래그
-		public static var isCaptureStampTextFieldFocused:Boolean = false; // 포커스 되면 올려줌
-		public static var isCaptureStampEnabled:Boolean = false;
-		public static var captureStampFontListBox:CapStampFontListSet = new CapStampFontListSet();
-		private static var captureDragAreaOverlay:Shape = new Shape(); // 스크린샷 박스 미리보기 그려줌
 		private static var canvasStateBeforeCaptureMode:Object = {}; // 캡쳐 키면 캔버스 이전 상태 저장함
 		public static var drawModeCanvasStateForSaveAppState:Object = {}; // save app state에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
-		public static var captureWindowMove:Point = new Point(0, 0); // 스크린샷이 켜져있는 상태에서 창을 조절했을때, 스크린샷이 끝나고 나서 regpoint를 그만큼 움직여줘야함
-		public static var captureCanvasRotationStep:uint = 0; // 캡쳐 회전한 변수 저장
-		private static var capTransparentBGBMPDSize:Number = 32;
-		public static var capTransparentBGBMPD:BitmapData;
 
 		public static function isSameWithLastBottomHintTargetRect(target:DisplayObject):Boolean
 		{
@@ -282,7 +270,7 @@ package Modules
 			const tbIndex:int = main.stage.getChildIndex(topBar);
 			const hIndex:int = main.stage.getChildIndex(hintHighlightBox);
 
-			if (topBar.contains(target) || seekBarBox.contains(target))
+			if (topBar.contains(target) || ReplayController.seekBarBox.contains(target))
 			{
 				var desiredIndex:int = Math.min(tbIndex + 1, topIndex);
 				if (hIndex != desiredIndex)
@@ -413,27 +401,12 @@ package Modules
 			Utils.setAsTopChild(mouseHint);
 		}
 
-		public static function updateTopbarIconsDrawMode():void
-		{
-			topBar.updateIconsByMode(0);
-		}
-
-		public static function updateTopbarIconsReplayMode():void
-		{
-			topBar.updateIconsByMode(1);
-		}
-
-		private static function updateTopbarIconsCaptureMode():void
-		{
-			topBar.updateIconsByMode(2);
-		}
-
 		public static function initializeAppMenus():void
 		{
 			topBar.name = "topBar";
 			SidebarController.sideBarScrollBar.name = "sideBarScrollBar";
 			topBar.makeTopbarBG(Global.setDefaultUIColor());
-			updateTopbarIconsDrawMode();
+			MainUIController.updateTopbarIconsDrawMode();
 
 			FillPenTool.fillPenBox.x = -FillPenTool.fillPenBox.width - 3;
 			FillPenTool.fillPenBox.y = -FillPenTool.fillPenBox.height - 3;
@@ -625,90 +598,13 @@ package Modules
 			{
 
 				topBar.visible = true;
-				seekBarBox.y = ReplayController.lastReplayTimeBoxYPos;
-				seekBarBox.setPlayButtonVisible(true);
-				seekBarBox.showReplayControlButton();
+				ReplayController.seekBarBox.y = ReplayController.lastReplayTimeBoxYPos;
+				ReplayController.seekBarBox.setPlayButtonVisible(true);
+				ReplayController.seekBarBox.showReplayControlButton();
 				hideBottomHint();
 				hideMouseHint();
 
 			}
-		}
-
-		public static function activateCaptureUI():void
-		{
-			const replayMode:Boolean = ReplayState.isReplayModeON;
-			CaptureArea.reset();
-			MainUIController.updateCanvasResizeButtonVisible(false);
-			FOFOTimer.remove("rCursorOffAlphaAnimTimer");
-
-			if (replayMode)
-			{
-				showTopbarOnReplayEnd();
-				seekBarBox.setDeleteRangeBarVisible(false);
-				seekBarBox.visible = false;
-				InputManager.removeInputEventsReplayMode();
-			}
-			else
-			{
-				CanvasGridOverlay.canvasGrid.visible = false;
-				InputManager.removeInputEventsDrawMode();
-			}
-
-			if (SidebarController.isSidebarVisible)
-			{
-				SidebarController.hideSidebarTemporary();
-			}
-
-			PenSizePreviewCursor.setCursorInVisibleFlag(true);
-			PenSizePreviewCursor.setVisible(false);
-			ReferenceLayerController.canvasRefLayer.visible = false;
-
-			if (ReferenceLayerController.isRefLayerMenuON)
-			{
-				ReferenceLayerController.refLayerMenuBox.visible = false;
-			}
-
-			updateTopbarIconsCaptureMode();
-			ReplayDrawer.rReplayFOFOCursor.visible = false;
-
-			if (mouseHint.isShowing())
-			{
-				hideMouseHint();
-			}
-
-			InputManager.addInputEventsCaptrueMode();
-			MainUIController.updateStageOffset();
-		}
-
-		public static function deactivateCaptureUI():void
-		{
-			const replayMode:Boolean = ReplayState.isReplayModeON;
-			InputManager.removeInputEventCaptrueMode();
-			ReferenceLayerController.canvasRefLayer.visible = true;
-
-			if (replayMode)
-			{
-				updateTopbarIconsReplayMode();
-				InputManager.addInputEventsReplayMode();
-				seekBarBox.visible = true;
-			}
-			else
-			{
-				if (SidebarController.isSidebarVisible)
-				{
-					SidebarController.showSidebarPermanent();
-				}
-				if (ReferenceLayerController.isRefLayerMenuON)
-				{
-					ReferenceLayerController.refLayerMenuBox.visible = true;
-				}
-				PenSizePreviewCursor.setCursorInVisibleFlag(false);
-				updateTopbarIconsDrawMode();
-				InputManager.addInputEventsDrawMode();
-			}
-
-			ColorPickerController.switchColorPickerModePen();
-			MainUIController.updateStageOffset();
 		}
 	}
 }

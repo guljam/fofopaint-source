@@ -45,6 +45,98 @@ package Modules
         // 종료 저장/close가 이미 시작됐는지 (종료 직전 applyLayout이 여러 경로로 중복 호출되는 것 방지)
         private static var isCloseRequested:Boolean = false;
 
+        public static function updateTopbarIconsDrawMode():void
+		{
+			MainUI.topBar.updateIconsByMode(0);
+		}
+
+		public static function updateTopbarIconsReplayMode():void
+		{
+			MainUI.topBar.updateIconsByMode(1);
+		}
+
+		public static function updateTopbarIconsCaptureMode():void
+		{
+			MainUI.topBar.updateIconsByMode(2);
+		}
+
+        public static function activateCaptureUI():void
+		{
+			const replayMode:Boolean = ReplayState.isReplayModeON;
+			CaptureArea.reset();
+			MainUIController.updateCanvasResizeButtonVisible(false);
+			FOFOTimer.remove("rCursorOffAlphaAnimTimer");
+
+			if (replayMode)
+			{
+				MainUI.showTopbarOnReplayEnd();
+				ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
+				ReplayController.seekBarBox.visible = false;
+				InputManager.removeInputEventsReplayMode();
+			}
+			else
+			{
+				CanvasGridOverlay.canvasGrid.visible = false;
+				InputManager.removeInputEventsDrawMode();
+			}
+
+			if (SidebarController.isSidebarVisible)
+			{
+				SidebarController.hideSidebarTemporary();
+			}
+
+			PenSizePreviewCursor.setCursorInVisibleFlag(true);
+			PenSizePreviewCursor.setVisible(false);
+			ReferenceLayerController.canvasRefLayer.visible = false;
+
+			if (ReferenceLayerController.isRefLayerMenuON)
+			{
+				ReferenceLayerController.refLayerMenuBox.visible = false;
+			}
+
+			updateTopbarIconsCaptureMode();
+			ReplayDrawer.rReplayFOFOCursor.visible = false;
+
+			if (MainUI.mouseHint.isShowing())
+			{
+				MainUI.hideMouseHint();
+			}
+
+			InputManager.addInputEventsCaptrueMode();
+			MainUIController.updateStageOffset();
+		}
+
+		public static function deactivateCaptureUI():void
+		{
+			const replayMode:Boolean = ReplayState.isReplayModeON;
+			InputManager.removeInputEventCaptrueMode();
+			ReferenceLayerController.canvasRefLayer.visible = true;
+
+			if (replayMode)
+			{
+				updateTopbarIconsReplayMode();
+				InputManager.addInputEventsReplayMode();
+				ReplayController.seekBarBox.visible = true;
+			}
+			else
+			{
+				if (SidebarController.isSidebarVisible)
+				{
+					SidebarController.showSidebarPermanent();
+				}
+				if (ReferenceLayerController.isRefLayerMenuON)
+				{
+					ReferenceLayerController.refLayerMenuBox.visible = true;
+				}
+				PenSizePreviewCursor.setCursorInVisibleFlag(false);
+				updateTopbarIconsDrawMode();
+				InputManager.addInputEventsDrawMode();
+			}
+
+			ColorPickerController.switchColorPickerModePen();
+			MainUIController.updateStageOffset();
+		}
+
         public static function getViewportRect():Rectangle
         {
             const stw:int = main.stage.stageWidth;
@@ -84,9 +176,9 @@ package Modules
                 STAGE_TOP_OFFSET += MainUI.topBar.BARSIZE * scale;
             }
 
-            if (MainUI.seekBarBox.visible)
+            if (ReplayController.seekBarBox.visible)
             {
-                STAGE_TOP_OFFSET += MainUI.seekBarBox.BARSIZE * scale;
+                STAGE_TOP_OFFSET += ReplayController.seekBarBox.BARSIZE * scale;
             }
 
             if (CaptureController.isCaptureModeON || ReplayState.isReplayModeON)
@@ -118,7 +210,7 @@ package Modules
             MainUI.topBar.setScale(scale);
             MainUI.topBar.updateTopbarBG(stw);
             MainUI.topBar.updateTimerPos(main.stage.stageWidth);
-            MainUI.seekBarBox.setScale(scale);
+            ReplayController.seekBarBox.setScale(scale);
             CanvasController.canvasRotateCursor.setScale(scale);
             MainUI.mouseHint.setScale(scale);
             MainUI.bottomBar.scaleX = scale;
@@ -436,7 +528,7 @@ package Modules
 
             if (ReplayState.isReplayModeON)
             {
-                MainUI.seekBarBox.updatePos(main.stage.stageWidth);
+                ReplayController.seekBarBox.updatePos(main.stage.stageWidth);
                 ReplayController.rFollowMouse.updateBounds();
 
                 if (ReplayState.isReplayCanvasFitToWindow)
@@ -614,7 +706,7 @@ package Modules
             ColorPickerController.numPadBox.updateUIColor();
             ReferenceLayerController.refLayerMenuBox.updateUIColor();
             MainUI.topBar.updateUIColor();
-            MainUI.seekBarBox.updateUIColor();
+            ReplayController.seekBarBox.updateUIColor();
             CaptureStamp.captureStampFontListBox.updateUIColor();
             MainUI.mouseHint.updateBGColor();
             MainUI.bottomHint.updateHintTextColor(0);

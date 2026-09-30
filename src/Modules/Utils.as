@@ -10,6 +10,7 @@ package Modules
     import flash.geom.ColorTransform;
     import flash.display.SimpleButton;
     import avmplus.getQualifiedClassName;
+    import Modules.ReplayEngine.ReplayController;
 
     public class Utils
     {
@@ -24,7 +25,7 @@ package Modules
         {
             return !(MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY)
                     || (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
-                    || (MainUI.seekBarBox.visible && MainUI.seekBarBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY)));
+                    || (ReplayController.seekBarBox.visible && ReplayController.seekBarBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY)));
         }
 
 

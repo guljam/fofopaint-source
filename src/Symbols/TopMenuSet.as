@@ -572,7 +572,7 @@
 				showModeIcons("replay");
 				hideModeIcons("draw");
 				hideModeIcons("capture");
-				MainUI.seekBarBox.setPlayButtonVisible(!ReplayState.isReplayStarted);
+				ReplayController.seekBarBox.setPlayButtonVisible(!ReplayState.isReplayStarted);
 			}
 			else if (mode === 2)
 			{

@@ -355,12 +355,12 @@ package Modules
                             break;
                         case "capLayer1VisibleButton":
                             {
-                                ReplayController.toggleLayerCaptureMode(1);
+                                CaptureController.toggleLayerCaptureMode(1);
                             }
                             break;
                         case "capLayer2VisibleButton":
                             {
-                                ReplayController.toggleLayerCaptureMode(2);
+                                CaptureController.toggleLayerCaptureMode(2);
                             }
                             break;
                         case "dpiButton":
@@ -2939,7 +2939,7 @@ package Modules
             const targetName:String = target.name;
             if (ReplayController.isReplayRestartTimerON())
             {
-                if (MainUI.seekBarBox.trackBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                if (ReplayController.seekBarBox.trackBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                 {
                     ReplayController.cancelReplayRestartTimer();
                     return;
@@ -2978,7 +2978,7 @@ package Modules
                                 ReplayController.createNewFileFromReplayCanvas,
                                 function ():void
                                 {
-                                    MainUI.seekBarBox.setDeleteRangeBarVisible(false);
+                                    ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
                                 },
                                 FileManager.isReplayDataLocked);
                     }
@@ -2994,7 +2994,7 @@ package Modules
                                     ReplayController.deleteReplayDataBeforeCurrentFrame,
                                     function ():void
                                     {
-                                        MainUI.seekBarBox.setDeleteRangeBarVisible(false);
+                                        ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
                                     },
                                     FileManager.isReplayDataLocked);
                         }
@@ -3010,7 +3010,7 @@ package Modules
                                 },
                                     ReplayController.deleteReplayDataAfterCurrentFrame, function ():void
                                     {
-                                        MainUI.seekBarBox.setDeleteRangeBarVisible(false);
+                                        ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
                                     },
                                     FileManager.isReplayDataLocked);
                         }

@@ -13,6 +13,8 @@ package Modules
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
+    import Symbols.CapStampFontListSet;
+    import flash.display.Shape;
 
     public class CaptureController
     {
@@ -27,15 +29,66 @@ package Modules
         }
 
         public static var isCaptureModeON:Boolean = false; // 스크린샷 켜지면 올려줌
+		public static var isCaptureStampEnabled:Boolean = false;
         public static var isCaptureCanvasFlipped:Boolean = false; // 캡쳐 대칭한 변수 저장
         public static var isCaptureTransparentBGShowing:Boolean = false; // 배경 제외하고 저장하는 플래그
-
         private static var canvasStateBeforeCaptureMode:Object = {}; // 캡쳐 키면 캔버스 이전 상태 저장함
         public static var drawModeCanvasStateForSaveAppState:Object = {}; // save app state에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
         public static var captureWindowMove:Point = new Point(0, 0); // 스크린샷이 켜져있는 상태에서 창을 조절했을때 스크린샷이 끝나고 나서 regpoint를 그만큼 움직여줘야함
         public static var captureCanvasRotationStep:uint = 0; // 캡쳐 회전한 변수 저장
         private static var capTransparentBGBMPDSize:Number = 32;
         public static var capTransparentBGBMPD:BitmapData;
+
+         public static function toggleLayerCaptureMode(layer:int):void
+        {
+            MainUI.topBar.capClipBoard.alpha = 1.0;
+            const replayMode:Boolean = ReplayState.isReplayModeON;
+            var bitmap:Bitmap = replayMode
+                ? (layer == 1 ? ReplayDrawer.rCanvasLayer1Bitmap : ReplayDrawer.rCanvasLayer2Bitmap)
+                : (layer == 1 ? CanvasController.canvasLayer1Bitmap : CanvasController.canvasLayer2Bitmap);
+            var button:DisplayObject = (layer == 1)
+                ? MainUI.topBar.capLayer1VisibleButton
+                : MainUI.topBar.capLayer2VisibleButton;
+            var otherButton:DisplayObject = (layer == 1)
+                ? MainUI.topBar.capLayer2VisibleButton
+                : MainUI.topBar.capLayer1VisibleButton;
+
+            if (bitmap.visible)
+            {
+                bitmap.visible = false;
+                button.alpha = Global.OFFALPHA;
+
+                if (replayMode)
+                {
+                    if ((layer == 1 && !ReplayDrawer.isLayer2SelectedReplayMode())
+                            || (layer == 2 && ReplayDrawer.isLayer2SelectedReplayMode()))
+                    {
+                        ReplayDrawer.rCanvasDrawLayer.visible = false;
+                    }
+                }
+
+                if (otherButton.alpha < 1.0)
+                {
+                    toggleLayerCaptureMode((layer == 1) ? 2 : 1);
+                }
+            }
+            else
+            {
+                bitmap.visible = true;
+                button.alpha = 1.0;
+
+                if (replayMode)
+                {
+                    if ((layer == 1 && !ReplayDrawer.isLayer2SelectedReplayMode())
+                            || (layer == 2 && ReplayDrawer.isLayer2SelectedReplayMode()))
+                    {
+                        ReplayDrawer.rCanvasDrawLayer.visible = true;
+                    }
+                }
+            }
+
+            CaptureArea.updateDrawArea();
+        }
 
         public static function executeCaptureFlashEffect():void
         {
@@ -249,40 +302,6 @@ package Modules
             }
         }
 
-        private static function showBottomHintForTargetCaptureMode(target:DisplayObject):void
-        {
-            if (MainUI.isHintUnavailable())
-            {
-                return;
-            }
-
-            const hint:String = HintStrings.getHintFromTargetNameCaptureMode(target.name);
-            if (hint)
-            {
-                FOFOTimer.remove("bottomHintOffDelay");
-                const targetName:String = target.name;
-                const xCanvasPanel:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasPanel : CanvasController.canvasPanel;
-
-                if (CaptureArea.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
-                {
-                    MainUI.showHintHighlightBox((ReplayController) ? ReplayDrawer.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
-                    MainUI.showBottomHint(hint);
-                }
-                else if (!(targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "canvasPanel" || targetName === "canvasDrawLayer"))
-                {
-                    MainUI.showHintHighlightBox(target);
-                    MainUI.showBottomHint(hint);
-                }
-            }
-            else
-            {
-                if (!FOFOTimer.hasTimer("bottomHintOffDelay"))
-                {
-                    FOFOTimer.addByName("bottomHintOffDelay", 0.3, false, MainUI.hideBottomHint);
-                }
-            }
-        }
-
         public static function enterCaptureMode():void
         {
             if (isCaptureModeON || ReplayState.isGeneratingCacheImages())
@@ -308,7 +327,7 @@ package Modules
                 SidebarController.startHidingSidebarTemporary();
             }
 
-            MainUI.activateCaptureUI();
+            MainUIController.activateCaptureUI();
             MainUI.hideBottomHint();
 
             var xAnc:Sprite;
@@ -431,7 +450,7 @@ package Modules
             PenSizePreviewCursor.updateSizeAndShape();
 
             // prev box 사각형 업데이트가 있기 때문에 xAnc위치가 갱신된 다음에 해주어야함
-            MainUI.deactivateCaptureUI();
+            MainUIController.deactivateCaptureUI();
             MainUI.hideBottomHint();
 
             if (replayMode)
