@@ -37,15 +37,93 @@ package Modules.CaptureEngine
             main = instance;
         }
 
-        public static var isCaptureModeON:Boolean = false; // 스크린샷 켜지면 올려줌
-        public static var isCaptureCanvasFlipped:Boolean = false; // 캡쳐 대칭한 변수 저장
-        public static var isCaptureTransparentBGShowing:Boolean = false; // 배경 제외하고 저장하는 플래그
+        private static var _isCaptureModeON:Boolean = false; // 스크린샷 켜지면 올려줌
+        private static var _isCaptureCanvasFlipped:Boolean = false; // 캡쳐 대칭한 변수 저장
+        private static var _isCaptureTransparentBGShowing:Boolean = false; // 배경 제외하고 저장하는 플래그
         private static var canvasStateBeforeCaptureMode:Object = {}; // 캡쳐 키면 캔버스 이전 상태 저장함
-        public static var drawModeCanvasStateForSaveAppState:Object = {}; // save app state에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
-        public static var captureWindowMove:Point = new Point(0, 0); // 스크린샷이 켜져있는 상태에서 창을 조절했을때 스크린샷이 끝나고 나서 regpoint를 그만큼 움직여줘야함
-        public static var captureCanvasRotationStep:uint = 0; // 캡쳐 회전한 변수 저장
+        private static var _drawModeCanvasStateForSaveAppState:Object = {}; // save app state에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
+        private static var _captureWindowMove:Point = new Point(0, 0); // 스크린샷이 켜져있는 상태에서 창을 조절했을때 스크린샷이 끝나고 나서 regpoint를 그만큼 움직여줘야함
+        private static var _captureCanvasRotationStep:uint = 0; // 캡쳐 회전한 변수 저장
         private static var capTransparentBGBMPDSize:Number = 32;
-        public static var capTransparentBGBMPD:BitmapData;
+        private static var _capTransparentBGBMPD:BitmapData;
+
+        public static function get isCaptureModeON():Boolean
+        {
+            return _isCaptureModeON;
+        }
+
+        public static function get isCaptureCanvasFlipped():Boolean
+        {
+            return _isCaptureCanvasFlipped;
+        }
+
+        public static function get isCaptureTransparentBGShowing():Boolean
+        {
+            return _isCaptureTransparentBGShowing;
+        }
+
+        public static function get captureCanvasRotationStep():uint
+        {
+            return _captureCanvasRotationStep;
+        }
+
+        public static function get capTransparentBGBMPD():BitmapData
+        {
+            return _capTransparentBGBMPD;
+        }
+
+        public static function get drawModeCanvasStateForSaveAppState():Object
+        {
+            return _drawModeCanvasStateForSaveAppState;
+        }
+
+        public static function setCaptureWindowMove(dx:Number, dy:Number):void
+        {
+            _captureWindowMove.setTo(dx, dy);
+        }
+
+        // ---- CaptureArea/CaptureStamp가 서로 직접 참조하지 않고 Controller를 거치도록 하는 중계 ----
+        public static function isFullImageCapture():Boolean
+        {
+            return CaptureArea.isFullImageCapture();
+        }
+
+        public static function getCaptureArea():Rectangle
+        {
+            return CaptureArea.getCaptureArea();
+        }
+
+        public static function startCaptureAreaSelection():void
+        {
+            CaptureArea.start();
+        }
+
+        public static function resetCaptureAreaSelection():void
+        {
+            CaptureArea.resetCaptureArea();
+        }
+
+        public static function resetCaptureArea():void
+        {
+            CaptureArea.reset();
+        }
+
+        public static function updateCaptureAreaOverlay(forceFlag:Boolean = false):void
+        {
+            CaptureArea.updateDrawArea(forceFlag);
+        }
+
+        // CaptureArea가 영역을 선택/이동/리사이즈 시작했을 때 (스탬프 임시 숨김)
+        public static function onCaptureAreaDragStarted():void
+        {
+            CaptureStamp.setVisible(false);
+        }
+
+        // CaptureArea의 영역이 확정/초기화/갱신됐을 때 (스탬프 재계산)
+        public static function onCaptureAreaChanged():void
+        {
+            CaptureStamp.update();
+        }
 
          public static function toggleLayerCaptureMode(layer:int):void
         {
@@ -132,7 +210,7 @@ package Modules.CaptureEngine
 
             CanvasController.applyCanvasFlashEffect(xPanel, posX, posY, canvasWidth, canvasHeight, function ():Boolean
                 {
-                    return !isCaptureModeON;
+                    return !_isCaptureModeON;
                 });
         }
 
@@ -154,9 +232,9 @@ package Modules.CaptureEngine
                 layer2 = CanvasController.canvasLayer2Bitmap.visible;
             }
 
-            const bmpd:BitmapData = CanvasController.getMergedBitmapdtata((isCaptureModeON && isCaptureTransparentBGShowing && !clipBoardCopyFlag) ? true : false, layer1, layer2, rect);
+            const bmpd:BitmapData = CanvasController.getMergedBitmapdtata((_isCaptureModeON && _isCaptureTransparentBGShowing && !clipBoardCopyFlag) ? true : false, layer1, layer2, rect);
             const mat:Matrix = new Matrix();
-            const deg:Number = 90 * captureCanvasRotationStep;
+            const deg:Number = 90 * _captureCanvasRotationStep;
             var swapWH:Boolean = false;
 
             mat.rotate(deg * Math.PI / 180);
@@ -176,7 +254,7 @@ package Modules.CaptureEngine
                 mat.translate(bmpd.width, bmpd.height);
             }
 
-            if (isCaptureCanvasFlipped)
+            if (_isCaptureCanvasFlipped)
             {
                 if (swapWH)
                 {
@@ -212,25 +290,25 @@ package Modules.CaptureEngine
         public static function initializeCaptureModeTransparentBG():void
         {
             const halfSize:Number = Math.floor(capTransparentBGBMPDSize / 2);
-            capTransparentBGBMPD = new BitmapData(capTransparentBGBMPDSize, capTransparentBGBMPDSize, false, 0xFFFFFF);
-            capTransparentBGBMPD.fillRect(new Rectangle(0, 0, halfSize, halfSize), 0xC8C8C8);
-            capTransparentBGBMPD.fillRect(new Rectangle(halfSize, halfSize, halfSize, halfSize), 0xCCCCCC);
+            _capTransparentBGBMPD = new BitmapData(capTransparentBGBMPDSize, capTransparentBGBMPDSize, false, 0xFFFFFF);
+            _capTransparentBGBMPD.fillRect(new Rectangle(0, 0, halfSize, halfSize), 0xC8C8C8);
+            _capTransparentBGBMPD.fillRect(new Rectangle(halfSize, halfSize, halfSize, halfSize), 0xCCCCCC);
         }
 
         public static function flipCaptureImage(flag:Boolean, initFlag:Boolean):void
         {
-            isCaptureCanvasFlipped = flag;
+            _isCaptureCanvasFlipped = flag;
             CanvasController.fitCanvasToViewportMargin();
             const xAnc:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
 
-            if (captureCanvasRotationStep === 1)
+            if (_captureCanvasRotationStep === 1)
             {
-                captureCanvasRotationStep = 3;
+                _captureCanvasRotationStep = 3;
                 xAnc.rotation = 270;
             }
-            else if (captureCanvasRotationStep === 3)
+            else if (_captureCanvasRotationStep === 3)
             {
-                captureCanvasRotationStep = 1;
+                _captureCanvasRotationStep = 1;
                 xAnc.rotation = 90;
             }
 
@@ -275,9 +353,9 @@ package Modules.CaptureEngine
 
         public static function applyTransparentCanvasBGCaptureMode(flag:Boolean):void
         {
-            isCaptureTransparentBGShowing = flag;
+            _isCaptureTransparentBGShowing = flag;
 
-            if (isCaptureTransparentBGShowing)
+            if (_isCaptureTransparentBGShowing)
             {
                 BackgroundWorkerCoordinator.applyTransparentCanvasBackground(ReplayState.isReplayModeON);
             }
@@ -300,7 +378,7 @@ package Modules.CaptureEngine
             {
                 rotateValue = 0;
             }
-            captureCanvasRotationStep = rotateValue;
+            _captureCanvasRotationStep = rotateValue;
 
             CanvasController.fitCanvasToViewportMargin();
             MainUI.topBar.capClipBoard.alpha = 1.0;
@@ -312,7 +390,7 @@ package Modules.CaptureEngine
 
         public static function enterCaptureMode():void
         {
-            if (isCaptureModeON || ReplayState.isGeneratingCacheImages())
+            if (_isCaptureModeON || ReplayState.isGeneratingCacheImages())
             {
                 return;
             }
@@ -322,7 +400,7 @@ package Modules.CaptureEngine
                 ReplayController.stopReplay();
             }
 
-            isCaptureModeON = true;
+            _isCaptureModeON = true;
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
 
             if (ColorPickerController.numPadBox.visible)
@@ -369,7 +447,7 @@ package Modules.CaptureEngine
             Utils.setAsTopChild(CaptureArea.captureDragAreaOverlay);
             CaptureArea.captureDragAreaOverlay.visible = true;
 
-            drawModeCanvasStateForSaveAppState = {
+            _drawModeCanvasStateForSaveAppState = {
                     "z": CanvasController.canvasZoomMultipler,
                     "x": Math.floor(CanvasController.canvasAnchorPoint.x), // 뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
                     "y": Math.floor(CanvasController.canvasAnchorPoint.y),
@@ -391,8 +469,8 @@ package Modules.CaptureEngine
 
             MainUI.resetLastBottomHintTargetRect();
             MainUI.topBar.capClipBoard.alpha = 1.0;
-            captureCanvasRotationStep = 0;
-            isCaptureCanvasFlipped = false;
+            _captureCanvasRotationStep = 0;
+            _isCaptureCanvasFlipped = false;
             CanvasController.fitCanvasToViewportMargin();
             applyTransparentCanvasBGCaptureMode(false);
             CaptureStamp.init();
@@ -405,9 +483,9 @@ package Modules.CaptureEngine
 
         public static function resetCaptureCanvasChangeValue():void
         {
-            captureCanvasRotationStep = 0;
-            isCaptureCanvasFlipped = false;
-            isCaptureTransparentBGShowing = false;
+            _captureCanvasRotationStep = 0;
+            _isCaptureCanvasFlipped = false;
+            _isCaptureTransparentBGShowing = false;
         }
 
         public static function exitCaptureMode():void
@@ -421,7 +499,7 @@ package Modules.CaptureEngine
 
             xBitmap1.smoothing = false;
             xBitmap11.smoothing = false;
-            isCaptureModeON = false;
+            _isCaptureModeON = false;
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
 
             CaptureArea.captureDragAreaOverlay.graphics.clear();
@@ -430,8 +508,8 @@ package Modules.CaptureEngine
 
             // 캔버스 이전 모양 위치로 복원
             xAnc.rotation = data.r;
-            xAnc.x = data.x + captureWindowMove.x;
-            xAnc.y = data.y + captureWindowMove.y;
+            xAnc.x = data.x + _captureWindowMove.x;
+            xAnc.y = data.y + _captureWindowMove.y;
             xPanel.x = data.px;
             xPanel.y = data.py;
 
@@ -454,7 +532,7 @@ package Modules.CaptureEngine
 
             MainUI.resetLastBottomHintTargetRect();
             MainUI.hideMouseHint();
-            captureWindowMove.setTo(0, 0);
+            _captureWindowMove.setTo(0, 0);
             PenSizePreviewCursor.updateSizeAndShape();
 
             // prev box 사각형 업데이트가 있기 때문에 xAnc위치가 갱신된 다음에 해주어야함

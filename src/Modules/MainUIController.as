@@ -1,7 +1,6 @@
 package Modules
 {
     import Modules.CaptureEngine.CaptureStamp;
-    import Modules.CaptureEngine.CaptureArea;
     import Modules.CaptureEngine.CaptureController;
 
     import Modules.SidebarController;
@@ -66,7 +65,7 @@ package Modules
         public static function activateCaptureUI():void
 		{
 			const replayMode:Boolean = ReplayState.isReplayModeON;
-			CaptureArea.reset();
+			CaptureController.resetCaptureArea();
 			MainUIController.updateCanvasResizeButtonVisible(false);
 			FOFOTimer.remove("rCursorOffAlphaAnimTimer");
 
@@ -478,12 +477,12 @@ package Modules
         {
             if (CaptureController.isCaptureModeON)
             {
-                CaptureController.captureWindowMove.setTo(dx, dy);
+                CaptureController.setCaptureWindowMove(dx, dy);
                 CanvasController.fitCanvasToViewportMargin();
 
-                if (!CaptureArea.isFullImageCapture())
+                if (!CaptureController.isFullImageCapture())
                 {
-                    CaptureArea.updateDrawArea(true);
+                    CaptureController.updateCaptureAreaOverlay(true);
                 }
             }
             else

@@ -1,7 +1,6 @@
 package Modules
 {
     import Modules.CaptureEngine.CaptureStamp;
-    import Modules.CaptureEngine.CaptureArea;
     import Modules.CaptureEngine.CaptureController;
 	import Modules.MainUIController;
 	import Modules.SidebarController;
@@ -109,7 +108,7 @@ package Modules
 
 				const targetName:String = target.name;
 				const xCanvasPanel:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasPanel : CanvasController.canvasPanel;
-				if (CaptureArea.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
+				if (CaptureController.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
 				{
 					showHintHighlightBox((ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
 					showBottomHint(hint);

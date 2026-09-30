@@ -458,7 +458,7 @@ package Modules
                         SidebarController.sideBarScrollPanel.y = appStateObject.scrollSetMovedY;
 
                         MainUI.topBar.captureInput.text = appStateObject.captureStampText;
-                        CaptureStamp.isCaptureStampEnabled = appStateObject.isCaptureStampON;
+                        CaptureStamp.setCaptureStampEnabled(appStateObject.isCaptureStampON);
 
                         if (appStateObject.captureStampFont)
                         {

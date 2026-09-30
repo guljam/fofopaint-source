@@ -39,14 +39,24 @@ package Modules.CaptureEngine
         private static const lastRectArea:Rectangle = new Rectangle();
         private static var lastBitmapVisibleFlag:int = 0;
         public static var isCaptureStampTextFieldFocused:Boolean = false; // 포커스 되면 올려줌
-        public static var isCaptureStampEnabled:Boolean = false;
+        private static var _isCaptureStampEnabled:Boolean = false;
 
         captureStampBitmap.name = "captureStampBitmap";
         captureStampBitmap.visible = false;
 
+        public static function get isCaptureStampEnabled():Boolean
+        {
+            return _isCaptureStampEnabled;
+        }
+
+        public static function setCaptureStampEnabled(flag:Boolean):void
+        {
+            _isCaptureStampEnabled = flag;
+        }
+
         public static function updateCaptureStampButtonAlpha():void
         {
-            if (CaptureStamp.isCaptureStampEnabled)
+            if (_isCaptureStampEnabled)
             {
                 MainUI.topBar.capStamp.alpha = 1.0;
                 MainUI.topBar.captureInputWarpper.visible = true;
@@ -63,7 +73,7 @@ package Modules.CaptureEngine
         public static function toggleCaptureStampButton():void
         {
             MainUI.topBar.capClipBoard.alpha = 1.0;
-            CaptureStamp.isCaptureStampEnabled = !CaptureStamp.isCaptureStampEnabled;
+            _isCaptureStampEnabled = !_isCaptureStampEnabled;
             updateCaptureStampButtonAlpha();
             CaptureStamp.update();
         }
@@ -347,12 +357,12 @@ package Modules.CaptureEngine
 
         private static function checkPosition(bmpdHeight:Number):void
         {
-            const rect:Rectangle = CaptureArea.getCaptureArea();
+            const rect:Rectangle = CaptureController.getCaptureArea();
             const rotateFlag:uint = CaptureController.captureCanvasRotationStep;
             var offsetX:Number;
             var offsetY:Number;
 
-            if (CaptureArea.isFullImageCapture())
+            if (CaptureController.isFullImageCapture())
             {
 
                 offsetX = (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
@@ -430,7 +440,7 @@ package Modules.CaptureEngine
 
             if (notRotatedFlag)
             {
-                if (CaptureArea.isFullImageCapture())
+                if (CaptureController.isFullImageCapture())
                 {
 
                     return (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
@@ -442,7 +452,7 @@ package Modules.CaptureEngine
             }
             else
             {
-                if (CaptureArea.isFullImageCapture())
+                if (CaptureController.isFullImageCapture())
                 {
                     return (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
                 }
@@ -790,9 +800,9 @@ package Modules.CaptureEngine
 
         public static function update():void
         {
-            if (isCaptureStampEnabled)
+            if (_isCaptureStampEnabled)
             {
-                const rect:Rectangle = CaptureArea.getCaptureArea();
+                const rect:Rectangle = CaptureController.getCaptureArea();
                 const bmpdWidth:Number = getCaptureAreaWidth(rect);
 
                 if (bmpdWidth < 300)

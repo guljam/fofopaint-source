@@ -230,7 +230,7 @@ package Modules.CaptureEngine
             {
                 mouseMoved = true;
                 // clickPos.setTo(mx, my);
-                CaptureStamp.setVisible(false);
+                CaptureController.onCaptureAreaDragStarted();
             }
         }
 
@@ -272,7 +272,7 @@ package Modules.CaptureEngine
                 // clickPos.setTo(mx, my);
                 MainUI.showBottomHint(getRotatedRectSizeString());
                 mouseMoved = true;
-                CaptureStamp.setVisible(false);
+                CaptureController.onCaptureAreaDragStarted();
             }
         }
 
@@ -288,7 +288,7 @@ package Modules.CaptureEngine
                 validateCaptureArea();
                 MainUI.topBar.capClipBoard.alpha = 1.0;
                 drawArea(true);
-                CaptureStamp.update();
+                CaptureController.onCaptureAreaChanged();
             }
             mouseMoved = false;
         }
@@ -306,7 +306,7 @@ package Modules.CaptureEngine
             {
                 drawArea(true);
             }
-            CaptureStamp.update();
+            CaptureController.onCaptureAreaChanged();
         }
 
         private static function getCanvasScale():Number
@@ -451,7 +451,7 @@ package Modules.CaptureEngine
             limitHeightSave = 0;
             captureDragAreaOverlay.graphics.clear();
             MainUI.topBar.capClipBoard.alpha = 1.0;
-            CaptureStamp.update();
+            CaptureController.onCaptureAreaChanged();
         }
 
         public static function reset():void

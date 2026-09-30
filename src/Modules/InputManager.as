@@ -1,7 +1,6 @@
 package Modules
 {
     import Modules.CaptureEngine.CaptureStamp;
-    import Modules.CaptureEngine.CaptureArea;
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.HandTool;
     import Modules.Tools.LassoTool;
@@ -424,7 +423,7 @@ package Modules
                             break;
                         case "capRotate":
                             {
-                                CaptureController.rotateCaptureImage(++CaptureController.captureCanvasRotationStep, false);
+                                CaptureController.rotateCaptureImage(CaptureController.captureCanvasRotationStep + 1, false);
                             }
                             break;
                         case "capTrans":
@@ -2716,7 +2715,7 @@ package Modules
                 default:
                     if (!CanvasController.isMouseClickBlocked)
                     {
-                        CaptureArea.start();
+                        CaptureController.startCaptureAreaSelection();
                     }
                     break;
             }
@@ -2726,9 +2725,9 @@ package Modules
         {
             if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
-                if (!CaptureArea.isFullImageCapture())
+                if (!CaptureController.isFullImageCapture())
                 {
-                    CaptureArea.resetCaptureArea();
+                    CaptureController.resetCaptureAreaSelection();
                 }
             }
         }
