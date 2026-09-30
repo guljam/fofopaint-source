@@ -33,6 +33,7 @@ package Modules
         private static var minSize:Number = 10.0;
         private static const mouseMoveThreshold:Number = 5.0;
 
+// 캡쳐 영역 8방향으로 되게 ai한테 부탁하기
         private static function validateCaptureArea():void
         {
             var intersection:Rectangle = rectFull.intersection(rectClamped);

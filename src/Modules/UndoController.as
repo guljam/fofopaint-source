@@ -120,6 +120,9 @@ package Modules
                 ReplayState.rMemoryDataFrame.splice(UndoManager.undoDataIndex + 1);
             }
 
+            
+            
+
             if (ReplayState.rMemoryData.length >= NATIVE_UNDO_LIMIT_COUNT) // 첫번째 이미지는 빼야하니깐 -1로 계산해야함
             {
                 var oldData:Array = ReplayState.rMemoryData[0];
@@ -174,6 +177,7 @@ package Modules
 
             if (ReplayState.rMemoryDataBuffer.length > 0)
             {
+                trace('데이터',ReplayState.rMemoryDataBuffer);
                 ReplayState.rMemoryData.push(ReplayState.rMemoryDataBuffer);
                 ReplayState.rMemoryDataFrame.push(ReplayState.rMemoryDataBuffer.length);
                 ReplayState.rMemoryDataBuffer = [];

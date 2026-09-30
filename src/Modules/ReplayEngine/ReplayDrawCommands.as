@@ -375,7 +375,10 @@ package Modules.ReplayEngine
             const x:Number = data[1];
             const y:Number = data[2];
             ReplayDrawer.rCanvasDrawShape.graphics.lineTo(x, y);
-            setRCursorPos(x, y);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(x, y);
+            }
         }
 
         public static function sqline(data:Array):void
@@ -397,7 +400,11 @@ package Modules.ReplayEngine
             ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
             ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.ROUND);
             ReplayDrawer.rCanvasDrawShape.graphics.drawPath(command, xyData);
-            setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
+
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
+            }
         }
 
         public static function fill5(data:Array):void
@@ -416,7 +423,10 @@ package Modules.ReplayEngine
             ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(1, color);
             ReplayDrawer.rCanvasDrawShape.graphics.beginFill(color);
             ReplayDrawer.rCanvasDrawShape.graphics.drawPath(command, xyData);
-            setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
+            }
             CanvasController.resetRCanvasDrawLayerCliprect2();
         }
 
@@ -436,7 +446,10 @@ package Modules.ReplayEngine
             ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(1, color);
             ReplayDrawer.rCanvasDrawShape.graphics.beginFill(color);
             ReplayDrawer.rCanvasDrawShape.graphics.drawPath(command, xyData);
-            setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
+            }
             CanvasController.resetRCanvasDrawLayerCliprect();
         }
 
@@ -456,7 +469,10 @@ package Modules.ReplayEngine
             ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(1, color);
             ReplayDrawer.rCanvasDrawShape.graphics.beginFill(color);
             ReplayDrawer.rCanvasDrawShape.graphics.drawPath(command, xyData);
-            setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
+            }
         }
 
         public static function fill2(data:Array):void
@@ -480,7 +496,10 @@ package Modules.ReplayEngine
             }
 
             ReplayDrawer.rCanvasDrawShape.graphics.endFill();
-            setRCursorPos(arr[len - 2], arr[len - 1]);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(arr[len - 2], arr[len - 1]);
+            }
         }
 
         public static function fill(data:Array):void
@@ -497,7 +516,10 @@ package Modules.ReplayEngine
             ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(1, color);
             ReplayDrawer.rCanvasDrawShape.graphics.beginFill(color);
             ReplayDrawer.rCanvasDrawShape.graphics.drawPath(command, xyData);
-            setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
+            }
         }
 
         public static function dot4(data:Array):void
@@ -522,7 +544,7 @@ package Modules.ReplayEngine
             if (shape)
             {
                 cmd = new Vector.<int>();
-                pos =  new Vector.<Number>();
+                pos = new Vector.<Number>();
                 const halfSize:Number = size / 2;
                 var point:Point = Utils.rotatePoint(-halfSize, -halfSize, rotation);
                 cmd.push(1);
@@ -550,7 +572,10 @@ package Modules.ReplayEngine
 
             ReplayDrawer.rCanvasDrawShape.graphics.endFill();
             CanvasController.resetRCanvasDrawLayerCliprect2();
-            setRCursorPos(startX, startY);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(startX, startY);
+            }
         }
 
         public static function dot3(data:Array):void
@@ -576,7 +601,7 @@ package Modules.ReplayEngine
             {
                 cmd = new Vector.<int>();
                 pos = new Vector.<Number>();
-                 
+
                 const p0:Point = Utils.rotatePoint(-size / 2, -size / 2, rotation);
                 cmd.push(1);
                 pos.push(startX + p0.x);
@@ -602,7 +627,11 @@ package Modules.ReplayEngine
 
             ReplayDrawer.rCanvasDrawShape.graphics.endFill();
             CanvasController.resetRCanvasDrawLayerCliprect();
-            setRCursorPos(startX, startY);
+
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(startX, startY);
+            }
         }
 
         public static function dot2(data:Array):void
@@ -630,7 +659,11 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasDrawShape.graphics.drawCircle(startX, startY, size / 2);
             ReplayDrawer.rCanvasDrawShape.graphics.endFill();
             CanvasController.resetRCanvasDrawLayerCliprect();
-            setRCursorPos(startX, startY);
+
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(startX, startY);
+            }
         }
 
         public static function dot(data:Array):void
@@ -657,7 +690,11 @@ package Modules.ReplayEngine
             else
                 ReplayDrawer.rCanvasDrawShape.graphics.drawCircle(startX, startY, size / 2);
             ReplayDrawer.rCanvasDrawShape.graphics.endFill();
-            setRCursorPos(startX, startY);
+
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(startX, startY);
+            }
         }
 
         public static function line4(data:Array):void
@@ -684,7 +721,11 @@ package Modules.ReplayEngine
 
             ReplayDrawer.rCanvasDrawShape.graphics.drawPath(command, xydata);
             CanvasController.resetRCanvasDrawLayerCliprect2();
-            setRCursorPos(xydata[xydata.length - 2], xydata[xydata.length - 1]);
+
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(xydata[xydata.length - 2], xydata[xydata.length - 1]);
+            }
         }
 
         public static function line3(data:Array):void
@@ -712,7 +753,10 @@ package Modules.ReplayEngine
             ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             ReplayDrawer.rCanvasDrawShape.graphics.lineTo(endX, endY);
             CanvasController.resetRCanvasDrawLayerCliprect2();
-            setRCursorPos(endX, endY);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(endX, endY);
+            }
         }
 
         public static function line2(data:Array):void
@@ -741,7 +785,10 @@ package Modules.ReplayEngine
             ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             ReplayDrawer.rCanvasDrawShape.graphics.lineTo(endX, endY);
             CanvasController.resetRCanvasDrawLayerCliprect();
-            setRCursorPos(endX, endY);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(endX, endY);
+            }
         }
 
         public static function line1(data:Array):void
@@ -769,7 +816,10 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(size, color);
             ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             ReplayDrawer.rCanvasDrawShape.graphics.lineTo(endX, endY);
-            setRCursorPos(endX, endY);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(endX, endY);
+            }
         }
 
         public static function line(data:Array):void
@@ -797,25 +847,37 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(size, color);
             ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             ReplayDrawer.rCanvasDrawShape.graphics.lineTo(endX, endY);
-            setRCursorPos(endX, endY);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(endX, endY);
+            }
         }
 
         public static function move1(data:Array):void
         {
             ReplayDrawer.moveImageReplayMode(data[1], data[2], true, false);
-            setRCursorPosFromMoveTool(data[1], data[2]);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPosFromMoveTool(data[1], data[2]);
+            }
         }
 
         public static function move2(data:Array):void
         {
             ReplayDrawer.moveImageReplayMode(data[1], data[2], false, true);
-            setRCursorPosFromMoveTool(data[1], data[2]);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPosFromMoveTool(data[1], data[2]);
+            }
         }
 
         public static function move(data:Array):void
         {
             ReplayDrawer.moveImageReplayMode(data[1], data[2], true, true);
-            setRCursorPosFromMoveTool(data[1], data[2]);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPosFromMoveTool(data[1], data[2]);
+            }
         }
 
         public static function resetLassoVars():void
@@ -887,7 +949,10 @@ package Modules.ReplayEngine
                 mat.translate(-bmpWidth / 2, -bmpHeight / 2);
                 mat.rotate(bmpAngle);
                 mat.translate(boxX, boxY);
-                setRCursorPos(boxX, boxY);
+                if (!ReplayState.isGeneratingCacheImages())
+                {
+                    setRCursorPos(boxX, boxY);
+                }
                 LassoTool.lassoLayer1Bitmap.smoothing = true;
                 LassoTool.lassoLayer2Bitmap.smoothing = true;
 
@@ -974,7 +1039,10 @@ package Modules.ReplayEngine
                 mat.translate(-bmpWidth / 2, -bmpHeight / 2);
                 mat.rotate(bmpAngle);
                 mat.translate(boxX, boxY);
-                setRCursorPos(boxX, boxY);
+                if (!ReplayState.isGeneratingCacheImages())
+                {
+                    setRCursorPos(boxX, boxY);
+                }
                 LassoTool.lassoLayer1Bitmap.smoothing = true;
                 LassoTool.lassoLayer2Bitmap.smoothing = true;
 
@@ -1026,14 +1094,20 @@ package Modules.ReplayEngine
         public static function mirror():void
         {
             ReplayDrawer.mirrorCanvasReplayMode();
-            setRCursorPosToCenter();
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPosToCenter();
+            }
         }
 
         public static function bgColor(data:Array):void
         {
             const color:uint = data[1];
             ReplayDrawer.updateCanvasBGColorReplayMode(color);
-            setRCursorPosToCenter();
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPosToCenter();
+            }
         }
 
         public static function canvasSize(data:Array):void
@@ -1044,7 +1118,10 @@ package Modules.ReplayEngine
             const moveY:Number = data[4];
             const movedFlag:Boolean = data[5];
             ReplayDrawer.updateCanvasSizeReplayMode(width, height, moveX, moveY, movedFlag);
-            setRCursorPos(width / 2, height / 2);
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPos(width / 2, height / 2);
+            }
         }
 
         public static function tempDone4(data:Array):void
@@ -1322,7 +1399,10 @@ package Modules.ReplayEngine
 
             if (layer2)
                 ReplayDrawer.rCanvasLayer2BitmapData.fillRect(rect, 0);
-            setRCursorPosToCenter();
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPosToCenter();
+            }
         }
 
         public static function swapLayer():void
@@ -1338,14 +1418,20 @@ package Modules.ReplayEngine
             tempbmpd11.dispose();
             tempbmpd1 = null;
             tempbmpd11 = null;
-            setRCursorPosToCenter();
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPosToCenter();
+            }
         }
 
         public static function mergeLayer():void
         {
             ReplayDrawer.rCanvasLayer2BitmapData.draw(ReplayDrawer.rCanvasLayer1BitmapData);
             ReplayDrawer.rCanvasLayer1BitmapData.fillRect(new Rectangle(0, 0, ReplayDrawer.rCanvasLayer1BitmapData.width, ReplayDrawer.rCanvasLayer1BitmapData.height), 0);
-            setRCursorPosToCenter();
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                setRCursorPosToCenter();
+            }
         }
 
         public static function drawNext():void

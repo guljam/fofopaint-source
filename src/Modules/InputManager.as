@@ -878,6 +878,7 @@ package Modules
             // 디버그 확인용
             // if(isPressedKey(KEY.f12))
             // {
+            //     MainUIController.handleOnWindowResize();
             // }
 
             checkInvalidKey();

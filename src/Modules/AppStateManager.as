@@ -14,6 +14,7 @@ package Modules
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
     import Modules.ReplayEngine.ReplaySaveMetaData;
+    import flash.trace.Trace;
 
     public class AppStateManager
     {
@@ -22,6 +23,8 @@ package Modules
         {
             main = instance;
         }
+
+        public static var isLoadingAppData:Boolean = false;
 
         private static function loadAppUpTimeFromAppData():void
         {
@@ -135,6 +138,7 @@ package Modules
 
         public static function loadAppState():void
         {
+            isLoadingAppData = true;
             const fs:FileStream = new FileStream();
             var arr:Array = [];
             var metaData:CacheImageMetaData;
@@ -275,12 +279,6 @@ package Modules
 
                         MainUIController.lastAppWindowSize.width = appStateObject.stageNativeWindowWidth;
                         MainUIController.lastAppWindowSize.height = appStateObject.stageNativeWindowHeight;
-
-                        // 캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
-                        if (appStateObject.lastWindowState === 1)
-                        {
-                            main.stage.nativeWindow.maximize();
-                        }
 
                         //캔버스 bg를 한번 업데이트해춤 on window resize이벤트에서는 앱이 정보가 로드되고 있을때 차단되기 때문에
                         main.updateStageBGSize();
@@ -467,8 +465,10 @@ package Modules
 
                         MainUIController.updateCanvasNaigatorCursor();
                         PenSizePreviewCursor.updateSizeAndShape();
+                            isLoadingAppData = false;
                         MainUIController.updateWindowTitle();
                         CanvasController.selectLayer1(false);
+
 
                         if(ReplayState.isGeneratingCacheImages())
                         {
@@ -495,6 +495,11 @@ package Modules
                                 ReplaySaveMetaData.firstImageBG,
                                 ReplaySaveMetaData.firstImageMirrorFlag);
                             ReplayController.startGeneratingReplayCacheImage(true,null);
+                        }
+                        // 캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
+                        if (appStateObject.lastWindowState === 1)
+                        {
+                            main.stage.nativeWindow.maximize();
                         }
                     });
             }
@@ -537,6 +542,7 @@ package Modules
                 CanvasController.selectLayer1(false);
 
                 PaletteController.initMyPaletteHistory();
+                isLoadingAppData = false;
             }
 
             loadAppUpTimeFromAppData();

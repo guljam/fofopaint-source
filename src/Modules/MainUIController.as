@@ -344,117 +344,125 @@ package Modules
             setpos(resizeButtonR, right, top, 0, height + buttonSize);
         }
 
+        public static function handleOnWindowResize():void
+        {
+            trace('리사이즈 콜');
+            const dx:Number = Math.round((main.stage.nativeWindow.width - lastAppWindowSize.width) / 1.75);
+            const dy:Number = Math.round((main.stage.nativeWindow.height - lastAppWindowSize.height) / 1.75);
+            trace('dx',dx,dy);
+
+            if (CaptureController.isCaptureModeON)
+            {
+                CaptureController.captureWindowMove.setTo(dx, dy);
+                CanvasController.fitCanvasToViewportMargin();
+
+                if (!CaptureArea.isFullImageCapture())
+                {
+                    CaptureArea.updateDrawArea(true);
+                }
+            }
+            else
+            {
+                if (ReplayController.isReplayRestartTimerON())
+                {
+                    CanvasController.centerCanvas("replay");
+                }
+                else
+                {
+                    ReplayDrawer.rCanvasAnchorPoint.x = ReplayDrawer.rCanvasAnchorPoint.x + dx;
+                    ReplayDrawer.rCanvasAnchorPoint.y = ReplayDrawer.rCanvasAnchorPoint.y + dy;
+                }
+
+                CanvasController.canvasAnchorPoint.x = CanvasController.canvasAnchorPoint.x + dx;
+                CanvasController.canvasAnchorPoint.y = CanvasController.canvasAnchorPoint.y + dy;
+            }
+
+            if (LassoTool._isLassoToolStarted)
+            {
+                LassoTool._lassoMenuBox.x += dx;
+                LassoTool._lassoMenuBox.y += dy;
+                keepBoxInsideViewPort(LassoTool._lassoMenuBox);
+            }
+
+            if (ReferenceLayerController.isRefLayerMenuON)
+            {
+                ReferenceLayerController.refLayerMenuBox.x += dx;
+                ReferenceLayerController.refLayerMenuBox.y += dy;
+                keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
+            }
+
+            if (AboutBoxController.isAboutBoxOpened)
+            {
+                AboutBoxController.updateAboutPanelCenterPos();
+            }
+
+            if (ReplayState.isReplayModeON)
+            {
+                MainUI.seekBarBox.updatePos(main.stage.stageWidth);
+                ReplayController.rFollowMouse.updateBounds();
+
+                if (ReplayState.isReplayCanvasFitToWindow)
+                {
+                    ReplayController.fitReplayCanvasToViewport();
+                }
+            }
+
+            MainUI.topBar.updateTopbarBG(main.stage.stageWidth);
+            MainUI.topBar.updateTimerPos(main.stage.stageWidth);
+
+            SidebarController.sideBar.updateSideBGSize(SidebarController.getSideBarBGHeight());
+
+            if (SidebarController.isQuickSidebarActive)
+            {
+                SidebarController.deactivateQuickSidebar();
+            }
+            else
+            {
+                SidebarController.setSidebarDefaultPos();
+            }
+
+            SidebarController.updateScrollBarHeight();
+            updateCanvasNaigatorCursor();
+
+            if (FileManager.loadMenuBox.visible === true)
+            {
+                FileManager.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
+            }
+
+            if (ToolController.selectedToolViewBitmap.visible)
+            {
+                ToolController.updateSelectedToolViewBoxPos();
+            }
+
+            main.updateStageBGSize();
+            SidebarController.checkFOFOPosition();
+            updateBottomBarLayoutAndColor();
+            lastAppWindowSize.setTo(0, 0, main.stage.nativeWindow.width, main.stage.nativeWindow.height);
+            MainUI.hideBottomHint();
+
+            if (FileManager.isAppClosing)
+            {
+                if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
+                {
+                    FileManager.deleteTempDirectory();
+                    FileManager.saveAllAppData();
+                    main.stage.nativeWindow.close();
+                }
+            }
+        }
+
         public static function onWindowResize(e:Event):void
         {
-            if (FOFOTimer.hasTimer("loadAppDataDelayTimer"))
+            trace("이벤트 콜")
+            if (AppStateManager.isLoadingAppData)
             {
+                trace('이벤트 리턴');
                 return;
             }
 
-            FOFOTimer.addByName("windowResizeDelayTimer", 0.2, false, function ():void
-                {
-                    const dx:Number = Math.round((main.stage.nativeWindow.width - lastAppWindowSize.width) / 1.75);
-                    const dy:Number = Math.round((main.stage.nativeWindow.height - lastAppWindowSize.height) / 1.75);
+            trace("이벤트 통과")
 
-                    if (CaptureController.isCaptureModeON)
-                    {
-                        CaptureController.captureWindowMove.setTo(dx, dy);
-                        CanvasController.fitCanvasToViewportMargin();
-
-                        if (!CaptureArea.isFullImageCapture())
-                        {
-                            CaptureArea.updateDrawArea(true);
-                        }
-                    }
-                    else
-                    {
-                        if (ReplayController.isReplayRestartTimerON())
-                        {
-                            CanvasController.centerCanvas("replay");
-                        }
-                        else
-                        {
-                            ReplayDrawer.rCanvasAnchorPoint.x = ReplayDrawer.rCanvasAnchorPoint.x + dx;
-                            ReplayDrawer.rCanvasAnchorPoint.y = ReplayDrawer.rCanvasAnchorPoint.y + dy;
-                        }
-
-                        CanvasController.canvasAnchorPoint.x = CanvasController.canvasAnchorPoint.x + dx;
-                        CanvasController.canvasAnchorPoint.y = CanvasController.canvasAnchorPoint.y + dy;
-                    }
-
-                    if (LassoTool._isLassoToolStarted)
-                    {
-                        LassoTool._lassoMenuBox.x += dx;
-                        LassoTool._lassoMenuBox.y += dy;
-                        keepBoxInsideViewPort(LassoTool._lassoMenuBox);
-                    }
-
-                    if (ReferenceLayerController.isRefLayerMenuON)
-                    {
-                        ReferenceLayerController.refLayerMenuBox.x += dx;
-                        ReferenceLayerController.refLayerMenuBox.y += dy;
-                        keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
-                    }
-
-                    if (AboutBoxController.isAboutBoxOpened)
-                    {
-                        AboutBoxController.updateAboutPanelCenterPos();
-                    }
-
-                    if (ReplayState.isReplayModeON)
-                    {
-                        MainUI.seekBarBox.updatePos(main.stage.stageWidth);
-                        ReplayController.rFollowMouse.updateBounds();
-
-                        if (ReplayState.isReplayCanvasFitToWindow)
-                        {
-                            ReplayController.fitReplayCanvasToViewport();
-                        }
-                    }
-
-                    MainUI.topBar.updateTopbarBG(main.stage.stageWidth);
-                    MainUI.topBar.updateTimerPos(main.stage.stageWidth);
-
-                    SidebarController.sideBar.updateSideBGSize(SidebarController.getSideBarBGHeight());
-
-                    if (SidebarController.isQuickSidebarActive)
-                    {
-                        SidebarController.deactivateQuickSidebar();
-                    }
-                    else
-                    {
-                        SidebarController.setSidebarDefaultPos();
-                    }
-
-                    SidebarController.updateScrollBarHeight();
-                    updateCanvasNaigatorCursor();
-
-                    if (FileManager.loadMenuBox.visible === true)
-                    {
-                        FileManager.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
-                    }
-
-                    if (ToolController.selectedToolViewBitmap.visible)
-                    {
-                        ToolController.updateSelectedToolViewBoxPos();
-                    }
-
-                    main.updateStageBGSize();
-                    SidebarController.checkFOFOPosition();
-                    updateBottomBarLayoutAndColor();
-                    lastAppWindowSize.setTo(0, 0, main.stage.nativeWindow.width, main.stage.nativeWindow.height);
-                    MainUI.hideBottomHint();
-
-                    if (FileManager.isAppClosing)
-                    {
-                        if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
-                        {
-                            FileManager.deleteTempDirectory();
-                            FileManager.saveAllAppData();
-                            main.stage.nativeWindow.close();
-                        }
-                    }
-                });
+            FOFOTimer.addByName("windowResizeDelayTimer", 0.2, false, handleOnWindowResize);
         }
 
         public static function keepBoxInsideViewPort(target:DisplayObject):void
