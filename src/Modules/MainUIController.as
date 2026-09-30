@@ -477,7 +477,7 @@ package Modules
         {
             if (CaptureController.isCaptureModeON)
             {
-                CaptureController.setCaptureWindowMove(dx, dy);
+                CaptureController.addCaptureWindowMove(dx, dy);
                 CanvasController.fitCanvasToViewportMargin();
 
                 if (!CaptureController.isFullImageCapture())

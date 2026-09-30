@@ -83,9 +83,10 @@ package Modules.CaptureEngine
             return _captureCanvasRotationStep % 2 === 1;
         }
 
-        public static function setCaptureWindowMove(dx:Number, dy:Number):void
+        // 캡쳐 중 창 크기 조절은 여러 번 일어날 수 있고 dx/dy는 직전 배치 대비 변화량이라 누적해야 함
+        public static function addCaptureWindowMove(dx:Number, dy:Number):void
         {
-            _captureWindowMove.setTo(dx, dy);
+            _captureWindowMove.offset(dx, dy);
         }
 
         // ---- CaptureArea/CaptureStamp가 서로 직접 참조하지 않고 Controller를 거치도록 하는 중계 ----
