@@ -1442,9 +1442,8 @@ package Modules
             var w:Number;
             var h:Number;
             var center:Point = MainUIController.getStageCenterPos(mode);
-            // todo : 이거 원래 isreplaymode on 플래그로 검사하는데 리팩토링후에 캔버스 위치 적용이 안되서
-            // mode로 탐지하는걸로 고침 버그날수도있음
-            if (mode === "replay")
+            // mode "capture"는 중심 좌표 계산용이고 대상 캔버스는 현재 모드(리플레이/드로우)를 따라감
+            if (mode === "replay" || (mode === "capture" && ReplayState.isReplayModeON))
             {
                 xAnc = ReplayDrawer.rCanvasAnchorPoint;
                 xCanvas = ReplayDrawer.rCanvasPanel;
