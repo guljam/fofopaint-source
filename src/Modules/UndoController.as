@@ -177,7 +177,6 @@ package Modules
 
             if (ReplayState.rMemoryDataBuffer.length > 0)
             {
-                trace('데이터',ReplayState.rMemoryDataBuffer);
                 ReplayState.rMemoryData.push(ReplayState.rMemoryDataBuffer);
                 ReplayState.rMemoryDataFrame.push(ReplayState.rMemoryDataBuffer.length);
                 ReplayState.rMemoryDataBuffer = [];
