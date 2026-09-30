@@ -1,5 +1,10 @@
-package Modules
+package Modules.CaptureEngine
 {
+    import Modules.Utils;
+    import Modules.PaletteController;
+    import Modules.MainUI;
+    import Modules.InputManager;
+    import Modules.CanvasController;
     import flash.display.BitmapData;
     import flash.display.Bitmap;
     import flash.text.TextFormat;

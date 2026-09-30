@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.CaptureEngine.CaptureController;
     import flash.display.Sprite;
     import flash.display.BitmapData;
     import flash.events.Event;

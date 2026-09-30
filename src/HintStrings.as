@@ -5,13 +5,13 @@
     import Modules.Tools.PenTool;
     import Modules.AppUpdater;
     import Modules.ColorPickerController;
-    import Modules.CaptureController;
+    import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.PenTool;
     import Modules.Tools.LassoTool;
     import Modules.ToolController;
     import Modules.ActivityWorkTimer;
     import Modules.CanvasController;
-    import Modules.CaptureArea;
+    import Modules.CaptureEngine.CaptureArea;
     import Modules.ReplayEngine.ReplayController;
 
     public class HintStrings

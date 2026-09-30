@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.CaptureEngine.CaptureStamp;
+    import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.LassoTool;
     import Modules.Tools.PenTool;
 

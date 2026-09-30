@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.CaptureEngine.CaptureController;
     import Symbols.RotateCursorSet;
     import Symbols.CanvasNavigatorBoxSet;
     import flash.display.Shape;

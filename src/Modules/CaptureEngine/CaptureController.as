@@ -1,5 +1,14 @@
-package Modules
+package Modules.CaptureEngine
 {
+    import Modules.Utils;
+    import Modules.SidebarController;
+    import Modules.PenSizePreviewCursor;
+    import Modules.MainUIController;
+    import Modules.MainUI;
+    import Modules.FileManager;
+    import Modules.ColorPickerController;
+    import Modules.CanvasController;
+    import Modules.BackgroundWorkerCoordinator;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
     import flash.display.Bitmap;
@@ -29,7 +38,6 @@ package Modules
         }
 
         public static var isCaptureModeON:Boolean = false; // 스크린샷 켜지면 올려줌
-		public static var isCaptureStampEnabled:Boolean = false;
         public static var isCaptureCanvasFlipped:Boolean = false; // 캡쳐 대칭한 변수 저장
         public static var isCaptureTransparentBGShowing:Boolean = false; // 배경 제외하고 저장하는 플래그
         private static var canvasStateBeforeCaptureMode:Object = {}; // 캡쳐 키면 캔버스 이전 상태 저장함

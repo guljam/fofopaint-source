@@ -18,12 +18,12 @@
 	import Modules.ImageViewWindow;
 	import Modules.MainUI;
 	import Modules.Utils;
-	import Modules.CaptureController;
+	import Modules.CaptureEngine.CaptureController;
 	import Modules.Tools.LassoTool;
 	import Modules.CanvasController;
 	import Modules.AboutBoxController;
 	import Modules.PenSizePreviewCursor;
-	import Modules.CaptureStamp;
+	import Modules.CaptureEngine.CaptureStamp;
 	import Modules.ReplayEngine.ReplayController;
 	import Modules.ReplayEngine.ReplayState;
 

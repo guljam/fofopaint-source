@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.CaptureEngine.CaptureController;
 
     import flash.display.Bitmap;
     import flash.display.BitmapData;

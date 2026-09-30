@@ -1,5 +1,8 @@
-package Modules
+package Modules.CaptureEngine
 {
+    import Modules.Utils;
+    import Modules.MainUI;
+    import Modules.CanvasController;
     import flash.display.Shape;
     import flash.display.Sprite;
     import flash.events.MouseEvent;

@@ -1,7 +1,7 @@
 package Modules.Tools
 {
     import Modules.CanvasController;
-    import Modules.CaptureController;
+    import Modules.CaptureEngine.CaptureController;
     import Modules.ColorPickerController;
     import Modules.FileManager;
     import Modules.InputManager;

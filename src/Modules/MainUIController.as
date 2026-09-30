@@ -1,5 +1,8 @@
 package Modules
 {
+    import Modules.CaptureEngine.CaptureStamp;
+    import Modules.CaptureEngine.CaptureArea;
+    import Modules.CaptureEngine.CaptureController;
 
     import Modules.SidebarController;
     import Modules.Tools.LassoTool;

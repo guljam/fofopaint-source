@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.LassoTool;
 
     import Symbols.FOFO;

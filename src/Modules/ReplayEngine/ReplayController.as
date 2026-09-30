@@ -26,8 +26,8 @@ package Modules.ReplayEngine
     import Modules.CacheImageMetaData;
     import Modules.CanvasController;
     import Modules.CanvasGridOverlay;
-    import Modules.CaptureArea;
-    import Modules.CaptureController;
+    import Modules.CaptureEngine.CaptureArea;
+    import Modules.CaptureEngine.CaptureController;
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
     import Modules.FileManager;

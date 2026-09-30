@@ -7,7 +7,7 @@
     import Modules.BackgroundWorkerCoordinator;
     import Modules.CanvasController;
     import Modules.CanvasGridOverlay;
-    import Modules.CaptureController;
+    import Modules.CaptureEngine.CaptureController;
     import Modules.ClipboardManager;
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
@@ -54,8 +54,8 @@
     import flash.system.Capabilities;
     import Modules.ActivityWorkTimer;
     import Modules.PenSizePreviewCursor;
-    import Modules.CaptureStamp;
-    import Modules.CaptureArea;
+    import Modules.CaptureEngine.CaptureStamp;
+    import Modules.CaptureEngine.CaptureArea;
     import Modules.CacheImageMetaData;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayFileCache;
