@@ -975,9 +975,10 @@ package Modules.CaptureEngine
 
             captureStampBitmap.visible = false;
 
-            if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") !== null)
+            // update()에서 붙인 쪽(draw/replay 패널)이 어디든 붙어있는 부모에서 제거
+            if (captureStampBitmap.parent !== null)
             {
-                CanvasController.canvasPanel.removeChild(captureStampBitmap);
+                captureStampBitmap.parent.removeChild(captureStampBitmap);
             }
         }
 
