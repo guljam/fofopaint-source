@@ -42,6 +42,9 @@ package Modules
         public static var lastAppWindowSize:Rectangle = new Rectangle(), // 창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
             lastAppWindowState:int = 0;
 
+        // 종료 저장/close가 이미 시작됐는지 (종료 직전 applyLayout이 여러 경로로 중복 호출되는 것 방지)
+        private static var isCloseRequested:Boolean = false;
+
         public static function getViewportRect():Rectangle
         {
             const stw:int = main.stage.stageWidth;
@@ -344,13 +347,40 @@ package Modules
             setpos(resizeButtonR, right, top, 0, height + buttonSize);
         }
 
-        public static function handleOnWindowResize():void
+        // 창 크기가 바뀐 뒤의 화면 배치를 "지금 창 크기" 기준으로 다시 계산한다.
+        // 이동량은 마지막으로 배치했던 창 크기(lastAppWindowSize)와의 차이로만 구하고, 끝에서 그 기준을 갱신한다.
+        // 그래서 같은 크기에서 몇 번을 호출해도 결과가 같고(멱등), 리사이즈 이벤트를 놓쳐도 다음 호출이 전부 보정한다.
+        // 호출 지점: 창 리사이즈 이벤트(0.2초 디바운스), 최대화 복원 종료, 캐시 생성 종료 등 "상태가 확정된" 곳.
+        // 주의: 앱 데이터 복원 중에는 화면 상태가 아직 확정되지 않았으므로 아무것도 하지 않는다.
+        public static function applyLayout():void
         {
-            trace('리사이즈 콜');
+            if (AppStateManager.isLoadingAppData)
+            {
+                return;
+            }
+
             const dx:Number = Math.round((main.stage.nativeWindow.width - lastAppWindowSize.width) / 1.75);
             const dy:Number = Math.round((main.stage.nativeWindow.height - lastAppWindowSize.height) / 1.75);
-            trace('dx',dx,dy);
 
+            if (dx === 0 && dy === 0)
+            {
+                closeAppIfPending();
+                return;
+            }
+
+            applyCanvasLayout(dx, dy);
+            applyPopupLayout(dx, dy);
+            applyChromeLayout();
+
+            rebaseLayout();
+            MainUI.hideBottomHint();
+
+            closeAppIfPending();
+        }
+
+        // 캔버스(그리기/리플레이/캡처)를 창이 커진 만큼 같이 이동시킨다.
+        private static function applyCanvasLayout(dx:Number, dy:Number):void
+        {
             if (CaptureController.isCaptureModeON)
             {
                 CaptureController.captureWindowMove.setTo(dx, dy);
@@ -376,7 +406,11 @@ package Modules
                 CanvasController.canvasAnchorPoint.x = CanvasController.canvasAnchorPoint.x + dx;
                 CanvasController.canvasAnchorPoint.y = CanvasController.canvasAnchorPoint.y + dy;
             }
+        }
 
+        // 떠 있는 팝업들이 창 밖으로 나가지 않게 같이 이동시킨다.
+        private static function applyPopupLayout(dx:Number, dy:Number):void
+        {
             if (LassoTool._isLassoToolStarted)
             {
                 LassoTool._lassoMenuBox.x += dx;
@@ -390,7 +424,11 @@ package Modules
                 ReferenceLayerController.refLayerMenuBox.y += dy;
                 keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
             }
+        }
 
+        // 현재 스테이지 크기만 보고 다시 계산하면 되는 UI들(상단바/사이드바/하단바 등).
+        private static function applyChromeLayout():void
+        {
             if (AboutBoxController.isAboutBoxOpened)
             {
                 AboutBoxController.updateAboutPanelCenterPos();
@@ -437,32 +475,43 @@ package Modules
             main.updateStageBGSize();
             SidebarController.checkFOFOPosition();
             updateBottomBarLayoutAndColor();
-            lastAppWindowSize.setTo(0, 0, main.stage.nativeWindow.width, main.stage.nativeWindow.height);
-            MainUI.hideBottomHint();
+        }
 
-            if (FileManager.isAppClosing)
+        // 지금 배치가 유효한 창 크기를 기록한다. 다음 리사이즈는 이 크기와 비교한다.
+        // 캔버스를 centerCanvas 같은 절대 배치로 새로 잡은 직후에도 호출해서, 남아있던 리사이즈 델타가
+        // 뒤늦게 적용되어 위치가 밀리는 것을 막을 수 있다.
+        public static function rebaseLayout():void
+        {
+            lastAppWindowSize.setTo(0, 0, main.stage.nativeWindow.width, main.stage.nativeWindow.height);
+        }
+
+        // 종료 대기 중이면 저장하고 창을 닫는다(마지막 종료 트리거).
+        private static function closeAppIfPending():void
+        {
+            if (!FileManager.isAppClosing || isCloseRequested)
             {
-                if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
-                {
-                    FileManager.deleteTempDirectory();
-                    FileManager.saveAllAppData();
-                    main.stage.nativeWindow.close();
-                }
+                return;
             }
+
+            if (FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
+            {
+                return;
+            }
+
+            isCloseRequested = true;
+            FileManager.deleteTempDirectory();
+            FileManager.saveAllAppData();
+            main.stage.nativeWindow.close();
         }
 
         public static function onWindowResize(e:Event):void
         {
-            trace("이벤트 콜")
             if (AppStateManager.isLoadingAppData)
             {
-                trace('이벤트 리턴');
                 return;
             }
 
-            trace("이벤트 통과")
-
-            FOFOTimer.addByName("windowResizeDelayTimer", 0.2, false, handleOnWindowResize);
+            FOFOTimer.addByName("windowResizeDelayTimer", 0.2, false, applyLayout);
         }
 
         public static function keepBoxInsideViewPort(target:DisplayObject):void

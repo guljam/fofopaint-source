@@ -500,6 +500,10 @@ package Modules
                         if (appStateObject.lastWindowState === 1)
                         {
                             main.stage.nativeWindow.maximize();
+
+                            // 최대화 완료 RESIZE 이벤트가 오지 않아도 화면이 갱신되도록 한 번 더 예약해둔다.
+                            // applyLayout은 멱등이라 이벤트가 먼저 처리했으면 dx 0으로 지나간다.
+                            FOFOTimer.addByName("settleLayoutTimer", 0.3, false, MainUIController.applyLayout);
                         }
                     });
             }
