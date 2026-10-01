@@ -20,6 +20,7 @@ package Modules
     import flash.system.IME;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayState;
+    import flash.text.TextInteractionMode;
 
     public class InputManager
     {
@@ -2461,6 +2462,7 @@ package Modules
         // todo numpad켜져있을때 캔버스 바로 클릭하면 바로 다른 툴 적용되게 바꾸어야함
         public static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
         {
+            trace('right down');
             if (CanvasController.isMouseLeftClicked || isKeyPressed() || isPressingControl() || SidebarController.isQuickSidebarActive
                     || FillPenTool.isStarted || LineTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
                     || FileManager.loadMenuBox.visible || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)

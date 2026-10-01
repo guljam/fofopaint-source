@@ -279,6 +279,7 @@ package Modules.Tools
 
         private static function onRightMouseDownLineTool(e:MouseEvent):void
         {
+            trace('apply');
             apply();
         }
 
@@ -371,7 +372,7 @@ package Modules.Tools
                 }
                 else
                 {
-                    main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool);
+                    main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool,false,-2);
                 }
             }
         }
