@@ -11,6 +11,7 @@ package Modules.CaptureEngine
     import Modules.CanvasController;
     import Modules.CanvasGridOverlay;
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.DrawModeInput;
     import Modules.InputManager.ReplayModeInput;
     import Modules.InputManager.CaptureModeInput;
     import Modules.ReferenceLayerController;
@@ -509,7 +510,7 @@ package Modules.CaptureEngine
             else
             {
                 CanvasGridOverlay.canvasGrid.visible = false;
-                InputManager.removeInputEventsDrawMode();
+                DrawModeInput.removeEvents();
             }
 
             if (SidebarController.isSidebarVisible)
@@ -562,7 +563,7 @@ package Modules.CaptureEngine
                 }
                 PenSizePreviewCursor.setCursorInVisibleFlag(false);
                 UIController.updateTopbarIconsDrawMode();
-                InputManager.addInputEventsDrawMode();
+                DrawModeInput.addEvents();
             }
 
             ColorPickerController.switchColorPickerModePen();

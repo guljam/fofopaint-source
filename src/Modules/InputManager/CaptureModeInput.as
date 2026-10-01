@@ -50,73 +50,73 @@ package Modules.InputManager
         {
             switch (targetName)
             {
-            case "capLayer1VisibleButton":
-                {
-                    CaptureController.toggleLayerCaptureMode(1);
-                }
-                break;
-            case "capLayer2VisibleButton":
-                {
-                    CaptureController.toggleLayerCaptureMode(2);
-                }
-                break;
-            case "capRotate":
-                {
-                    CaptureController.rotateCaptureImage(CaptureController.captureCanvasRotationStep + 1, false);
-                }
-                break;
-            case "capTrans":
-                {
-                    CaptureController.applyTransparentCanvasBGCaptureMode(!CaptureController.isCaptureTransparentBGShowing);
-                }
-                break;
-            case "capClipBoard":
-                {
-                    CaptureController.copyCaptureImageToCilpBoard();
-                }
-                break;
-            case "capSave":
-                {
-                    FileManager.saveCaptureImage();
-                }
-                break;
-            case "capOff":
-                {
-                    CaptureController.handleExitCaptureMode();
-                }
-                break;
-            case "capFlip":
-                {
-                    CaptureController.flipCaptureImage(!CaptureController.isCaptureCanvasFlipped, false);
-                }
-                break;
-            case "capStamp":
-                {
-                    CaptureStamp.toggleCaptureStampButton();
-                }
-                break;
-            case "capStampFont":
-                {
-                    if (CaptureStamp.captureStampFontListBox.visible)
+                case "capLayer1VisibleButton":
                     {
-                        CaptureStamp.hideStampFontList();
+                        CaptureController.toggleLayerCaptureMode(1);
                     }
-                    else
+                    break;
+                case "capLayer2VisibleButton":
                     {
-                        CaptureStamp.showStampFontList();
+                        CaptureController.toggleLayerCaptureMode(2);
                     }
-                }
-                break;
-            case "capFontListPrev":
-                {
-                    CaptureStamp.captureStampFontListBox.updateNextFontList(false);
-                }
-                break;
-            case "capFontListNext":
-                {
-                    CaptureStamp.captureStampFontListBox.updateNextFontList(true);
-                }
-                break;
+                    break;
+                case "capRotate":
+                    {
+                        CaptureController.rotateCaptureImage(CaptureController.captureCanvasRotationStep + 1, false);
+                    }
+                    break;
+                case "capTrans":
+                    {
+                        CaptureController.applyTransparentCanvasBGCaptureMode(!CaptureController.isCaptureTransparentBGShowing);
+                    }
+                    break;
+                case "capClipBoard":
+                    {
+                        CaptureController.copyCaptureImageToCilpBoard();
+                    }
+                    break;
+                case "capSave":
+                    {
+                        FileManager.saveCaptureImage();
+                    }
+                    break;
+                case "capOff":
+                    {
+                        CaptureController.handleExitCaptureMode();
+                    }
+                    break;
+                case "capFlip":
+                    {
+                        CaptureController.flipCaptureImage(!CaptureController.isCaptureCanvasFlipped, false);
+                    }
+                    break;
+                case "capStamp":
+                    {
+                        CaptureStamp.toggleCaptureStampButton();
+                    }
+                    break;
+                case "capStampFont":
+                    {
+                        if (CaptureStamp.captureStampFontListBox.visible)
+                        {
+                            CaptureStamp.hideStampFontList();
+                        }
+                        else
+                        {
+                            CaptureStamp.showStampFontList();
+                        }
+                    }
+                    break;
+                case "capFontListPrev":
+                    {
+                        CaptureStamp.captureStampFontListBox.updateNextFontList(false);
+                    }
+                    break;
+                case "capFontListNext":
+                    {
+                        CaptureStamp.captureStampFontListBox.updateNextFontList(true);
+                    }
+                    break;
             }
         }
 

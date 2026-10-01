@@ -35,6 +35,7 @@ package Modules.ReplayEngine
     import Modules.FileManager;
     import Modules.ImageViewWindow;
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.DrawModeInput;
     import Modules.InputManager.ReplayModeInput;
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
@@ -634,7 +635,7 @@ package Modules.ReplayEngine
                 CanvasController.updateCanvasScale(1.0);
                 CanvasController.centerCanvas("draw");
                 UndoController.resetUndoState();
-                InputManager.addInputEventsDrawMode();
+                DrawModeInput.addEvents();
             }
 
             FileManager.closeLoadMenuBox();
@@ -798,7 +799,7 @@ package Modules.ReplayEngine
                     exitReplayMode();
                 }
 
-                InputManager.removeInputEventsDrawMode();
+                DrawModeInput.removeEvents();
                 // 이전 문서의 메모리 undo 데이터가 남아있으면 다 만든 뒤 계산하는 전체 프레임에 섞여 들어감
                 // undo 기준 이미지는 다 만든 뒤 resetUndoState에서 갱신함
                 UndoHistory.clearMemoryUndoData();
@@ -1482,7 +1483,7 @@ package Modules.ReplayEngine
 
             ReplayFileCache.clearRFrameTempCache();
             ReplayDrawer.rReplayFOFOCursor.visible = false;
-            InputManager.addInputEventsDrawMode();
+            DrawModeInput.addEvents();
         }
 
         public static function enterReplayMode():void
@@ -1492,7 +1493,7 @@ package Modules.ReplayEngine
                 return;
             }
 
-            InputManager.removeInputEventsDrawMode();
+            DrawModeInput.removeEvents();
             ReplayState.isReplayModeON = true;
             CanvasController.canvasAnchorPoint.visible = false;
             ReplayDrawer.rCanvasAnchorPoint.visible = true;
@@ -2039,7 +2040,7 @@ package Modules.ReplayEngine
             }
             else
             {
-                InputManager.addInputEventsDrawMode();
+                DrawModeInput.addEvents();
             }
         }
 

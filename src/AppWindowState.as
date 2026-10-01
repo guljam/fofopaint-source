@@ -5,6 +5,7 @@ package
     import flash.events.Event;
     import Modules.AppStateManager;
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.DrawModeInput;
     import Modules.InputManager.ReplayModeInput;
     import Modules.InputManager.CaptureModeInput;
     import Modules.ImeController;
@@ -131,7 +132,7 @@ package
             e.preventDefault();
             main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, AppWindowState.onWindowDeactivate);
             CaptureModeInput.removeEvents();
-            InputManager.removeInputEventsDrawMode();
+            DrawModeInput.removeEvents();
             ReplayModeInput.removeEvents();
             ActivityWorkTimer.stop();
 

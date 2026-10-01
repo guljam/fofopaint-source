@@ -1,6 +1,7 @@
 package Modules
 {
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.DrawModeInput;
     import Modules.InputManager.ReplayModeInput;
     import Modules.InputManager.CaptureModeInput;
     import Modules.UIEngine.HintController;
@@ -104,7 +105,7 @@ package Modules
             CanvasController.isMouseClickBlocked = true;
             HintController.hideBottomHint();
 
-            InputManager.removeInputEventsDrawMode();
+            DrawModeInput.removeEvents();
 
             if (welcome === true)
             {
@@ -134,7 +135,7 @@ package Modules
 
             CaptureModeInput.removeEvents();
             ReplayModeInput.removeEvents();
-            InputManager.addInputEventsDrawMode();
+            DrawModeInput.addEvents();
 
             isAboutBoxOpened = false;
             aboutBox.visible = false;

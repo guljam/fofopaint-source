@@ -54,56 +54,56 @@ package Modules.InputManager
         {
             switch (targetName)
             {
-            case "drawModeButton":
-                {
-                    ReplayController.exitReplayMode();
-                }
-                break;
-            case "replayZoomInButton":
-                {
-                    CanvasController.zoomInCanvas(true, true);
-                }
-                break;
-            case "replayZoomOutButton":
-                {
-                    CanvasController.zoomInCanvas(false, true);
-                }
-                break;
-            case "replayFitToWindowButton":
-                {
-                    ReplayController.toggleFitToCanvasReplayMode();
-                }
-                break;
-            case "replayRepeatButton":
-                {
-                    ReplayController.toggleReplayRepeat();
-                }
-                break;
-            case "playButton":
-                {
-                    if (ReplayController.isReplayRestartTimerON())
+                case "drawModeButton":
                     {
-                        ReplayController.cancelReplayRestartTimer();
+                        ReplayController.exitReplayMode();
                     }
-                    else
+                    break;
+                case "replayZoomInButton":
                     {
-                        ReplayController.handleReplayStartButton();
+                        CanvasController.zoomInCanvas(true, true);
                     }
-                }
-                break;
-            case "pauseButton":
-                {
-                    FOFOTimer.remove("prograssBarUpdateTimer");
-                    if (ReplayController.isReplayRestartTimerON())
+                    break;
+                case "replayZoomOutButton":
                     {
-                        ReplayController.cancelReplayRestartTimer();
+                        CanvasController.zoomInCanvas(false, true);
                     }
-                    else
+                    break;
+                case "replayFitToWindowButton":
                     {
-                        ReplayController.handleReplayStopButton();
+                        ReplayController.toggleFitToCanvasReplayMode();
                     }
-                }
-                break;
+                    break;
+                case "replayRepeatButton":
+                    {
+                        ReplayController.toggleReplayRepeat();
+                    }
+                    break;
+                case "playButton":
+                    {
+                        if (ReplayController.isReplayRestartTimerON())
+                        {
+                            ReplayController.cancelReplayRestartTimer();
+                        }
+                        else
+                        {
+                            ReplayController.handleReplayStartButton();
+                        }
+                    }
+                    break;
+                case "pauseButton":
+                    {
+                        FOFOTimer.remove("prograssBarUpdateTimer");
+                        if (ReplayController.isReplayRestartTimerON())
+                        {
+                            ReplayController.cancelReplayRestartTimer();
+                        }
+                        else
+                        {
+                            ReplayController.handleReplayStopButton();
+                        }
+                    }
+                    break;
             }
         }
 

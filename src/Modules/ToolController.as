@@ -1,6 +1,7 @@
 package Modules
 {
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.DrawModeInput;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
@@ -1037,7 +1038,7 @@ package Modules
                 return;
             }
 
-            InputManager.removeInputEventsToolBox2();
+            DrawModeInput.removeToolBox2Events();
             isToolBox2Showing = false;
             toolBox2.visible = false;
 
@@ -1218,7 +1219,7 @@ package Modules
             isToolBox2Showing = true;
             CanvasController.showCanvasResizeButtonVisibleDelay(true);
             Utils.setAsTopChild(toolBox2);
-            InputManager.addInputEventsToolBox2();
+            DrawModeInput.addToolBox2Events();
             FOFOTimer.addByName("toolBox2HideCheckTimer", 0.1, true, function ():Boolean
                 {
                     if (!isToolBox2Showing)
@@ -1363,7 +1364,7 @@ package Modules
                             return true;
                         }
 
-                        InputManager.handleMouseClickStage(targetName);
+                        InputManager.handleMouseClickStage(targetName, DrawModeInput.onClickDrawModeButton);
                     }
                     return true;
                 case "sharpLineButtonWrapper":

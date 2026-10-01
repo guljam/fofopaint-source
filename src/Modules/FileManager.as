@@ -1,6 +1,7 @@
 package Modules
 {
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.DrawModeInput;
     import Modules.InputManager.ReplayModeInput;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
@@ -1411,7 +1412,7 @@ package Modules
             setFileBrowserIsOpen(true);
             CanvasController.showCanvasResizeButtonVisibleDelay(false);
             ReplayModeInput.removeEvents();
-            InputManager.removeInputEventsDrawMode();
+            DrawModeInput.removeEvents();
             file.browseForOpen(windowTitle, [new FileFilter("All supported formats", "*.fofo;*.2020;*.png;*.jpg;*.jpeg;*.jfif;*.gif;*.webp")]);
             file.addEventListener(Event.SELECT, onFileSelected);
             file.addEventListener(Event.COMPLETE, onFileSelectComplete);

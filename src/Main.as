@@ -20,6 +20,7 @@
     import Modules.Tools.FillPenTool;
     import Modules.ImageViewWindow;
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.DrawModeInput;
     import Modules.InputManager.CaptureModeInput;
     import Modules.InputManager.ReplayModeInput;
     import Modules.PaletteController;
@@ -136,6 +137,7 @@
             Utils.setMainInstance(this);
             ReplayController.setMainInstance(this);
             InputManager.setMainInstance(this);
+            DrawModeInput.setMainInstance(this);
             CaptureModeInput.setMainInstance(this);
             ReplayModeInput.setMainInstance(this);
         }
@@ -169,7 +171,7 @@
             AppStateManager.loadAppState();
             // 입력 이벤트는 loadappdstate보다느려야함
             addGlobalEvents();
-            InputManager.addInputEventsDrawMode();
+            DrawModeInput.addEvents();
             const isNewReplayFile:Boolean = !FileManager.replayDataFilePath.exists;
             ReplayFileCache.initializeReplayDataFile();
             if (isNewReplayFile)

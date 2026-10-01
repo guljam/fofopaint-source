@@ -11,6 +11,7 @@ package Modules.Tools
     import Modules.DragInteraction;
     import Modules.ImageViewWindow;
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.DrawModeInput;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
     import Modules.ToolController;
@@ -1122,72 +1123,72 @@ package Modules.Tools
         {
             switch (targetName)
             {
-            case "lassoRefLayer":
-                {
-                    mergeLassoImageIntoToRefLayer();
-                }
-                break;
-            case "lassoOK":
-                {
-                    applyLassoImageToCanvas();
-                }
-                break;
-            case "lassoCancel":
-                {
-                    cancelIfActive();
-                }
-                break;
-            case "lassoLayerMerge":
-                {
-                    if (_lassoMenuBox.lassoLayerMerge.alpha === 1.0)
+                case "lassoRefLayer":
                     {
-                        mergeLayerByLassoTool();
+                        mergeLassoImageIntoToRefLayer();
                     }
-                }
-                break;
-            case "lassoLayerSwap":
-                {
-                    if (_lassoMenuBox.lassoLayerSwap.alpha === 1.0)
+                    break;
+                case "lassoOK":
                     {
-                        swapLayerByLassoTool();
+                        applyLassoImageToCanvas();
                     }
-                }
-                break;
-            case "lasso1pxUp":
-                {
-                    _move1PX(LASSO_1PX_MOVE_UP);
-                }
-                break;
-            case "lasso1pxDown":
-                {
-                    _move1PX(LASSO_1PX_MOVE_DOWN);
-                }
-                break;
-            case "lasso1pxLeft":
-                {
-                    _move1PX(LASSO_1PX_MOVE_LEFT);
-                }
-                break;
-            case "lasso1pxRight":
-                {
-                    _move1PX(LASSO_1PX_MOVE_RIGHT);
-                }
-                break;
-            case "lassoCopy":
-                {
-                    copyCanvasImageToLassoTool();
-                }
-                break;
-            case "lassoMirror":
-                {
-                    isLassoMirrorON = !isLassoMirrorON;
-                    lassoLayer1.scaleX = -lassoLayer1.scaleX;
-                    lassoLayer2.scaleX = lassoLayer1.scaleX;
-                    // 캔버스가 회전한각도도 있어서 항상 세로축을 중심으로 대칭되게 regpoint각도를 보정값으로 넣어줌
-                    lassoLayer1.rotation = -lassoLayer1.rotation - (CanvasController.canvasAnchorPoint.rotation * 2);
-                    lassoLayer2.rotation = lassoLayer1.rotation;
-                }
-                break;
+                    break;
+                case "lassoCancel":
+                    {
+                        cancelIfActive();
+                    }
+                    break;
+                case "lassoLayerMerge":
+                    {
+                        if (_lassoMenuBox.lassoLayerMerge.alpha === 1.0)
+                        {
+                            mergeLayerByLassoTool();
+                        }
+                    }
+                    break;
+                case "lassoLayerSwap":
+                    {
+                        if (_lassoMenuBox.lassoLayerSwap.alpha === 1.0)
+                        {
+                            swapLayerByLassoTool();
+                        }
+                    }
+                    break;
+                case "lasso1pxUp":
+                    {
+                        _move1PX(LASSO_1PX_MOVE_UP);
+                    }
+                    break;
+                case "lasso1pxDown":
+                    {
+                        _move1PX(LASSO_1PX_MOVE_DOWN);
+                    }
+                    break;
+                case "lasso1pxLeft":
+                    {
+                        _move1PX(LASSO_1PX_MOVE_LEFT);
+                    }
+                    break;
+                case "lasso1pxRight":
+                    {
+                        _move1PX(LASSO_1PX_MOVE_RIGHT);
+                    }
+                    break;
+                case "lassoCopy":
+                    {
+                        copyCanvasImageToLassoTool();
+                    }
+                    break;
+                case "lassoMirror":
+                    {
+                        isLassoMirrorON = !isLassoMirrorON;
+                        lassoLayer1.scaleX = -lassoLayer1.scaleX;
+                        lassoLayer2.scaleX = lassoLayer1.scaleX;
+                        // 캔버스가 회전한각도도 있어서 항상 세로축을 중심으로 대칭되게 regpoint각도를 보정값으로 넣어줌
+                        lassoLayer1.rotation = -lassoLayer1.rotation - (CanvasController.canvasAnchorPoint.rotation * 2);
+                        lassoLayer2.rotation = lassoLayer1.rotation;
+                    }
+                    break;
             }
         }
 
@@ -1310,7 +1311,7 @@ package Modules.Tools
                     case "sideBarOFFButton2":
                     case "sideBarONButton":
                     case "sideBarONButton2":
-                        InputManager.handleMouseClickStage(targetName);
+                        InputManager.handleMouseClickStage(targetName, DrawModeInput.onClickDrawModeButton);
                         break;
                     default:
                         break;
@@ -1486,7 +1487,7 @@ package Modules.Tools
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool);
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool);
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool);
-            InputManager.addInputEventsDrawMode();
+            DrawModeInput.addEvents();
         }
 
         private static function addInputEventsLassoTool():void
@@ -1498,7 +1499,7 @@ package Modules.Tools
             main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool, false, InputPriority.DEFAULT);
             main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool, false, InputPriority.DEFAULT);
             main.stage.addEventListener(MouseEvent.MOUSE_OVER, lassoMenuHintONEvent);
-            InputManager.removeInputEventsDrawMode();
+            DrawModeInput.removeEvents();
         }
 
         private static function handleShiftSubKeyLassoTool(input:int):void

@@ -1,6 +1,7 @@
 package Modules
 {
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.DrawModeInput;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
@@ -346,14 +347,14 @@ package Modules
                 main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton);
                 UIController.topBar.setReplaySpeedBarToGridSliderOFF(main.stage);
                 InputManager.clearKeyBuffer();
-                InputManager.addInputEventsDrawMode();
+                DrawModeInput.addEvents();
             }
 
             function start(shortcutKey:Boolean):void
             {
                 if (UIController.topBar.gridButtonWrapper.visible === false)
                 {
-                    InputManager.removeInputEventsDrawMode();
+                    DrawModeInput.removeEvents();
                     UIController.topBar.setGridMoveButtonAlpha(gridGapMultiplier > 0 ? 1.0 : UITheme.OFFALPHA);
                     UIController.topBar.setReplaySpeedBarToGridSliderON(shortcutKey);
                     setCursorPosByValue(gridGapMultiplier);

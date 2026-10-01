@@ -1,6 +1,7 @@
 package Modules
 {
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.DrawModeInput;
     import Modules.UIEngine.UITheme;
     import Symbols.ColorPickerSet;
     import Symbols.NumPadSet;
@@ -342,7 +343,7 @@ package Modules
 
             FOFOTimer.addByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function ():void
                 {
-                    InputManager.addInputEventsDrawMode();
+                    DrawModeInput.addEvents();
                 });
         }
 
