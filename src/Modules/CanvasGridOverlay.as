@@ -185,7 +185,6 @@ package Modules
             function onMouseUpGridButton(e:MouseEvent):void
             {
                 MouseState.endDrag("gridSlider");
-                CanvasController.isMouseDragging = false;
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
             }
@@ -258,7 +257,6 @@ package Modules
                 }
                 else if (MainUI.topBar.gridSliderWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                 {
-                    CanvasController.isMouseDragging = true;
                     oldValue = gridGapMultiplier;
                     drawGridByValue(MainUI.topBar.gridSliderWrapper.mouseX, true);
                     main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
@@ -336,7 +334,6 @@ package Modules
             {
                 MainUI.hideBottomHint();
                 MouseState.endDrag("gridSlider");
-                CanvasController.isMouseDragging = false;
                 InputManager.removeKeyRepeatEvents(null);
                 main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);

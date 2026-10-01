@@ -149,7 +149,6 @@ package Modules.Tools
             hasLineTouchedCanvas = false;
             _isStarted = false;
 
-            CanvasController.isMouseDragging = false;
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
 
             if (!ReferenceLayerController.isRefLayerEmpty() && ReferenceLayerController.isRefLayerMemoryTrainingON && ReferenceLayerController.refLayerLastAlpha > 0.0)

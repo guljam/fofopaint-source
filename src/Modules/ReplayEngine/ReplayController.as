@@ -967,7 +967,6 @@ package Modules.ReplayEngine
             const maxSpeed:Number = ReplayState.REPLAY_MAX_SPEED;
             var oldSpeed:Number;
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
-            CanvasController.isMouseDragging = true;
 
             function setSpeed(mx:Number):void
             {
@@ -1021,7 +1020,6 @@ package Modules.ReplayEngine
             function replaySpeedButtomUpEvent(e:MouseEvent):void
             {
                 MouseState.endDrag("replaySpeed");
-                CanvasController.isMouseDragging = false;
 
                 if (ReplayState.isReplayFinished === false)
                 {

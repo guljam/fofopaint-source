@@ -49,7 +49,6 @@ package Modules.Tools
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMoveTool);
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool);
 
-            CanvasController.isMouseDragging = false;
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
 
             getMovedPos = null;

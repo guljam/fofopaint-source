@@ -48,7 +48,6 @@ package Modules.Tools
             main.stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
 
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
-            CanvasController.isMouseDragging = false;
             CanvasController.keepCanvasPanelInStage(isReplayMode);
 
             if (isDrawMode)
@@ -112,8 +111,6 @@ package Modules.Tools
 
         private static function _start(fromReplayMode:Boolean, fromWheelClick:Boolean):void
         {
-            CanvasController.isMouseDragging = true;
-
             isReplayMode = fromReplayMode;
             isDrawMode = !fromReplayMode;
 

@@ -646,7 +646,6 @@ package Modules.Tools
             const clickY:Number = CanvasController.canvasDrawLayerChild.mouseY;
 
             lassoPreviewDrawnCount = 0;
-            CanvasController.isMouseDragging = true;
             _lassoMenuBox.hint("Lasso tool");
             lassoDraw.x = 0;
             lassoDraw.y = 0;
@@ -774,7 +773,6 @@ package Modules.Tools
         {
             isLassoSelecting = false;
             MouseState.endDrag(SELECTION_DRAG_OWNER);
-            CanvasController.isMouseDragging = false;
             FOFOTimer.remove(LASSO_PREVIEW_TIMER);
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLassoSelection);
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoSelection);

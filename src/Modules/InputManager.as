@@ -1086,7 +1086,6 @@ package Modules
             }
             else if (Utils.isCursorInDrawArea() && SidebarController.isQuickSidebarActive === false)
             {
-                CanvasController.isMouseDragging = true;
                 main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
                 MouseState.beginDrag(FILLPEN_DRAG_OWNER, finishFillPenDrag);
 
@@ -1125,6 +1124,8 @@ package Modules
 
         public static function removeEventsFillPen():void
         {
+            // 드래그 도중 FillPen이 종료되면(파일 로드로 취소 등) onMouseUpFillPen이 안 불리므로 여기서 등록을 해제함
+            MouseState.endDrag(FILLPEN_DRAG_OWNER);
             main.stage.removeEventListener(MouseEvent.MOUSE_OVER, FillPenTool.onMouseOverFillPenHint);
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownFillPen);
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
@@ -1205,7 +1206,6 @@ package Modules
         {
             MouseState.endDrag(FILLPEN_DRAG_OWNER);
             FOFOTimer.remove("previewFilledColorUpdateTimer");
-            CanvasController.isMouseDragging = false;
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
 
             // 드래그 도중 FillPen이 이미 종료됐다면(등록이 남은 경우) 미리보기를 다시 그리지 않음
@@ -1230,7 +1230,6 @@ package Modules
 
             MouseState.endDrag(FILLPEN_DRAG_OWNER);
             FOFOTimer.remove("previewFilledColorUpdateTimer");
-            CanvasController.isMouseDragging = false;
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
 
             if (FillPenTool.clickedButton === targetName)

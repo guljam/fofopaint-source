@@ -105,7 +105,6 @@ package Modules.Tools
 
         private static function onMouseUp():void
         {
-            CanvasController.isMouseDragging = false;
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
             PenSizePreviewCursor.updateSizeAndShape();
             MainUI.hideMouseHint();

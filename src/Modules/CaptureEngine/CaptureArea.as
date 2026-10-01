@@ -308,7 +308,6 @@ package Modules.CaptureEngine
         private static function finishCaptureAreaDrag():void
         {
             MouseState.endDrag(DRAG_OWNER);
-            CanvasController.isMouseDragging = false;
             removeCaptureAreaEvents();
 
             if (mouseMoved === true)
@@ -459,7 +458,6 @@ package Modules.CaptureEngine
             {
                 removeCaptureAreaEvents();
                 MouseState.endDrag(DRAG_OWNER);
-                CanvasController.isMouseDragging = false;
             }
             isDragging = false;
             MainUI.topBar.capClipBoard.alpha = 1.0;
@@ -492,7 +490,6 @@ package Modules.CaptureEngine
                 finishCaptureAreaDrag();
             }
 
-            CanvasController.isMouseDragging = true;
             isDragging = true;
             mouseMoved = false;
             clickPos.setTo(mx, my);

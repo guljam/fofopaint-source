@@ -32,7 +32,6 @@ package Modules
         {
             dragInteractionMouseEventStarted = false;
             MouseState.endDrag(DRAG_OWNER);
-            CanvasController.isMouseDragging = false;
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, handleMouseUpDragInteraction);
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMoveDragInteraction);
 
@@ -52,9 +51,10 @@ package Modules
                 finishDragInteraction();
             }
 
-            CanvasController.isMouseDragging = true;
             dragInteractionMouseUpFunc = onMouseUpFunc;
             dragInteractionMouseMoveFunc = onMouseMoveFunc;
+            // onDragStartFunc 안에서도 isDragging이 켜져 있도록 먼저 등록함
+            MouseState.beginDrag(DRAG_OWNER, finishDragInteraction);
             onDragStartFunc();
 
             if (dragInteractionMouseEventStarted === false)
@@ -62,7 +62,6 @@ package Modules
                 dragInteractionMouseEventStarted = true;
                 main.stage.addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMoveDragInteraction);
                 main.stage.addEventListener(MouseEvent.MOUSE_UP, handleMouseUpDragInteraction, false, InputPriority.DEFAULT);
-                MouseState.beginDrag(DRAG_OWNER, finishDragInteraction);
             }
         }
 

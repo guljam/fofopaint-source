@@ -72,8 +72,8 @@ package Modules
         public static function set isMouseLeftClicked(value:Boolean):void { MouseState.isLeftDown = value; }
         public static function get isRightMouseClicked():Boolean { return MouseState.isRightDown; }
         public static function set isRightMouseClicked(value:Boolean):void { MouseState.isRightDown = value; }
+        // 읽기 전용. MouseState.beginDrag/endDrag 등록부로 판단함
         public static function get isMouseDragging():Boolean { return MouseState.isDragging; }
-        public static function set isMouseDragging(value:Boolean):void { MouseState.isDragging = value; }
         public static var isMouseClickBlocked:Boolean = false; // 알탭 하고나서 창활성화 되면 일정시간동안 작동하지 않게함
         public static var isKeyReleasedBeforeMouseUp:Boolean = false; // 키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
 
@@ -514,7 +514,6 @@ package Modules
             function onMouseUpCanvasNavigator(e:MouseEvent):void
             {
                 MouseState.endDrag("canvasNavigator");
-                isMouseDragging = false;
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
                 keepCanvasPanelInStage();
                 MainUIController.updateCanvasNaigatorCursor();

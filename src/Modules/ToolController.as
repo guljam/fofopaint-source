@@ -426,12 +426,9 @@ package Modules
 
             var oldValue:int = PenTool.penSmoothSlideValue;
 
-            CanvasController.isMouseDragging = true;
-
             function onMouseUpPenSmoothing(e:MouseEvent):void
             {
                 MouseState.endDrag("penSmoothing");
-                CanvasController.isMouseDragging = false;
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing);
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
             }
@@ -1506,7 +1503,6 @@ package Modules
         private static var optionDragPrefix:String = "";
         private static var optionDragApply:Function = null;
         private static var lastDragOptionButton:String = "";
-        private static var wasMouseDraggingBeforeOptionDrag:Boolean = false;
 
         private static function startOptionButtonDrag(box:Sprite, prefix:String, startButtonName:String, apply:Function):void
         {
@@ -1520,8 +1516,6 @@ package Modules
             optionDragPrefix = prefix;
             optionDragApply = apply;
             lastDragOptionButton = startButtonName;
-            wasMouseDraggingBeforeOptionDrag = CanvasController.isMouseDragging;
-            CanvasController.isMouseDragging = true;
 
             box.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverOptionButtonDrag);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, endOptionButtonDrag, false, InputPriority.DEFAULT);
@@ -1561,7 +1555,6 @@ package Modules
         {
             MouseState.endDrag("optionButton");
             isOptionButtonDragging = false;
-            CanvasController.isMouseDragging = wasMouseDraggingBeforeOptionDrag;
 
             optionDragBox.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverOptionButtonDrag);
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, endOptionButtonDrag);
