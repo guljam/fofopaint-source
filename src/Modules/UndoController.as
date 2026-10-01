@@ -7,6 +7,7 @@ package Modules
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.ReplayEngine.ReplayTimeline;
 
     public class UndoController
     {
@@ -134,9 +135,11 @@ package Modules
                     const rf:File = FileManager.replayDataFilePath;
                     const lastRDataTotalFrame:Number = ReplayState.getRFileDataTotalFrame();
 
+                    const startByte:Number = rf.exists ? rf.size : 0;
                     fs.open(rf, FileMode.APPEND);
                     fs.writeObject(oldData);
                     fs.close();
+                    ReplayTimeline.appendFileGroup(oldData, lastRDataTotalFrame, startByte, rf.size);
 
                     oldData = null;
                     ReplayState.increaseRFileDataTotalFrame(firstElementFrameCount);

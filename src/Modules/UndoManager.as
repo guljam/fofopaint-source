@@ -12,6 +12,7 @@ package Modules
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.ReplayEngine.ReplayTimeline;
 
     public class UndoManager
     {
@@ -201,6 +202,7 @@ package Modules
             fs.position = ReplayState.rFileLastBytePosition;
             fs.truncate(); // 데이터 위에 짤라주고
             fs.close();
+            ReplayTimeline.truncateFile(ReplayState.rFileLastBytePosition, ReplayState.rNowFrame);
             // 썸네일 이미지도 날려줌
             const rNowFrameSave:Number = ReplayState.rNowFrame;
             ReplayFileCache.truncateCacheImagesAfterFrame(rNowFrameSave);

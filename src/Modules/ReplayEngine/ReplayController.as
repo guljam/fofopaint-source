@@ -95,7 +95,9 @@ package Modules.ReplayEngine
         public static function updateTotalFrameAndReplayMaxSpeedFor10Sec(totalframe:Number):void
         {
             ReplayState.TOTAL_FRAME = totalframe;
-            var maxSpeed:Number = Math.floor(totalframe / 10 / main.stage.frameRate);
+            // 슬라이드쇼 속도 아래에서는 wait를 포함한 실제 재생 시간, 그 위에서는 프레임 기준으로 10초에 끝나는 속도
+            const speedByTick:Number = Math.floor(ReplayTimeline.getTickAtFrame(totalframe) * ReplayState.WAIT_TICK_MS / 1000 / 10);
+            var maxSpeed:Number = speedByTick <= REPLAY_SLIDESHOW_ACTIVE_SPEED ? speedByTick : Math.max(Math.floor(totalframe / 10 / main.stage.frameRate), REPLAY_SLIDESHOW_ACTIVE_SPEED);
 
             if (maxSpeed < 1.0)
             {
@@ -145,6 +147,7 @@ package Modules.ReplayEngine
             ensureReplayCanvasState();
             ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
             ReplayFileCache.createFirstImageCache(ReplayDrawer.rCanvasLayer1BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, ReplayState.RCANVAS_BG_COLOR, ReplayState.rMirrorON);
+            ReplayTimeline.invalidate();
             const fs:FileStream = new FileStream();
 
             if (ReplayState.rMemoryDataReadON)
@@ -252,6 +255,7 @@ package Modules.ReplayEngine
                 fs.position = ReplayState.rFileLastBytePosition;
                 fs.truncate(); // 데이터 위에 짤라주고
                 fs.close();
+                ReplayTimeline.truncateFile(ReplayState.rFileLastBytePosition, ReplayState.rNowFrame);
                 // 썸네일 이미지도 날려줌
                 const rNowFrameSave:Number = ReplayState.rNowFrame;
                 ReplayFileCache.truncateCacheImagesAfterFrame(rNowFrameSave);
@@ -553,6 +557,7 @@ package Modules.ReplayEngine
             stopGeneratingCacheImageFunc = null;
             ReplayDrawCommands.clearData();
             ReplayState.setRFileDataTotalFrame(_frameSum);
+            ReplayTimeline.invalidate();
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReplayFileCache.deleteCacheProgress();
             resetReplayTime();
@@ -789,16 +794,17 @@ package Modules.ReplayEngine
             ReplayState.isReplayFinished = true;
             ReplayState.isReplaySlideShowMode = false;
             ReplayDrawCommands.clearData();
+            invalidateRealtimeClock();
         }
 
         public static function updateReplayPrograssText(finishFlag:Boolean = false, customFrame:Number = NaN):void
         {
-            const remainingTime:String = (UndoManager.isDeepUndoEnabled || finishFlag) ? "" : getReplayRemainingTimeString(ReplayState.rReplaySpeedMultipler, ReplayState.TOTAL_FRAME - ReplayState.rNowFrame);
-
             if (isNaN(customFrame))
             {
                 customFrame = ReplayState.rNowFrame;
             }
+
+            const remainingTime:String = (UndoManager.isDeepUndoEnabled || finishFlag) ? "" : getRemainingTimeStringAt(customFrame);
 
             ReplayController.seekBarBox.prograssInfo.text = customFrame + " / " + ReplayState.TOTAL_FRAME + remainingTime;
         }
@@ -906,19 +912,46 @@ package Modules.ReplayEngine
 
         // 실시간 재생 시계, 단위는 ReplayState.WAIT_TICK_MS
         private static const REALTIME_MAX_FRAME_MS:int = 100; // 창 전환 등으로 프레임이 멈췄다가 돌아올때 밀린 시간을 한번에 그리지 않게 함
-        private static var realtimeTickClock:Number = 0;
-        private static var realtimePendingDelay:Number = 0; // 다음 그리기 명령까지 남은 틱
+        private static var realtimeTickClock:Number = 0; // 다음 그리기 명령을 기다리며 흐른 틱
+        private static var realtimePendingDelay:Number = 0; // 다음 그리기 명령의 지연 (ReplayTimeline과 같은 규칙)
         private static var realtimeLastTime:int = 0;
-        private static var realtimeSkipWait:Boolean = false;
+        private static var realtimeSkipWait:Boolean = false; // 데이터 첫 그리기 명령 앞의 wait는 기다리지 않음
+        private static var realtimeInWait:Boolean = false; // 바로 앞에서 wait를 읽었으면 이어지는 wait는 더함
+        private static var realtimeClockFrame:Number = -1; // 위 시계 상태가 맞는 프레임 위치, 탐색하면 -1
 
-        // 재생을 시작하거나 다시 시작할때(탐색, 일시정지, 슬라이드쇼에서 돌아올때) 첫 그리기 명령은 기다리지 않고 바로 그림
-        // 앞부분을 잘라내서 데이터가 wait로 시작하는 경우도 여기서 같이 처리됨
+        // 프레임을 건너뛰었을때(탐색, 슬라이드쇼, 처음부터 다시) 호출. 다음 재생때 그 위치 기준으로 시계를 다시 맞춤
+        public static function invalidateRealtimeClock():void
+        {
+            realtimeClockFrame = -1;
+        }
+
+        // 재생을 시작할때 호출. 일시정지했던 자리 그대로면 기다리던 시간을 이어감
+        // 탐색으로 wait와 명령 사이에 멈췄으면 그 wait를 다시 기다리고, 데이터 첫 그리기 명령 앞이면 바로 그림
+        // (앞부분을 잘라내서 데이터가 wait로 시작하는 경우도 여기서 같이 처리됨)
         private static function resetRealtimeClock():void
         {
-            realtimeTickClock = 0;
-            realtimePendingDelay = 0;
             realtimeLastTime = getTimer();
-            realtimeSkipWait = true;
+
+            if (realtimeClockFrame === ReplayState.rNowFrame)
+            {
+                return;
+            }
+
+            realtimeClockFrame = ReplayState.rNowFrame;
+            realtimeTickClock = 0;
+
+            if (ReplayTimeline.isBeforeFirstCommand(ReplayState.rNowFrame))
+            {
+                realtimePendingDelay = 0;
+                realtimeSkipWait = true;
+                realtimeInWait = false;
+                return;
+            }
+
+            const preceding:Number = ReplayDrawCommands.getPrecedingWaitTicks();
+            realtimePendingDelay = preceding >= 0 ? preceding : 1;
+            realtimeSkipWait = false;
+            realtimeInWait = preceding >= 0;
         }
 
         // 지난 시간만큼 명령을 그림, wait 0이면 앞 명령과 같은 프레임에 그림
@@ -940,6 +973,7 @@ package Modules.ReplayEngine
             {
                 if (!ReplayDrawer.prepareNextPlayData())
                 {
+                    realtimeClockFrame = -1;
                     return true;
                 }
 
@@ -949,7 +983,8 @@ package Modules.ReplayEngine
                 {
                     if (!realtimeSkipWait)
                     {
-                        realtimePendingDelay = next[1];
+                        realtimePendingDelay = realtimeInWait ? realtimePendingDelay + next[1] : next[1];
+                        realtimeInWait = true;
                     }
 
                     // wait는 시간을 쓰지 않고 프레임 번호만 넘어감
@@ -959,20 +994,49 @@ package Modules.ReplayEngine
 
                 if (realtimeTickClock < realtimePendingDelay)
                 {
+                    realtimeClockFrame = ReplayState.rNowFrame;
                     return false;
                 }
 
                 realtimeTickClock -= realtimePendingDelay;
                 realtimePendingDelay = 1;
                 realtimeSkipWait = false;
+                realtimeInWait = false;
 
                 if (ReplayDrawer.startDraw(1, ReplayDrawer.JUMP_FRAME_PLAY))
                 {
+                    realtimeClockFrame = -1;
                     return true;
                 }
             }
 
             return false;
+        }
+
+        // frame 위치에서 끝까지 실시간 재생으로 남은 틱, 그 위치에서 기다리던 중이면 기다린 시간을 빼줌
+        public static function getRemainingTicks(frame:Number):Number
+        {
+            var ticks:Number = ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) - ReplayTimeline.getTickAtFrame(frame);
+
+            if (frame === realtimeClockFrame)
+            {
+                ticks -= Math.min(realtimeTickClock, realtimePendingDelay);
+            }
+
+            return ticks > 0 ? ticks : 0;
+        }
+
+        // 남은 시간 문자열, 슬라이드쇼 속도에서는 wait를 건너뛰고 프레임 단위로 진행하므로 프레임 기준
+        private static function getRemainingTimeStringAt(frame:Number):String
+        {
+            const speed:Number = ReplayState.rReplaySpeedMultipler;
+
+            if (shouldUseReplaySlideShowMode())
+            {
+                return getReplayRemainingTimeString(speed, ReplayState.TOTAL_FRAME - frame);
+            }
+
+            return formatReplayTime(getRemainingTicks(frame) * ReplayState.WAIT_TICK_MS / 1000 / speed);
         }
 
         public static function shouldUseReplaySlideShowMode():Boolean
@@ -982,7 +1046,9 @@ package Modules.ReplayEngine
 
         public static function showReplaySpeedMouseHint():void
         {
-            const timeStr:String = getReplayRemainingTimeString(ReplayState.rReplaySpeedMultipler, ReplayState.TOTAL_FRAME);
+            const timeStr:String = shouldUseReplaySlideShowMode()
+                ? getReplayRemainingTimeString(ReplayState.rReplaySpeedMultipler, ReplayState.TOTAL_FRAME)
+                : formatReplayTime(ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) * ReplayState.WAIT_TICK_MS / 1000 / ReplayState.rReplaySpeedMultipler);
             const finalStr:String = HintStrings.getReplaySpeedHintString(ReplayState.rReplaySpeedMultipler, timeStr);
             MainUI.showMouseHintTemp(finalStr);
         }
@@ -1944,6 +2010,7 @@ package Modules.ReplayEngine
             ReferenceLayerController.resetRefLayerImageTransform();
             ReferenceLayerController.resetRefLayerMenuOpacity();
             ReplayFileCache.initializeReplayDataFile(true);
+            ReplayTimeline.invalidate();
             ReplayState.resetCommandTime();
             ReplayFileCache.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             resetReplaySpeedBar();
@@ -1968,8 +2035,11 @@ package Modules.ReplayEngine
         public static function getReplayRemainingTimeString(speed:Number, totalFrame:Number, isSlideShowMode:Boolean = false):String
         {
             const fps:Number = (isSlideShowMode === true) ? 1.0 : main.stage.frameRate;
-            const totalSec:Number = totalFrame / (fps * speed);
+            return formatReplayTime(totalFrame / (fps * speed));
+        }
 
+        public static function formatReplayTime(totalSec:Number):String
+        {
             if (totalSec === 0)
                 return "";
             const hour:int = totalSec / 3600;

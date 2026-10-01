@@ -280,6 +280,7 @@ package Modules.ReplayEngine
                 }
             }
 
+            ReplayController.invalidateRealtimeClock();
             rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
             const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);

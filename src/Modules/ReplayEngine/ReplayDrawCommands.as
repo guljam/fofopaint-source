@@ -135,6 +135,19 @@ package Modules.ReplayEngine
             return data[index];
         }
 
+        // 다음 명령 바로 앞에 이미 읽은 wait 값의 합, 없으면 -1 (탐색으로 wait와 명령 사이에 멈췄을때 남은 대기를 이어감)
+        public static function getPrecedingWaitTicks():Number
+        {
+            var sum:Number = -1;
+
+            for (var i:int = index - 1;data && i >= 0 && i < data.length && ReplayState.isWaitCommand(data[i]);i--)
+            {
+                sum = (sum < 0 ? 0 : sum) + data[i][1];
+            }
+
+            return sum;
+        }
+
         public static function getDataLength():uint
         {
             if (!data)
