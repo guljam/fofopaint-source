@@ -1323,7 +1323,9 @@ package Modules
             LassoTool.lassoLayer2.name = "lassoBox2";
             LassoTool.lassoLayer2.addChild(LassoTool.lassoLayer2Bitmap);
             LassoTool.lassoLayer2.visible = false;
-            CanvasController.setCanvasBGColorDrawMode(CANVAS_BG_COLOR);
+            // setCanvasBGColorDrawMode는 같은 색이면 바로 리턴하므로, 초기값(흰색)은 스크래치 패드에 전달되지 않아
+            // 최초 실행시 패드 배경이 안 그려졌음. 초기 색은 직접 전달함
+            ColorPickerController.colorPickerBox.scratchPad.updateBGColor(CANVAS_BG_COLOR);
             updateCanvasPanelMask(CANVAS_WIDTH, CANVAS_HEIGHT);
             ReferenceLayerController.canvasRefLayer.alpha = ReferenceLayerController.refLayerLastAlpha;
             ReferenceLayerController.canvasRefLayer.addChild(ReferenceLayerController.canvasRefLayerBitmap);
