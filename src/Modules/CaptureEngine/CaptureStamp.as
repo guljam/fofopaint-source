@@ -39,7 +39,6 @@ package Modules.CaptureEngine
         private static var stampBGColor:* = null;
         private static const lastRectArea:Rectangle = new Rectangle();
         private static var lastBitmapVisibleFlag:int = 0;
-        public static var isCaptureStampTextFieldFocused:Boolean = false; // 포커스 되면 올려줌
         private static var _isCaptureStampEnabled:Boolean = false;
 
         captureStampBitmap.name = "captureStampBitmap";
@@ -319,19 +318,8 @@ package Modules.CaptureEngine
             return CanvasController.getMergedBitmapdtata(false, layer1, layer2, (fullImageFlag) ? null : clipRect, 100);
         }
 
-        private static function onFocusOutCaptureStampInput(e:FocusEvent):void
-        {
-            FOFOTimer.add(0.2, false, function ():void
-                {
-                    InputManager.tryDisableIME();
-                    isCaptureStampTextFieldFocused = false;
-                });
-        }
-
         private static function onFocusInCaptureStampInput(e:FocusEvent):void
         {
-            isCaptureStampTextFieldFocused = true;
-
             FOFOTimer.add(0.0, false, function ():void
                 {
                     MainUI.topBar.captureInput.setSelection(0, MainUI.topBar.captureInput.text.length);
@@ -934,7 +922,6 @@ package Modules.CaptureEngine
 
             MainUI.topBar.captureInput.removeEventListener(Event.CHANGE, onChangeCaptureStampInput);
             MainUI.topBar.captureInput.removeEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureStampInput);
-            MainUI.topBar.captureInput.removeEventListener(FocusEvent.FOCUS_OUT, onFocusOutCaptureStampInput);
 
             captureStampBitmap.visible = false;
 
@@ -961,7 +948,6 @@ package Modules.CaptureEngine
 
             MainUI.topBar.captureInput.addEventListener(Event.CHANGE, onChangeCaptureStampInput);
             MainUI.topBar.captureInput.addEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureStampInput);
-            MainUI.topBar.captureInput.addEventListener(FocusEvent.FOCUS_OUT, onFocusOutCaptureStampInput);
         }
     }
 }

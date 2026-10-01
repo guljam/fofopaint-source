@@ -2,6 +2,7 @@
 {
     import Modules.InputPriority;
     import Modules.MouseState;
+    import Modules.ImeController;
     import Modules.AboutBoxController;
     import Modules.AppStateManager;
     import Modules.AppStateVars;
@@ -110,6 +111,7 @@
             AppUpdater.setMainInstance(this);
             AppStateManager.setMainInstance(this);
             AppWindowState.setMainInstance(this);
+            ImeController.setMainInstance(this);
             ActivityWorkTimer.setMainInstance(this);
             BackgroundWorkerCoordinator.setMainInstance(this);
             CanvasGridOverlay.setMainInstance(this);
@@ -175,7 +177,7 @@
             CanvasController.canvasNavigatorBox.updateImage();
             ActivityWorkTimer.start();
             AppUpdater.checkUpdate();
-            InputManager.tryDisableIME();
+            ImeController.init();
             ColorPickerController.colorPickerBox.setActiveColorPreset(0);
             MainUI.mouseHint.updateBGColor();
             SidebarController.moveSideBar("left"); // 컨트롤 박스 크기가 set pentool 이후에 제대로 바뀜 원인 모름

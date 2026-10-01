@@ -26,6 +26,7 @@
         public static const STRING_REFLAYER_IMAGE_OPACITY:String = "Image opacity ";
         public static const STRING_RIGHT_CLICK_TO_RESET:String = "Right-click to reset";
         public static const STRING_VARIABLE_HINT:String = "!";
+        public static const STRING_IME_ON_HINT:String = "IME is on _ Switch to English input to use shortcuts";
 
         static private const hintsCaptureMode:Object =
             {

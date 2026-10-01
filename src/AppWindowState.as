@@ -4,6 +4,7 @@ package
     import Modules.AppStateManager;
     import Modules.MainUIController;
     import Modules.InputManager;
+    import Modules.ImeController;
     import Modules.MouseState;
     import Modules.ClipboardManager;
     import Modules.AboutBoxController;
@@ -57,7 +58,7 @@ package
 
         public static function onWindowActive(e:Event):void
         {
-            InputManager.tryDisableIME();
+            ImeController.onWindowActivate();
             ClipboardManager.checkCanUseClipBoardButton();
 
             if (AboutBoxController.isAboutBoxOpened)
@@ -73,6 +74,7 @@ package
         public static function onWindowDeactivate(e:Event):void
         {
             CanvasController.isMouseClickBlocked = true;
+            ImeController.onWindowDeactivate();
             FillPenTool.hideFillPenMenuBox();
             MouseState.finishAllDrags(); // 그리는 도중 포커스를 잃으면 mouseUp이 안오므로 획 등을 정상 종료함
             MouseState.resetAll();

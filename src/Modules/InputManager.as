@@ -877,17 +877,23 @@ package Modules
             // }
 
             checkInvalidKey();
+            ImeController.logKeyUp(e);
             const index:int = getPressedKeyIndex(e.keyCode);
             if (index > -1)
             {
                 keyBuffer.splice(index, 1);
             }
-            tryDisableIME();
+            ImeController.refresh();
         }
 
         public static function onKeyDownStage(e:KeyboardEvent):void
         {
             checkInvalidKey();
+            // IME가 가져간 키는 단축키로 처리하지 않음 (keyCode가 229 등이라 실제 키를 알 수 없음)
+            if (ImeController.interceptKeyDown(e))
+            {
+                return;
+            }
             const keyCode:uint = e.keyCode;
             if (keyCode === KEY.window)
             {
@@ -901,7 +907,7 @@ package Modules
             {
                 keyBuffer.push(keyCode);
             }
-            tryDisableIME();
+            ImeController.refresh();
         }
 
         public static function removeInputEventsDrawMode():void
@@ -1440,45 +1446,6 @@ package Modules
                         ToolController.closeToolBox2();
                     }
                     break;
-            }
-        }
-
-        public static function enableIME():void
-        {
-            if (!Capabilities.hasIME)
-            {
-                return;
-            }
-            try
-            {
-                IME.enabled = true;
-            }
-            catch (e:Error) {}
-        }
-
-        public static function tryDisableIME():void
-        {
-            if (!Capabilities.hasIME)
-            {
-                return;
-            }
-            try
-            {
-                if (CaptureStamp.isCaptureStampTextFieldFocused)
-                {
-                    IME.enabled = true;
-                    return;
-                }
-                if (IME.enabled) // 다른 언어로 하면 자판 안먹어서 그냥 ime자체를안씀
-                {
-                    IME.compositionAbandoned();
-                    IME.enabled = false;
-                }
-            }
-            catch (e:Error)
-            {
-                // IME가 비활성 상태이거나 환경(TSF IME, PC방 후킹 등)에 따라 조작 실패할 수 있음
-                // 여기서 예외가 올라가면 onKeyDownStage에서 keyBuffer.push가 안 돼서 단축키 전체가 죽음
             }
         }
 
