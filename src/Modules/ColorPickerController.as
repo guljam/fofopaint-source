@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import Symbols.ColorPickerSet;
     import Symbols.NumPadSet;
     import flash.display.BitmapData;
@@ -44,7 +45,7 @@ package Modules
 
         public static function updatePickerBoxTransBGBrightness():void
         {
-            colorPickerBox.applyTransparentColorBrightness(Global.getUIColorIndex());
+            colorPickerBox.applyTransparentColorBrightness(UITheme.getUIColorIndex());
 
             PaletteController.updateMyPaletteList();
             PaletteController.updateHistoryList();
@@ -114,7 +115,7 @@ package Modules
                 const arr:Array = getColorValueFromRGBInfoText();
                 arr[lastRGBInfoColorPartIndex] = value;
 
-                const hsv:Vector.<Number> = Global.HEXtoHSV(Global.RGBtoHEX(arr[0], arr[1], arr[2]), hsvColorData[0]);
+                const hsv:Vector.<Number> = Utils.HEXtoHSV(Utils.RGBtoHEX(arr[0], arr[1], arr[2]), hsvColorData[0]);
 
                 hsvColorData[0] = hsv[0];
                 hsvColorData[1] = hsv[1];
@@ -123,7 +124,7 @@ package Modules
 
             updateColorPickerCursorPosAndRGBInfo(hsvColorData);
 
-            numPadBox.updateOkBaseColor(Global.HSVtoHEX(hsvColorData[0], hsvColorData[1], hsvColorData[2]));
+            numPadBox.updateOkBaseColor(Utils.HSVtoHEX(hsvColorData[0], hsvColorData[1], hsvColorData[2]));
 
             keepRGBInfoTextPartFocus();
 
@@ -294,7 +295,7 @@ package Modules
 
             rgb[index] = Number(num);
 
-            updateColorPickerCursorPosAndRGBInfo(Global.RGBtoHEX(rgb[0], rgb[1], rgb[2]));
+            updateColorPickerCursorPosAndRGBInfo(Utils.RGBtoHEX(rgb[0], rgb[1], rgb[2]));
 
             keepRGBInfoTextPartFocus();
         }
@@ -309,12 +310,12 @@ package Modules
             if (numPadBox.visible === false)
             {
 
-                numPadBox.readyLCHAdjustment(Global.HSVtoHEX(hsvColorData[0], 1.0, 1.0), colorPickerBox.getRGBInfoBGColor());
+                numPadBox.readyLCHAdjustment(Utils.HSVtoHEX(hsvColorData[0], 1.0, 1.0), colorPickerBox.getRGBInfoBGColor());
 
                 const gp:Point = colorPickerBox.rgbInfoBG.localToGlobal(new Point(0, 0));
 
                 numPadBox.x = Math.floor(gp.x);
-                numPadBox.y = Math.floor(gp.y + colorPickerBox.rgbInfoBG.height * Global.getUIScale() + 1);
+                numPadBox.y = Math.floor(gp.y + colorPickerBox.rgbInfoBG.height * UITheme.getUIScale() + 1);
 
                 Utils.setAsTopChild(numPadBox);
 
@@ -453,12 +454,12 @@ package Modules
             if (isHSVInfoTextMode)
             {
                 isHSVInfoTextMode = false;
-                colorPickerBox.updateRGBInfoText("RGB", Global.HEXtoRGB(colorPickerBox.getRGBInfoBGColor()));
+                colorPickerBox.updateRGBInfoText("RGB", Utils.HEXtoRGB(colorPickerBox.getRGBInfoBGColor()));
             }
             else
             {
                 isHSVInfoTextMode = true;
-                colorPickerBox.updateRGBInfoText("HSV", Global.HEXtoHSV(colorPickerBox.getRGBInfoBGColor(), hsvColorData[0]));
+                colorPickerBox.updateRGBInfoText("HSV", Utils.HEXtoHSV(colorPickerBox.getRGBInfoBGColor(), hsvColorData[0]));
             }
         }
 
@@ -669,12 +670,12 @@ package Modules
                 colorPickerBox.hueCursor.x = hueCursorX;
 
                 const hueValue:Number = hueCursorX / max;
-                const baseColor:Vector.<uint> = Global.HSVtoRGB(hueValue, 1.0, 1.0);
-                const baseHexColor:uint = Global.RGBtoHEX(baseColor[0], baseColor[1], baseColor[2]);
+                const baseColor:Vector.<uint> = Utils.HSVtoRGB(hueValue, 1.0, 1.0);
+                const baseHexColor:uint = Utils.RGBtoHEX(baseColor[0], baseColor[1], baseColor[2]);
 
                 updateHSVColorData(hueValue, hsvColorData[1], hsvColorData[2]);
 
-                pickedColor = Global.HSVtoHEX(hueValue, hsvColorData[1], hsvColorData[2]);
+                pickedColor = Utils.HSVtoHEX(hueValue, hsvColorData[1], hsvColorData[2]);
 
                 colorPickerBox.updateHueColor(baseHexColor);
                 colorPickerBox.updateRGBInfoBG(pickedColor, PaletteController.myPalettePresetType);
@@ -766,7 +767,7 @@ package Modules
 
                 updateHSVColorData(hueValue, sValue, vValue);
 
-                pickedColor = Global.HSVtoHEX(hueValue, sValue, vValue);
+                pickedColor = Utils.HSVtoHEX(hueValue, sValue, vValue);
 
                 colorPickerBox.updateRGBInfoBG(pickedColor, PaletteController.myPalettePresetType);
                 colorPickerBox.setRGBInfoVisible(false);
@@ -880,11 +881,11 @@ package Modules
             if (color is uint)
             {
                 hexColor = color as uint;
-                hsvColor = Global.HEXtoHSV(hexColor, hsvColorData[0]);
+                hsvColor = Utils.HEXtoHSV(hexColor, hsvColorData[0]);
             }
             else if (color is Vector.<Number>)
             {
-                hexColor = Global.HSVtoHEX(color[0], color[1], color[2]);
+                hexColor = Utils.HSVtoHEX(color[0], color[1], color[2]);
                 hsvColor = color as Vector.<Number>;
             }
 
@@ -903,8 +904,8 @@ package Modules
             colorPickerBox.svCursor.y = Math.round(colorPickerBox.svBoxHeight - hsvColor[2] * colorPickerBox.svBoxHeight);
 
             // s v값을 제외한 순수 hue 컬러
-            const baseColor:Vector.<uint> = Global.HSVtoRGB(hsvColor[0], 1.0, 1.0);
-            const baseHexColor:uint = Global.RGBtoHEX(baseColor[0], baseColor[1], baseColor[2]);
+            const baseColor:Vector.<uint> = Utils.HSVtoRGB(hsvColor[0], 1.0, 1.0);
+            const baseHexColor:uint = Utils.RGBtoHEX(baseColor[0], baseColor[1], baseColor[2]);
 
             colorPickerBox.updateHueColor(baseHexColor);
             colorPickerBox.updateRGBInfoBG(hexColor, PaletteController.myPalettePresetType);

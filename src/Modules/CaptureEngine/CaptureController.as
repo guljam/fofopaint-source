@@ -1,5 +1,6 @@
 package Modules.CaptureEngine
 {
+    import Modules.UIEngine.UITheme;
     import Modules.Utils;
     import Modules.SidebarController;
     import Modules.PenSizePreviewCursor;
@@ -149,7 +150,7 @@ package Modules.CaptureEngine
             if (bitmap.visible)
             {
                 bitmap.visible = false;
-                button.alpha = Global.OFFALPHA;
+                button.alpha = UITheme.OFFALPHA;
 
                 if (replayMode)
                 {
@@ -291,7 +292,7 @@ package Modules.CaptureEngine
         {
             Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT, getCaptrueImageBitmapdata(true), false);
             // WorkspaceView.showMouseHintTemp("The image copied to clipboard successfully");
-            MainUI.topBar.capClipBoard.alpha = Global.OFFALPHA;
+            MainUI.topBar.capClipBoard.alpha = UITheme.OFFALPHA;
         }
 
         public static function initializeCaptureModeTransparentBG():void

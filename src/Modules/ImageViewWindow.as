@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureController;
 
     import flash.display.Bitmap;
@@ -227,7 +228,7 @@ package Modules
             if (canvasWindow.stage.getChildByName("canvasWindowCanvasPanel") === null)
             {
                 canvasWindow.stage.addChild(canvasWindowCanvasPanel);
-                canvasWindow.stage.color = Global.getUIStageColor();
+                canvasWindow.stage.color = UITheme.getUIStageColor();
             }
 
             // updateCanvasWindowImage();

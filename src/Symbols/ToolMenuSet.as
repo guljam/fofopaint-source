@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+    import Modules.UIEngine.UITheme;
     import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display.DisplayObject;
@@ -58,7 +59,7 @@
 
         public function getToolSelectViewBmpd(index:int, button:SimpleButton):BitmapData
         {
-            const key:String = Global.getUIBGColor() + "_" + String(index);
+            const key:String = UITheme.getUIBGColor() + "_" + String(index);
 
             if (!toolSelectViewBmpdCache.hasOwnProperty(key))
             {
@@ -71,7 +72,7 @@
         private function makeCacheToolSelectViewBmpd(key:String, toolButton:SimpleButton):void
         {
             const extend:Number = 20;
-            const bgcolor:uint = Global.getUIBGColor();
+            const bgcolor:uint = UITheme.getUIBGColor();
             const scale:Number = this.scaleX;
             const bmpd:BitmapData = new BitmapData(toolButton.width / scale + extend, toolButton.height / scale + extend, true, 0);
             const sprite:Sprite = new Sprite();
@@ -111,7 +112,7 @@
 
         public function setFillPenModeON():void
         {
-            const offAlpha:Number = Global.OFFALPHA;
+            const offAlpha:Number = UITheme.OFFALPHA;
             toolEraser.alpha = offAlpha;
             toolFillPen.alpha = offAlpha;
             toolEyedropper.alpha = offAlpha;
@@ -169,7 +170,7 @@
 
         public function setToolButtonsForCheckedLayerON():void
         {
-            const offalpha:Number = Global.OFFALPHA;
+            const offalpha:Number = UITheme.OFFALPHA;
             checkedLayerONFlag = true;
             toolPen.alpha = offalpha;
             toolEraser.alpha = offalpha;
@@ -223,9 +224,9 @@
             for (i = 0;i < buttonArr.length;i++)
             {
                 btn = buttonArr[i] as SimpleButton;
-                Global.applyToolBoxButtonUpBGColor(btn.upState as DisplayObject);
-                Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 2, 0.0);
-                Global.setButtonColorWithBG(btn.downState as DisplayObjectContainer, 4, 2, 0.0);
+                UITheme.applyToolBoxButtonUpBGColor(btn.upState as DisplayObject);
+                UITheme.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 2, 0.0);
+                UITheme.setButtonColorWithBG(btn.downState as DisplayObjectContainer, 4, 2, 0.0);
                 btn.downState.x = 2;
                 btn.downState.y = 2;
             }
@@ -234,9 +235,9 @@
             for (i = 0;i < fillPenButtons.length;i++)
             {
                 btn = fillPenButtons[i] as SimpleButton;
-                Global.applyToolBoxButtonUpBGColor(btn.upState as DisplayObject);
-                Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 2, 0.0);
-                Global.setButtonColorWithBG(btn.downState as DisplayObjectContainer, 4, 2, 0.0);
+                UITheme.applyToolBoxButtonUpBGColor(btn.upState as DisplayObject);
+                UITheme.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 2, 0.0);
+                UITheme.setButtonColorWithBG(btn.downState as DisplayObjectContainer, 4, 2, 0.0);
                 btn.downState.x = 2;
                 btn.downState.y = 2;
             }
@@ -248,7 +249,7 @@
             toolHand.y = 0;
 
             bgBox.graphics.lineStyle(0, 0, 0);
-            bgBox.graphics.beginFill(Global.getToolBoxBGColor());
+            bgBox.graphics.beginFill(UITheme.getToolBoxBGColor());
             bgBox.graphics.drawRect(-4, -1, BOX_WIDTH + 8, BOX_HEIGHT + 2);
             bgBox.graphics.endFill();
 

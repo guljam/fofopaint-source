@@ -130,7 +130,7 @@ package Modules.Tools
                 const g:uint = Math.round(g1 * a1) + Math.round(gg * aa1);
                 const b:uint = Math.round(b1 * a1) + Math.round(bb * aa1);
 
-                return Global.RGBtoHEX(r, g, b);
+                return Utils.RGBtoHEX(r, g, b);
             }
             else
             {

@@ -1,5 +1,6 @@
 package Modules.CaptureEngine
 {
+    import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.Utils;
     import Modules.PaletteController;
@@ -64,7 +65,7 @@ package Modules.CaptureEngine
             }
             else
             {
-                MainUI.topBar.capStamp.alpha = Global.OFFALPHA;
+                MainUI.topBar.capStamp.alpha = UITheme.OFFALPHA;
                 MainUI.topBar.captureInputWarpper.visible = false;
                 MainUI.topBar.capStampFont.visible = false;
             }
@@ -154,7 +155,7 @@ package Modules.CaptureEngine
                 captureStampFontListBox.x = gp.x;
                 captureStampFontListBox.y = MainUI.topBar.BARSIZE * MainUI.topBar.scaleX;
                 captureStampFontListBox.updateSystemFontList();
-                captureStampFontListBox.setScale(Global.getUIScale());
+                captureStampFontListBox.setScale(UITheme.getUIScale());
                 Utils.setAsTopChild(captureStampFontListBox);
                 captureStampFontListBox.visible = true;
                 main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList, false, InputPriority.MODE);

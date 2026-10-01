@@ -1,6 +1,7 @@
 ﻿package Symbols
 {
 
+	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.text.TextField;
 	import flash.display.SimpleButton;
@@ -173,20 +174,20 @@
 
 				// 배경 깔아줌
 				(btnUp.getChildAt(0) as DisplayObject).alpha = 0.0;
-				Global.applyToolBoxButtonOverBGColor(btnOver.getChildAt(0) as DisplayObject);
+				UITheme.applyToolBoxButtonOverBGColor(btnOver.getChildAt(0) as DisplayObject);
 				btn.downState = btn.overState;
 
 				// 폰트색깔
 				childText = btnUp.getChildAt(1) as TextField;
-				childText.textColor = Global.getToolBoxButtonOverFGColor();
+				childText.textColor = UITheme.getToolBoxButtonOverFGColor();
 
 				childText = btnOver.getChildAt(1) as TextField;
-				childText.textColor = Global.getToolBoxButtonUpFGColor();
+				childText.textColor = UITheme.getToolBoxButtonUpFGColor();
 			}
 
 			mainBox.graphics.clear();
 			mainBox.graphics.lineStyle(1, 0);
-			mainBox.graphics.beginFill(Global.getToolBoxBGTopColor(), 0.8);
+			mainBox.graphics.beginFill(UITheme.getToolBoxBGTopColor(), 0.8);
 			mainBox.graphics.drawRect(-10, -10, mainBox.width + 20, mainBox.height + 20);
 			mainBox.graphics.endFill();
 		}

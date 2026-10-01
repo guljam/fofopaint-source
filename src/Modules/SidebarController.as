@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.LassoTool;
 
@@ -57,7 +58,7 @@ package Modules
         {
             if (sideBar.visible === true)
             {
-                const scale:Number = Global.getUIScale();
+                const scale:Number = UITheme.getUIScale();
 
                 if (isRightSidebar
                         && main.stage.mouseX >= sideBar.x - sideBarScrollBar.width * scale
@@ -87,7 +88,7 @@ package Modules
         private static function checkCollisionFOFOAndSideBarScrollSet():int
         {
             const sideBarWidth:Number = sideBar.getWidth();
-            const scale:Number = Global.getUIScale();
+            const scale:Number = UITheme.getUIScale();
             const fofoHeight:Number = fofo.height - 10 * scale;
 
             const fofoTopRect:Rectangle = new Rectangle(sideBar.x, MainUIController.STAGE_TOP_OFFSET, sideBarWidth, fofoHeight);
@@ -708,12 +709,12 @@ package Modules
 
         public static function updateScrollBarColorAndHeight():void
         {
-            const scale:Number = Global.getUIScale();
+            const scale:Number = UITheme.getUIScale();
             const topBarHeight:Number = Math.round(MainUI.topBar.BARSIZE * scale);
             const height:Number = Math.round((main.stage.stageHeight - topBarHeight - MainUIController.STAGE_BOTTOM_OFFSET) / scale);
 
-            const color1:uint = Global.getUIFGColor();
-            const color2:uint = Global.getUIBGColor();
+            const color1:uint = UITheme.getUIFGColor();
+            const color2:uint = UITheme.getUIBGColor();
 
             sideBarScrollBar.graphics.clear();
             sideBarScrollBar.graphics.lineStyle(2, color1, 1.0, true);
@@ -749,12 +750,12 @@ package Modules
 
         public static function getSideBarBGHeight():Number
         {
-            return (main.stage.stageHeight - MainUI.topBar.BARSIZE * Global.getUIScale()) / Global.getUIScale();
+            return (main.stage.stageHeight - MainUI.topBar.BARSIZE * UITheme.getUIScale()) / UITheme.getUIScale();
         }
 
         private static function keepScrollSetInStage():void
         {
-            const scale:Number = Global.getUIScale();
+            const scale:Number = UITheme.getUIScale();
             const limitTop:Number = Math.floor(-sideBarConstHeight + 20.0);
             const limitBottom:Number = Math.floor(main.stage.stageHeight - MainUIController.STAGE_TOP_OFFSET - MainUIController.STAGE_BOTTOM_OFFSET - 20.0 * scale);
 
@@ -780,7 +781,7 @@ package Modules
 
         public static function startScrollSidebarByDrag():void
         {
-            const scale:Number = Global.getUIScale();
+            const scale:Number = UITheme.getUIScale();
             var clickY:Number = main.stage.mouseY;
             const alphaSave:Number = sideBarScrollBar.alpha;
 
@@ -817,7 +818,7 @@ package Modules
 
         public static function startScrollSidebarByMouseWheel(deltaY:Number):void
         {
-            deltaY = Math.floor(deltaY * Global.getUIScale());
+            deltaY = Math.floor(deltaY * UITheme.getUIScale());
 
             sideBarScrollPanel.y += deltaY * 1.5;
             scrollSetMovedY = sideBarScrollPanel.y;

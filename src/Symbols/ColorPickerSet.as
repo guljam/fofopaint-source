@@ -1,5 +1,7 @@
 ﻿package Symbols
 {
+	import Modules.Utils;
+	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.GradientType;
 	import flash.display.Sprite;
@@ -208,8 +210,8 @@
 
 		public function updateUIColor():void
 		{
-			const fgColor:uint = Global.getUIFGColor()
-			rgbInfoText.textColor = Global.getUIFGColor();
+			const fgColor:uint = UITheme.getUIFGColor()
+			rgbInfoText.textColor = UITheme.getUIFGColor();
 			const arr:Array = [
 								myPaletteButton,
 								drawrPresetButton,
@@ -222,7 +224,7 @@
 
 			for (var i:uint = 0; i < arr.length; i++)
 			{
-				Global.applyUIFGColor(arr[i]);
+				UITheme.applyUIFGColor(arr[i]);
 			}
 		}
 
@@ -253,7 +255,7 @@
 			{
 				if(data is uint)
 				{
-					const rgb:Vector.<Number> = Global.HEXtoRGB(data as uint);
+					const rgb:Vector.<Number> = Utils.HEXtoRGB(data as uint);
 					rgbInfoText.text = mode+" "+pad(rgb[0])+","+pad(rgb[1])+","+pad(rgb[2]);
 				}
 				else if(data is Vector.<Number> || data is Array)
@@ -262,7 +264,7 @@
 				}
 			}
 
-			rgbInfoText.textColor = Global.getInvertedColor(rgbInfoBGColor);
+			rgbInfoText.textColor = UITheme.getInvertedColor(rgbInfoBGColor);
 		}
 
 		public function getRGBInfoBGColor():uint
@@ -303,8 +305,8 @@
 
 		private function getRGBInfoBorderColor(color:uint):uint
         {
-            const diff:Number = Global.getColorDifferenceForHuman(color,Global.getUIBGColor());
-            return (diff <= 15) ? Global.getUIFGColor() : 0;
+            const diff:Number = Utils.getColorDifferenceForHuman(color,UITheme.getUIBGColor());
+            return (diff <= 15) ? UITheme.getUIFGColor() : 0;
         }
 
 		public function updateRGBInfoBG(color:uint,paletteType:int):void

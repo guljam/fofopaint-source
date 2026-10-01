@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.HandTool;
@@ -368,9 +369,9 @@ package Modules
                             break;
                         case "dpiButton":
                             {
-                                Global.setNextScaleIndex();
+                                UITheme.setNextScaleIndex();
                                 MainUIController.applyUIScale();
-                                MainUI.showMouseHintTemp(Global.getUIScaleString());
+                                MainUI.showMouseHintTemp(UITheme.getUIScaleString());
                             }
                             break;
                         case "updateButton":
@@ -1040,7 +1041,7 @@ package Modules
                     return;
                 }
 
-                if (targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) == 0)
+                if (targetName.indexOf(UITheme.ALPHA_BUTTON_PREFIX) == 0)
                 {
                     ToolController.onOpacityButtonDown(targetName);
                     return;
@@ -2467,11 +2468,11 @@ package Modules
 
                 case "dpiButton":
                     {
-                        if (Global.getScaleIndex() !== 0)
+                        if (UITheme.getUIScaleIndex() !== 0)
                         {
-                            Global.resetScaleIndex();
+                            UITheme.resetScaleIndex();
                             MainUIController.applyUIScale();
-                            MainUI.showMouseHintTemp(Global.getUIScaleString());
+                            MainUI.showMouseHintTemp(UITheme.getUIScaleString());
                         }
                     }
                     break;

@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.display.DisplayObject;
@@ -43,8 +44,8 @@
 
 		public function updateUIColor():void
 		{
-			Global.applyToolBoxBGColor(fillPenBGTitle);
-			Global.applyToolBoxBGTopColor(fillPenBG);
+			UITheme.applyToolBoxBGColor(fillPenBGTitle);
+			UITheme.applyToolBoxBGTopColor(fillPenBG);
 
 			const buttonArr:Array =
 				[
@@ -66,13 +67,13 @@
 			{
 				btn = buttonArr[i];
 
-				Global.applyToolBoxButtonUpFGColor(btn.upState as DisplayObject);
-				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 3);
+				UITheme.applyToolBoxButtonUpFGColor(btn.upState as DisplayObject);
+				UITheme.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 3);
 
 				btn.downState = btn.overState;
 			}
 
-			fillPenInfo.textColor = Global.getToolBoxButtonUpBGColor();
+			fillPenInfo.textColor = UITheme.getToolBoxButtonUpBGColor();
 		}
 
 		public function getScale():Number

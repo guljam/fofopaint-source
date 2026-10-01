@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.LassoTool;
@@ -1266,7 +1267,7 @@ package Modules
         public static function refreshFileOperationButtonsTopbar():void
         {
             const locked:Boolean = isReplayDataLocked();
-            const offAlpha:Number = Global.OFFALPHA;
+            const offAlpha:Number = UITheme.OFFALPHA;
             MainUI.topBar.saveButton.alpha = (BackgroundWorkerCoordinator.isSaveInProgress) ? offAlpha : 1.0;
             MainUI.topBar.loadButton.alpha = (locked) ? offAlpha : 1.0;
             MainUI.topBar.clipBoardButton.alpha = (!locked && ClipboardManager.isClipBoardButtonActivated) ? 1.0 : offAlpha;

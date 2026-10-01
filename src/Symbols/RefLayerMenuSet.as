@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
@@ -65,8 +66,8 @@
 				btn = leftButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
-				Global.applyToolBoxButtonUpBGColor(btnUp);
-				Global.setButtonColorWithBG(btnOver, 4, 5);
+				UITheme.applyToolBoxButtonUpBGColor(btnUp);
+				UITheme.setButtonColorWithBG(btnOver, 4, 5);
 				btn.downState = btn.overState;
 			}
 
@@ -77,19 +78,19 @@
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
 
-				Global.applyToolBoxButtonUpFGColor(btnUp);
-				Global.setButtonColorWithBG(btnOver, 4, 3);
+				UITheme.applyToolBoxButtonUpFGColor(btnUp);
+				UITheme.setButtonColorWithBG(btnOver, 4, 3);
 				btn.downState = btn.overState;
 			};
 
-			Global.applyToolBoxBGColor(refLayerMenuMoveButton);
-			Global.applyToolBoxBGColor(refLayerMenuBGLeft);
-			Global.applyToolBoxBGTopColor(refLayerMenuBGRight);
-			Global.applyToolBoxButtonUpBGColor(refMenuCloseButton);
-			Global.applyToolBoxButtonUpBGColor(refOpacityBar);
-			Global.applyToolBoxButtonUpBGColor(refOpacityCursor);
+			UITheme.applyToolBoxBGColor(refLayerMenuMoveButton);
+			UITheme.applyToolBoxBGColor(refLayerMenuBGLeft);
+			UITheme.applyToolBoxBGTopColor(refLayerMenuBGRight);
+			UITheme.applyToolBoxButtonUpBGColor(refMenuCloseButton);
+			UITheme.applyToolBoxButtonUpBGColor(refOpacityBar);
+			UITheme.applyToolBoxButtonUpBGColor(refOpacityCursor);
 
-			refInfoText.textColor = Global.getToolBoxButtonUpBGColor();
+			refInfoText.textColor = UITheme.getToolBoxButtonUpBGColor();
 		}
 
 		public function getHintStr():String

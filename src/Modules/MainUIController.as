@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.CaptureEngine.CaptureController;
 
@@ -73,7 +74,7 @@ package Modules
 
         public static function updateStageOffset():void
         {
-            const scale:Number = Global.getUIScale();
+            const scale:Number = UITheme.getUIScale();
 
             STAGE_TOP_OFFSET = 0;
             STAGE_BOTTOM_OFFSET = 0;
@@ -110,7 +111,7 @@ package Modules
 
         public static function applyUIScale():void
         {
-            const scale:Number = Global.getUIScale();
+            const scale:Number = UITheme.getUIScale();
             const stw:Number = main.stage.stageWidth;
             const sth:Number = main.stage.stageHeight;
 
@@ -336,7 +337,7 @@ package Modules
 
         public static function getStageCenterPos(mode:String):Point
         {
-            const scale:Number = Global.getUIScale();
+            const scale:Number = UITheme.getUIScale();
             const center:Point = new Point(0, 0);
             var topBarOffset:Number = MainUI.topBar.BARSIZE * scale;
 
@@ -366,7 +367,7 @@ package Modules
 
         private static function updateStageBGColor():void
         {
-            const color:uint = Global.getUIStageColor();
+            const color:uint = UITheme.getUIStageColor();
 
             main.stage.color = color;
             MainUIController.STAGE_BG_COLOR = color;
@@ -374,9 +375,9 @@ package Modules
 
         public static function cycleUIColor():void
         {
-            Global.setNextUIColor();
+            UITheme.setNextUIColor();
             applyUIColorSet();
-            MainUI.showMouseHintTemp(Global.setUIColorString());
+            MainUI.showMouseHintTemp(UITheme.getUIColorName());
         }
 
         public static function applyUIColorSet():void
@@ -430,11 +431,11 @@ package Modules
         public static function updateBottomBarLayoutAndColor():void
         {
             MainUI.bottomBar.x = 0;
-            MainUI.bottomBar.y = main.stage.stageHeight - MainUIController.BOTTOM_BAR_HEIGHT * Global.getUIScale();
+            MainUI.bottomBar.y = main.stage.stageHeight - MainUIController.BOTTOM_BAR_HEIGHT * UITheme.getUIScale();
 
             MainUI.bottomBar.graphics.clear();
             // WorkspaceView.bottomBar.graphics.lineStyle(0,0xFF0000,0.0);
-            MainUI.bottomBar.graphics.beginFill(Global.getHintBGColor(), 0.75);
+            MainUI.bottomBar.graphics.beginFill(UITheme.getHintBGColor(), 0.75);
             MainUI.bottomBar.graphics.drawRect(-3, 0, main.stage.stageWidth + 6, MainUIController.BOTTOM_BAR_HEIGHT + 3);
             MainUI.bottomBar.graphics.endFill();
         }

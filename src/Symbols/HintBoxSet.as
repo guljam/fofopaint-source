@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+    import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
 	import flash.display.Sprite;
 	import flash.text.TextField;
@@ -40,7 +41,7 @@
 
 		public function updateBGColor():void
 		{
-			_bgColor = Global.getHintBGColor();
+			_bgColor = UITheme.getHintBGColor();
 		}
 
 		public function getScaledTextHeight():Number

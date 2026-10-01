@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import flash.display.Shape;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
@@ -46,7 +47,7 @@ package Modules
         private static function clearGrid():void
         {
             lastGridGapValue = 0;
-            MainUI.topBar.setGridMoveButtonAlpha(Global.OFFALPHA);
+            MainUI.topBar.setGridMoveButtonAlpha(UITheme.OFFALPHA);
             canvasGrid.visible = false;
             canvasGrid.graphics.clear();
         }
@@ -350,7 +351,7 @@ package Modules
                 if (MainUI.topBar.gridButtonWrapper.visible === false)
                 {
                     InputManager.removeInputEventsDrawMode();
-                    MainUI.topBar.setGridMoveButtonAlpha(gridGapMultiplier > 0 ? 1.0 : Global.OFFALPHA);
+                    MainUI.topBar.setGridMoveButtonAlpha(gridGapMultiplier > 0 ? 1.0 : UITheme.OFFALPHA);
                     MainUI.topBar.setReplaySpeedBarToGridSliderON(shortcutKey);
                     setCursorPosByValue(gridGapMultiplier);
 

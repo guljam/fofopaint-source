@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+    import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
 
 	import flash.display.Sprite;
@@ -153,8 +154,8 @@
 
 		public function updateUIColor():void
 		{
-			numHexCopyTextBGDefaultColor[0] = Global.getToolBoxBGColor();
-			numHexCopyTextBGDefaultColor[1] = Global.getToolBoxButtonUpBGColor();
+			numHexCopyTextBGDefaultColor[0] = UITheme.getToolBoxBGColor();
+			numHexCopyTextBGDefaultColor[1] = UITheme.getToolBoxButtonUpBGColor();
 
 			const texts:Array = [
 					numIncText,
@@ -204,8 +205,8 @@
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObject;
 
-				Global.applyToolBoxBGColor(btnUp);
-				Global.applyToolBoxButtonOverBGColor(btnOver);
+				UITheme.applyToolBoxBGColor(btnUp);
+				UITheme.applyToolBoxButtonOverBGColor(btnOver);
 				btn.downState = btnOver;
 			}
 
@@ -213,7 +214,7 @@
 
 			for (i = 0;i < len;i++)
 			{
-				texts[i].textColor = Global.getToolBoxButtonUpBGColor();
+				texts[i].textColor = UITheme.getToolBoxButtonUpBGColor();
 			}
 		}
 
@@ -287,7 +288,7 @@
 				}
 
 				const hexcolor:uint = uint("0x" + colorstr);
-				const textcolor:uint = Global.getInvertedColor(hexcolor);
+				const textcolor:uint = UITheme.getInvertedColor(hexcolor);
 				numHexCopyColor = hexcolor;
 				updateHexCopyBGColor(hexcolor);
 				numClipText.text = "#" + colorstr;

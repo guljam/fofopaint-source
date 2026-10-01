@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
@@ -132,12 +133,12 @@
 
 		public function disablePenSmoothingSlider():void
 		{
-			penSmoothSliderWrapper.alpha = Global.OFFALPHA;
+			penSmoothSliderWrapper.alpha = UITheme.OFFALPHA;
 		}
 
 		public function disableButtonFillPenStarted():void
 		{
-			const offAlpha:Number = Global.OFFALPHA;
+			const offAlpha:Number = UITheme.OFFALPHA;
 			etcOptionWrapper.alpha = offAlpha;
 		}
 
@@ -214,7 +215,7 @@
 			const len:uint = uiElements.length;
 			for (var i:uint = 0;i < len;i++)
 			{
-				Global.applyUIFGColor(uiElements[i]);
+				UITheme.applyUIFGColor(uiElements[i]);
 			}
 		}
 
@@ -266,7 +267,7 @@
 
 		public function movePenSizeCursor(index:uint):void
 		{
-			const btn:Sprite = penSizeBox.getChildByName(Global.NSIZE_BUTTON_PREFIX + index) as Sprite;
+			const btn:Sprite = penSizeBox.getChildByName(UITheme.NSIZE_BUTTON_PREFIX + index) as Sprite;
 
 			if (btn)
 			{
@@ -482,7 +483,7 @@
 			{
 				const btn:Sprite = new Sprite();
 
-				btn.name = Global.ALPHA_BUTTON_PREFIX + i;
+				btn.name = UITheme.ALPHA_BUTTON_PREFIX + i;
 				btn.graphics.beginFill(0xFF00FF, 0.0);
 				btn.graphics.drawRect(0, 0, 17, 24);
 				btn.graphics.endFill();
@@ -510,7 +511,7 @@
 			{
 				const btn:Sprite = new Sprite();
 
-				btn.name = Global.NSIZE_BUTTON_PREFIX + i;
+				btn.name = UITheme.NSIZE_BUTTON_PREFIX + i;
 				btn.graphics.beginFill(0xFFFF00, 0.0);
 				btn.graphics.drawRect(0, 0, 28, 28);
 				btn.graphics.endFill();

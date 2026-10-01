@@ -1,6 +1,8 @@
 ﻿package Symbols
 {
 
+	import Modules.Utils;
+	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
@@ -60,8 +62,8 @@
 			for (i = 0;i < leftButtonArr2.length;i++)
 			{
 				btn = leftButtonArr2[i];
-				Global.applyToolBoxButtonUpBGColor(btn.upState as DisplayObject);
-				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 5);
+				UITheme.applyToolBoxButtonUpBGColor(btn.upState as DisplayObject);
+				UITheme.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 5);
 				btn.downState = btn.overState;
 			}
 
@@ -69,15 +71,15 @@
 			{
 				btn = rightButtonArr[i];
 				// Utils.setColorTransform(btn.upState as DisplayObject,0xFF0000);
-				Global.applyToolBoxButtonUpFGColor(btn.upState as DisplayObject);
-				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 3, 1.0);
+				UITheme.applyToolBoxButtonUpFGColor(btn.upState as DisplayObject);
+				UITheme.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 3, 1.0);
 				btn.downState = btn.overState;
 			}
 
-			Global.applyToolBoxBGColor(lassoMenuMoveButton);
-			Global.applyToolBoxBGColor(lassoMenuBG);
-			Global.applyToolBoxBGTopColor(lassoMenuBG2);
-			lassoInfo.textColor = Global.getToolBoxButtonUpBGColor();
+			UITheme.applyToolBoxBGColor(lassoMenuMoveButton);
+			UITheme.applyToolBoxBGColor(lassoMenuBG);
+			UITheme.applyToolBoxBGTopColor(lassoMenuBG2);
+			lassoInfo.textColor = UITheme.getToolBoxButtonUpBGColor();
 		}
 
 		public function getHintStr():String

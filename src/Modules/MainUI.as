@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.CaptureEngine.CaptureController;
 	import Modules.MainUIController;
@@ -126,7 +127,7 @@ package Modules
 							|| CanvasController.canvasInfoBox.contains(target)
 							|| ColorPickerController.colorPickerBox.contains(target))
 						|| target === SidebarController.sideBarScrollBar
-						|| (targetName && targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) !== -1))
+						|| (targetName && targetName.indexOf(UITheme.ALPHA_BUTTON_PREFIX) !== -1))
 				{
 					return true;
 				}
@@ -137,7 +138,7 @@ package Modules
 			}
 			else if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
 			{
-				if ((targetName && targetName.indexOf(Global.NSIZE_BUTTON_PREFIX) !== -1) || target.alpha < 0.5)
+				if ((targetName && targetName.indexOf(UITheme.NSIZE_BUTTON_PREFIX) !== -1) || target.alpha < 0.5)
 				{
 					return false;
 				}
@@ -219,9 +220,9 @@ package Modules
 
 		public static function showHintHighlightBox(target:DisplayObject):void
 		{
-			const scale:Number = Global.getUIScale();
+			const scale:Number = UITheme.getUIScale();
 			hintHighlightBox.graphics.clear();
-			hintHighlightBox.graphics.lineStyle(2 * scale, Global.getHintHightlightColor(), 1.0);
+			hintHighlightBox.graphics.lineStyle(2 * scale, UITheme.getHintHightlightColor(), 1.0);
 
 			if (target.parent === CanvasController.canvasNavigatorBox)
 			{
@@ -358,7 +359,7 @@ package Modules
 			const hintWidth:Number = mouseHint.getScaledTextWidth();
 			const hintHeight:Number = mouseHint.getScaledTextHeight();
 			var hintX:Number = Math.floor(main.mouseX - hintWidth / 2) + 5;
-			var hintY:Number = Math.floor(main.mouseY - 45 * Global.getUIScale());
+			var hintY:Number = Math.floor(main.mouseY - 45 * UITheme.getUIScale());
 			const hintRight:int = hintX + hintWidth;
 			const hintBottom:int = hintY + hintHeight;
 
@@ -391,7 +392,7 @@ package Modules
 		{
 			topBar.name = "topBar";
 			SidebarController.sideBarScrollBar.name = "sideBarScrollBar";
-			topBar.makeTopbarBG(Global.setDefaultUIColor());
+			topBar.makeTopbarBG(UITheme.getDefaultUIColor());
 			MainUIController.updateTopbarIconsDrawMode();
 
 			FillPenTool.fillPenBox.x = -FillPenTool.fillPenBox.width - 3;
@@ -415,7 +416,7 @@ package Modules
 			CaptureStamp.captureStampFontListBox.y = 100;
 
 			topBar.updateTimerPos(main.stage.stageWidth);
-			topBar.replayFitToWindowButton.alpha = Global.OFFALPHA;
+			topBar.replayFitToWindowButton.alpha = UITheme.OFFALPHA;
 
 			bottomBar.name = "bottomBar";
 			bottomBar.addChild(bottomHint);
@@ -450,7 +451,7 @@ package Modules
 		{
 			const snapThreshold:Number = 82;
 			CanvasController.canvasRotateCursor.x = main.stage.mouseX;
-			CanvasController.canvasRotateCursor.y = main.stage.mouseY + (65 * Global.getUIScale());
+			CanvasController.canvasRotateCursor.y = main.stage.mouseY + (65 * UITheme.getUIScale());
 			CanvasController.canvasRotateCursor.rotateArrow.rotation = target.rotation;
 			Utils.setAsTopChild(CanvasController.canvasRotateCursor);
 			CanvasController.canvasRotateCursor.visible = true;

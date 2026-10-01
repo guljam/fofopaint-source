@@ -1,6 +1,7 @@
 ﻿package Symbols
 {
 
+	import Modules.UIEngine.UITheme;
 	import Modules.SidebarController;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
@@ -237,7 +238,7 @@
 		public function setReplaySpeedBarToGridSliderON(shortcutKey:Boolean):void
 		{
 			gridButtonWrapper.graphics.clear();
-			gridButtonWrapper.graphics.beginFill(Global.getUIBGColor());
+			gridButtonWrapper.graphics.beginFill(UITheme.getUIBGColor());
 			gridButtonWrapper.graphics.drawRect(0, 0, Math.floor(gridMoveButtonWrapper.x + gridMoveButtonWrapper.width + 7), Math.floor(gridButtonWrapper.height + 8));
 			gridButtonWrapper.graphics.endFill();
 
@@ -280,28 +281,28 @@
 		{
 			var i:int;
 
-			Global.applyUIBGColor(topbarBG);
+			UITheme.applyUIBGColor(topbarBG);
 			for (i = 0;i < drawModeButtons.length;i++)
 			{
-				Global.applyUIFGColor(drawModeButtons[i]);
+				UITheme.applyUIFGColor(drawModeButtons[i]);
 			}
 
 			for (i = 0;i < replayModeButtons.length;i++)
 			{
-				Global.applyUIFGColor(replayModeButtons[i]);
+				UITheme.applyUIFGColor(replayModeButtons[i]);
 			}
 
 			for (i = 0;i < captureModeButtons.length;i++)
 			{
-				Global.applyUIFGColor(captureModeButtons[i]);
+				UITheme.applyUIFGColor(captureModeButtons[i]);
 			}
 
 			for (i = 0;i < gridBoxButtons.length;i++)
 			{
-				Global.applyUIFGColor(gridBoxButtons[i]);
+				UITheme.applyUIFGColor(gridBoxButtons[i]);
 			}
 
-			const fgColor:uint = Global.getUIFGColor();
+			const fgColor:uint = UITheme.getUIFGColor();
 
 			timer.textColor = fgColor;
 			timerAFkDot.textColor = fgColor;
@@ -586,7 +587,7 @@
 				}
 				else
 				{
-					capLayer1VisibleButton.alpha = Global.OFFALPHA;
+					capLayer1VisibleButton.alpha = UITheme.OFFALPHA;
 				}
 
 				if (CanvasController.canvasLayer2Bitmap.visible)
@@ -595,7 +596,7 @@
 				}
 				else
 				{
-					capLayer2VisibleButton.alpha = Global.OFFALPHA;
+					capLayer2VisibleButton.alpha = UITheme.OFFALPHA;
 				}
 
 				CaptureStamp.updateCaptureStampButtonAlpha();

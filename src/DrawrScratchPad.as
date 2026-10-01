@@ -1,5 +1,6 @@
 package
 {
+    import Modules.Utils;
     import Modules.InputPriority;
     import Modules.MouseState;
     import flash.display.Sprite;
@@ -54,7 +55,7 @@ package
                 color = bgBmpd.getPixel(0, 0);
 
                 scratchPadDraw.graphics.clear();
-                scratchPadDraw.graphics.lineStyle(1 / scratchPadZoom, Global.getColorDifferenceForHuman(color, 0) <= 40 ? 0xFFFFFF : 0);
+                scratchPadDraw.graphics.lineStyle(1 / scratchPadZoom, Utils.getColorDifferenceForHuman(color, 0) <= 40 ? 0xFFFFFF : 0);
                 scratchPadDraw.graphics.drawRect(Math.floor(scratchPadBitmap.mouseX), Math.floor(scratchPadBitmap.mouseY), 1, 1);
 
                 return color;

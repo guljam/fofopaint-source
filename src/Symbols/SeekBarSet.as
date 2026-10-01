@@ -1,6 +1,7 @@
 ﻿package Symbols
 {
 
+	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
@@ -76,7 +77,7 @@
 			else if (isPrograssBarMaxWidthReached() || newWidth === 0)
 			{
 				setPrograssBarMaxWidthFlag(false);
-				Global.applyToolBoxButtonOverBGColor(prograssBar);
+				UITheme.applyToolBoxButtonOverBGColor(prograssBar);
 			}
 		}
 
@@ -190,28 +191,28 @@
 
 		public function updateUIColor():void
 		{
-			Global.applyUIBGColor(replayBGBar);
-			Global.applyUIFGColor(playButton);
-			Global.applyUIFGColor(pauseButton);
-			Global.applyUIFGColor(replayPrev);
-			Global.applyUIFGColor(replayNext);
-			Global.applyToolBoxButtonOverBGColor(prograssBar);
+			UITheme.applyUIBGColor(replayBGBar);
+			UITheme.applyUIFGColor(playButton);
+			UITheme.applyUIFGColor(pauseButton);
+			UITheme.applyUIFGColor(replayPrev);
+			UITheme.applyUIFGColor(replayNext);
+			UITheme.applyToolBoxButtonOverBGColor(prograssBar);
 
-			const index:int = Global.getUIColorIndex();
+			const index:int = UITheme.getUIColorIndex();
 			if (index === 2)
 			{
 				Utils.setColorTransform(trackBar, 0xE7E7E7);
-				prograssInfo.textColor = Global.getUIFGColor();
+				prograssInfo.textColor = UITheme.getUIFGColor();
 			}
 			else if (index === 3)
 			{
 				Utils.setColorTransform(trackBar, 0xFFFFFF);
-				prograssInfo.textColor = Global.getUIFGColor();
+				prograssInfo.textColor = UITheme.getUIFGColor();
 			}
 			else
 			{
-				Global.applyUIFGColor(trackBar);
-				prograssInfo.textColor = Global.getUIBGColor();
+				UITheme.applyUIFGColor(trackBar);
+				prograssInfo.textColor = UITheme.getUIBGColor();
 			}
 		}
 

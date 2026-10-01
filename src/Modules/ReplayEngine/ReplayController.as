@@ -1,5 +1,6 @@
 package Modules.ReplayEngine
 {
+    import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.Tools.PenTool;
@@ -173,7 +174,7 @@ package Modules.ReplayEngine
                     ReplayController.seekBarBox.setReplayPrograssBarMaxWidth();
                 }
 
-                MainUI.topBar.repNewFileButton.alpha = Global.OFFALPHA;
+                MainUI.topBar.repNewFileButton.alpha = UITheme.OFFALPHA;
                 ReplayDrawer.rReplayFOFOCursor.visible = false;
                 finalize();
             }
@@ -351,9 +352,9 @@ package Modules.ReplayEngine
         {
             if (ReplayState.isGeneratingCacheImages() || FileManager.isReplayDataLocked() || ReplayState.isReplayStarted)
             {
-                MainUI.topBar.superUndoButton.alpha = Global.OFFALPHA;
-                MainUI.topBar.cutPrevDataButton.alpha = Global.OFFALPHA;
-                MainUI.topBar.repNewFileButton.alpha = Global.OFFALPHA;
+                MainUI.topBar.superUndoButton.alpha = UITheme.OFFALPHA;
+                MainUI.topBar.cutPrevDataButton.alpha = UITheme.OFFALPHA;
+                MainUI.topBar.repNewFileButton.alpha = UITheme.OFFALPHA;
             }
             else
             {
@@ -366,8 +367,8 @@ package Modules.ReplayEngine
                 }
                 else
                 {
-                    MainUI.topBar.superUndoButton.alpha = Global.OFFALPHA;
-                    MainUI.topBar.cutPrevDataButton.alpha = Global.OFFALPHA;
+                    MainUI.topBar.superUndoButton.alpha = UITheme.OFFALPHA;
+                    MainUI.topBar.cutPrevDataButton.alpha = UITheme.OFFALPHA;
                 }
             }
         }
@@ -1226,7 +1227,7 @@ package Modules.ReplayEngine
         {
             if (ReplayState.REPLAY_MAX_SPEED === 1.0)
             {
-                MainUI.topBar.replaySpeedSliderWrapper.alpha = Global.OFFALPHA;
+                MainUI.topBar.replaySpeedSliderWrapper.alpha = UITheme.OFFALPHA;
             }
             else
             {
@@ -1264,7 +1265,7 @@ package Modules.ReplayEngine
             showTopbarOnReplayEnd();
             FOFOTimer.remove("replayRestartTimer");
             updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
-            Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, Global.getUIReplayEndBarColor());
+            Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
             CanvasController.updateCanvasScale(ReplayState.rLastCanvasZoomMultiplier, true);
         }
 
@@ -1275,7 +1276,7 @@ package Modules.ReplayEngine
 
         public static function startReplayRestartTimer():void
         {
-            Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, Global.getUIReplayRestartBarColor());
+            Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, UITheme.getUIReplayRestartBarColor());
 
             if (ReplayState.isReplayRepeatON)
             {
@@ -1311,7 +1312,7 @@ package Modules.ReplayEngine
             }
             else
             {
-                MainUI.topBar.replayRepeatButton.alpha = Global.OFFALPHA;
+                MainUI.topBar.replayRepeatButton.alpha = UITheme.OFFALPHA;
             }
         }
 
@@ -1498,11 +1499,11 @@ package Modules.ReplayEngine
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             PenSizePreviewCursor.setVisible(false);
             ReplayController.seekBarBox.pauseButton.visible = false;
-            ReplayController.seekBarBox.y = Math.floor(MainUI.topBar.BARSIZE * Global.getUIScale() - 4);
+            ReplayController.seekBarBox.y = Math.floor(MainUI.topBar.BARSIZE * UITheme.getUIScale() - 4);
             lastReplayTimeBoxYPos = ReplayController.seekBarBox.y;
             Utils.setAsTopChild(ReplayController.seekBarBox);
             ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
-            Global.applyToolBoxButtonOverBGColor(ReplayController.seekBarBox.prograssBar);
+            UITheme.applyToolBoxButtonOverBGColor(ReplayController.seekBarBox.prograssBar);
 
             if (ColorPickerController.numPadBox.visible)
             {
@@ -1922,7 +1923,7 @@ package Modules.ReplayEngine
             if (ReplayState.isReplayCanvasFitToWindow)
             {
                 resetZoomReplayMode();
-                MainUI.topBar.replayFitToWindowButton.alpha = Global.OFFALPHA;
+                MainUI.topBar.replayFitToWindowButton.alpha = UITheme.OFFALPHA;
             }
             else
             {

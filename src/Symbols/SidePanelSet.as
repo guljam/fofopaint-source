@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.Shape;
 	import assets.VisualBuilder;
@@ -41,7 +42,7 @@
 
 		public function updateUIColor():void
 		{
-			Global.applyUIBGColor(sideBarBG);
+			UITheme.applyUIBGColor(sideBarBG);
 		}
 
 		[Embed(source="fofoPaint-animate-27.13.swf",symbol="SidePanelSet")]

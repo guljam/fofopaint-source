@@ -1,5 +1,7 @@
 ﻿package
 {
+    import Modules.Utils;
+    import Modules.UIEngine.UITheme;
     import Main;
     import Modules.CanvasGridOverlay;
     import Modules.Tools.PenTool;
@@ -178,14 +180,14 @@
             }
 
             var len:int = PenTool.penAlphaList.length;
-            var key:String = Global.ALPHA_BUTTON_PREFIX;
+            var key:String = UITheme.ALPHA_BUTTON_PREFIX;
             for (var i:int = 1;i <= len;i++)
             {
                 hints[key + i] = "Opacity " + (PenTool.penAlphaList[i] * 100) + "% [g / b]";
             }
 
             len = PenTool.penSizeList.length;
-            key = Global.NSIZE_BUTTON_PREFIX;
+            key = UITheme.NSIZE_BUTTON_PREFIX;
             for (i = 1;i <= len;i++)
             {
                 hints[key + i] = "Size " + (PenTool.penSizeList[i]) + "px [f / v, h / n]";
@@ -257,7 +259,7 @@
 
         public static function getUIScaleString():String
         {
-            return Global.getUIScaleString();
+            return UITheme.getUIScaleString();
         }
 
         static private function getTrackBarHintString():String
@@ -297,7 +299,7 @@
             }
 
             const pickedColor:uint = ColorPickerController.colorPickerBox.getRGBInfoBGColor();
-            const arr:Vector.<Number> = (ColorPickerController.isHSVInfoTextMode) ? Global.HEXtoHSV(pickedColor, ColorPickerController.hsvColorData[0]) : Global.HEXtoRGB(pickedColor);
+            const arr:Vector.<Number> = (ColorPickerController.isHSVInfoTextMode) ? Utils.HEXtoHSV(pickedColor, ColorPickerController.hsvColorData[0]) : Utils.HEXtoRGB(pickedColor);
             const mode:String = (ColorPickerController.isHSVInfoTextMode) ? "HSV" : "RGB";
 
             return "Current color: " + mode + " " + arr[0] + "," + arr[1] + "," + arr[2];

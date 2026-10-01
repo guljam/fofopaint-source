@@ -1,6 +1,7 @@
 ﻿package Symbols
 {
 
+	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.geom.ColorTransform;
@@ -22,9 +23,9 @@
 
 		public function changeUIColor():void
 		{
-			Global.applyUIBGColor(rotateBG);
-			Global.applyUIFGColor(rotateArrow);
-			Global.applyUIFGColor(rotateCircle);
+			UITheme.applyUIBGColor(rotateBG);
+			UITheme.applyUIFGColor(rotateArrow);
+			UITheme.applyUIFGColor(rotateCircle);
 		}
 
 		[Embed(source="fofoPaint-animate-27.13.swf",symbol="RotateCursorSet")]

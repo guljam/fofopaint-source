@@ -1,6 +1,7 @@
 ﻿package Symbols
 {
 
+	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
@@ -240,15 +241,15 @@
 		{
 			capFontListBG.graphics.clear();
 			capFontListBG.graphics.lineStyle(0, 0, 0);
-			capFontListBG.graphics.beginFill(Global.getUIBGColor());
+			capFontListBG.graphics.beginFill(UITheme.getUIBGColor());
 			capFontListBG.graphics.drawRect(-bgOffset, 0, this.width + bgOffset * 2, this.height + bgOffset);
 			capFontListBG.graphics.endFill();
 
-			Global.applyUIFGColor(capFontListPrev);
-			Global.applyUIFGColor(capFontListNext);
+			UITheme.applyUIFGColor(capFontListPrev);
+			UITheme.applyUIFGColor(capFontListNext);
 
-			fontColor = Global.getUIFGColor();
-			fontSelectedColor = Global.getHintBGColor();
+			fontColor = UITheme.getUIFGColor();
+			fontSelectedColor = UITheme.getHintBGColor();
 		}
 
 		private function mouseOverEvent(e:MouseEvent):void

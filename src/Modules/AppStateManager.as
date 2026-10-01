@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.PenTool;
@@ -77,7 +78,7 @@ package Modules
 
             appStateObject.saveFileName = FileManager.lastSaveFileName;
             appStateObject.lastWindowState = AppWindowState.lastAppWindowState;
-            appStateObject.uiColorIndex = Global.getUIColorIndex();
+            appStateObject.uiColorIndex = UITheme.getUIColorIndex();
             appStateObject.appRunningTime = ActivityWorkTimer.getRunningTime();
 
             appStateObject.refLayerLastAlpha = ReferenceLayerController.refLayerLastAlpha;
@@ -109,7 +110,7 @@ package Modules
             appStateObject.isRightSidebar = SidebarController.isRightSidebar;
             appStateObject.saveFilePath = FileManager.lastSaveFilePath;
             appStateObject.isSidebarVisible = SidebarController.isSidebarVisible;
-            appStateObject.uiScaleIndex = Global.getUIScaleIndex();
+            appStateObject.uiScaleIndex = UITheme.getUIScaleIndex();
 
             appStateObject.canvasWindowON = ImageViewWindow.isCanvasWindowON;
 
@@ -286,9 +287,9 @@ package Modules
                         main.updateStageBGSize();
 
                         // UI Scale & Color
-                        Global.setScaleIndex(appStateObject.uiScaleIndex);
+                        UITheme.setScaleIndex(appStateObject.uiScaleIndex);
                         MainUIController.applyUIScale();
-                        Global.setUIColorIndex(appStateObject.uiColorIndex);
+                        UITheme.setUIColorIndex(appStateObject.uiColorIndex);
                         MainUIController.applyUIColorSet();
 
                         // Canvas Settings

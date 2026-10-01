@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import flash.geom.Point;
     import flash.display.SimpleButton;
     import Modules.Tools.PenTool;
@@ -360,7 +361,7 @@ package Modules
             }
 
             ToolController.toolBox.setFillPenModeOFF();
-            ToolController.toolOptionsBox.setButtonsAlphaFillPenSelected(Global.OFFALPHA);
+            ToolController.toolOptionsBox.setButtonsAlphaFillPenSelected(UITheme.OFFALPHA);
             ToolController.toolOptionsBox.restoreDisabledButtons();
 
             ColorPickerController.colorPickerBox.activePaperColorButton(false);

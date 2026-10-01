@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
@@ -96,7 +97,7 @@
 
 		public function setToolButtonsForCheckedLayerON():void
 		{
-			const offAlpha:Number = Global.OFFALPHA;
+			const offAlpha:Number = UITheme.OFFALPHA;
 			toolPen.alpha = offAlpha;
 			toolEraser.alpha = offAlpha;
 			toolFillPen.alpha = offAlpha;
@@ -139,8 +140,8 @@
 					toolQuickSidebar
 				];
 
-			Global.applyToolBoxBGColor(toolBoxBG);
-			Global.applyToolBoxBGTopColor(toolBoxBG2);
+			UITheme.applyToolBoxBGColor(toolBoxBG);
+			UITheme.applyToolBoxBGTopColor(toolBoxBG2);
 
 			var i:uint = 0;
 
@@ -149,8 +150,8 @@
 				btn = leftButtonArr[i];
 				btnUp = btn.upState as DisplayObject;
 
-				Global.applyToolBoxButtonUpBGColor(btnUp);
-				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 5);
+				UITheme.applyToolBoxButtonUpBGColor(btnUp);
+				UITheme.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 5);
 				btn.downState = btn.overState;
 			}
 
@@ -160,13 +161,13 @@
 				btnUp = btn.upState as DisplayObject;
 				btnOver = btn.overState as DisplayObjectContainer;
 
-				Global.applyToolBoxButtonUpFGColor(btnUp);
-				Global.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 3);
+				UITheme.applyToolBoxButtonUpFGColor(btnUp);
+				UITheme.setButtonColorWithBG(btn.overState as DisplayObjectContainer, 4, 3);
 				btn.downState = btn.overState;
 			}
 			// 텍스트
-			toolInfoText.textColor = Global.getToolBoxButtonUpBGColor();
-			resizeButtonWaitPrograssBarColor = Global.getToolBoxButtonOverBGColor();
+			toolInfoText.textColor = UITheme.getToolBoxButtonUpBGColor();
+			resizeButtonWaitPrograssBarColor = UITheme.getToolBoxButtonOverBGColor();
 
 			btn = null;
 			btnUp = null;

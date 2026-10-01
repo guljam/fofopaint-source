@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.UIEngine.UITheme;
     import Modules.CanvasController;
     import flash.geom.Point;
     import Modules.MainUI;
@@ -32,7 +33,7 @@ package Modules.Tools
         private static function fixMouseHintPos():void
         {
             MainUI.mouseHint.x = clickPos.x - MainUI.mouseHint.width / 2;
-            MainUI.mouseHint.y = clickPos.y - 35 * Global.getUIScale();
+            MainUI.mouseHint.y = clickPos.y - 35 * UITheme.getUIScale();
         }
 
         private static function zoomToolMouseMoveEvent2(dist:Number):void

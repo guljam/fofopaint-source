@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureController;
     import Symbols.RotateCursorSet;
     import Symbols.CanvasNavigatorBoxSet;
@@ -282,7 +283,7 @@ package Modules
 
         public static function playLayerSwapEffect(target:DisplayObject):void
         {
-            target.alpha = Global.OFFALPHA;
+            target.alpha = UITheme.OFFALPHA;
             FOFOTimer.addByName("layerSwapFlickEffect", 0.5, false, function ():void
                 {
                     target.alpha = 1.0;
@@ -359,7 +360,7 @@ package Modules
                 ReplayState.pushCommand(["merge"]);
                 UndoHistory.addNew();
             }
-            ToolController.toolOptionsBox.layerMergeButton.alpha = Global.OFFALPHA;
+            ToolController.toolOptionsBox.layerMergeButton.alpha = UITheme.OFFALPHA;
         }
 
         public static function swapLayer():void
@@ -496,7 +497,7 @@ package Modules
             var sx:Number = canvasNavigatorBox.mouseX;
             var sy:Number = canvasNavigatorBox.mouseY;
             const prevCursorScale:Number = canvasNavigatorBox.navCursorMultiply;
-            const uiScale:Number = Global.getUIScale();
+            const uiScale:Number = UITheme.getUIScale();
 
             ReferenceLayerController.setRefLayerAndGridVisible(false);
             MainUI.hideBottomHint();
@@ -504,7 +505,7 @@ package Modules
             function centerCanvas(mx:Number, my:Number):void
             {
                 const b:Object = Utils.getBoundRect(canvasNavigatorBox.navCursor);
-                const scale:Number = Global.getUIScale();
+                const scale:Number = UITheme.getUIScale();
                 // prevToCanvasMultiply를 나눠 줘야 커서랑 같은 속도가 나옴
                 const rectCenterX:Number = b.left + (b.right - b.left) / 2;
                 const rectCenterY:Number = b.top + (b.bottom - b.top) / 2;
@@ -536,7 +537,7 @@ package Modules
 
             function onMouseMoveCanvasNavigator(e:MouseEvent):void
             {
-                const scale:Number = Global.getUIScale();
+                const scale:Number = UITheme.getUIScale();
                 var mx:Number = canvasNavigatorBox.mouseX;
                 var my:Number = canvasNavigatorBox.mouseY;
                 // previewBox.prevCursorMultiply를 곱해줘야 커서랑 같은 속도가 나옴
@@ -998,7 +999,7 @@ package Modules
                     else
                         resizePreviewRatioRect.graphics.drawRect(-guideLineWidth, -max / 2, guideLineWidth, max * 2);
                     resizePreviewRatioRect.graphics.endFill();
-                    const color:uint = Global.getUIFGColor();
+                    const color:uint = UITheme.getUIFGColor();
                     var snapGuideStartPos:Number; // 스냅 격자 그려주는 위치
                     var scaledSize:Number; // 스냅 걸릴때 실제 사이즈
                     const len:uint = ratioArr.length;
@@ -1491,7 +1492,7 @@ package Modules
             {
                 return;
             }
-            const uiscale:Number = Global.getUIScale();
+            const uiscale:Number = UITheme.getUIScale();
             const offsetX:Number = 44 + MainUIController.STAGE_LEFT_OFFSET + MainUIController.STAGE_RIGHT_OFFSET;
             const offsetY:Number = (CaptureController.isCaptureModeON) ? (MainUI.topBar.BARSIZE) * uiscale + 42 * uiscale : (MainUI.topBar.BARSIZE) * uiscale + 42 * uiscale;
             const stw:int = main.stage.stageWidth - offsetX;
@@ -1666,7 +1667,7 @@ package Modules
 
             copyPixelRect.setTo(0, 0, source.width, source.height);
             target.lock();
-            target.copyPixels(source, copyPixelRect, Global.ZERO_POINT, null, null, false);
+            target.copyPixels(source, copyPixelRect, Utils.ZERO_POINT, null, null, false);
             target.unlock();
         }
 
@@ -1781,7 +1782,7 @@ package Modules
 
         public static function setResizeButtonColor():void
         {
-            const color:uint = Global.getUIResizeBarColor();
+            const color:uint = UITheme.getUIResizeBarColor();
 
             Utils.setColorTransform(resizeButtonL, color);
             Utils.setColorTransform(resizeButtonR, color);

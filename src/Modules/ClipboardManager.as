@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
     import flash.display.BitmapData;
@@ -58,7 +59,7 @@ package Modules
         // 상단 클립보드 버튼은 캔버스로 불러오기라서 worker 잠금 상태와 합쳐서 계산함
         private static function disableTopBarClipboardButton():void
         {
-            ReferenceLayerController.refLayerMenuBox.refClipBoardButton.alpha = Global.OFFALPHA;
+            ReferenceLayerController.refLayerMenuBox.refClipBoardButton.alpha = UITheme.OFFALPHA;
             isClipBoardButtonActivated = false;
             FileManager.refreshFileOperationButtonsTopbar();
         }

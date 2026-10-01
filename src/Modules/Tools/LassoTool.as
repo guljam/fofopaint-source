@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.CanvasController;
@@ -330,7 +331,7 @@ package Modules.Tools
 
         public static function mergeLayerByLassoTool():void
         {
-            _lassoMenuBox.lassoLayerMerge.alpha = Global.OFFALPHA;
+            _lassoMenuBox.lassoLayerMerge.alpha = UITheme.OFFALPHA;
             mergeLassoImage();
             addLassoLayerMergeCommand(1);
         }
@@ -354,7 +355,7 @@ package Modules.Tools
                 return;
             }
             isLassoImageCopied = true;
-            _lassoMenuBox.lassoCopy.alpha = Global.OFFALPHA;
+            _lassoMenuBox.lassoCopy.alpha = UITheme.OFFALPHA;
             restoreToLastBmpd();
         }
 
@@ -824,8 +825,8 @@ package Modules.Tools
             MainUIController.keepBoxInsideViewPort(_lassoMenuBox);
             if (CanvasController.checkedLayer || !checklayer1 || !checklayer2)
             {
-                _lassoMenuBox.lassoLayerSwap.alpha = Global.OFFALPHA;
-                _lassoMenuBox.lassoLayerMerge.alpha = Global.OFFALPHA;
+                _lassoMenuBox.lassoLayerSwap.alpha = UITheme.OFFALPHA;
+                _lassoMenuBox.lassoLayerMerge.alpha = UITheme.OFFALPHA;
             }
             else
             {
@@ -839,7 +840,7 @@ package Modules.Tools
             {
                 ReferenceLayerController.refLayerMenuBox.visible = false;
             }
-            setAlphaButtonsOnLassoTool(Global.OFFALPHA);
+            setAlphaButtonsOnLassoTool(UITheme.OFFALPHA);
             InputManager.addInputEventsLassoTool();
         }
 

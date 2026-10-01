@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.text.TextField;
 	import flash.display.SimpleButton;
@@ -86,8 +87,8 @@
 
 		public function updateUIColor():void
 		{
-			canvasInfo.textColor = Global.getUIFGColor();
-			Global.applyUIFGColor(appInfoBorder);
+			canvasInfo.textColor = UITheme.getUIFGColor();
+			UITheme.applyUIFGColor(appInfoBorder);
 		}
 
 		[Embed(source="fofoPaint-animate-27.13.swf",symbol="CanvasInfoSet")]

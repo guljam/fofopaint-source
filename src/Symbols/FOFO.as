@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+    import Modules.UIEngine.UITheme;
     import flash.display.SimpleButton;
     import flash.display.Sprite;
     import assets.VisualBuilder;
@@ -54,7 +55,7 @@
 
         public function updateColor():void
         {
-            Global.applyUIFGColor(fofo);
+            UITheme.applyUIFGColor(fofo);
         }
 
         [Embed(source="fofoPaint-animate-27.13.swf",symbol="FOFO")]

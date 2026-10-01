@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UITheme;
     import Modules.Tools.PenTool;
 
     import Symbols.ToolMenuSet;
@@ -73,7 +74,7 @@ package Modules
             const viewportRect:Rectangle = MainUIController.getViewportRect();
 
             selectedToolViewBitmap.x = viewportRect.x + viewportRect.width / 2 - selectedToolViewBitmap.width / 2;
-            selectedToolViewBitmap.y = viewportRect.y + 20 * Global.getUIScale();
+            selectedToolViewBitmap.y = viewportRect.y + 20 * UITheme.getUIScale();
         }
 
         public static function getToolButtonFromToolIndex(toolIndex:*):SimpleButton
@@ -381,7 +382,7 @@ package Modules
 
         public static function selectPenSizeButton(targetName:String):void
         {
-            const numberOnly:String = targetName.substr(Global.NSIZE_BUTTON_PREFIX.length);
+            const numberOnly:String = targetName.substr(UITheme.NSIZE_BUTTON_PREFIX.length);
             const index:uint = parseInt(numberOnly);
 
             setDrawToolSize(index);
@@ -774,7 +775,7 @@ package Modules
             updateOpacityCursorPos(PenTool.penAlphaIndex);
             toggleAirBrushCheckBox(isPenAirBrushON, true);
             toolOptionsBox.movePenSizeCursor(1);
-            toolOptionsBox.setButtonsAlphaFillPenSelected(Global.OFFALPHA);
+            toolOptionsBox.setButtonsAlphaFillPenSelected(UITheme.OFFALPHA);
             moveEraserButtonToOtherTool("toolFillPen");
             updateToolOptionsTextBySelectedTool();
         }
@@ -1205,7 +1206,7 @@ package Modules
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             PenSizePreviewCursor.setVisible(false);
             var pos:Point = toolBox2.getLastUsedToolPos();
-            const scale:Number = Global.getUIScale();
+            const scale:Number = UITheme.getUIScale();
 
             toolBox2.x = Math.floor(main.stage.mouseX - pos.x * scale);
             toolBox2.y = Math.floor(main.stage.mouseY - pos.y * scale);
@@ -1247,19 +1248,19 @@ package Modules
 
             const targetName:String = target.name;
 
-            if (target.alpha === Global.OFFALPHA)
+            if (target.alpha === UITheme.OFFALPHA)
             {
                 return true;
             }
 
-            if (targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) == 0)
+            if (targetName.indexOf(UITheme.ALPHA_BUTTON_PREFIX) == 0)
             {
                 ToolController.onOpacityButtonDown(targetName);
                 selectPenToolIfNotDrawingTool(true);
                 return true;
             }
 
-            if (targetName.indexOf(Global.NSIZE_BUTTON_PREFIX) == 0)
+            if (targetName.indexOf(UITheme.NSIZE_BUTTON_PREFIX) == 0)
             {
                 if (!isSelectedTool(TOOL_FILLPEN))
                 {
@@ -1479,7 +1480,7 @@ package Modules
 
         public static function setDrawingToolOpacity(targetName:String):void
         {
-            const number:String = targetName.substr(Global.ALPHA_BUTTON_PREFIX.length);
+            const number:String = targetName.substr(UITheme.ALPHA_BUTTON_PREFIX.length);
             const index:int = parseInt(number);
             ToolController.applyDrawingToolAlpha(PenTool.penAlphaList[index]);
         }
@@ -1488,14 +1489,14 @@ package Modules
         public static function onOpacityButtonDown(targetName:String):void
         {
             setDrawingToolOpacity(targetName);
-            startOptionButtonDrag(toolOptionsBox.opaBox, Global.ALPHA_BUTTON_PREFIX, targetName, setDrawingToolOpacity);
+            startOptionButtonDrag(toolOptionsBox.opaBox, UITheme.ALPHA_BUTTON_PREFIX, targetName, setDrawingToolOpacity);
         }
 
         // 펜 크기 버튼을 눌렀을때 즉시 적용하고, 누른채 다른 버튼 위로 끌면 따라서 선택함
         public static function onPenSizeButtonDown(targetName:String):void
         {
             selectPenSizeButton(targetName);
-            startOptionButtonDrag(toolOptionsBox.penSizeBox, Global.NSIZE_BUTTON_PREFIX, targetName, selectPenSizeButton);
+            startOptionButtonDrag(toolOptionsBox.penSizeBox, UITheme.NSIZE_BUTTON_PREFIX, targetName, selectPenSizeButton);
         }
 
         private static var isOptionButtonDragging:Boolean = false;
