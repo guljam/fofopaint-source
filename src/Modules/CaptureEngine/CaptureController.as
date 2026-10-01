@@ -1,5 +1,6 @@
 package Modules.CaptureEngine
 {
+    import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
@@ -497,7 +498,7 @@ package Modules.CaptureEngine
         {
             const replayMode:Boolean = ReplayState.isReplayModeON;
             resetCaptureArea();
-            CanvasController.updateCanvasResizeButtonVisible(false);
+            CanvasResizer.updateButtonVisible(false);
             FOFOTimer.remove("rCursorOffAlphaAnimTimer");
 
             if (replayMode)

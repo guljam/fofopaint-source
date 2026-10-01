@@ -1,5 +1,6 @@
 package
 {
+    import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import flash.events.Event;
@@ -82,7 +83,7 @@ package
             MouseState.finishAllDrags(); // 그리는 도중 포커스를 잃으면 mouseUp이 안오므로 획 등을 정상 종료함
             MouseState.resetAll();
             DrawModeInput.isKeyReleasedBeforeMouseUp = false;
-            main.resizeCanvas.exit(true);
+            CanvasResizer.exit();
             InputManager.clearKeyBuffer();
             InputManager.removeKeyRepeatEvents(null);
             FOFOTimer.remove("pressholdtimer");

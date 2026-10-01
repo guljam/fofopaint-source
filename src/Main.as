@@ -1,5 +1,6 @@
 ﻿package
 {
+    import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.InputPriority;
@@ -79,8 +80,6 @@
 
         public const STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT";
 
-        public var resizeCanvas:Object = CanvasController.cResizeCanvas();
-
         // 기타
 
 
@@ -122,6 +121,7 @@
             CaptureArea.setMainInstance(this);
 
             CanvasController.setMainInstance(this);
+            CanvasResizer.setMainInstance(this);
             ClipboardManager.setMainInstance(this);
             ColorPickerController.setMainInstance(this);
             DragInteraction.setMainInstance(this);
@@ -165,7 +165,7 @@
             CanvasController.initializeCanvas();
             ReplayController.initializeReplayCanvas();
             UIController.initializeAppMenus();
-            CanvasController.initializeResizeButtonFamily();
+            CanvasResizer.init();
             CaptureController.initializeCaptureModeTransparentBG();
             BackgroundWorkerCoordinator.initializeWorker();
             AppStateManager.loadAppState();

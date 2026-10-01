@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasResizer;
     import Modules.InputManager.InputManager;
     import Modules.InputManager.DrawModeInput;
     import Modules.InputManager.ReplayModeInput;
@@ -509,7 +510,7 @@ package Modules
             {
                 CanvasController.toggleLayer2Check();
             }
-            CanvasController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+            CanvasResizer.updateButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
             InputManager.removeKeyRepeatEvents(null);
             CanvasController.canvasLayer1Bitmap.visible = true;
             CanvasController.canvasLayer2Bitmap.visible = true;
@@ -1410,7 +1411,7 @@ package Modules
                 prepareLoadMenuBoxFromImageFile(file, toRefLayer);
             }
             setFileBrowserIsOpen(true);
-            CanvasController.showCanvasResizeButtonVisibleDelay(false);
+            CanvasResizer.showButtonsWithDelay(false);
             ReplayModeInput.removeEvents();
             DrawModeInput.removeEvents();
             file.browseForOpen(windowTitle, [new FileFilter("All supported formats", "*.fofo;*.2020;*.png;*.jpg;*.jpeg;*.jfif;*.gif;*.webp")]);

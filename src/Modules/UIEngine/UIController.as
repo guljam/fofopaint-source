@@ -1,5 +1,6 @@
 package Modules.UIEngine
 {
+    import Modules.DrawEngine.CanvasResizer;
     import Modules.AboutBoxController;
     import Modules.AppStateManager;
     import Modules.CanvasController;
@@ -484,7 +485,7 @@ package Modules.UIEngine
             HintController.mouseHint.updateBGColor();
             HintController.bottomHint.updateHintTextColor(0);
 
-            CanvasController.setResizeButtonColor();
+            CanvasResizer.setButtonColor();
             SidebarController.updateScrollBarColorAndHeight();
 
             if (ColorPickerController.isColorPickerModeBG)

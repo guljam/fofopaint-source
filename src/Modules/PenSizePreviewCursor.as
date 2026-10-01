@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasResizer;
     import Modules.Tools.PenTool;
     import flash.display.Shape;
     import flash.geom.Rectangle;
@@ -108,7 +109,7 @@ package Modules
             if (isPenSizeCursorInvisible
                     || (ToolController.nowTool > ToolController.TOOL_LINE && ToolController.nowTool !== ToolController.TOOL_FILLPEN) // 1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                     || !Utils.isCursorInDrawArea()
-                    || main.resizeCanvas.isCanvasResizing()
+                    || CanvasResizer.isCanvasResizing()
                     || (ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mx, my))
                     || FileManager.loadMenuBox.visible)
             {

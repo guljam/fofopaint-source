@@ -1,5 +1,6 @@
 package Modules.InputManager
 {
+    import Modules.DrawEngine.CanvasResizer;
     import Modules.MouseState;
     import Modules.ActivityWorkTimer;
     import Modules.AppUpdater;
@@ -151,7 +152,7 @@ package Modules.InputManager
                 case "resizeButtonL":
                 case "resizeButtonU":
                     {
-                        CanvasController.startCanvasResizing(targetName);
+                        CanvasResizer.start(targetName);
                     }
                     break;
                 default:
@@ -330,13 +331,13 @@ package Modules.InputManager
             }
             if (!InputManager.isPressingControl())
             {
-                if (main.resizeCanvas.isResizing())
+                if (CanvasResizer.isResizing())
                 {
-                    main.resizeCanvas.exit(true);
+                    CanvasResizer.exit();
                 }
-                if (CanvasController.resizeButtonR.visible)
+                if (CanvasResizer.isButtonVisible())
                 {
-                    CanvasController.updateCanvasResizeButtonVisible(false);
+                    CanvasResizer.updateButtonVisible(false);
                 }
             }
         }
@@ -370,9 +371,9 @@ package Modules.InputManager
             {
                 if (!InputManager.checkSubKey(2, true, handleControlSubKeyDrawMode))
                 {
-                    if (main.resizeCanvas.isResizing() === false)
+                    if (CanvasResizer.isResizing() === false)
                     {
-                        CanvasController.updateCanvasResizeButtonVisible(true);
+                        CanvasResizer.updateButtonVisible(true);
                     }
                 }
                 return;
@@ -745,7 +746,7 @@ package Modules.InputManager
                 case "resizeButtonL":
                 case "resizeButtonU":
                     {
-                        CanvasController.startCanvasResizing(targetName);
+                        CanvasResizer.start(targetName);
                     }
                     return;
                 case "sideBarScrollBar":

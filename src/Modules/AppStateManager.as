@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
@@ -305,7 +306,7 @@ package Modules
                         CanvasController.canvasAnchorPoint.rotation = appStateObject.canvasAnchorPointRotation;
 
                         ReplayDrawer.setRcursorRotation(appStateObject.canvasAnchorPointRotation);
-                        CanvasController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+                        CanvasResizer.updateButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
                         CanvasController.canvasRotateCursor.rotateArrow.rotation = appStateObject.canvasAnchorPointRotation;
 
                         // Pen Tool Settings
@@ -523,7 +524,7 @@ package Modules
                 AppWindowState.lastAppWindowSize.height = 800;
 
                 CanvasController.applyCavnvasSizeDrawMode(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, 0, 0, false);
-                CanvasController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+                CanvasResizer.updateButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
 
                 ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
                 ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);

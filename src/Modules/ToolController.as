@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasResizer;
     import Modules.InputManager.InputManager;
     import Modules.InputManager.DrawModeInput;
     import Modules.UIEngine.HintController;
@@ -1044,7 +1045,7 @@ package Modules
 
             if (!ignoreResizeButtonVisible)
             {
-                CanvasController.showCanvasResizeButtonVisibleDelay(false);
+                CanvasResizer.showButtonsWithDelay(false);
             }
         }
 
@@ -1217,7 +1218,7 @@ package Modules
             toolBox2.alpha = 1.0;
             toolBox2.visible = true;
             isToolBox2Showing = true;
-            CanvasController.showCanvasResizeButtonVisibleDelay(true);
+            CanvasResizer.showButtonsWithDelay(true);
             Utils.setAsTopChild(toolBox2);
             DrawModeInput.addToolBox2Events();
             FOFOTimer.addByName("toolBox2HideCheckTimer", 0.1, true, function ():Boolean
@@ -1227,7 +1228,7 @@ package Modules
                         return false;
                     }
 
-                    if (CanvasController.resizeButtonR.visible)
+                    if (CanvasResizer.isButtonVisible())
                     {
                         if (!toolBox2.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                         {

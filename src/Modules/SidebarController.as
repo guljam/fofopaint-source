@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasResizer;
     import Modules.InputManager.InputManager;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
@@ -480,7 +481,7 @@ package Modules
                 && !CaptureController.isCaptureModeON
                 && !ToolController.isToolBox2Showing
                 && !MouseState.isClickBlocked
-                && !CanvasController.resizeButtonR.visible;
+                && !CanvasResizer.isButtonVisible();
         }
 
         private static function onMouseLeaveSideBar(e:Event):void
