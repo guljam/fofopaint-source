@@ -622,7 +622,8 @@ package Modules
             }
             else
             {
-                ReplayState.rMemoryDataBuffer = [[command]];
+                ReplayState.clearCommandBuffer();
+                ReplayState.pushCommand([command]);
                 UndoController.addNew();
             }
 

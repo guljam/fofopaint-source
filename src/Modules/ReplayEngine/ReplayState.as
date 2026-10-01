@@ -2,6 +2,7 @@ package Modules.ReplayEngine
 {
     import Modules.UndoController;
     import Modules.UndoManager;
+    import flash.utils.getTimer;
 
     public class ReplayState
     {
@@ -44,6 +45,101 @@ package Modules.ReplayEngine
         public static var rMemoryDataIndex:int = 0; // rData에서만씀 rData 스크로크 뭉치 인덱스
         public static var rFileLastBytePosition:Number = 0; // fs position 저장
         public static var rFileCutBytePosition:Number = 0; // super undo에서 파일 잘라줄때 필요함
+
+        // 실시간 녹화: 명령 사이 기본 간격은 1틱, 다를때만 ["wait", 틱]을 그 명령 앞에 넣음
+        // wait 0이면 앞 명령과 같은 프레임, 구버전 데이터는 wait가 없어서 명령 1개 = 1틱으로 재생됨
+        public static const WAIT_COMMAND:String = "wait";
+        // 1틱 = 앱의 스테이지 1프레임(24fps, 컴파일러 기본값). 구버전 데이터가 지금처럼 1프레임에 명령 1개로 재생되게 함
+        // 저장 형식의 단위라서 나중에 스테이지 프레임레이트를 바꿔도 이 값은 바꾸면 안됨
+        public static const WAIT_TICK_MS:Number = 1000 / 24;
+        public static const WAIT_MAX_TICK:int = 120; // 5초 이상 쉰 시간은 5초로 기록
+        private static var lastCommandTime:int = -1; // 마지막으로 기록한 명령의 getTimer, -1이면 첫 명령 앞에 wait를 넣지 않음
+        private static var bufferStartTime:int = -1; // 버퍼 첫 명령의 getTimer, 뭉치 안의 틱은 이 시간 기준으로 반올림
+        private static var bufferLastTick:int = 0; // 버퍼 안에서 마지막 명령의 틱 (bufferStartTime 기준)
+        private static var bufferPrevCommandTime:int = -1; // 버퍼를 버릴때 lastCommandTime을 되돌릴 값
+
+        // 그리기 명령은 이 함수로 버퍼에 넣어야 실시간 간격이 기록됨
+        public static function pushCommand(command:Array):void
+        {
+            const now:int = getTimer();
+
+            if (rMemoryDataBuffer.length === 0)
+            {
+                // 뭉치 사이 간격은 직전 명령 시간과의 차이
+                bufferPrevCommandTime = lastCommandTime;
+                bufferStartTime = now;
+                bufferLastTick = 0;
+
+                if (lastCommandTime >= 0)
+                {
+                    pushWait(Math.round((now - lastCommandTime) / WAIT_TICK_MS));
+                }
+            }
+            else
+            {
+                // 뭉치 안에서는 첫 명령 기준 시간을 반올림해서 프레임 지터로 0, 2가 번갈아 생기지 않게 함
+                const tick:int = Math.round((now - bufferStartTime) / WAIT_TICK_MS);
+                pushWait(tick - bufferLastTick);
+                bufferLastTick = tick;
+            }
+
+            rMemoryDataBuffer.push(command);
+            lastCommandTime = now;
+        }
+
+        private static function pushWait(delay:int):void
+        {
+            if (delay < 0)
+            {
+                delay = 0;
+            }
+            else if (delay > WAIT_MAX_TICK)
+            {
+                delay = WAIT_MAX_TICK;
+            }
+
+            if (delay !== 1)
+            {
+                rMemoryDataBuffer.push([WAIT_COMMAND, delay]);
+            }
+        }
+
+        // undo에 들어가지 않고 버려지는 버퍼, 버려진 명령 시간은 다음 간격 계산에 쓰지 않음
+        public static function clearCommandBuffer():void
+        {
+            if (rMemoryDataBuffer.length > 0)
+            {
+                lastCommandTime = bufferPrevCommandTime;
+            }
+
+            rMemoryDataBuffer = [];
+        }
+
+        // 새 파일, 파일 불러오기처럼 작업이 끊기는 곳에서 호출, 다음 첫 명령 앞에는 wait가 들어가지 않음
+        public static function resetCommandTime():void
+        {
+            lastCommandTime = -1;
+        }
+
+        public static function isWaitCommand(command:Array):Boolean
+        {
+            return command !== null && command[0] === WAIT_COMMAND;
+        }
+
+        public static function getCommandCountWithoutWait(commands:Array):int
+        {
+            var count:int = 0;
+
+            for (var i:int = 0;i < commands.length;i++)
+            {
+                if (!isWaitCommand(commands[i]))
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
 
         // undo index까지의 프레임 합을 구함
         public static function getRMemoryDataTotalFrame(index:int):Number
@@ -109,7 +205,7 @@ package Modules.ReplayEngine
                     UndoManager.applyDeepUndo();
                 }
 
-                rMemoryDataBuffer.push(["bgColor", color]);
+                pushCommand(["bgColor", color]);
                 UndoController.addNew();
             }
         }
@@ -144,7 +240,8 @@ package Modules.ReplayEngine
 
             const index:int = UndoManager.undoDataIndex;
 
-            if (rMemoryData[index].length === 1)
+            // 앞에 붙은 wait는 세지 않음, 지울 명령만 남은 뭉치는 통째로 지움
+            if (getCommandCountWithoutWait(rMemoryData[index]) === 1)
             {
                 rMemoryData.splice(index);
                 rMemoryDataFrame.splice(index);
@@ -155,7 +252,9 @@ package Modules.ReplayEngine
                 {
                     if (command === rMemoryData[index][i][0])
                     {
-                        rMemoryData[index].splice(i, 1);
+                        // 이 명령 앞의 wait도 같이 지워야 쓸모없는 대기가 남지 않음
+                        const removeStart:int = (i > 0 && isWaitCommand(rMemoryData[index][i - 1])) ? i - 1 : i;
+                        rMemoryData[index].splice(removeStart, i - removeStart + 1);
                         break;
                     }
                 }

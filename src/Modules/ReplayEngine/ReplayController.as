@@ -861,6 +861,7 @@ package Modules.ReplayEngine
 
         public static function startReplayDrawTimer():void
         {
+            resetRealtimeClock();
             FOFOTimer.addByName("replayDrawTimer", 0.0, true, function ():Boolean
                 {
                     if (ReplayState.isReplaySlideShowMode)
@@ -875,6 +876,8 @@ package Modules.ReplayEngine
                                 ReplayDrawer.rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
                                 ReplayDrawer.rFileStream.position = ReplayState.rFileLastBytePosition;
                             }
+
+                            resetRealtimeClock();
                         }
                         else
                         {
@@ -891,7 +894,7 @@ package Modules.ReplayEngine
                     }
                     else
                     {
-                        if (ReplayDrawer.startDraw(ReplayState.rReplaySpeedMultipler, ReplayDrawer.JUMP_FRAME_PLAY))
+                        if (drawReplayRealtime())
                         {
                             stopReplay();
                         }
@@ -899,6 +902,77 @@ package Modules.ReplayEngine
 
                     return true;
                 });
+        }
+
+        // 실시간 재생 시계, 단위는 ReplayState.WAIT_TICK_MS
+        private static const REALTIME_MAX_FRAME_MS:int = 100; // 창 전환 등으로 프레임이 멈췄다가 돌아올때 밀린 시간을 한번에 그리지 않게 함
+        private static var realtimeTickClock:Number = 0;
+        private static var realtimePendingDelay:Number = 0; // 다음 그리기 명령까지 남은 틱
+        private static var realtimeLastTime:int = 0;
+        private static var realtimeSkipWait:Boolean = false;
+
+        // 재생을 시작하거나 다시 시작할때(탐색, 일시정지, 슬라이드쇼에서 돌아올때) 첫 그리기 명령은 기다리지 않고 바로 그림
+        // 앞부분을 잘라내서 데이터가 wait로 시작하는 경우도 여기서 같이 처리됨
+        private static function resetRealtimeClock():void
+        {
+            realtimeTickClock = 0;
+            realtimePendingDelay = 0;
+            realtimeLastTime = getTimer();
+            realtimeSkipWait = true;
+        }
+
+        // 지난 시간만큼 명령을 그림, wait 0이면 앞 명령과 같은 프레임에 그림
+        // 반환값: 리플레이를 정지해야 하면 true
+        public static function drawReplayRealtime():Boolean
+        {
+            const now:int = getTimer();
+            var elapsed:int = now - realtimeLastTime;
+            realtimeLastTime = now;
+
+            if (elapsed > REALTIME_MAX_FRAME_MS)
+            {
+                elapsed = REALTIME_MAX_FRAME_MS;
+            }
+
+            realtimeTickClock += elapsed * ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
+
+            while (true)
+            {
+                if (!ReplayDrawer.prepareNextPlayData())
+                {
+                    return true;
+                }
+
+                const next:Array = ReplayDrawCommands.peekNext();
+
+                if (ReplayState.isWaitCommand(next))
+                {
+                    if (!realtimeSkipWait)
+                    {
+                        realtimePendingDelay = next[1];
+                    }
+
+                    // wait는 시간을 쓰지 않고 프레임 번호만 넘어감
+                    ReplayDrawer.startDraw(1, ReplayDrawer.JUMP_FRAME_PLAY);
+                    continue;
+                }
+
+                if (realtimeTickClock < realtimePendingDelay)
+                {
+                    return false;
+                }
+
+                realtimeTickClock -= realtimePendingDelay;
+                realtimePendingDelay = 1;
+                realtimeSkipWait = false;
+
+                if (ReplayDrawer.startDraw(1, ReplayDrawer.JUMP_FRAME_PLAY))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static function shouldUseReplaySlideShowMode():Boolean
@@ -1870,6 +1944,7 @@ package Modules.ReplayEngine
             ReferenceLayerController.resetRefLayerImageTransform();
             ReferenceLayerController.resetRefLayerMenuOpacity();
             ReplayFileCache.initializeReplayDataFile(true);
+            ReplayState.resetCommandTime();
             ReplayFileCache.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             resetReplaySpeedBar();
             resetReplayTime();

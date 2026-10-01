@@ -644,6 +644,38 @@ package Modules.ReplayEngine
             return false;
         }
 
+        // 실시간 재생용: 지금 뭉치를 다 읽었으면 다음 뭉치를 그리지 않고 불러옴
+        // 다음 명령이 wait인지 먼저 봐야 이번 프레임에 그릴지 정할수 있어서 필요함
+        // 불러오는 순서와 상태 갱신은 drawFromFileData, drawFromMemoryData와 같음
+        // 반환값: 더 읽을 데이터가 없으면 false (리플레이 끝)
+        public static function prepareNextPlayData():Boolean
+        {
+            while (ReplayDrawCommands.isReadFinished())
+            {
+                if (!ReplayState.rMemoryDataReadON)
+                {
+                    if (readNextFileData() === false)
+                    {
+                        readyToReadMemoryData(JUMP_FRAME_PLAY);
+                    }
+
+                    continue;
+                }
+
+                ReplayState.rMemoryDataIndex++;
+
+                if (checkFinish(JUMP_FRAME_PLAY))
+                {
+                    return false;
+                }
+
+                ReplayState.rPrevFrame = ReplayState.rNowFrame;
+                ReplayDrawCommands.setData(ReplayState.rMemoryData[ReplayState.rMemoryDataIndex]);
+            }
+
+            return true;
+        }
+
         // 반환값: 리플레이를 정지해야 하면 true
         public static function drawFromMemoryData(len:Number, jumpFlag:int):Boolean
         {

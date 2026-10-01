@@ -127,6 +127,14 @@ package Modules.ReplayEngine
             return index > data.length - 1;
         }
 
+        // 다음에 읽을 명령을 그리지 않고 돌려줌, 뭉치를 다 읽었으면 null
+        public static function peekNext():Array
+        {
+            if (!data || index >= data.length)
+                return null;
+            return data[index];
+        }
+
         public static function getDataLength():uint
         {
             if (!data)
@@ -1579,6 +1587,8 @@ package Modules.ReplayEngine
                     break;
                 case "merge":
                     mergeLayer();
+                    break;
+                case "wait": // 실시간 재생 간격, 그리는 것은 없음
                     break;
                 default:
                     break;

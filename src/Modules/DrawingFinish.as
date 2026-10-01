@@ -18,7 +18,7 @@ package Modules
         {
             if (UndoManager.canAddUndoData === false)
             {
-                ReplayState.rMemoryDataBuffer = [];
+                ReplayState.clearCommandBuffer();
                 CanvasController.canvasDrawLayerChild.graphics.clear();
                 return;
             }
@@ -77,7 +77,7 @@ package Modules
                 }
             }
 
-            ReplayState.rMemoryDataBuffer.push(["drawDone5", CanvasController.isLayer2Selected]);
+            ReplayState.pushCommand(["drawDone5", CanvasController.isLayer2Selected]);
 
             if (CanvasController.isLayer2Selected)
             {
