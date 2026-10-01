@@ -1,5 +1,6 @@
 package Modules.ReplayEngine
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
@@ -2055,7 +2056,7 @@ package Modules.ReplayEngine
             ReplayState.setRFileDataTotalFrame(0);
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
-            CanvasController.isLayerSwapped = false;
+            CanvasLayers.isLayerSwapped = false;
             ReferenceLayerController.resetRefLayerImageTransform();
             ReferenceLayerController.resetRefLayerMenuOpacity();
             ReplayFileCache.initializeReplayDataFile(true);

@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.CanvasController;
     import Modules.ToolController;
     import Modules.Tools.PenTool;
@@ -54,7 +55,7 @@ package Modules
             {
                 drawLayerAlpha.alphaMultiplier = PenTool.penAlpha;
 
-                if (CanvasController.isLayer2Selected)
+                if (CanvasLayers.isLayer2Selected)
                 {
                     CanvasController.canvasLayer2BitmapData.draw(CanvasController.canvasDrawLayerBitmap, null, drawLayerAlpha, (PenTool.isTransparentPenColor) ? "erase" : null, CanvasController.canvasDrawLayerClipRect);
                 }
@@ -67,7 +68,7 @@ package Modules
             {
                 drawLayerAlpha.alphaMultiplier = PenTool.eraserAlpha;
 
-                if (CanvasController.isLayer2Selected)
+                if (CanvasLayers.isLayer2Selected)
                 {
                     CanvasController.canvasLayer2BitmapData.draw(CanvasController.canvasDrawLayerBitmap, null, drawLayerAlpha, "erase", CanvasController.canvasDrawLayerClipRect);
                 }
@@ -77,9 +78,9 @@ package Modules
                 }
             }
 
-            ReplayState.pushCommand(["drawDone5", CanvasController.isLayer2Selected]);
+            ReplayState.pushCommand(["drawDone5", CanvasLayers.isLayer2Selected]);
 
-            if (CanvasController.isLayer2Selected)
+            if (CanvasLayers.isLayer2Selected)
             {
                 CanvasController.canvasLayer2Bitmap.bitmapData = CanvasController.canvasLayer2BitmapData;
             }

@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.CaptureEngine.CaptureController;
@@ -582,12 +583,12 @@ package Modules
             var layer1Flag:Boolean = CanvasController.canvasLayer1Bitmap.visible;
             var layer2Flag:Boolean = CanvasController.canvasLayer2Bitmap.visible;
 
-            if (CanvasController.checkedLayer === 1)
+            if (CanvasLayers.checkedLayer === 1)
             {
                 layer1Flag = true;
                 layer2Flag = false;
             }
-            else if (CanvasController.checkedLayer === 2)
+            else if (CanvasLayers.checkedLayer === 2)
             {
                 layer1Flag = false;
                 layer2Flag = true;

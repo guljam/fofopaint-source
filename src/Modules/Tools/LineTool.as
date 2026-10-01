@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.InputPriority;
     import Modules.CanvasController;
     import Modules.ColorPickerController;
@@ -347,7 +348,7 @@ package Modules.Tools
                 inputMoveToData(mx, my);
                 inputLineToData(mx, my);
 
-                subLayerFlag = CanvasController.isLayer2Selected;
+                subLayerFlag = CanvasLayers.isLayer2Selected;
 
                 if (!ReferenceLayerController.isRefLayerEmpty() && ReferenceLayerController.isRefLayerMemoryTrainingON)
                 {

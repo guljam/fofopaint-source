@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.CanvasController;
     import Modules.ColorPickerController;
@@ -301,9 +302,9 @@ package Modules.Tools
 
             DottedLineTool.lineTo(data[0], data[1], true);
 
-            if (CanvasController.isLayer2Selected)
+            if (CanvasLayers.isLayer2Selected)
             {
-                CanvasController.bringCanvasDrawLayerAboveLayer1();
+                CanvasLayers.bringCanvasDrawLayerAboveLayer1();
             }
 
             CanvasController.canvasDrawLayer.alpha = 1.0;
@@ -333,9 +334,9 @@ package Modules.Tools
             fillPenBox.x = -fillPenBox.width - 3;
             fillPenBox.y = -fillPenBox.height - 3;
 
-            if (CanvasController.isLayer2Selected)
+            if (CanvasLayers.isLayer2Selected)
             {
-                CanvasController.bringCanvasDrawLayerAboveLayer2();
+                CanvasLayers.bringCanvasDrawLayerAboveLayer2();
             }
 
             if (SidebarController.isQuickSidebarActive)
@@ -616,9 +617,9 @@ package Modules.Tools
                 const mx:Number = filteredPos.x + _pos05Offset;
                 const my:Number = filteredPos.y + _pos05Offset;
 
-                if (CanvasController.isLayer2Selected)
+                if (CanvasLayers.isLayer2Selected)
                 {
-                    CanvasController.bringCanvasDrawLayerAboveLayer2();
+                    CanvasLayers.bringCanvasDrawLayerAboveLayer2();
                 }
 
                 if (_lastPosOnMouseMove.x === mx && _lastPosOnMouseMove.y === my)

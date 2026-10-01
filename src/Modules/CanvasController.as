@@ -11,7 +11,6 @@ package Modules
     import flash.display.Bitmap;
     import flash.geom.Rectangle;
     import flash.display.DisplayObjectContainer;
-    import flash.display.DisplayObject;
     import Modules.Tools.PenTool;
     import flash.events.Event;
     import flash.geom.Point;
@@ -60,10 +59,6 @@ package Modules
         public static var canvasZoomMultiplerList:Array = [0.125, 0.25, 0.5, 0.75, 1.0, 1.50, 2.0, 3.0, 4.0, 6.0, 8.0];
         public static var canvasZoomMultipler:Number = 1.0;
         public static var canvasZoomIndex:int = 4;
-
-        public static var isLayer2Selected:Boolean = false;
-        public static var checkedLayer:int = 0; // 레이어가 체크되면 저장해줌
-        public static var isLayerSwapped:Boolean = false; // 1<->2 번호 바뀌는 힌트 써주려고 만듬
 
         private static const copyPixelRect:Rectangle = new Rectangle();
 
@@ -150,130 +145,9 @@ package Modules
             canvasDrawLayerClipRect = canvasDrawLayerClipRect.union(canvasDrawLayerChild.getBounds(canvasPanel));
         }
 
-        public static function playLayerSwapEffect(target:DisplayObject):void
-        {
-            target.alpha = UITheme.OFFALPHA;
-            FOFOTimer.addByName("layerSwapFlickEffect", 0.5, false, function ():void
-                {
-                    target.alpha = 1.0;
-                });
-        }
-
-        public static function isAllLayerInvisible():Boolean
-        {
-            if (!canvasLayer1Bitmap.visible && !canvasLayer2Bitmap.visible)
-            {
-                HintController.showMouseHintTemp("All layer locked");
-                return true;
-            }
-            return false;
-        }
-
-        public static function toggleLayer1Check():void
-        {
-            if (ToolController.toolOptionsBox.layer1CheckedButton.visible === false)
-            {
-                checkedLayer = 1;
-                ToolController.toolOptionsBox.layer1CheckedButton.visible = true;
-                ToolController.toolOptionsBox.layer1UncheckedButton.visible = false;
-                ToolController.toolOptionsBox.layer2CheckedButton.visible = false;
-                ToolController.toolOptionsBox.layer2UncheckedButton.visible = true;
-                ToolController.toolBox.setToolButtonsForCheckedLayerON();
-                ToolController.toolBox2.setToolButtonsForCheckedLayerON();
-            }
-            else
-            {
-                checkedLayer = 0;
-                ToolController.toolOptionsBox.layer1CheckedButton.visible = false;
-                ToolController.toolOptionsBox.layer1UncheckedButton.visible = true;
-                ToolController.toolBox.setToolButtonsForCheckedLayerOFF();
-                ToolController.toolBox2.setToolButtonsForCheckedLayerOFF();
-            }
-        }
-        public static function toggleLayer2Check():void
-        {
-            if (ToolController.toolOptionsBox.layer2CheckedButton.visible === false)
-            {
-                checkedLayer = 2;
-                ToolController.toolOptionsBox.layer2CheckedButton.visible = true;
-                ToolController.toolOptionsBox.layer2UncheckedButton.visible = false;
-                ToolController.toolOptionsBox.layer1CheckedButton.visible = false;
-                ToolController.toolOptionsBox.layer1UncheckedButton.visible = true;
-                ToolController.toolBox.setToolButtonsForCheckedLayerON();
-                ToolController.toolBox2.setToolButtonsForCheckedLayerON();
-            }
-            else
-            {
-                checkedLayer = 0;
-                ToolController.toolOptionsBox.layer2CheckedButton.visible = false;
-                ToolController.toolOptionsBox.layer2UncheckedButton.visible = true;
-                ToolController.toolBox.setToolButtonsForCheckedLayerOFF();
-                ToolController.toolBox2.setToolButtonsForCheckedLayerOFF();
-            }
-        }
-
-        public static function mergeImageIntoLayer2():void
-        {
-            if (ReplayState.hasLastRMemoryDataCommand("merge"))
-            {
-                ReplayState.deleteLastRMemoryDataCommand("merge");
-            }
-            else
-            {
-                if (UndoController.isDeepUndoEnabled)
-                {
-                    UndoController.applyDeepUndo();
-                }
-                canvasLayer2BitmapData.draw(canvasLayer1BitmapData);
-                canvasLayer1BitmapData.fillRect(new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT), 0);
-                ReplayState.pushCommand(["merge"]);
-                UndoHistory.addNew();
-            }
-            ToolController.toolOptionsBox.layerMergeButton.alpha = UITheme.OFFALPHA;
-        }
-
-        public static function swapLayer():void
-        {
-            if (ToolController.toolOptionsBox.layerSwapButton.alpha < 1.0)
-            {
-                return;
-            }
-            if (UndoController.isDeepUndoEnabled)
-            {
-                UndoController.applyDeepUndo();
-            }
-            isLayerSwapped = !isLayerSwapped;
-            var tempbmpd1:BitmapData = canvasLayer1BitmapData.clone();
-            var tempbmpd11:BitmapData = canvasLayer2BitmapData.clone();
-            const rect:Rectangle = new Rectangle(0, 0, canvasLayer1BitmapData.width, canvasLayer1BitmapData.height);
-            canvasLayer1BitmapData.fillRect(rect, 0);
-            canvasLayer2BitmapData.fillRect(rect, 0);
-            canvasLayer1BitmapData.draw(tempbmpd11);
-            canvasLayer2BitmapData.draw(tempbmpd1);
-            tempbmpd1.dispose();
-            tempbmpd11.dispose();
-            tempbmpd1 = null;
-            tempbmpd11 = null;
-            if (ReplayState.hasLastRMemoryDataCommand("swap"))
-            {
-                ReplayState.deleteLastRMemoryDataCommand("swap");
-            }
-            else
-            {
-                ReplayState.pushCommand(["swap"]);
-                UndoHistory.addNew();
-            }
-            playLayerSwapEffect(ToolController.toolOptionsBox.layerSwapButton);
-        }
-
         public static function updateCanvasPanelMask(w:Number, h:Number):void
         {
             canvasPanel.scrollRect = new Rectangle(0, 0, w, h);
-        }
-
-        public static function isToolEnabledByLayerUnChecked():Boolean
-        {
-            return checkedLayer === 0;
         }
 
         public static function resetZoomDrawMode():void
@@ -342,58 +216,6 @@ package Modules
                     CanvasGridOverlay.drawGrid();
                 }
             }
-        }
-
-        public static function bringCanvasDrawLayerAboveLayer1():void
-        {
-            if (canvasPanel.getChildIndex(canvasDrawLayer) < canvasPanel.getChildIndex(LassoTool.lassoLayer1))
-            {
-                canvasPanel.setChildIndex(canvasDrawLayer, canvasPanel.getChildIndex(LassoTool.lassoLayer1));
-            }
-        }
-        public static function bringCanvasDrawLayerAboveLayer2():void
-        {
-            if (canvasPanel.getChildIndex(canvasDrawLayer) > canvasPanel.getChildIndex(canvasLayer1Bitmap))
-            {
-                canvasPanel.setChildIndex(canvasDrawLayer, canvasPanel.getChildIndex(canvasLayer1Bitmap));
-            }
-        }
-
-        public static function selectLayer1(onlyViewFlag:Boolean):void
-        {
-            isLayer2Selected = false;
-            ToolController.toolOptionsBox.setSelectLayerButtonActiveAlpha(1);
-            if (onlyViewFlag)
-            {
-                canvasLayer1Bitmap.visible = true;
-                canvasLayer2Bitmap.visible = false;
-                ToolController.toolOptionsBox.moveLayerInvisibleLineToLayer2();
-            }
-            else
-            {
-                canvasLayer1Bitmap.visible = true;
-                canvasLayer2Bitmap.visible = true;
-                ToolController.toolOptionsBox.removeLayerInvisibleLine();
-            }
-            bringCanvasDrawLayerAboveLayer1();
-        }
-        public static function selectLayer2(onlyViewFlag:Boolean):void
-        {
-            isLayer2Selected = true;
-            ToolController.toolOptionsBox.setSelectLayerButtonActiveAlpha(2);
-            if (onlyViewFlag)
-            {
-                canvasLayer1Bitmap.visible = false;
-                canvasLayer2Bitmap.visible = true;
-                ToolController.toolOptionsBox.moveLayerInvisibleLineToLayer1();
-            }
-            else
-            {
-                canvasLayer1Bitmap.visible = true;
-                canvasLayer2Bitmap.visible = true;
-                ToolController.toolOptionsBox.removeLayerInvisibleLine();
-            }
-            bringCanvasDrawLayerAboveLayer2();
         }
 
         // maxOutputEdge > 0이면 긴 축이 그 값 이하가 되도록 처음부터 작게 합성함 (대표색 추출처럼 큰 이미지가 필요 없을때)

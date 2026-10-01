@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.CanvasController;
@@ -59,7 +60,7 @@ package Modules.Tools
             const movey1:Number = Math.floor(CanvasController.canvasLayer2Bitmap.y);
 
             // onMouseMoveMovetool 과 같은 기준으로 "실제로 움직인 레이어"를 판단
-            const checked:int = CanvasController.checkedLayer;
+            const checked:int = CanvasLayers.checkedLayer;
             const layer1Moved:Boolean = (checked === 1 || (checked === 0 && CanvasController.canvasLayer1Bitmap.visible))
                 && (movex !== 0.0 || movey !== 0.0);
             const layer2Moved:Boolean = (checked === 2 || (checked === 0 && CanvasController.canvasLayer2Bitmap.visible))
@@ -82,7 +83,7 @@ package Modules.Tools
             }
 
             // 최종적으로 움직인 거리를 실제로 비트맵 데이터 조작
-            if (CanvasController.checkedLayer === 0)
+            if (CanvasLayers.checkedLayer === 0)
             {
                 if (CanvasController.canvasLayer1Bitmap.visible)
                 {
@@ -100,13 +101,13 @@ package Modules.Tools
                     CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData, tmpbmpd);
                 }
             }
-            else if (CanvasController.checkedLayer === 1)
+            else if (CanvasLayers.checkedLayer === 1)
             {
                 movedMat.translate(movex, movey);
                 tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, movedMat);
                 CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData, tmpbmpd);
             }
-            else if (CanvasController.checkedLayer === 2)
+            else if (CanvasLayers.checkedLayer === 2)
             {
 
                 movedMat = new Matrix();
@@ -125,12 +126,12 @@ package Modules.Tools
             {
                 var command:String = "move";
 
-                if (CanvasController.checkedLayer === 1)
+                if (CanvasLayers.checkedLayer === 1)
                 {
                     command = "move1";
                     ReplayState.pushCommand([command, movex, movey]);
                 }
-                else if (CanvasController.checkedLayer === 2)
+                else if (CanvasLayers.checkedLayer === 2)
                 {
                     command = "move2";
                     ReplayState.pushCommand([command, movex1, movey1]);
@@ -161,7 +162,7 @@ package Modules.Tools
         {
             const pos:Point = getMovedPos();
 
-            if (CanvasController.checkedLayer === 0)
+            if (CanvasLayers.checkedLayer === 0)
             {
                 if (CanvasController.canvasLayer1Bitmap.visible)
                 {
@@ -175,12 +176,12 @@ package Modules.Tools
                     CanvasController.canvasLayer2Bitmap.y = pos.y;
                 }
             }
-            else if (CanvasController.checkedLayer === 1)
+            else if (CanvasLayers.checkedLayer === 1)
             {
                 CanvasController.canvasLayer1Bitmap.x = pos.x;
                 CanvasController.canvasLayer1Bitmap.y = pos.y;
             }
-            else if (CanvasController.checkedLayer === 2)
+            else if (CanvasLayers.checkedLayer === 2)
             {
                 CanvasController.canvasLayer2Bitmap.x = pos.x;
                 CanvasController.canvasLayer2Bitmap.y = pos.y;
@@ -189,7 +190,7 @@ package Modules.Tools
 
         public static function start():void
         {
-            if (CanvasController.isAllLayerInvisible())
+            if (CanvasLayers.isAllLayerInvisible())
             {
                 return;
             }

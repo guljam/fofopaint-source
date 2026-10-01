@@ -1,5 +1,6 @@
 package Modules.InputManager
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.MouseState;
@@ -290,13 +291,13 @@ package Modules.InputManager
                     break;
                 case "layerMergeButton":
                     {
-                        CanvasController.mergeImageIntoLayer2();
+                        CanvasLayers.mergeImageIntoLayer2();
                         HintController.showMouseHintTemp("Layers has been merged to layer 2");
                     }
                     break;
                 case "layerSwapButton":
                     {
-                        CanvasController.swapLayer();
+                        CanvasLayers.swapLayer();
                         HintController.showMouseHintTemp(HintStrings.getCanvasLayerSwappedHintString());
                     }
                     break;
@@ -522,38 +523,38 @@ package Modules.InputManager
                 case InputManager.KEY.n1:
                 case InputManager.KEY.n9:
                     {
-                        if (CanvasController.isLayer2Selected)
+                        if (CanvasLayers.isLayer2Selected)
                         {
                             HintController.showMouseHintTemp("Layer 1 selected");
-                            CanvasController.selectLayer1(false);
+                            CanvasLayers.selectLayer1(false);
                         }
                         else
                         {
-                            CanvasController.selectLayer1(CanvasController.canvasLayer2Bitmap.visible);
+                            CanvasLayers.selectLayer1(CanvasController.canvasLayer2Bitmap.visible);
                             HintController.showMouseHintLayerVisible();
                         }
                         if (ToolController.toolOptionsBox.layer2CheckedButton.visible)
                         {
-                            CanvasController.toggleLayer2Check();
+                            CanvasLayers.toggleLayer2Check();
                         }
                     }
                     return true;
                 case InputManager.KEY.n2:
                 case InputManager.KEY.n0:
                     {
-                        if (!CanvasController.isLayer2Selected)
+                        if (!CanvasLayers.isLayer2Selected)
                         {
                             HintController.showMouseHintTemp("Layer 2 selected");
-                            CanvasController.selectLayer2(false);
+                            CanvasLayers.selectLayer2(false);
                         }
                         else
                         {
-                            CanvasController.selectLayer2(CanvasController.canvasLayer1Bitmap.visible);
+                            CanvasLayers.selectLayer2(CanvasController.canvasLayer1Bitmap.visible);
                             HintController.showMouseHintLayerVisible();
                         }
                         if (ToolController.toolOptionsBox.layer1CheckedButton.visible)
                         {
-                            CanvasController.toggleLayer1Check();
+                            CanvasLayers.toggleLayer1Check();
                         }
                     }
                     return true;
@@ -821,19 +822,19 @@ package Modules.InputManager
                 switch (ToolController.nowTool)
                 {
                     case ToolController.TOOL_PEN:
-                        if (CanvasController.isToolEnabledByLayerUnChecked())
+                        if (CanvasLayers.isToolEnabledByLayerUnChecked())
                             PenTool.start();
                         break;
                     case ToolController.TOOL_FILLPEN:
-                        if (CanvasController.isToolEnabledByLayerUnChecked())
+                        if (CanvasLayers.isToolEnabledByLayerUnChecked())
                             FillPenTool.start();
                         break;
                     case ToolController.TOOL_ERASER:
-                        if (CanvasController.isToolEnabledByLayerUnChecked())
+                        if (CanvasLayers.isToolEnabledByLayerUnChecked())
                             PenTool.startWithEraserMode();
                         break;
                     case ToolController.TOOL_LINE:
-                        if (CanvasController.isToolEnabledByLayerUnChecked())
+                        if (CanvasLayers.isToolEnabledByLayerUnChecked())
                             LineTool.start();
                         break;
                     case ToolController.TOOL_LASSO:

@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.InputManager.InputManager;
     import Modules.InputManager.DrawModeInput;
@@ -1310,50 +1311,50 @@ package Modules
                 case "layer1CheckedButton":
                 case "layer1UncheckedButton":
                     {
-                        CanvasController.selectLayer1(false);
-                        CanvasController.toggleLayer1Check();
+                        CanvasLayers.selectLayer1(false);
+                        CanvasLayers.toggleLayer1Check();
                     }
                     return true;
                 case "layer2CheckedButton":
                 case "layer2UncheckedButton":
                     {
-                        CanvasController.selectLayer2(false);
-                        CanvasController.toggleLayer2Check();
+                        CanvasLayers.selectLayer2(false);
+                        CanvasLayers.toggleLayer2Check();
                     }
                     return true;
                 case "layer1SelectButton":
                     {
-                        if (CanvasController.isLayer2Selected)
+                        if (CanvasLayers.isLayer2Selected)
                         {
-                            CanvasController.selectLayer1(false);
+                            CanvasLayers.selectLayer1(false);
                         }
                         else
                         {
-                            CanvasController.selectLayer1(CanvasController.canvasLayer2Bitmap.visible);
+                            CanvasLayers.selectLayer1(CanvasController.canvasLayer2Bitmap.visible);
                             HintController.showMouseHintLayerVisible();
                         }
 
                         if (toolOptionsBox.layer2CheckedButton.visible)
                         {
-                            CanvasController.toggleLayer2Check();
+                            CanvasLayers.toggleLayer2Check();
                         }
                     }
                     return true;
                 case "layer2SelectButton":
                     {
-                        if (!CanvasController.isLayer2Selected)
+                        if (!CanvasLayers.isLayer2Selected)
                         {
-                            CanvasController.selectLayer2(false);
+                            CanvasLayers.selectLayer2(false);
                         }
                         else
                         {
-                            CanvasController.selectLayer2(CanvasController.canvasLayer1Bitmap.visible);
+                            CanvasLayers.selectLayer2(CanvasController.canvasLayer1Bitmap.visible);
                             HintController.showMouseHintLayerVisible();
                         }
 
                         if (toolOptionsBox.layer1CheckedButton.visible)
                         {
-                            CanvasController.toggleLayer1Check();
+                            CanvasLayers.toggleLayer1Check();
                         }
                     }
                     return true;

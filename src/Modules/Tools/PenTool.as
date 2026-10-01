@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.InputPriority;
     import Modules.MouseState;
 	import Modules.CanvasController;
@@ -254,14 +255,14 @@ package Modules.Tools
 
 					//todo extendedPos도 refinedpos해주어야함 찍어보니 원시 number값나옴
 
-					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
+					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode]);
 					penPoints.push(extendedPos.x);
 					penPoints.push(extendedPos.y);
 					CanvasController.canvasDrawLayerChild.graphics.moveTo(extendedPos.x, extendedPos.y);
 				}
 				else
 				{
-					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
+					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode]);
 					penPoints.push(smoothPos.x + offsetForSharpline);
 					penPoints.push(smoothPos.y + offsetForSharpline);
 					CanvasController.canvasDrawLayerChild.graphics.moveTo(smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline);
@@ -315,14 +316,14 @@ package Modules.Tools
 
 					if (xShape === true)
 					{
-						ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
+						ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode]);
 						penPoints.push(prevX);
 						penPoints.push(prevY);
 						CanvasController.canvasDrawLayerChild.graphics.moveTo(prevX, prevY);
 					}
 					else
 					{
-						ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, CanvasController.isLayer2Selected, airBrushSizeDrawMode]);
+						ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode]);
 						penPoints.push(mx);
 						penPoints.push(my);
 						CanvasController.canvasDrawLayerChild.graphics.moveTo(mx, my);
@@ -460,7 +461,7 @@ package Modules.Tools
 			if (isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag))
 			{
 				ReplayState.clearCommandBuffer();
-				ReplayState.pushCommand(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasController.isLayer2Selected, airBrushSizeDrawMode, CanvasController.canvasAnchorPoint.rotation]);
+				ReplayState.pushCommand(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode, CanvasController.canvasAnchorPoint.rotation]);
 
 				DotTool.start(xShape, xSize, xColor, clickPos.x, clickPos.y, CanvasController.canvasAnchorPoint.rotation);
 				CanvasController.resetCanvasDrawLayerCliprect();

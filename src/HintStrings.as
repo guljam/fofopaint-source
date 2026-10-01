@@ -1,5 +1,6 @@
 ﻿package
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.Utils;
     import Modules.UIEngine.UITheme;
     import Main;
@@ -455,7 +456,7 @@
 
         public static function getCanvasLayerSwappedHintString():String
         {
-            return "Layers have been swapped " + ((CanvasController.isLayerSwapped) ? "1 / 2" : "2 / 1");
+            return "Layers have been swapped " + ((CanvasLayers.isLayerSwapped) ? "1 / 2" : "2 / 1");
         }
 
         static private function getFinalHint(targetName:String,hintStringSet:Object):String

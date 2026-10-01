@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.MouseState;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
@@ -318,7 +319,7 @@ package Modules.Tools
 
         public static function start():void
         {
-            if (CanvasController.checkedLayer !== 0 || CanvasController.isAllLayerInvisible())
+            if (CanvasLayers.checkedLayer !== 0 || CanvasLayers.isAllLayerInvisible())
             {
                 return;
             }

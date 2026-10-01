@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.InputManager.InputManager;
@@ -501,15 +502,15 @@ package Modules
                 ReferenceLayerController.canvasRefLayerBitmap.smoothing = true;
             }
             AppWindowState.updateWindowTitle();
-            CanvasController.selectLayer1(false);
+            CanvasLayers.selectLayer1(false);
             ReplayDrawer.selectReplaySubLayer(false);
             if (ToolController.toolOptionsBox.layer1CheckedButton.visible)
             {
-                CanvasController.toggleLayer1Check();
+                CanvasLayers.toggleLayer1Check();
             }
             if (ToolController.toolOptionsBox.layer2CheckedButton.visible)
             {
-                CanvasController.toggleLayer2Check();
+                CanvasLayers.toggleLayer2Check();
             }
             CanvasResizer.updateButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
             InputManager.removeKeyRepeatEvents(null);

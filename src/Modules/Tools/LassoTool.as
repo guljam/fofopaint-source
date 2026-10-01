@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
@@ -193,12 +194,12 @@ package Modules.Tools
                 const point2:Array = lassoTransformData[1].concat();
                 var l1:Boolean = true;
                 var l2:Boolean = true;
-                if (CanvasController.checkedLayer === 1 || (CanvasController.canvasLayer1Bitmap.visible && !CanvasController.canvasLayer2Bitmap.visible))
+                if (CanvasLayers.checkedLayer === 1 || (CanvasController.canvasLayer1Bitmap.visible && !CanvasController.canvasLayer2Bitmap.visible))
                 {
                     l1 = true;
                     l2 = false;
                 }
-                else if (CanvasController.checkedLayer === 2 || (!CanvasController.canvasLayer1Bitmap.visible && CanvasController.canvasLayer2Bitmap.visible))
+                else if (CanvasLayers.checkedLayer === 2 || (!CanvasController.canvasLayer1Bitmap.visible && CanvasController.canvasLayer2Bitmap.visible))
                 {
                     l1 = false;
                     l2 = true;
@@ -348,7 +349,7 @@ package Modules.Tools
             swapLassoImage();
             addLassoLayerMergeCommand(0);
             _lassoMenuBox.hint(HintStrings.getLassoMenuHintSwapLayer());
-            CanvasController.playLayerSwapEffect(_lassoMenuBox.lassoLayerSwap);
+            CanvasLayers.playLayerSwapEffect(_lassoMenuBox.lassoLayerSwap);
         }
 
         private static function copyCanvasImageToLassoTool():void
@@ -643,7 +644,7 @@ package Modules.Tools
                 finishLassoSelection();
             }
 
-            if (_isStarted === true || CanvasController.isAllLayerInvisible())
+            if (_isStarted === true || CanvasLayers.isAllLayerInvisible())
                 return;
 
             const clickX:Number = CanvasController.canvasDrawLayerChild.mouseX;
@@ -662,8 +663,8 @@ package Modules.Tools
             lassoLayer1.visible = true;
             DottedLineTool.setLineScale(CanvasController.canvasZoomMultipler);
 
-            const needLayer1:Boolean = CanvasController.canvasLayer1Bitmap.visible && CanvasController.checkedLayer !== 2;
-            const needLayer2:Boolean = CanvasController.canvasLayer2Bitmap.visible && CanvasController.checkedLayer !== 1;
+            const needLayer1:Boolean = CanvasController.canvasLayer1Bitmap.visible && CanvasLayers.checkedLayer !== 2;
+            const needLayer2:Boolean = CanvasController.canvasLayer2Bitmap.visible && CanvasLayers.checkedLayer !== 1;
             if (needLayer1)
             {
                 if (lassoLayer1LastBitmapdata != null)
@@ -803,12 +804,12 @@ package Modules.Tools
 
             var checklayer1:Boolean = CanvasController.canvasLayer1Bitmap.visible;
             var checklayer2:Boolean = CanvasController.canvasLayer2Bitmap.visible;
-            if (CanvasController.checkedLayer === 1)
+            if (CanvasLayers.checkedLayer === 1)
             {
                 checklayer1 = true;
                 checklayer2 = false;
             }
-            else if (CanvasController.checkedLayer === 2)
+            else if (CanvasLayers.checkedLayer === 2)
             {
                 checklayer1 = false;
                 checklayer2 = true;
@@ -826,7 +827,7 @@ package Modules.Tools
             _isStarted = true;
             setDefaultLassoMenuPos(_lassoMenuBox);
             UIController.keepBoxInsideViewPort(_lassoMenuBox);
-            if (CanvasController.checkedLayer || !checklayer1 || !checklayer2)
+            if (CanvasLayers.checkedLayer || !checklayer1 || !checklayer2)
             {
                 _lassoMenuBox.lassoLayerSwap.alpha = UITheme.OFFALPHA;
                 _lassoMenuBox.lassoLayerMerge.alpha = UITheme.OFFALPHA;
@@ -855,7 +856,7 @@ package Modules.Tools
             const lassoBMPScaleY:Number = lassoLayer1.scaleY;
             var lassoBMPWidth:Number = lassoLayer1Bitmap.width * lassoBMPScaleX;
             var lassoBMPHeight:Number = lassoLayer1Bitmap.height * lassoBMPScaleY;
-            if (CanvasController.checkedLayer === 2 || CanvasController.canvasLayer1Bitmap.visible === false)
+            if (CanvasLayers.checkedLayer === 2 || CanvasController.canvasLayer1Bitmap.visible === false)
             {
                 lassoBMPWidth = lassoLayer2Bitmap.width * lassoBMPScaleX;
                 lassoBMPHeight = lassoLayer2Bitmap.height * lassoBMPScaleY;
@@ -939,12 +940,12 @@ package Modules.Tools
                     }
                     var checklayer1:Boolean = CanvasController.canvasLayer1Bitmap.visible;
                     var checklayer2:Boolean = CanvasController.canvasLayer2Bitmap.visible;
-                    if (CanvasController.checkedLayer === 1)
+                    if (CanvasLayers.checkedLayer === 1)
                     {
                         checklayer1 = true;
                         checklayer2 = false;
                     }
-                    else if (CanvasController.checkedLayer === 2)
+                    else if (CanvasLayers.checkedLayer === 2)
                     {
                         checklayer1 = false;
                         checklayer2 = true;

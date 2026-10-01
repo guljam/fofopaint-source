@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.UIController;
@@ -473,7 +474,7 @@ package Modules
                         PenSizePreviewCursor.updateSizeAndShape();
                         isLoadingAppData = false;
                         AppWindowState.updateWindowTitle();
-                        CanvasController.selectLayer1(false);
+                        CanvasLayers.selectLayer1(false);
 
                         if (ReplayState.isGeneratingCacheImages())
                         {
@@ -534,7 +535,7 @@ package Modules
                 UIController.applyUIColorSet();
 
                 UIController.canvasInfoBox.init(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, Math.floor(CanvasController.canvasZoomMultipler * 100), CanvasController.canvasAnchorPoint.rotation, false);
-                CanvasController.selectLayer1(false);
+                CanvasLayers.selectLayer1(false);
 
                 PaletteController.initMyPaletteHistory();
 
