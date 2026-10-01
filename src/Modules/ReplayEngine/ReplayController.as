@@ -1,6 +1,7 @@
 package Modules.ReplayEngine
 {
     import Modules.InputPriority;
+    import Modules.MouseState;
     import Modules.Tools.PenTool;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
@@ -1019,6 +1020,7 @@ package Modules.ReplayEngine
 
             function replaySpeedButtomUpEvent(e:MouseEvent):void
             {
+                MouseState.endDrag("replaySpeed");
                 CanvasController.isMouseDragging = false;
 
                 if (ReplayState.isReplayFinished === false)
@@ -1040,6 +1042,10 @@ package Modules.ReplayEngine
             showReplaySpeedMouseHint();
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent, false, InputPriority.DEFAULT);
+            MouseState.beginDrag("replaySpeed", function ():void
+                {
+                    replaySpeedButtomUpEvent(null);
+                });
         }
 
         public static function updateReplaySpeedSliderAlpha():void

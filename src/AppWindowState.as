@@ -4,10 +4,12 @@ package
     import Modules.AppStateManager;
     import Modules.MainUIController;
     import Modules.InputManager;
+    import Modules.MouseState;
     import Modules.ClipboardManager;
     import Modules.AboutBoxController;
     import Modules.CanvasController;
     import Modules.ToolController;
+    import Modules.FillPenTool;
     import Modules.SidebarController;
     import flash.utils.getTimer;
     import Modules.BackgroundWorkerCoordinator;
@@ -71,14 +73,16 @@ package
         public static function onWindowDeactivate(e:Event):void
         {
             CanvasController.isMouseClickBlocked = true;
+            FillPenTool.hideFillPenMenuBox();
+            MouseState.finishAllDrags(); // 그리는 도중 포커스를 잃으면 mouseUp이 안오므로 획 등을 정상 종료함
+            MouseState.resetAll();
+            CanvasController.isKeyReleasedBeforeMouseUp = false;
             main.resizeCanvas.exit(true);
             InputManager.clearKeyBuffer();
             InputManager.removeKeyRepeatEvents(null);
             FOFOTimer.remove("pressholdtimer");
-            ToolController.cancelOptionButtonDrag();
             if (ToolController.isToolBox2Showing)
             {
-                CanvasController.isRightMouseClicked = false;
                 ToolController.closeToolBox2();
             }
             if (!SidebarController.isSidebarVisible)

@@ -184,6 +184,7 @@ package Modules
 
             function onMouseUpGridButton(e:MouseEvent):void
             {
+                MouseState.endDrag("gridSlider");
                 CanvasController.isMouseDragging = false;
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
@@ -262,6 +263,10 @@ package Modules
                     drawGridByValue(MainUI.topBar.gridSliderWrapper.mouseX, true);
                     main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
                     main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton, false, InputPriority.DEFAULT);
+                    MouseState.beginDrag("gridSlider", function ():void
+                        {
+                            onMouseUpGridButton(null);
+                        });
                 }
             }
 
@@ -330,6 +335,7 @@ package Modules
             function off():void
             {
                 MainUI.hideBottomHint();
+                MouseState.endDrag("gridSlider");
                 CanvasController.isMouseDragging = false;
                 InputManager.removeKeyRepeatEvents(null);
                 main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton);

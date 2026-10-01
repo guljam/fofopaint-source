@@ -67,9 +67,13 @@ package Modules
         public static var canvasZoomIndex:int = 4;
 
         // todo 나중에 앱창 마우스 관련으로 분리
-        public static var isMouseLeftClicked:Boolean = false; // 클릭하면 올려줌
-        public static var isRightMouseClicked:Boolean = false; // 클릭하면 올려줌
-        public static var isMouseDragging:Boolean = false; // 툴을 계속 클릭한채로 움직이면 topmenu의 힌트가 안켜지도록 함
+        // 마우스 버튼 상태는 MouseState가 소유함 (기존 호출부 호환용 위임)
+        public static function get isMouseLeftClicked():Boolean { return MouseState.isLeftDown; }
+        public static function set isMouseLeftClicked(value:Boolean):void { MouseState.isLeftDown = value; }
+        public static function get isRightMouseClicked():Boolean { return MouseState.isRightDown; }
+        public static function set isRightMouseClicked(value:Boolean):void { MouseState.isRightDown = value; }
+        public static function get isMouseDragging():Boolean { return MouseState.isDragging; }
+        public static function set isMouseDragging(value:Boolean):void { MouseState.isDragging = value; }
         public static var isMouseClickBlocked:Boolean = false; // 알탭 하고나서 창활성화 되면 일정시간동안 작동하지 않게함
         public static var isKeyReleasedBeforeMouseUp:Boolean = false; // 키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
 
@@ -397,18 +401,6 @@ package Modules
             return checkedLayer === 0;
         }
 
-        public static function onMouseUpStage(e:MouseEvent):void
-        {
-            InputManager.checkInvalidKey();
-            const mx:Number = main.stage.mouseX;
-            const my:Number = main.stage.mouseY;
-            isMouseLeftClicked = false;
-            if (!isMouseLeftClicked && isRightMouseClicked)
-            {
-                isMouseDragging = false;
-            }
-        }
-
         public static function getRefinedPoint(mx:Number, my:Number):Point
         {
             mx = Math.round(mx * 100) / 100;
@@ -521,6 +513,7 @@ package Modules
 
             function onMouseUpCanvasNavigator(e:MouseEvent):void
             {
+                MouseState.endDrag("canvasNavigator");
                 isMouseDragging = false;
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
                 keepCanvasPanelInStage();
@@ -569,6 +562,10 @@ package Modules
                 canvasMoveByCanvasNavigatorEventStarted = true;
                 main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator, false, InputPriority.DEFAULT);
                 main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
+                MouseState.beginDrag("canvasNavigator", function ():void
+                    {
+                        onMouseUpCanvasNavigator(null);
+                    });
             }
         }
 

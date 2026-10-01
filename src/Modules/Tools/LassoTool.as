@@ -1,6 +1,7 @@
 package Modules.Tools
 {
     import Modules.InputPriority;
+    import Modules.MouseState;
     import Modules.CanvasController;
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
@@ -627,8 +628,17 @@ package Modules.Tools
         private static var lassoSelectPoints:Array; // [[x, y], ...] 마우스업 후 lassoTransformData[1]로 그대로 넘겨짐
         private static var lassoPreviewDrawnCount:uint = 0; // 증분 그리기: 점선으로 이미 그린 점 개수
 
+        private static const SELECTION_DRAG_OWNER:String = "lassoSelection";
+        private static var isLassoSelecting:Boolean = false;
+
         public static function startLassoSelection():void
         {
+            // mouseUp을 놓쳐서 이전 선택이 열려있으면 먼저 마무리함
+            if (isLassoSelecting)
+            {
+                finishLassoSelection();
+            }
+
             if (_isStarted === true || CanvasController.isAllLayerInvisible())
                 return;
 
@@ -668,6 +678,8 @@ package Modules.Tools
 
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLassoSelection);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoSelection, false, InputPriority.DEFAULT);
+            isLassoSelecting = true;
+            MouseState.beginDrag(SELECTION_DRAG_OWNER, finishLassoSelection);
         }
 
         private static function resetLassoSelectionData():void
@@ -754,6 +766,14 @@ package Modules.Tools
 
         private static function onMouseUpLassoSelection(e:MouseEvent):void
         {
+            finishLassoSelection();
+        }
+
+        // 이벤트 객체를 쓰지 않음. mouseUp을 못받는 경우(alt+tab 등)에도 MouseState.finishAllDrags가 직접 호출함
+        private static function finishLassoSelection():void
+        {
+            isLassoSelecting = false;
+            MouseState.endDrag(SELECTION_DRAG_OWNER);
             CanvasController.isMouseDragging = false;
             FOFOTimer.remove(LASSO_PREVIEW_TIMER);
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLassoSelection);

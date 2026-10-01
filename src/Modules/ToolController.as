@@ -430,6 +430,7 @@ package Modules
 
             function onMouseUpPenSmoothing(e:MouseEvent):void
             {
+                MouseState.endDrag("penSmoothing");
                 CanvasController.isMouseDragging = false;
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing);
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
@@ -481,6 +482,10 @@ package Modules
             adjustPenSmoothingValue();
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing, false, InputPriority.DEFAULT);
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
+            MouseState.beginDrag("penSmoothing", function ():void
+                {
+                    onMouseUpPenSmoothing(null);
+                });
         }
 
         public static function setDrawToolSize(index:uint):void
@@ -1521,10 +1526,11 @@ package Modules
             box.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverOptionButtonDrag);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, endOptionButtonDrag, false, InputPriority.DEFAULT);
             main.stage.addEventListener(Event.MOUSE_LEAVE, endOptionButtonDrag);
+            MouseState.beginDrag("optionButton", cancelOptionButtonDrag);
         }
 
-        // 포커스를 잃으면(alt+tab 등) mouseUp이 안 오므로 AppWindowState.onWindowDeactivate에서 호출함
-        public static function cancelOptionButtonDrag():void
+        // 포커스를 잃으면(alt+tab 등) mouseUp이 안 오므로 MouseState.finishAllDrags가 호출함
+        private static function cancelOptionButtonDrag():void
         {
             if (isOptionButtonDragging)
             {
@@ -1553,6 +1559,7 @@ package Modules
 
         private static function endOptionButtonDrag(e:Event):void
         {
+            MouseState.endDrag("optionButton");
             isOptionButtonDragging = false;
             CanvasController.isMouseDragging = wasMouseDraggingBeforeOptionDrag;
 

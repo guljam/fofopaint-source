@@ -1,6 +1,7 @@
 package
 {
     import Modules.InputPriority;
+    import Modules.MouseState;
     import flash.display.Sprite;
     import flash.display.Shape;
     import flash.display.Bitmap;
@@ -12,6 +13,7 @@ package
     public class DrawrScratchPad extends Sprite
     {
         private const scratchPadDraw:Shape = new Shape();
+        private static const SCRATCH_DRAG_OWNER:String = "scratchPad";
         private var scratchPadBitmap:Bitmap;
         private const scratchPadBG:Shape = new Shape();
         private var scratchPadBGColor:uint = 0;
@@ -87,6 +89,7 @@ package
 
         public function removeCheckMouseDistEvent():void
         {
+            MouseState.endDrag(SCRATCH_DRAG_OWNER);
             onMouseUpStopDrawLine(null);
             stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveScratchPad);
             stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpScratchPad);
@@ -94,6 +97,7 @@ package
 
         public function onMouseUpScratchPad(e:MouseEvent):void
         {
+            MouseState.endDrag(SCRATCH_DRAG_OWNER);
             if (Math.floor(scratchPadBitmap.mouseX) === Math.floor(startPos.x) && Math.floor(scratchPadBitmap.mouseY) === Math.floor(startPos.y))
             {
                 if (mainPickColorFunc !== null)
@@ -143,6 +147,7 @@ package
                 startPos.setTo(scratchPadBitmap.mouseX, scratchPadBitmap.mouseY);
                 stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveScratchPad);
                 stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpScratchPad, false, InputPriority.DEFAULT);
+                MouseState.beginDrag(SCRATCH_DRAG_OWNER, removeCheckMouseDistEvent);
             }
         }
 
@@ -153,6 +158,7 @@ package
 
         private function onMouseUpStopDrawLine(e:MouseEvent):void
         {
+            MouseState.endDrag(SCRATCH_DRAG_OWNER);
             isScratchStarted = false;
             isPadCleared = false;
             stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawLine);

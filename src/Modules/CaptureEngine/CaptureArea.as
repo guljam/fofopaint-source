@@ -2,6 +2,7 @@ package Modules.CaptureEngine
 {
     import Modules.InputPriority;
     import Modules.MainUI;
+    import Modules.MouseState;
     import Modules.CanvasController;
     import flash.display.CapsStyle;
     import flash.display.LineScaleMode;
@@ -296,8 +297,17 @@ package Modules.CaptureEngine
             }
         }
 
+        private static const DRAG_OWNER:String = "captureArea";
+
         private static function onMouseUpCaptureArea(e:MouseEvent):void
         {
+            finishCaptureAreaDrag();
+        }
+
+        // 이벤트 객체를 쓰지 않음. mouseUp을 못받는 경우(alt+tab 등)에도 MouseState.finishAllDrags가 직접 호출함
+        private static function finishCaptureAreaDrag():void
+        {
+            MouseState.endDrag(DRAG_OWNER);
             CanvasController.isMouseDragging = false;
             removeCaptureAreaEvents();
 
@@ -444,6 +454,13 @@ package Modules.CaptureEngine
             canvasHeight = 0;
             xPanel = null;
             mouseMoved = false;
+            // 드래그 도중 캡처 모드가 끝나면 리스너와 등록이 남지 않게 정리함
+            if (isDragging)
+            {
+                removeCaptureAreaEvents();
+                MouseState.endDrag(DRAG_OWNER);
+                CanvasController.isMouseDragging = false;
+            }
             isDragging = false;
             MainUI.topBar.capClipBoard.alpha = 1.0;
         }
@@ -469,12 +486,19 @@ package Modules.CaptureEngine
 
         private static function beginDrag(mx:Number, my:Number, moveListener:Function):void
         {
+            // mouseUp을 놓쳐서 이전 드래그가 열려있으면 먼저 마무리함
+            if (isDragging)
+            {
+                finishCaptureAreaDrag();
+            }
+
             CanvasController.isMouseDragging = true;
             isDragging = true;
             mouseMoved = false;
             clickPos.setTo(mx, my);
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, moveListener);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea, false, InputPriority.DEFAULT);
+            MouseState.beginDrag(DRAG_OWNER, finishCaptureAreaDrag);
         }
 
         public static function start():void

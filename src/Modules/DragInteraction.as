@@ -16,6 +16,7 @@ package Modules
         private static var dragInteractionMouseMoveFunc:Function;
         private static var dragInteractionMouseUpFunc:Function;
         private static var dragInteractionMouseEventStarted:Boolean = false;
+        private static const DRAG_OWNER:String = "dragInteraction";
 
         public static function handleMouseMoveDragInteraction(event:Event):void
         {
@@ -23,18 +24,34 @@ package Modules
         }
         public static function handleMouseUpDragInteraction(event:Event):void
         {
+            finishDragInteraction();
+        }
+
+        // 이벤트 객체를 쓰지 않음. mouseUp을 못받는 경우(alt+tab 등)에도 MouseState.finishAllDrags가 직접 호출함
+        private static function finishDragInteraction():void
+        {
             dragInteractionMouseEventStarted = false;
+            MouseState.endDrag(DRAG_OWNER);
             CanvasController.isMouseDragging = false;
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, handleMouseUpDragInteraction);
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMoveDragInteraction);
 
-            dragInteractionMouseUpFunc();
+            if (dragInteractionMouseUpFunc !== null)
+            {
+                dragInteractionMouseUpFunc();
+            }
             dragInteractionMouseUpFunc = null;
             dragInteractionMouseMoveFunc = null;
         }
 
         public static function startDragInteraction(onDragStartFunc:Function, onMouseMoveFunc:Function, onMouseUpFunc:Function):void
         {
+            // mouseUp을 놓쳐서 이전 드래그가 열려있으면 먼저 마무리함 (콜백 슬롯이 하나라서 덮어쓰면 이전 드래그의 mouseUp 처리가 사라짐)
+            if (dragInteractionMouseEventStarted)
+            {
+                finishDragInteraction();
+            }
+
             CanvasController.isMouseDragging = true;
             dragInteractionMouseUpFunc = onMouseUpFunc;
             dragInteractionMouseMoveFunc = onMouseMoveFunc;
@@ -45,6 +62,7 @@ package Modules
                 dragInteractionMouseEventStarted = true;
                 main.stage.addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMoveDragInteraction);
                 main.stage.addEventListener(MouseEvent.MOUSE_UP, handleMouseUpDragInteraction, false, InputPriority.DEFAULT);
+                MouseState.beginDrag(DRAG_OWNER, finishDragInteraction);
             }
         }
 

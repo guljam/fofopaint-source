@@ -1,6 +1,7 @@
 package Modules.Tools
 {
     import Modules.InputPriority;
+    import Modules.MouseState;
 	import Modules.CanvasController;
 	import Modules.ColorPickerController;
 	import Modules.DrawingFinish;
@@ -371,8 +372,19 @@ package Modules.Tools
 			}
 		}
 
+		private static const STROKE_DRAG_OWNER:String = "penStroke";
+		private static var isStrokeActive:Boolean = false;
+
 		private static function onMouseUpPenTool(e:MouseEvent):void
 		{
+			finishStroke();
+		}
+
+		// 이벤트 객체를 쓰지 않음. mouseUp을 못받는 경우(alt+tab 등)에도 MouseState.finishAllDrags가 직접 호출함
+		private static function finishStroke():void
+		{
+			isStrokeActive = false;
+			MouseState.endDrag(STROKE_DRAG_OWNER);
 			main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
 			main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
 
@@ -431,6 +443,12 @@ package Modules.Tools
 
 		public static function startStroke(flag:Boolean):void
 		{
+			// mouseUp을 놓쳐서 이전 획이 열려있으면 먼저 마무리함 (replay/undo 명령이 섞이지 않게)
+			if (isStrokeActive)
+			{
+				finishStroke();
+			}
+
 			isPenTool = flag;
 
 			if (isPenTool)
@@ -519,6 +537,8 @@ package Modules.Tools
 			CanvasController.canvasDrawLayerChild.filters = [];
 			main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
 			main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool, false, InputPriority.DEFAULT);
+			isStrokeActive = true;
+			MouseState.beginDrag(STROKE_DRAG_OWNER, finishStroke);
 		}
 	}
 }

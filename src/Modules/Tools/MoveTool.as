@@ -1,6 +1,7 @@
 package Modules.Tools
 {
     import Modules.InputPriority;
+    import Modules.MouseState;
     import Modules.CanvasController;
     import flash.events.MouseEvent;
     import Modules.Utils;
@@ -33,8 +34,17 @@ package Modules.Tools
             CanvasController.canvasLayer2Bitmap.y = 0;
         }
 
+        private static const DRAG_OWNER:String = "moveTool";
+
         private static function onMouseUpMoveTool(e:MouseEvent):void
         {
+            finishMoveTool();
+        }
+
+        // 이벤트 객체를 쓰지 않음. mouseUp을 못받는 경우(alt+tab 등)에도 MouseState.finishAllDrags가 직접 호출함
+        private static function finishMoveTool():void
+        {
+            MouseState.endDrag(DRAG_OWNER);
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMoveTool);
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool);
@@ -191,6 +201,7 @@ package Modules.Tools
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);
             main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool, false, InputPriority.DEFAULT);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMoveTool, false, InputPriority.DEFAULT);
+            MouseState.beginDrag(DRAG_OWNER, finishMoveTool);
         };
     }
 }

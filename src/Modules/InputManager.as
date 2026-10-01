@@ -684,7 +684,7 @@ package Modules
         public static function onMouseDownStage(e:MouseEvent):void
         {
             checkInvalidKey();
-            CanvasController.isMouseLeftClicked = true;
+            MouseState.onLeftDown();
             MainUI.hideBottomHint();
         }
 
@@ -693,17 +693,13 @@ package Modules
             InputManager.checkInvalidKey();
             const mx:Number = main.stage.mouseX;
             const my:Number = main.stage.mouseY;
-            CanvasController.isMouseLeftClicked = false;
-            if (!CanvasController.isMouseLeftClicked && CanvasController.isRightMouseClicked)
-            {
-                CanvasController.isMouseDragging = false;
-            }
+            MouseState.onLeftUp();
         }
 
         public static function onRightMouseDownStage(e:MouseEvent):void
         {
             checkInvalidKey();
-            CanvasController.isRightMouseClicked = true;
+            MouseState.onRightDown();
         }
 
         public static function onRightMouseUpStage(e:MouseEvent):void
@@ -711,11 +707,7 @@ package Modules
             InputManager.checkInvalidKey();
             const mx:Number = main.stage.mouseX;
             const my:Number = main.stage.mouseY;
-            CanvasController.isRightMouseClicked = false;
-            if (!CanvasController.isMouseLeftClicked && CanvasController.isRightMouseClicked)
-            {
-                CanvasController.isMouseDragging = false;
-            }
+            MouseState.onRightUp();
         }
 
         public static function onMouseWheelStage(e:MouseEvent):void
@@ -765,14 +757,14 @@ package Modules
 
         public static function onMouseLeaveStage(e:Event):void
         {
-            CanvasController.isMouseLeftClicked = false;
-            CanvasController.isRightMouseClicked = false;
-            CanvasController.isMouseDragging = false;
+            MouseState.resetAll();
             PenSizePreviewCursor.setVisible(false);
         }
 
         public static function onMiddleMouseDownStage(e:MouseEvent):void
         {
+            MouseState.onMiddleDown();
+
             if (CaptureController.isCaptureModeON)
                 return;
 
@@ -1090,6 +1082,7 @@ package Modules
             {
                 CanvasController.isMouseDragging = true;
                 main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
+                MouseState.beginDrag(FILLPEN_DRAG_OWNER, finishFillPenDrag);
 
                 const filteredPos:Point = CanvasController.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
                 const mx:Number = filteredPos.x + FillPenTool.pos05Offset;
@@ -1192,6 +1185,32 @@ package Modules
             FillPenTool.showFillPenMenuBox()
         }
 
+        private static const FILLPEN_DRAG_OWNER:String = "fillPenDrag";
+
+        // 첫 획은 onMouseDownFillPen이 아니라 FillPenTool.start()가 시작하므로 거기서 호출해 등록함
+        public static function beginFillPenDrag():void
+        {
+            MouseState.beginDrag(FILLPEN_DRAG_OWNER, finishFillPenDrag);
+        }
+
+        // 이벤트 객체를 쓰지 않음. mouseUp을 못받는 경우(alt+tab 등)에 MouseState.finishAllDrags가 직접 호출함
+        // onMouseUpFillPen에서 버튼 클릭 판정(e.target)이 필요 없는 마무리 부분만 수행함
+        private static function finishFillPenDrag():void
+        {
+            MouseState.endDrag(FILLPEN_DRAG_OWNER);
+            FOFOTimer.remove("previewFilledColorUpdateTimer");
+            CanvasController.isMouseDragging = false;
+            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
+
+            // 드래그 도중 FillPen이 이미 종료됐다면(등록이 남은 경우) 미리보기를 다시 그리지 않음
+            if (FillPenTool.isStarted && !FillPenTool.fillPenBox.visible)
+            {
+                FillPenTool.handleOnMouseUp();
+            }
+
+            FillPenTool.afterKeyUpOK = false;
+        }
+
         public static function onMouseUpFillPen(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
@@ -1203,6 +1222,7 @@ package Modules
 
             const targetName:String = e.target.name;
 
+            MouseState.endDrag(FILLPEN_DRAG_OWNER);
             FOFOTimer.remove("previewFilledColorUpdateTimer");
             CanvasController.isMouseDragging = false;
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);

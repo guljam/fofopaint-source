@@ -1,6 +1,7 @@
 ﻿package
 {
     import Modules.InputPriority;
+    import Modules.MouseState;
     import Modules.AboutBoxController;
     import Modules.AppStateManager;
     import Modules.AppStateVars;
@@ -222,6 +223,8 @@
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, InputManager.onRightMouseUpStage, false, InputPriority.STAGE_ROOT);
             stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, InputManager.onRightMouseDownStage, true, InputPriority.STAGE_ROOT);
             stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, InputManager.onMiddleMouseDownStage, false, InputPriority.STAGE_ROOT);
+            stage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, MouseState.onMiddleUp, false, InputPriority.STAGE_ROOT);
+            stage.addEventListener(MouseEvent.MOUSE_MOVE, MouseState.onMouseMoveHeal, true, InputPriority.STAGE_ROOT);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, InputManager.onKeyDownStage, true, InputPriority.STAGE_ROOT);
             stage.addEventListener(KeyboardEvent.KEY_UP, InputManager.onKeyUpStage, false, InputPriority.STAGE_ROOT);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, InputManager.onMouseMoveUpdatePenPreviewCursor);

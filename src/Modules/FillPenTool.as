@@ -501,6 +501,13 @@ package Modules
             ColorPickerController.colorPickerBox.setFillPenModeON();
 
             InputManager.addEventsFillPen();
+            InputManager.beginFillPenDrag();
+        }
+
+        // 오른쪽 버튼을 떼서 항목을 고르는 메뉴라서, 포커스를 잃으면(alt+tab 등) up이 안 와서 메뉴가 남음
+        public static function hideFillPenMenuBox():void
+        {
+            fillPenBox.visible = false;
         }
     }
 }
