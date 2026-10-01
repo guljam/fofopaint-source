@@ -18,11 +18,14 @@ package Modules.ReplayEngine
         private static var fileTicks:Number = 0;
         private static var fileBytes:Number = 0; // 표가 만들어진 리플레이 파일 크기
         private static var valid:Boolean = false;
+        private static var cachedGroup:Array = null; // getCommandAt에서 마지막으로 읽은 파일 뭉치
+        private static var cachedGroupStart:Number = -1;
 
         // 리플레이 파일 내용이 바뀌었는데 아래 append, truncate로 따라가지 않는 곳에서 호출. 다음에 쓸때 파일을 다시 읽음
         public static function invalidate():void
         {
             valid = false;
+            cachedGroup = null;
         }
 
         // UndoController.addNew에서 가장 오래된 undo 뭉치가 파일 끝에 붙을때
@@ -73,6 +76,7 @@ package Modules.ReplayEngine
                 groupFrames.length = end;
                 groupTicks.length = end;
                 groupBytes.length = end;
+                cachedGroup = null;
             }
 
             fileFrames = frame;
@@ -125,6 +129,52 @@ package Modules.ReplayEngine
             }
 
             return tick;
+        }
+
+        // frame 위치의 명령 (그리지 않고 보기만 함), 범위 밖이면 null
+        public static function getCommandAt(frame:Number):Array
+        {
+            if (frame < 0)
+            {
+                return null;
+            }
+
+            if (!isValid())
+            {
+                rebuild();
+            }
+
+            if (frame < fileFrames)
+            {
+                const g:int = findFileGroup(frame);
+
+                if (cachedGroup === null || cachedGroupStart !== groupFrames[g])
+                {
+                    cachedGroup = readFileGroup(groupBytes[g]);
+                    cachedGroupStart = groupFrames[g];
+                }
+
+                return cachedGroup ? cachedGroup[frame - cachedGroupStart] : null;
+            }
+
+            var start:Number = fileFrames;
+
+            for each (var data:Array in ReplayState.rMemoryData)
+            {
+                if (!data)
+                {
+                    continue;
+                }
+
+                if (frame < start + data.length)
+                {
+                    return data[frame - start];
+                }
+
+                start += data.length;
+            }
+
+            return null;
         }
 
         // frame이 데이터 첫 그리기 명령보다 앞인지 (앞에 붙은 wait만 지났거나 맨 처음)
@@ -216,6 +266,7 @@ package Modules.ReplayEngine
         private static function rebuild():void
         {
             groupFrames.length = 0;
+            cachedGroup = null;
             groupTicks.length = 0;
             groupBytes.length = 0;
             fileFrames = 0;

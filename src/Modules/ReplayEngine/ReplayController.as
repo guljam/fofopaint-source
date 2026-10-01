@@ -434,13 +434,51 @@ package Modules.ReplayEngine
             }
         }
 
+        // 1프레임 이동은 그리기 명령 하나씩 움직임, wait 칸은 그려지는게 없어서 건너뜀
+        // 멈추는 위치는 항상 그리기 명령 바로 뒤 (그 명령 뒤에 붙은 wait는 읽지 않음)
+        private static function isWaitAt(frame:Number):Boolean
+        {
+            return ReplayState.isWaitCommand(ReplayTimeline.getCommandAt(frame));
+        }
+
+        private static function getPreviousCommandFrame(frame:Number):Number
+        {
+            // 지금 위치 앞의 wait, 그리기 명령 하나, 그 명령 앞에 붙은 wait 순서로 되돌아감
+            while (frame > 0 && isWaitAt(frame - 1))
+            {
+                frame--;
+            }
+
+            if (frame > 0)
+            {
+                frame--;
+            }
+
+            while (frame > 0 && isWaitAt(frame - 1))
+            {
+                frame--;
+            }
+
+            return frame;
+        }
+
+        private static function getNextCommandFrame(frame:Number):Number
+        {
+            while (frame < ReplayState.TOTAL_FRAME && isWaitAt(frame))
+            {
+                frame++;
+            }
+
+            return frame < ReplayState.TOTAL_FRAME ? frame + 1 : frame;
+        }
+
         public static function moveToPreviousFrame():void
         {
             readyForFrameJump();
 
             if (ReplayState.rNowFrame > 0)
             {
-                ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame - 1, ReplayDrawer.JUMP_FRAME_MANUAL);
+                ReplayDrawer.renderReplayFrame(getPreviousCommandFrame(ReplayState.rNowFrame), ReplayDrawer.JUMP_FRAME_MANUAL);
                 updateDeleteReplayDataButtonsState();
                 ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
                 updateReplayPrograssText();
@@ -453,7 +491,7 @@ package Modules.ReplayEngine
 
             if (ReplayState.rNowFrame < ReplayState.TOTAL_FRAME)
             {
-                ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame + 1, ReplayDrawer.JUMP_FRAME_MANUAL);
+                ReplayDrawer.renderReplayFrame(getNextCommandFrame(ReplayState.rNowFrame), ReplayDrawer.JUMP_FRAME_MANUAL);
                 updateDeleteReplayDataButtonsState();
                 ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
                 updateReplayPrograssText();
