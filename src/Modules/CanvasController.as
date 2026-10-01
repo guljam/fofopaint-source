@@ -567,7 +567,7 @@ package Modules
             if (canvasMoveByCanvasNavigatorEventStarted === false)
             {
                 canvasMoveByCanvasNavigatorEventStarted = true;
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator);
+                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator, false, InputPriority.DEFAULT);
                 main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
             }
         }
@@ -1245,11 +1245,11 @@ package Modules
                 }
 
                 MainUIController.updateCanvasResizeButtonVisible(false);
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, resizeButtonMouseUpEvent);
+                main.stage.addEventListener(MouseEvent.MOUSE_UP, resizeButtonMouseUpEvent, false, InputPriority.DEFAULT);
                 if (rightMouseupEventON === false)
                 {
                     rightMouseupEventON = true;
-                    main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent);
+                    main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent, false, InputPriority.DEFAULT);
                 }
                 var onMouseMove:Function;
                 if (targetName === "resizeButtonL")

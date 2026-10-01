@@ -1,5 +1,6 @@
 package
 {
+    import Modules.InputPriority;
     import flash.display.Sprite;
     import flash.display.Shape;
     import flash.display.Bitmap;
@@ -122,7 +123,7 @@ package
                 scratchPadDraw.graphics.moveTo(startPos.x, startPos.y);
 
                 stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawLine);
-                stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpStopDrawLine);
+                stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpStopDrawLine, false, InputPriority.DEFAULT);
             }
         }
 
@@ -141,7 +142,7 @@ package
                 lineStyleData[1] = lineAlpha;
                 startPos.setTo(scratchPadBitmap.mouseX, scratchPadBitmap.mouseY);
                 stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveScratchPad);
-                stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpScratchPad);
+                stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpScratchPad, false, InputPriority.DEFAULT);
             }
         }
 

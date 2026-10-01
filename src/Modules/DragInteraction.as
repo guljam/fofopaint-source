@@ -44,7 +44,7 @@ package Modules
             {
                 dragInteractionMouseEventStarted = true;
                 main.stage.addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMoveDragInteraction);
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, handleMouseUpDragInteraction);
+                main.stage.addEventListener(MouseEvent.MOUSE_UP, handleMouseUpDragInteraction, false, InputPriority.DEFAULT);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+    import Modules.InputPriority;
 	import flash.display.Sprite;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
@@ -94,8 +95,8 @@
 				if (!_isHintHideEventsAdded)
 				{
 					_isHintHideEventsAdded = true;
-					_stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseEventHideHint);
-					_stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseEventHideHint);
+					_stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseEventHideHint, false, InputPriority.DEFAULT);
+					_stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseEventHideHint, false, InputPriority.DEFAULT);
 				}
 			}
 		}

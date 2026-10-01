@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.InputPriority;
     import Modules.CanvasController;
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
@@ -666,7 +667,7 @@ package Modules.Tools
             }
 
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLassoSelection);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoSelection);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoSelection, false, InputPriority.DEFAULT);
         }
 
         private static function resetLassoSelectionData():void

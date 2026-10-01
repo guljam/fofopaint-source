@@ -332,7 +332,7 @@ package Modules
                     }
                     handMouseClickEventStarted = false;
                 }
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox);
+                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox, false, InputPriority.DEFAULT);
                 return;
             }
 
@@ -678,7 +678,7 @@ package Modules
                     }
                 }
             }
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp, false, InputPriority.DEFAULT);
         }
 
         public static function onMouseDownStage(e:MouseEvent):void
@@ -930,11 +930,11 @@ package Modules
             {
                 isDrawModeInputEventsAdded = true;
                 // resetKeyBuffer();
-                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpDrawMode, false, -1);
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownDrawMode, false, -1);
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownDrawMode, false, -1);
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpDrawMode, false, -1);
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownDrawMode, false, -1);
+                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpDrawMode, false, InputPriority.MODE);
+                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownDrawMode, false, InputPriority.MODE);
+                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownDrawMode, false, InputPriority.MODE);
+                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpDrawMode, false, InputPriority.MODE);
+                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownDrawMode, false, InputPriority.MODE);
                 ColorPickerController.colorPickerBox.rgbInfoText.addEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfoText);
             }
         }
@@ -950,8 +950,8 @@ package Modules
         public static function addInputEventsToolBox2():void
         {
             removeInputEventsDrawMode();
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpToolBox2, false, -2);
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownToolBox2, false, -2);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpToolBox2, false, InputPriority.LATE);
+            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownToolBox2, false, InputPriority.LATE);
         }
 
         public static function onRightMouseUpToolBox2(e:MouseEvent):void
@@ -1139,13 +1139,13 @@ package Modules
         public static function addEventsFillPen():void
         {
             main.stage.addEventListener(MouseEvent.MOUSE_OVER, FillPenTool.onMouseOverFillPenHint);
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownFillPen);
+            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownFillPen, false, InputPriority.DEFAULT);
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpFillPen);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownFillPen);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpFillPen);
-            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpFillPen);
-            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeydownFillPen);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpFillPen, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownFillPen, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpFillPen, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpFillPen, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeydownFillPen, false, InputPriority.DEFAULT);
         }
 
         public static function onRightMouseDownFillPen(e:MouseEvent):void
@@ -1465,11 +1465,11 @@ package Modules
         public static function addKeyRepeatEvents():void
         {
             main.stage.nativeWindow.addEventListener(Event.DEACTIVATE, removeKeyRepeatEvents);
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, removeKeyRepeatEvents);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, removeKeyRepeatEvents);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, removeKeyRepeatEvents);
-            main.stage.addEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents);
+            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
         }
 
         public static function removeKeyRepeatEvents(e:Object):void
@@ -1954,12 +1954,12 @@ package Modules
 
         public static function addInputEventsLassoTool():void
         {
-            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLassoTool);
-            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLassoTool);
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLassoTool);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool, false, -1);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool);
+            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLassoTool, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLassoTool, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLassoTool, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool, false, InputPriority.MODE);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool, false, InputPriority.DEFAULT);
             main.stage.addEventListener(MouseEvent.MOUSE_OVER, LassoTool.lassoMenuHintONEvent);
             removeInputEventsDrawMode();
         }
@@ -2638,10 +2638,10 @@ package Modules
 
                 isCaptureModeInputEventsAdded = true;
                 // resetKeyBuffer();
-                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpCaptureMode, false, -1);
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownCaptureMode, false, -1);
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownCaptureMode, false, -1);
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownCaptureMode, false, -1);
+                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpCaptureMode, false, InputPriority.MODE);
+                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownCaptureMode, false, InputPriority.MODE);
+                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownCaptureMode, false, InputPriority.MODE);
+                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownCaptureMode, false, InputPriority.MODE);
             }
         }
 
@@ -2862,10 +2862,10 @@ package Modules
             {
                 isReplayModeInputEventsAdded = true;
                 // resetKeyBuffer();
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode, false, -1);
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode, false, -1);
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownReplayMode, false, -1);
-                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpReplayMode, false, -1);
+                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode, false, InputPriority.MODE);
+                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode, false, InputPriority.MODE);
+                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownReplayMode, false, InputPriority.MODE);
+                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpReplayMode, false, InputPriority.MODE);
             }
         }
 

@@ -62,7 +62,7 @@ package Modules
                     }
                 }
             }
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette, false, InputPriority.DEFAULT);
 
             FOFOTimer.addByName("selectMyPaletteDelayTimer", 0.4, false, function ():void
                 {
@@ -85,7 +85,7 @@ package Modules
                     selectMyPaletteColor();
                 }
             }
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp, false, InputPriority.DEFAULT);
 
             FOFOTimer.addByName("addColorMyPaletteDelayTimer", 0.6, true, function ():Boolean
                 {

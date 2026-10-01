@@ -561,7 +561,7 @@ package Modules
         {
             if (loadMenuBox.visible === false)
             {
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox);
+                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox, false, InputPriority.DEFAULT);
                 loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
                 loadMenuBox.visible = true;
             }

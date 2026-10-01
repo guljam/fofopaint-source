@@ -1,5 +1,6 @@
 package Modules.ReplayEngine
 {
+    import Modules.InputPriority;
     import Modules.Tools.PenTool;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
@@ -1038,7 +1039,7 @@ package Modules.ReplayEngine
             setSpeed(MainUI.topBar.replaySpeedSliderWrapper.mouseX);
             showReplaySpeedMouseHint();
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent, false, InputPriority.DEFAULT);
         }
 
         public static function updateReplaySpeedSliderAlpha():void

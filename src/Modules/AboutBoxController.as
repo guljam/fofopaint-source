@@ -108,7 +108,7 @@ package Modules
 
                 FOFOTimer.addByName("openAboutPanelOFFTimer", 1.0, false, function ():void
                     {
-                        main.stage.addEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown);
+                        main.stage.addEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown, false, InputPriority.DEFAULT);
                     });
             }
             else
@@ -116,7 +116,7 @@ package Modules
                 _aboutBox.resetAppButton.visible = true;
 
                 AppUpdater.checkUpdate();
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown);
+                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown, false, InputPriority.DEFAULT);
             }
 
             _aboutBox.randomLogo();

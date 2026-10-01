@@ -320,8 +320,8 @@ package Modules
 
                 InputManager.resetLastKey();
 
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad, false, -2);
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad, false, -2);
+                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad, false, InputPriority.LATE);
+                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad, false, InputPriority.LATE);
             }
         }
 
@@ -379,7 +379,7 @@ package Modules
                 }
             }
 
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpNumpad);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpNumpad, false, InputPriority.DEFAULT);
         }
 
         private static function onRightMouseDownNumPad(e:MouseEvent):void
@@ -597,7 +597,7 @@ package Modules
             if (isColorPickerModeResetEventAdded === false)
             {
                 isColorPickerModeResetEventAdded = true;
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF);
+                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF, false, InputPriority.DEFAULT);
             }
         }
 
@@ -987,7 +987,7 @@ package Modules
                 }
             }
 
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpColorPickerBox);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpColorPickerBox, false, InputPriority.DEFAULT);
         }
 
         public static function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean

@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.InputPriority;
 	import Modules.CanvasController;
 	import Modules.ColorPickerController;
 	import Modules.DrawingFinish;
@@ -517,7 +518,7 @@ package Modules.Tools
 
 			CanvasController.canvasDrawLayerChild.filters = [];
 			main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
-			main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
+			main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool, false, InputPriority.DEFAULT);
 		}
 	}
 }

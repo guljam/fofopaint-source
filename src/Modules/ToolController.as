@@ -478,7 +478,7 @@ package Modules
                 adjustPenSmoothingValue();
             }
             adjustPenSmoothingValue();
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing, false, InputPriority.DEFAULT);
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
         }
 
@@ -709,7 +709,7 @@ package Modules
                 PenSizePreviewCursor.updatePosAndVisibility();
             }
             // main.undo키 반복이 있어서 우선순위 1로 약간 높여줌
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox, false, 1);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox, false, InputPriority.STAGE_ROOT);
         }
 
         public static function selectPenTool(lineFlag:Boolean = false):void

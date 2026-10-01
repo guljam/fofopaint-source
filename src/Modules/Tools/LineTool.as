@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.InputPriority;
     import Modules.CanvasController;
     import Modules.ColorPickerController;
     import Modules.DrawingFinish;
@@ -355,8 +356,8 @@ package Modules.Tools
                     ReferenceLayerController.setCanvasRefLayerInvisible();
                 }
 
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool);
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool);
+                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool, false, InputPriority.DEFAULT);
+                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool, false, InputPriority.DEFAULT);
                 hasLineTouchedCanvas = checkPointInsideCanvas(mx, my);
 
                 FOFOTimer.addByName("updateLineToolTimer", 0.1, true, function ():Boolean
@@ -368,11 +369,11 @@ package Modules.Tools
                 if (InputManager.isPressingShift())
                 {
                     startFromShortCut = true;
-                    main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLineTool);
+                    main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLineTool, false, InputPriority.DEFAULT);
                 }
                 else
                 {
-                    main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool,false,-2);
+                    main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool, false, InputPriority.LATE);
                 }
             }
         }

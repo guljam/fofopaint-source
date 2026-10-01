@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.InputPriority;
     import Modules.CanvasController;
     import flash.events.MouseEvent;
     import Modules.Utils;
@@ -188,8 +189,8 @@ package Modules.Tools
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
 
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMoveTool);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMoveTool, false, InputPriority.DEFAULT);
         };
     }
 }

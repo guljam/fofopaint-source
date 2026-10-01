@@ -1,5 +1,6 @@
 package Modules.CaptureEngine
 {
+    import Modules.InputPriority;
     import Modules.Utils;
     import Modules.PaletteController;
     import Modules.MainUI;
@@ -157,7 +158,7 @@ package Modules.CaptureEngine
                 captureStampFontListBox.setScale(Global.getUIScale());
                 Utils.setAsTopChild(captureStampFontListBox);
                 captureStampFontListBox.visible = true;
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList, false, -1);
+                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList, false, InputPriority.MODE);
             }
         }
 

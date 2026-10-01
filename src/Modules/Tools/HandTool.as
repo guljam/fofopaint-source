@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.InputPriority;
     import flash.geom.Point;
     import flash.display.Sprite;
     import flash.display.Bitmap;
@@ -123,9 +124,9 @@ package Modules.Tools
             }
 
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHandTool);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpHandTool);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpHandTool, false, InputPriority.DEFAULT);
             // 윈도우 바깥에서 up을 하면 hand가 안꺼져서 오른쪽 마우스 뗄떼도 꺼주게함
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpHandTool);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpHandTool, false, InputPriority.DEFAULT);
         };
     }
 }

@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+    import Modules.InputPriority;
 
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
@@ -479,7 +480,7 @@
 		{
 			showColorPreviewBox();
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveOKLCH);
-			stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpOKLCH);
+			stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpOKLCH, false, InputPriority.DEFAULT);
 		}
 
 		public function startAdjustLCH(index:int, onMouseUpFunc:Function):void

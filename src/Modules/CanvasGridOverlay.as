@@ -261,7 +261,7 @@ package Modules
                     oldValue = gridGapMultiplier;
                     drawGridByValue(MainUI.topBar.gridSliderWrapper.mouseX, true);
                     main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
-                    main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
+                    main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton, false, InputPriority.DEFAULT);
                 }
             }
 
@@ -358,9 +358,9 @@ package Modules
                         MainUI.topBar.gridButtonWrapper.y = p.y - MainUI.topBar.gridSliderWrapper.y - MainUI.topBar.gridSliderCursor.y;
                     }
 
-                    main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton, false, -1);
-                    main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton, false, -1);
-                    main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton, false, -1);
+                    main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton, false, InputPriority.MODE);
+                    main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton, false, InputPriority.MODE);
+                    main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton, false, InputPriority.MODE);
                 }
                 else
                 {

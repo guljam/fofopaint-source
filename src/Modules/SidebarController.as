@@ -197,7 +197,7 @@ package Modules
         {
             if (CanvasController.isMouseLeftClicked && sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
             {
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpQuickSidebar);
+                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpQuickSidebar, false, InputPriority.DEFAULT);
                 return;
             }
 
@@ -294,14 +294,14 @@ package Modules
                     ToolController.selectLastUsedTool();
                 }
 
-                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpQuickSidebar);
+                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpQuickSidebar, false, InputPriority.DEFAULT);
             }
             else
             {
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownQuickSidebar, false, -2);
+                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownQuickSidebar, false, InputPriority.LATE);
             }
 
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownQuickSidebar, false, -2);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownQuickSidebar, false, InputPriority.LATE);
 
             const sideBarWidth:Number = sideBar.getWidth();
             const scrollBarWidthLeft:Number = (isRightSidebar) ? sideBarScrollBar.width : 0;
@@ -376,17 +376,17 @@ package Modules
         {
             isReactivateSidebarTempShowEventsAdded = true;
 
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReactivateSidebarTempShow);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseDownReactivateSidebarTempShow);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpReactivateSidebarTempShow);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpReactivateSidebarTempShow);
+            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReactivateSidebarTempShow, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseDownReactivateSidebarTempShow, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpReactivateSidebarTempShow, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpReactivateSidebarTempShow, false, InputPriority.DEFAULT);
         }
 
         private static function setSideBarClickEvents():void
         {
             isSidebarHideEventAdded = true;
 
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownHideSidebar, false, -1);
+            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownHideSidebar, false, InputPriority.MODE);
         }
 
         private static function removeSidebarTempShowActivateEvents():void
@@ -583,8 +583,8 @@ package Modules
 
             LassoTool.restoreLassoAndRefLayerBoxLastPos();
 
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpSideBar);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpSideBar);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpSideBar, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpSideBar, false, InputPriority.DEFAULT);
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveSideBar);
             main.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveSideBar);
         }

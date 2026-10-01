@@ -1,5 +1,6 @@
 ﻿package
 {
+    import Modules.InputPriority;
     import Modules.AboutBoxController;
     import Modules.AppStateManager;
     import Modules.AppStateVars;
@@ -217,15 +218,15 @@
             // 전역스테이지 이벤트 cMouseMoveStage <- 스테이지 마우스 무브는 클로저로 하고있음
             // todo gpt가 동일한 우선순위라도 capture 플래그가 true인것이 먼저 실행된다고함 capture - target  -bubble 순이라고함
             // 그래서 마우스랑 키보드 입력 mouseleave이벤트를 캡쳐플래그를 true로해놓았음 나중에 기능 이상생기면 확인
-            stage.addEventListener(MouseEvent.MOUSE_DOWN, InputManager.onMouseDownStage, true, 1);
-            stage.addEventListener(MouseEvent.MOUSE_UP, InputManager.onMouseUpStage, false, 1);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, InputManager.onRightMouseUpStage, false, 1);
-            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, InputManager.onRightMouseDownStage, true, 1);
-            stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, InputManager.onMiddleMouseDownStage, false, 1);
-            stage.addEventListener(KeyboardEvent.KEY_DOWN, InputManager.onKeyDownStage, true, 1);
-            stage.addEventListener(KeyboardEvent.KEY_UP, InputManager.onKeyUpStage, false, 1);
+            stage.addEventListener(MouseEvent.MOUSE_DOWN, InputManager.onMouseDownStage, true, InputPriority.STAGE_ROOT);
+            stage.addEventListener(MouseEvent.MOUSE_UP, InputManager.onMouseUpStage, false, InputPriority.STAGE_ROOT);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, InputManager.onRightMouseUpStage, false, InputPriority.STAGE_ROOT);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, InputManager.onRightMouseDownStage, true, InputPriority.STAGE_ROOT);
+            stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, InputManager.onMiddleMouseDownStage, false, InputPriority.STAGE_ROOT);
+            stage.addEventListener(KeyboardEvent.KEY_DOWN, InputManager.onKeyDownStage, true, InputPriority.STAGE_ROOT);
+            stage.addEventListener(KeyboardEvent.KEY_UP, InputManager.onKeyUpStage, false, InputPriority.STAGE_ROOT);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, InputManager.onMouseMoveUpdatePenPreviewCursor);
-            stage.addEventListener(MouseEvent.MOUSE_UP, InputManager.onMouseMoveUpdatePenPreviewCursor, false, -1);
+            stage.addEventListener(MouseEvent.MOUSE_UP, InputManager.onMouseMoveUpdatePenPreviewCursor, false, InputPriority.MODE);
             stage.addEventListener(Event.MOUSE_LEAVE, InputManager.onMouseLeaveStage, true);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, MainUI.onMouseMoveBottomHint);
             stage.nativeWindow.x = Capabilities.screenResolutionX / 2 - 680 / 2;

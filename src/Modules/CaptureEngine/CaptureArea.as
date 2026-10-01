@@ -1,5 +1,6 @@
 package Modules.CaptureEngine
 {
+    import Modules.InputPriority;
     import Modules.MainUI;
     import Modules.CanvasController;
     import flash.display.CapsStyle;
@@ -473,7 +474,7 @@ package Modules.CaptureEngine
             mouseMoved = false;
             clickPos.setTo(mx, my);
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, moveListener);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea, false, InputPriority.DEFAULT);
         }
 
         public static function start():void

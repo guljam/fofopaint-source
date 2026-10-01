@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.InputPriority;
     import Modules.CanvasController;
     import Modules.CaptureEngine.CaptureController;
     import Modules.ColorPickerController;
@@ -302,10 +303,10 @@ package Modules.Tools
         private static function addEyedropperEvents():void
         {
             main.stage.addEventListener(Event.ENTER_FRAME, onEnterFrameEyeDropper);
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper, false, -2);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper, false, -2);
-            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper, false, 2);
-            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownEyeDropper, false, 2);
+            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper, false, InputPriority.LATE);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper, false, InputPriority.LATE);
+            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper, false, InputPriority.EARLY_KEY);
+            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownEyeDropper, false, InputPriority.EARLY_KEY);
         }
 
         private static function canShowEyedropperLens():Boolean
