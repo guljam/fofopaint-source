@@ -436,7 +436,7 @@ package Modules
 
             function adjustPenSmoothingValue():void
             {
-                var mx:Number = toolOptionsBox.penSmoothSliderWapper.mouseX + toolOptionsBox.penSmoothSlider.x;
+                var mx:Number = toolOptionsBox.penSmoothSliderWrapper.mouseX + toolOptionsBox.penSmoothSlider.x;
 
                 if (mx < minDist)
                 {
@@ -469,7 +469,7 @@ package Modules
 
                     PenTool.penSmoothSlideValue = value;
                     oldValue = value;
-                    MainUI.showBottomHint(HintStrings.getHintFromTargetName("penSmoothSliderWapper"));
+                    MainUI.showBottomHint(HintStrings.getHintFromTargetName("penSmoothSliderWrapper"));
                 }
             }
 
@@ -1268,7 +1268,7 @@ package Modules
 
             switch (targetName)
             {
-                case "penSmoothSliderWapper":
+                case "penSmoothSliderWrapper":
                     {
                         if (nowTool !== TOOL_PEN)
                         {

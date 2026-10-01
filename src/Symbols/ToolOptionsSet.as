@@ -45,7 +45,7 @@
 		public var layer2SelectButton:SimpleButton;
 		private var layerInvisibledLine:Shape = new Shape();
 
-		public const penSmoothSliderWapper:Sprite = new Sprite();
+		public const penSmoothSliderWrapper:Sprite = new Sprite();
 		public var penSmoothSlider:SimpleButton;
 		public var penSmoothSliderCursor:SimpleButton;
 
@@ -127,12 +127,12 @@
 
 		public function enablePenSmoothingSlider():void
 		{
-			penSmoothSliderWapper.alpha = 1.0;
+			penSmoothSliderWrapper.alpha = 1.0;
 		}
 
 		public function disablePenSmoothingSlider():void
 		{
-			penSmoothSliderWapper.alpha = Global.OFFALPHA;
+			penSmoothSliderWrapper.alpha = Global.OFFALPHA;
 		}
 
 		public function disableButtonFillPenStarted():void
@@ -150,7 +150,7 @@
 			circleSizeSet.alpha = alpha;
 			shapeRect.alpha = alpha;
 			shapeCircle.alpha = alpha;
-			penSmoothSliderWapper.alpha = alpha;
+			penSmoothSliderWrapper.alpha = alpha;
 			layer1CheckedButton.alpha = alpha;
 			layer1UncheckedButton.alpha = alpha;
 			layer2CheckedButton.alpha = alpha;
@@ -398,9 +398,9 @@
 
 		private function initPenSmoothSliderWrapper():void
 		{
-			penSmoothSliderWapper.name = "penSmoothSliderWapper";
-			penSmoothSliderWapper.addChild(penSmoothSlider);
-			penSmoothSliderWapper.addChild(penSmoothSliderCursor);
+			penSmoothSliderWrapper.name = "penSmoothSliderWrapper";
+			penSmoothSliderWrapper.addChild(penSmoothSlider);
+			penSmoothSliderWrapper.addChild(penSmoothSliderCursor);
 
 			penSmoothSlider.mouseEnabled = false;
 			penSmoothSlider.x = penSmoothSliderCursor.width / 2;
@@ -410,10 +410,10 @@
 			penSmoothSliderCursor.x = penSmoothSlider.x;
 			penSmoothSliderCursor.y = penSmoothSlider.y;
 
-			penSmoothSliderWapper.graphics.clear();
-			penSmoothSliderWapper.graphics.beginFill(0xFF0000, 0.0);
-			penSmoothSliderWapper.graphics.drawRect(0, 0, penSmoothSlider.x + penSmoothSlider.width + penSmoothSliderCursor.width / 2, penSmoothSliderCursor.height + 4);
-			penSmoothSliderWapper.graphics.endFill();
+			penSmoothSliderWrapper.graphics.clear();
+			penSmoothSliderWrapper.graphics.beginFill(0xFF0000, 0.0);
+			penSmoothSliderWrapper.graphics.drawRect(0, 0, penSmoothSlider.x + penSmoothSlider.width + penSmoothSliderCursor.width / 2, penSmoothSliderCursor.height + 4);
+			penSmoothSliderWrapper.graphics.endFill();
 		}
 
 		private function initPenShapeSmoothingWarpper():void
@@ -421,7 +421,7 @@
 			initPenSmoothSliderWrapper();
 			penShapeAndSmoothingWarpper.addChild(shapeCircle);
 			penShapeAndSmoothingWarpper.addChild(shapeRect);
-			penShapeAndSmoothingWarpper.addChild(penSmoothSliderWapper);
+			penShapeAndSmoothingWarpper.addChild(penSmoothSliderWrapper);
 
 			shapeCircle.x = 5;
 			shapeCircle.y = 0;
@@ -430,8 +430,8 @@
 			shapeRect.y = 1;
 			shapeRect.useHandCursor = false;
 
-			penSmoothSliderWapper.x = Math.floor(shapeRect.x + shapeRect.width + 6);
-			penSmoothSliderWapper.y = Math.floor(shapeRect.y);
+			penSmoothSliderWrapper.x = Math.floor(shapeRect.x + shapeRect.width + 6);
+			penSmoothSliderWrapper.y = Math.floor(shapeRect.y);
 		}
 
 		private function initOpaSizeButtonWapper():void

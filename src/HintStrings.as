@@ -97,7 +97,7 @@
                 // 펜옵션
                 "shapeCircle": "Circle",
                 "shapeRect": "Rectangle",
-                "penSmoothSliderWapper": STRING_VARIABLE_HINT,
+                "penSmoothSliderWrapper": STRING_VARIABLE_HINT,
 
                 "sharpLineButtonWrapper": "Toggle sharp line [3 / 8]",
                 "sharpLineOFFButton": "Toggle sharp line [3 / 8]",
@@ -472,7 +472,7 @@
                 case "trackBar":
                     return getTrackBarHintString();
 
-                case "penSmoothSliderWapper":
+                case "penSmoothSliderWrapper":
                     return "Pen smoothing " + getPenSmoothingValueString();
 
                 case "rgbInfoText":
