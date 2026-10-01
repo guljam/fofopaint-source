@@ -125,7 +125,6 @@ package
 
         public static function onWindowClosingEvent(e:Event):void
         {
-            var loadMenuBox:Object;
             isAppClosing = true;
             e.preventDefault();
             main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, AppWindowState.onWindowDeactivate);
@@ -159,7 +158,7 @@ package
             if (ReplayState.isGeneratingCacheImages())
             {
                 ReplayController.stopGeneratingReplayCacheImage();
-                ReplayFileCache.saveCachePreview(loadMenuBox.getPreviewImage());
+                ReplayFileCache.saveCachePreview(FileManager.loadMenuBox.getPreviewImage());
             }
 
             if (BackgroundWorkerCoordinator.isWorkerBusy())
