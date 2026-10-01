@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.InputManager.InputManager;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
@@ -175,10 +176,10 @@ package Modules
             ReplayController.resetReplayTime();
             resetUndoState(true);
             ReplayDrawer.rReplayFOFOCursor.visible = true; // 대칭된 커서 위치를 갱신해주려고 임시로 켜줌
-            CanvasController.canvasInfoBox.setMirror(CanvasController.mirrorON);
+            UIController.canvasInfoBox.setMirror(CanvasController.mirrorON);
             ReplayDrawCommands.setFirstRCursorPosCurrent();
             ReplayDrawer.rReplayFOFOCursor.visible = false;
-            CanvasController.canvasNavigatorBox.updateImage();
+            CanvasNavigator.box.updateImage();
             exitDeepUndo();
         }
 
@@ -252,7 +253,7 @@ package Modules
             showRCursorOnUndo(undoIndexSave);
 
             ReplayController.preserveDrawMirrorStateAfterReplayCopy();
-            CanvasController.canvasNavigatorBox.updateImage();
+            CanvasNavigator.box.updateImage();
             CanvasController.setCanvasBGColorDrawMode(ReplayState.RCANVAS_BG_COLOR);
             CanvasController.updateCanvasPanelColorAndSize();
 
@@ -263,7 +264,7 @@ package Modules
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
 
-            UIController.updateCanvasNaigatorCursor();
+            CanvasNavigator.updateCursor();
             FileManager.enableNewFileButton();
         }
     }

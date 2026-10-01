@@ -1,19 +1,16 @@
 package Modules
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureController;
-    import Symbols.RotateCursorSet;
-    import Symbols.CanvasNavigatorBoxSet;
     import flash.display.Shape;
     import flash.display.Sprite;
-    import Symbols.CanvasInfoSet;
     import flash.display.BitmapData;
     import flash.display.Bitmap;
     import flash.geom.Rectangle;
     import flash.display.DisplayObjectContainer;
-    import flash.events.MouseEvent;
     import flash.display.DisplayObject;
     import Modules.Tools.PenTool;
     import flash.events.Event;
@@ -40,15 +37,11 @@ package Modules
             main = instance;
         }
 
-        // todo : canvasNavigatorBox 분리하기
         // todo : 포멧팅 필요
         public static const CANVAS_MAX_SIZE:Number = 2000;
         public static var CANVAS_WIDTH:Number = 600;
         public static var CANVAS_HEIGHT:Number = 390;
         public static var CANVAS_BG_COLOR:uint = 0xFFFFFF;
-        public static const canvasRotateCursor:RotateCursorSet = new RotateCursorSet(); // 회전이 얼마나 됐는지 표시,
-        public static const canvasNavigatorBox:CanvasNavigatorBoxSet = new CanvasNavigatorBoxSet();
-        public static const canvasInfoBox:CanvasInfoSet = new CanvasInfoSet();
         public static const canvasFlashEffect:Sprite = new Sprite();
 
         public static var canvasAnchorPoint:Sprite = new Sprite(); // 회전 스프라이트 부모
@@ -74,9 +67,6 @@ package Modules
 
         private static const copyPixelRect:Rectangle = new Rectangle();
 
-        // 네비게이터로 캔버스 이동 이벤트 한번만 올려주기
-        private static var canvasMoveByCanvasNavigatorEventStarted:Boolean = false;
-
         public static function resetRotationDrawMode():void
         {
             const center:Point = UIController.getStageCenterPos("draw");
@@ -84,7 +74,7 @@ package Modules
             moveCanvasAnchorPoint(center.x, center.y, false);
             canvasAnchorPoint.rotation = 0;
             ReplayDrawer.setRcursorRotation(0);
-            canvasInfoBox.setRotate(0);
+            UIController.canvasInfoBox.setRotate(0);
         }
 
         public static function updateLayer1BitmapData(newbmpd:BitmapData):void
@@ -346,93 +336,11 @@ package Modules
                 moveCanvasAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y, false);
                 updateCanvasScale(newZoom, isReplayMode);
                 PenSizePreviewCursor.updateSizeAndShape();
-                UIController.updateCanvasNaigatorCursor();
+                CanvasNavigator.updateCursor();
                 if (CanvasGridOverlay.gridGapMultiplier > 0)
                 {
                     CanvasGridOverlay.drawGrid();
                 }
-            }
-        }
-
-        public static function startCanvasMoveByCanvasNavigator(navCursorClicked:Boolean):void
-        {
-            var sx:Number = canvasNavigatorBox.mouseX;
-            var sy:Number = canvasNavigatorBox.mouseY;
-            const prevCursorScale:Number = canvasNavigatorBox.navCursorMultiply;
-            const uiScale:Number = UITheme.getUIScale();
-
-            ReferenceLayerController.setRefLayerAndGridVisible(false);
-            HintController.hideBottomHint();
-
-            function centerCanvas(mx:Number, my:Number):void
-            {
-                const b:Object = Utils.getBoundRect(canvasNavigatorBox.navCursor);
-                const scale:Number = UITheme.getUIScale();
-                // prevToCanvasMultiply를 나눠 줘야 커서랑 같은 속도가 나옴
-                const rectCenterX:Number = b.left + (b.right - b.left) / 2;
-                const rectCenterY:Number = b.top + (b.bottom - b.top) / 2;
-                var moveX:Number = (rectCenterX - mx) / prevCursorScale / uiScale;
-                var moveY:Number = (rectCenterY - my) / prevCursorScale / uiScale;
-                var p:Point = Utils.rotatePoint(moveX, moveY, -canvasAnchorPoint.rotation);
-                canvasAnchorPoint.x += Math.round(p.x);
-                canvasAnchorPoint.y += Math.round(p.y);
-                UIController.updateCanvasNaigatorCursor();
-            }
-
-            function onMouseUpCanvasNavigator(e:MouseEvent):void
-            {
-                MouseState.endDrag("canvasNavigator");
-                ReferenceLayerController.setRefLayerAndGridVisible(true);
-                keepCanvasPanelInStage();
-                UIController.updateCanvasNaigatorCursor();
-                if (LassoTool.isStarted)
-                {
-                    if (LassoTool.isLassoMenuHiddenTemp === true)
-                    {
-                        LassoTool.showLassoMenuBox();
-                    }
-                }
-                main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator);
-                canvasMoveByCanvasNavigatorEventStarted = false;
-            }
-
-            function onMouseMoveCanvasNavigator(e:MouseEvent):void
-            {
-                const scale:Number = UITheme.getUIScale();
-                var mx:Number = canvasNavigatorBox.mouseX;
-                var my:Number = canvasNavigatorBox.mouseY;
-                // previewBox.prevCursorMultiply를 곱해줘야 커서랑 같은 속도가 나옴
-                var moveX:Number = (sx - mx) / prevCursorScale;
-                var moveY:Number = (sy - my) / prevCursorScale;
-                var p:Point = Utils.rotatePoint(moveX, moveY, -canvasAnchorPoint.rotation);
-                canvasAnchorPoint.x += Math.round(p.x);
-                canvasAnchorPoint.y += Math.round(p.y);
-                sx = mx;
-                sy = my;
-                UIController.updateCanvasNaigatorCursor();
-            }
-            moveCanvasAnchorPoint(0, 0);
-            if (LassoTool.isStarted)
-            {
-                LassoTool._lassoMenuBox.visible = false;
-                LassoTool.isLassoMenuHiddenTemp = true;
-            }
-            // 클릭한 지점이 커서 바깥부분일때 강제로 캔버스 중심으로 옮겨줌
-            if (!navCursorClicked)
-            {
-                centerCanvas(main.stage.mouseX, main.stage.mouseY);
-            }
-
-            if (canvasMoveByCanvasNavigatorEventStarted === false)
-            {
-                canvasMoveByCanvasNavigatorEventStarted = true;
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator, false, InputPriority.DEFAULT);
-                main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
-                MouseState.beginDrag("canvasNavigator", function ():void
-                    {
-                        onMouseUpCanvasNavigator(null);
-                    });
             }
         }
 
@@ -578,16 +486,6 @@ package Modules
             return index;
         }
 
-        public static function isCanvasNaviatorChild(target:DisplayObject):Boolean
-        {
-            const targetName:String = target.name;
-            return (targetName === "navStageBG"
-                    || targetName === "navBitmapBG"
-                    || targetName === "navLayer1Bitmap"
-                    || targetName === "navLayer2Bitmap"
-                    || targetName === "navCursor");
-        }
-
         // 캔버스의 중심좌표를 구함 컨트롤 박스 옵션 박스 포함
         public static function getCanvasPanelMidPos():Point
         {
@@ -611,7 +509,7 @@ package Modules
             mirrorON = !mirrorON;
             ReplayState.mirrorCommandReady = !ReplayState.mirrorCommandReady;
             mirrorBmpdDrawmode();
-            canvasInfoBox.setMirror(mirrorON);
+            UIController.canvasInfoBox.setMirror(mirrorON);
             // 회전각 부호를 바꿔야 제대로 mirror가됨
             moveCanvasAnchorPoint(p.x, p.y); // regpoint를 회전한 캔버스 중점으로 두고
             if (canvasOnly === false) // 보통 미러할때, canvasonly가 true일때는 appdata에서 바꿔줄때 밖에 없음
@@ -627,11 +525,11 @@ package Modules
                 : UIController.STAGE_LEFT_OFFSET + halfCanvas;
             // 창 절반을 기준점으로 앵커포인트 x축 이동.
             canvasAnchorPoint.x += Math.round((stageHalf - p.x) * 2);
-            UIController.updateCanvasNaigatorCursor();
+            CanvasNavigator.updateCursor();
             FileManager.isFileAlreadySaved = false; // 미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
             ReplayDrawer.mirrorRCursorPos();
 
-            CanvasController.canvasNavigatorBox.updateImage();
+            CanvasNavigator.box.updateImage();
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();
@@ -880,7 +778,7 @@ package Modules
             }
             if (!CaptureController.isCaptureModeON)
             {
-                canvasInfoBox.setZoom(zoomValue);
+                UIController.canvasInfoBox.setZoom(zoomValue);
             }
             ReplayDrawer.updateReplayCursorScale(zoomValue);
         }
@@ -1054,8 +952,8 @@ package Modules
             canvasPanel.graphics.endFill();
 
             keepCanvasPanelInStage();
-            canvasNavigatorBox.changeprevBitmapBGColor(CANVAS_BG_COLOR);
-            canvasInfoBox.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
+            CanvasNavigator.box.changeprevBitmapBGColor(CANVAS_BG_COLOR);
+            UIController.canvasInfoBox.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
 
             if (CanvasGridOverlay.gridGapMultiplier > 0)
             {
@@ -1104,7 +1002,7 @@ package Modules
             // addundo에서 활성화 해주고 있기 때문에
             FileManager.setNewFileAvailable(false);
             AppWindowState.markWindowTitleAsDirty();
-            UIController.updateCanvasNaigatorCursor();
+            CanvasNavigator.updateCursor();
         }
 
         // 드로우 모드 캔버스 상태를 리플레 캔버스 상태랑 똑같이 만들어줌
@@ -1117,7 +1015,7 @@ package Modules
             updateCanvasPanelColorAndSize();
             FileManager.isFileAlreadySaved = false;
             ReplayController.preserveDrawMirrorStateAfterReplayCopy();
-            CanvasController.canvasNavigatorBox.updateImage();
+            CanvasNavigator.box.updateImage();
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();

@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
@@ -117,7 +118,7 @@ package Modules.Tools
                 LassoTool.showLassoMenuBox();
             }
 
-            UIController.updateCanvasNaigatorCursor();
+            CanvasNavigator.updateCursor();
 
             if (CanvasGridOverlay.gridGapMultiplier > 0 && lastZoom !== CanvasController.canvasZoomMultipler)
             {

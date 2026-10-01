@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.InputManager.InputManager;
     import Modules.UIEngine.HintController;
@@ -224,7 +225,7 @@ package Modules
                     if (CanvasController.canvasZoomMultipler !== 1.0)
                     {
                         CanvasController.resetZoomDrawMode();
-                        UIController.updateCanvasNaigatorCursor();
+                        CanvasNavigator.updateCursor();
                     }
                     break;
 
@@ -232,7 +233,7 @@ package Modules
                     if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                     {
                         CanvasController.resetRotationDrawMode();
-                        UIController.updateCanvasNaigatorCursor();
+                        CanvasNavigator.updateCursor();
                     }
                     break;
 
@@ -550,7 +551,7 @@ package Modules
         private static function updateSidebarLayout():void
         {
             UIController.updateStageOffset();
-            UIController.updateCanvasNaigatorCursor();
+            CanvasNavigator.updateCursor();
 
             checkFOFOPosition();
 
@@ -646,15 +647,15 @@ package Modules
             sideBarScrollPanel.x = isRight ? 9 : 5;
             sideBarScrollPanel.y = scrollSetMovedY;
 
-            CanvasController.canvasNavigatorBox.x = isRight ? -4 : 0;
-            CanvasController.canvasNavigatorBox.y = 0;
+            CanvasNavigator.box.x = isRight ? -4 : 0;
+            CanvasNavigator.box.y = 0;
 
-            CanvasController.canvasInfoBox.setWidth(CanvasController.canvasNavigatorBox.BOX_WIDTH);
-            CanvasController.canvasInfoBox.x = CanvasController.canvasNavigatorBox.x - 2;
-            CanvasController.canvasInfoBox.y = Math.floor(CanvasController.canvasNavigatorBox.y + CanvasController.canvasNavigatorBox.BOX_HEIGHT + 6);
+            UIController.canvasInfoBox.setWidth(CanvasNavigator.box.BOX_WIDTH);
+            UIController.canvasInfoBox.x = CanvasNavigator.box.x - 2;
+            UIController.canvasInfoBox.y = Math.floor(CanvasNavigator.box.y + CanvasNavigator.box.BOX_HEIGHT + 6);
 
             ToolController.toolOptionsBox.x = isRight ? 39 : 0;
-            ToolController.toolOptionsBox.y = Math.floor(CanvasController.canvasInfoBox.y + CanvasController.canvasInfoBox.height + 7);
+            ToolController.toolOptionsBox.y = Math.floor(UIController.canvasInfoBox.y + UIController.canvasInfoBox.height + 7);
 
             ColorPickerController.colorPickerBox.x = ToolController.toolOptionsBox.x;
             ColorPickerController.colorPickerBox.y = Math.floor(ToolController.toolOptionsBox.y + ToolController.toolOptionsBox.height + 10);
@@ -738,7 +739,7 @@ package Modules
             }
             else if (isRightSidebar)
             {
-                sideBarScrollBar.x = CanvasController.canvasNavigatorBox.x - sideBarScrollBar.width + 4;
+                sideBarScrollBar.x = CanvasNavigator.box.x - sideBarScrollBar.width + 4;
             }
             else
             {
@@ -847,12 +848,12 @@ package Modules
                         || targetName === "navLayer1Bitmap"
                         || targetName === "navLayer2Bitmap")
                 {
-                    CanvasController.startCanvasMoveByCanvasNavigator(false);
+                    CanvasNavigator.startCanvasMove(false);
                     return true;
                 }
                 else if (targetName === "navCursor")
                 {
-                    CanvasController.startCanvasMoveByCanvasNavigator(true);
+                    CanvasNavigator.startCanvasMove(true);
                     return true;
                 }
                 else if (ColorPickerController.handleColorPickerBoxMouseDown(target) && !InputManager.isKeyPressed())

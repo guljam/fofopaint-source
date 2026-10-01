@@ -1,5 +1,6 @@
 ﻿package
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
@@ -122,6 +123,7 @@
 
             CanvasController.setMainInstance(this);
             CanvasResizer.setMainInstance(this);
+            CanvasNavigator.setMainInstance(this);
             ClipboardManager.setMainInstance(this);
             ColorPickerController.setMainInstance(this);
             DragInteraction.setMainInstance(this);
@@ -178,7 +180,7 @@
             {
                 ReplayFileCache.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             }
-            CanvasController.canvasNavigatorBox.updateImage();
+            CanvasNavigator.box.updateImage();
             ActivityWorkTimer.start();
             AppUpdater.checkUpdate();
             ImeController.init();

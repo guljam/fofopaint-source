@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
@@ -993,7 +994,7 @@ package Modules.Tools
             {
                 CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData, lassoLayer2LastBitmapdata);
             }
-            CanvasController.canvasNavigatorBox.updateImage();
+            CanvasNavigator.box.updateImage();
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();
@@ -1256,12 +1257,12 @@ package Modules.Tools
                     case "navLayer1Bitmap":
                     case "navLayer2Bitmap":
                         {
-                            CanvasController.startCanvasMoveByCanvasNavigator(false);
+                            CanvasNavigator.startCanvasMove(false);
                         }
                         break;
                     case "navCursor":
                         {
-                            CanvasController.startCanvasMoveByCanvasNavigator(true);
+                            CanvasNavigator.startCanvasMove(true);
                         }
                         break;
                     case "lassoMenuMoveButton":
@@ -1434,7 +1435,7 @@ package Modules.Tools
                 if (CanvasController.canvasZoomMultipler !== 1.0)
                 {
                     CanvasController.resetZoomDrawMode();
-                    UIController.updateCanvasNaigatorCursor();
+                    CanvasNavigator.updateCursor();
                 }
             }
             else if (targetName === "toolRotate")
@@ -1442,7 +1443,7 @@ package Modules.Tools
                 if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                 {
                     CanvasController.resetRotationDrawMode();
-                    UIController.updateCanvasNaigatorCursor();
+                    CanvasNavigator.updateCursor();
                 }
             }
         }
@@ -1511,7 +1512,7 @@ package Modules.Tools
                     if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                     {
                         CanvasController.resetRotationDrawMode();
-                        UIController.updateCanvasNaigatorCursor();
+                        CanvasNavigator.updateCursor();
                     }
                     return;
 
@@ -1520,7 +1521,7 @@ package Modules.Tools
                     if (CanvasController.canvasZoomMultipler !== 1.0)
                     {
                         CanvasController.resetZoomDrawMode();
-                        UIController.updateCanvasNaigatorCursor();
+                        CanvasNavigator.updateCursor();
                     }
                     return;
             }

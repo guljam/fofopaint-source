@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import flash.display.Sprite;
@@ -32,7 +33,7 @@ package Modules.Tools
 
             xAnc.rotation = ang;
             ReplayDrawer.setRcursorRotation(xAnc.rotation);
-            CanvasController.canvasInfoBox.setRotate(Math.abs(xAnc.rotation));
+            UIController.canvasInfoBox.setRotate(Math.abs(xAnc.rotation));
         }
 
         private static function onMouseUp():void
@@ -51,7 +52,7 @@ package Modules.Tools
 
                 PenSizePreviewCursor.updateSizeAndShape();
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
-                UIController.updateCanvasNaigatorCursor();
+                CanvasNavigator.updateCursor();
             }
             else
             {

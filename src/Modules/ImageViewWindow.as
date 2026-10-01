@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.InputManager.InputManager;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
@@ -64,7 +65,7 @@ package Modules
 
         public static function updateCanvasWindowBitmapSize():void
         {
-            const bounds:Rectangle = CanvasController.canvasNavigatorBox.setFitBitmapforBox(CanvasController.canvasLayer1BitmapData.width,
+            const bounds:Rectangle = CanvasNavigator.box.setFitBitmapforBox(CanvasController.canvasLayer1BitmapData.width,
                     CanvasController.canvasLayer1BitmapData.height,
                     canvasWindow.stage.stageWidth,
                     canvasWindow.stage.stageHeight);
@@ -113,8 +114,8 @@ package Modules
 
         public static function updateCanvasWindowImage():void
         {
-            canvasWindowLayer1Bitmap.bitmapData = CanvasController.canvasNavigatorBox.navLayer1Bitmap.bitmapData;
-            canvasWindowLayer2Bitmap.bitmapData = CanvasController.canvasNavigatorBox.navLayer2Bitmap.bitmapData;
+            canvasWindowLayer1Bitmap.bitmapData = CanvasNavigator.box.navLayer1Bitmap.bitmapData;
+            canvasWindowLayer2Bitmap.bitmapData = CanvasNavigator.box.navLayer2Bitmap.bitmapData;
             canvasWindowLayer1Bitmap.smoothing = true;
             canvasWindowLayer2Bitmap.smoothing = true;
         }

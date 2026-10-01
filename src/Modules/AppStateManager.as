@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
@@ -307,7 +308,7 @@ package Modules
 
                         ReplayDrawer.setRcursorRotation(appStateObject.canvasAnchorPointRotation);
                         CanvasResizer.updateButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-                        CanvasController.canvasRotateCursor.rotateArrow.rotation = appStateObject.canvasAnchorPointRotation;
+                        UIController.canvasRotateCursor.rotateArrow.rotation = appStateObject.canvasAnchorPointRotation;
 
                         // Pen Tool Settings
                         PenTool.penSmoothValue = appStateObject.penSmoothValue;
@@ -427,7 +428,7 @@ package Modules
                         ReplayState.rPrevFrame = ReplayState.getNowFrameUntilUndoIndex(UndoHistory.undoDataIndex - 1);
 
                         // 혹시 몰라서 위치 체크 해줌
-                        CanvasController.canvasInfoBox.setRotate(CanvasController.canvasAnchorPoint.rotation);
+                        UIController.canvasInfoBox.setRotate(CanvasController.canvasAnchorPoint.rotation);
                         CanvasController.centerCanvas("replay");
                         CanvasController.keepCanvasPanelInStage();
                         CanvasController.keepCanvasPanelInStage(true);
@@ -468,7 +469,7 @@ package Modules
                             CaptureStamp.changeFont(appStateObject.captureStampFont, false);
                         }
 
-                        UIController.updateCanvasNaigatorCursor();
+                        CanvasNavigator.updateCursor();
                         PenSizePreviewCursor.updateSizeAndShape();
                         isLoadingAppData = false;
                         AppWindowState.updateWindowTitle();
@@ -532,7 +533,7 @@ package Modules
                 AboutBoxController.openAboutBox(true);
                 UIController.applyUIColorSet();
 
-                CanvasController.canvasInfoBox.init(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, Math.floor(CanvasController.canvasZoomMultipler * 100), CanvasController.canvasAnchorPoint.rotation, false);
+                UIController.canvasInfoBox.init(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, Math.floor(CanvasController.canvasZoomMultipler * 100), CanvasController.canvasAnchorPoint.rotation, false);
                 CanvasController.selectLayer1(false);
 
                 PaletteController.initMyPaletteHistory();
@@ -542,7 +543,7 @@ package Modules
                         if (main.stage.nativeWindow.width === 1000 && main.stage.nativeWindow.height === 800)
                         {
                             CanvasController.centerCanvas("draw");
-                            UIController.updateCanvasNaigatorCursor();
+                            CanvasNavigator.updateCursor();
 
                             // lastAppWindowSize를 미리 1000x800으로 채워뒀기 때문에 리사이즈 이벤트의 applyLayout은 dx/dy 0으로 지나간다.
                             // 크기가 확정된 이 시점에 UI 배치를 강제로 한 번 맞춰준다.

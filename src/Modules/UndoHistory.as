@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.CanvasNavigator;
     import flash.display.BitmapData;
     import flash.filesystem.FileStream;
     import flash.filesystem.File;
@@ -230,7 +231,7 @@ package Modules
 
         private static function updateCanvasPreviews():void
         {
-            CanvasController.canvasNavigatorBox.updateImage();
+            CanvasNavigator.box.updateImage();
 
             if (ImageViewWindow.isCanvasWindowON)
             {

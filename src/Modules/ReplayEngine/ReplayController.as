@@ -1,5 +1,6 @@
 package Modules.ReplayEngine
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
@@ -269,7 +270,7 @@ package Modules.ReplayEngine
                 resetReplayTime();
                 syncDrawCanvasWithReplayCanvas();
                 UndoController.resetUndoState();
-                CanvasController.canvasNavigatorBox.updateImage();
+                CanvasNavigator.box.updateImage();
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {
@@ -606,10 +607,10 @@ package Modules.ReplayEngine
             CanvasController.mirrorON = ReplayState.rMirrorON;
             ReplayState.mirrorCommandReady = false;
             UndoHistory.updateUndoBaseImageMirrorFlag(ReplayState.rMirrorON);
-            CanvasController.canvasInfoBox.setMirror(ReplayState.rMirrorON);
+            UIController.canvasInfoBox.setMirror(ReplayState.rMirrorON);
             CanvasGridOverlay.updateGridMirror(ReplayState.rMirrorON);
 
-            CanvasController.canvasNavigatorBox.visible = true;
+            CanvasNavigator.box.visible = true;
 
             if (ReplayState.isReplayModeON)
             {
@@ -662,7 +663,7 @@ package Modules.ReplayEngine
             var hintPrintTimeSave:int = getTimer();
             CanvasController.canvasAnchorPoint.visible = false;
             ReplayDrawer.rCanvasAnchorPoint.visible = false;
-            CanvasController.canvasNavigatorBox.visible = false;
+            CanvasNavigator.box.visible = false;
             ReplayDrawer.clearCanvasReplayMode(); // 리플레이 캔버스 먼저 깨끗하게
             fs.open(FileManager.replayDataFilePath, FileMode.READ);
 
@@ -1457,7 +1458,7 @@ package Modules.ReplayEngine
             Utils.setAsTopChild(ReplayController.seekBarBox);
             ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
             UIController.updateStageOffset();
-            UIController.updateCanvasNaigatorCursor();
+            CanvasNavigator.updateCursor();
 
             if (PenTool.isTransparentPenColor)
             {
@@ -1471,7 +1472,7 @@ package Modules.ReplayEngine
             PenSizePreviewCursor.updateSizeAndShape();
             PenSizePreviewCursor.updatePosAndVisibility();
             UIController.updateTopbarIconsDrawMode();
-            CanvasController.canvasInfoBox.setZoom(CanvasController.canvasZoomMultipler);
+            UIController.canvasInfoBox.setZoom(CanvasController.canvasZoomMultipler);
             ReplayDrawer.updateReplayCursorScale(CanvasController.canvasZoomMultipler);
             UndoController.resumeDeepUndo();
 
@@ -1838,7 +1839,7 @@ package Modules.ReplayEngine
             CanvasController.setCavnvasSizeDrawMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height);
             CanvasController.setCanvasBGColorDrawMode(ReplayState.RCANVAS_BG_COLOR);
             CanvasController.updateCanvasPanelColorAndSize();
-            CanvasController.canvasNavigatorBox.updateImage();
+            CanvasNavigator.box.updateImage();
 
             if (ImageViewWindow.isCanvasWindowON)
             {
@@ -1868,7 +1869,7 @@ package Modules.ReplayEngine
             ReplayDrawer.renderReplayFrame(rNowFrameBackup, ReplayDrawer.JUMP_FRAME_MANUAL);
             CanvasController.mirrorON = ReplayState.rMirrorON;
             ReplayState.mirrorCommandReady = false;
-            CanvasController.canvasInfoBox.setMirror(ReplayState.rMirrorON);
+            UIController.canvasInfoBox.setMirror(ReplayState.rMirrorON);
         }
 
         public static function setReplayCompleteCanvasCenter():void
@@ -2066,7 +2067,7 @@ package Modules.ReplayEngine
             UndoController.resetUndoState();
             CaptureController.resetCaptureCanvasChangeValue();
             FileManager.updateLastFilePathByRandomFileName();
-            CanvasController.canvasInfoBox.setMirror(false);
+            UIController.canvasInfoBox.setMirror(false);
             AppWindowState.updateWindowTitle();
             InputManager.removeKeyRepeatEvents(null);
         }

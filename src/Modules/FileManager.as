@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.InputManager.InputManager;
     import Modules.InputManager.DrawModeInput;
@@ -409,7 +410,7 @@ package Modules
             ReplayState.rMirrorON = false;
             CanvasController.mirrorON = false;
             ReplayState.mirrorCommandReady = false;
-            CanvasController.canvasInfoBox.setMirror(false);
+            UIController.canvasInfoBox.setMirror(false);
             CanvasGridOverlay.updateGridMirror(false);
             LassoTool.cancelIfActive();
 
@@ -519,8 +520,8 @@ package Modules
             ReferenceLayerController.refLayerMenuBox.refTransferCanvasImageButton.alpha = 1.0;
             ColorPickerController.selectCurrentColor(false);
             ToolController.selectPenToolIfNotDrawingTool(false);
-            CanvasController.canvasNavigatorBox.updateImage();
-            UIController.updateCanvasNaigatorCursor();
+            CanvasNavigator.box.updateImage();
+            CanvasNavigator.updateCursor();
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();
@@ -1821,7 +1822,7 @@ package Modules
 
             ReplayState.rMirrorON = false;
             CanvasController.mirrorON = false;
-            CanvasController.canvasInfoBox.setMirror(false);
+            UIController.canvasInfoBox.setMirror(false);
 
             const fs:FileStream = new FileStream();
             fs.open(undoDataFilePath, FileMode.READ);

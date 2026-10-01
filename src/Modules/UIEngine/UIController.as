@@ -20,6 +20,8 @@ package Modules.UIEngine
     import Modules.Tools.EyeDropperTool;
     import Modules.Tools.LassoTool;
     import Modules.Utils;
+    import Symbols.CanvasInfoSet;
+    import Symbols.RotateCursorSet;
     import Symbols.TopMenuSet;
 
     import flash.display.DisplayObject;
@@ -39,6 +41,8 @@ package Modules.UIEngine
         // todo 커스텀 마우스 커서랑 최종적으로 앱 상세 살정할수있는 작은 옵션 버튼들 창 만들어야함, 현재 계속 누르고 있는 확인은 실제 확인창 만들어서 그냥 쉽게 선택하게 하기
         public static const stageBG:Sprite = new Sprite(); // 드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
         public static const topBar:TopMenuSet = new TopMenuSet();
+        public static const canvasInfoBox:CanvasInfoSet = new CanvasInfoSet(); // 사이드바의 캔버스 크기/줌/회전/미러 정보
+        public static const canvasRotateCursor:RotateCursorSet = new RotateCursorSet(); // 회전이 얼마나 됐는지 표시
         public static var STAGE_BG_COLOR:uint = 0xCCCCCC;
 
         public static var STAGE_TOP_OFFSET:Number = 0, // 창 상하좌우 여백
@@ -56,11 +60,11 @@ package Modules.UIEngine
             FillPenTool.fillPenBox.x = -FillPenTool.fillPenBox.width - 3;
             FillPenTool.fillPenBox.y = -FillPenTool.fillPenBox.height - 3;
 
-            CanvasController.canvasNavigatorBox.scrollRect = new Rectangle(0, 0, CanvasController.canvasNavigatorBox.width, CanvasController.canvasNavigatorBox.height);
+            CanvasNavigator.box.scrollRect = new Rectangle(0, 0, CanvasNavigator.box.width, CanvasNavigator.box.height);
 
-            SidebarController.sideBarScrollPanel.addChild(CanvasController.canvasNavigatorBox);
-            SidebarController.sideBarScrollPanel.addChild(CanvasController.canvasInfoBox);
-            ToolController.toolBox.moveCanvasControlButtonsTo(CanvasController.canvasInfoBox);
+            SidebarController.sideBarScrollPanel.addChild(CanvasNavigator.box);
+            SidebarController.sideBarScrollPanel.addChild(canvasInfoBox);
+            ToolController.toolBox.moveCanvasControlButtonsTo(canvasInfoBox);
             SidebarController.sideBarScrollPanel.addChild(ToolController.toolBox);
             SidebarController.sideBarScrollPanel.addChild(ToolController.toolOptionsBox);
             SidebarController.sideBarScrollPanel.addChild(ColorPickerController.colorPickerBox);
@@ -85,7 +89,7 @@ package Modules.UIEngine
             main.stage.addChild(SidebarController.sideBar);
             main.stage.addChild(FillPenTool.fillPenBox);
             main.stage.addChild(ToolController.toolBox2);
-            main.stage.addChild(CanvasController.canvasRotateCursor);
+            main.stage.addChild(canvasRotateCursor);
             main.stage.addChild(ColorPickerController.numPadBox);
             main.stage.addChild(CaptureStamp.captureStampFontListBox);
             main.stage.addChild(topBar);
@@ -182,7 +186,7 @@ package Modules.UIEngine
             topBar.updateTopbarBG(stw);
             topBar.updateTimerPos(main.stage.stageWidth);
             ReplayController.seekBarBox.setScale(scale);
-            CanvasController.canvasRotateCursor.setScale(scale);
+            canvasRotateCursor.setScale(scale);
             HintController.mouseHint.setScale(scale);
             HintController.bottomBar.scaleX = scale;
             HintController.bottomBar.scaleY = scale;
@@ -209,36 +213,8 @@ package Modules.UIEngine
             if (ReferenceLayerController.isRefLayerMenuON)
                 keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
 
-            updateCanvasNaigatorCursor();
+            CanvasNavigator.updateCursor();
             HintController.hideBottomHint();
-        }
-
-        public static function updateCanvasNaigatorCursor():void
-        {
-            var newRightOffset:Number = 0;
-            var newLeftOffset:Number = 0;
-
-            if (SidebarController.isSidebarVisible === true)
-            {
-                newRightOffset = STAGE_RIGHT_OFFSET;
-                newLeftOffset = STAGE_LEFT_OFFSET;
-
-                if (SidebarController.isRightSidebar)
-                {
-                    newRightOffset = Math.round(SidebarController.sideBar.getWidth());
-                }
-                else
-                {
-                    newLeftOffset = Math.round(SidebarController.sideBar.getWidth());
-                }
-            }
-
-            const gp:Point = CanvasController.canvasLayer1Bitmap.globalToLocal(new Point(newLeftOffset, STAGE_TOP_OFFSET));
-            const zoom:Number = CanvasController.canvasZoomMultipler;
-            CanvasController.canvasNavigatorBox.updateCursor(gp.x * zoom, gp.y * zoom
-                    , main.stage.stageWidth - newRightOffset - newLeftOffset
-                    , main.stage.stageHeight - STAGE_TOP_OFFSET - STAGE_BOTTOM_OFFSET
-                    , CanvasController.CANVAS_WIDTH * zoom, CanvasController.canvasAnchorPoint.rotation);
         }
 
         // 창 크기가 바뀐 뒤의 화면 배치를 "지금 창 크기" 기준으로 다시 계산한다.
@@ -356,7 +332,7 @@ package Modules.UIEngine
             }
 
             SidebarController.updateScrollBarHeight();
-            updateCanvasNaigatorCursor();
+            CanvasNavigator.updateCursor();
 
             if (FileManager.loadMenuBox.visible === true)
             {
@@ -460,7 +436,7 @@ package Modules.UIEngine
             updateStageBGColor();
             HintController.updateBottomBarLayoutAndColor();
 
-            CanvasController.canvasNavigatorBox.chanegStageColor(STAGE_BG_COLOR);
+            CanvasNavigator.box.chanegStageColor(STAGE_BG_COLOR);
 
             if (ImageViewWindow.isCanvasWindowON)
             {
@@ -470,8 +446,8 @@ package Modules.UIEngine
             SidebarController.sideBar.updateUIColor();
             ToolController.toolOptionsBox.updateUIColor();
             ColorPickerController.colorPickerBox.updateUIColor();
-            CanvasController.canvasInfoBox.updateUIColor();
-            CanvasController.canvasRotateCursor.changeUIColor();
+            canvasInfoBox.updateUIColor();
+            canvasRotateCursor.changeUIColor();
             SidebarController.fofo.updateColor();
             ToolController.toolBox.changeUIColor();
             ToolController.toolBox2.changeUIColor();
@@ -505,31 +481,31 @@ package Modules.UIEngine
 
         public static function hideCanvasRotateCursor():void
         {
-            CanvasController.canvasRotateCursor.visible = false;
+            canvasRotateCursor.visible = false;
         }
 
         public static function showCanvasRotateCursorMouseDrag(target:DisplayObject):Function
         {
             const snapThreshold:Number = 82;
-            CanvasController.canvasRotateCursor.x = main.stage.mouseX;
-            CanvasController.canvasRotateCursor.y = main.stage.mouseY + (65 * UITheme.getUIScale());
-            CanvasController.canvasRotateCursor.rotateArrow.rotation = target.rotation;
-            Utils.setAsTopChild(CanvasController.canvasRotateCursor);
-            CanvasController.canvasRotateCursor.visible = true;
+            canvasRotateCursor.x = main.stage.mouseX;
+            canvasRotateCursor.y = main.stage.mouseY + (65 * UITheme.getUIScale());
+            canvasRotateCursor.rotateArrow.rotation = target.rotation;
+            Utils.setAsTopChild(canvasRotateCursor);
+            canvasRotateCursor.visible = true;
 
             const toDeg:Number = 180.0 / Math.PI;
             // 움직인 각도합 로테이트 캔버스 마지막각도를 넣어줌 rad로 변환
 
             var sumAng:Number = target.rotation;
             // 각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값
-            var lastAng:Number = Math.atan2(main.stage.mouseX - CanvasController.canvasRotateCursor.x, main.stage.mouseY - CanvasController.canvasRotateCursor.y) * toDeg;
+            var lastAng:Number = Math.atan2(main.stage.mouseX - canvasRotateCursor.x, main.stage.mouseY - canvasRotateCursor.y) * toDeg;
             var activateSnapFlag:Boolean = false;
             var ignoreSnapFlag:Boolean = true;
             var snappedAng:Number = 0;
 
             return function ():Number
             {
-                const nowAng:Number = Math.atan2(main.stage.mouseX - CanvasController.canvasRotateCursor.x, main.stage.mouseY - CanvasController.canvasRotateCursor.y) * toDeg;
+                const nowAng:Number = Math.atan2(main.stage.mouseX - canvasRotateCursor.x, main.stage.mouseY - canvasRotateCursor.y) * toDeg;
                 const subAng:Number = lastAng - nowAng;
 
                 lastAng = nowAng;
@@ -563,7 +539,7 @@ package Modules.UIEngine
                     }
                 }
 
-                CanvasController.canvasRotateCursor.rotateArrow.rotation = deg;
+                canvasRotateCursor.rotateArrow.rotation = deg;
                 return Math.round(deg);
             };
         }

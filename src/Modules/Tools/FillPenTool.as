@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.CanvasController;
     import Modules.ColorPickerController;
     import Modules.DrawingFinish;
@@ -580,13 +581,13 @@ package Modules.Tools
                     case "prevBitmapBG":
                     case "prevBitmap":
                         {
-                            CanvasController.startCanvasMoveByCanvasNavigator(false);
+                            CanvasNavigator.startCanvasMove(false);
                         }
                         return;
 
                     case "prevCursor":
                         {
-                            CanvasController.startCanvasMoveByCanvasNavigator(true);
+                            CanvasNavigator.startCanvasMove(true);
                         }
                         return;
 
@@ -692,7 +693,7 @@ package Modules.Tools
                 if (CanvasController.canvasZoomMultipler !== 1.0)
                 {
                     CanvasController.resetZoomDrawMode();
-                    UIController.updateCanvasNaigatorCursor();
+                    CanvasNavigator.updateCursor();
                 }
                 return;
             }
@@ -701,7 +702,7 @@ package Modules.Tools
                 if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                 {
                     CanvasController.resetRotationDrawMode();
-                    UIController.updateCanvasNaigatorCursor();
+                    CanvasNavigator.updateCursor();
                 }
                 return;
             }

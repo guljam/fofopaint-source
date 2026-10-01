@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.UIController;
     import Modules.InputPriority;
     import Modules.MouseState;
@@ -67,7 +68,7 @@ package Modules.Tools
                 }
 
                 ToolController.toolBox.setCursorVisible(true);
-                UIController.updateCanvasNaigatorCursor();
+                CanvasNavigator.updateCursor();
             }
             else
             {

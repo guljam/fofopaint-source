@@ -138,7 +138,7 @@ package Modules.UIEngine
                 if (target.alpha > 0.5
                         &&
                         (ToolController.toolBox.contains(target)
-                            || CanvasController.canvasInfoBox.contains(target)
+                            || UIController.canvasInfoBox.contains(target)
                             || ColorPickerController.colorPickerBox.contains(target))
                         || target === SidebarController.sideBarScrollBar
                         || (targetName && targetName.indexOf(UITheme.ALPHA_BUTTON_PREFIX) !== -1))
@@ -205,9 +205,9 @@ package Modules.UIEngine
             {
                 FOFOTimer.remove("bottomHintOffDelay");
 
-                if (CanvasController.isCanvasNaviatorChild(target))
+                if (CanvasNavigator.isNavigatorChild(target))
                 {
-                    showHintHighlightBox(CanvasController.canvasNavigatorBox.navStageBG);
+                    showHintHighlightBox(CanvasNavigator.box.navStageBG);
                 }
                 else
                 {
@@ -238,9 +238,9 @@ package Modules.UIEngine
             hintHighlightBox.graphics.clear();
             hintHighlightBox.graphics.lineStyle(2 * scale, UITheme.getHintHightlightColor(), 1.0);
 
-            if (target.parent === CanvasController.canvasNavigatorBox)
+            if (target.parent === CanvasNavigator.box)
             {
-                target = CanvasController.canvasNavigatorBox;
+                target = CanvasNavigator.box;
             }
 
             const rect:Rectangle = target.getBounds(main.stage);

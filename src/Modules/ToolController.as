@@ -803,7 +803,7 @@ package Modules
         {
             updateToolOptionsTextBySelectedTool();
             setSelectedTool(TOOL_ZOOM);
-            toolBox.moveToolCursor("toolZoomIn", CanvasController.canvasInfoBox);
+            toolBox.moveToolCursor("toolZoomIn", UIController.canvasInfoBox);
 
             if (toolOptionsBox.isSizeButtonsDisabled())
             {
@@ -817,7 +817,7 @@ package Modules
         {
             updateToolOptionsTextBySelectedTool();
             setSelectedTool(TOOL_ROTATE);
-            toolBox.moveToolCursor("toolRotate", CanvasController.canvasInfoBox);
+            toolBox.moveToolCursor("toolRotate", UIController.canvasInfoBox);
 
             if (toolOptionsBox.isSizeButtonsDisabled())
             {

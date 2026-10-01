@@ -1,5 +1,6 @@
 package Modules.InputManager
 {
+    import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.MouseState;
     import Modules.ActivityWorkTimer;
@@ -462,7 +463,7 @@ package Modules.InputManager
                         if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                         {
                             CanvasController.resetRotationDrawMode();
-                            UIController.updateCanvasNaigatorCursor();
+                            CanvasNavigator.updateCursor();
                         }
                     }
                     return;
@@ -472,7 +473,7 @@ package Modules.InputManager
                         if (CanvasController.canvasZoomMultipler !== 1.0)
                         {
                             CanvasController.resetZoomDrawMode();
-                            UIController.updateCanvasNaigatorCursor();
+                            CanvasNavigator.updateCursor();
                         }
                     }
                     return;
@@ -891,7 +892,7 @@ package Modules.InputManager
                         if (CanvasController.canvasZoomMultipler !== 1.0)
                         {
                             CanvasController.resetZoomDrawMode();
-                            UIController.updateCanvasNaigatorCursor();
+                            CanvasNavigator.updateCursor();
                         }
                     }
                     break;
@@ -911,7 +912,7 @@ package Modules.InputManager
                         if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                         {
                             CanvasController.resetRotationDrawMode();
-                            UIController.updateCanvasNaigatorCursor();
+                            CanvasNavigator.updateCursor();
                         }
                     }
                     break;
