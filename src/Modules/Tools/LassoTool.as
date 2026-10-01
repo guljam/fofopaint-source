@@ -5,6 +5,7 @@ package Modules.Tools
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.MouseState;
+    import Modules.CaptureEngine.CaptureController;
     import Modules.CanvasController;
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
@@ -64,10 +65,10 @@ package Modules.Tools
                         , 0, -1, 0
                     ], 3]];
 
-        public static const LASSO_1PX_MOVE_UP:int = (1 << 0);
-        public static const LASSO_1PX_MOVE_DOWN:int = (1 << 1);
-        public static const LASSO_1PX_MOVE_LEFT:int = (1 << 2);
-        public static const LASSO_1PX_MOVE_RIGHT:int = (1 << 3);
+        private static const LASSO_1PX_MOVE_UP:int = (1 << 0);
+        private static const LASSO_1PX_MOVE_DOWN:int = (1 << 1);
+        private static const LASSO_1PX_MOVE_LEFT:int = (1 << 2);
+        private static const LASSO_1PX_MOVE_RIGHT:int = (1 << 3);
 
         public static var _lassoMenuBox:LassoMenuSet = new LassoMenuSet(); // 라소툴 버튼
         public static const lassoDraw:Shape = new Shape(); // 라소 영역 선 그려주는 쉐이프
@@ -81,7 +82,7 @@ package Modules.Tools
         private static var _isStarted:Boolean = false; // 라소툴로 영역 선택하면 올려줌
         private static var _isLassoMenuHiddenTemp:Boolean = false; // 툴 고정 상태에서 줌툴 클릭 시 메뉴를 잠시 숨기는 플래그
         public static var lassoFirstData:Array = []; // 이 값과 비교해서 달라진 게 있으면 OK할 때 적용
-        public static var isLassoMirrorON:Boolean = false; // 라소 mirror 클릭할 때마다 반전
+        private static var isLassoMirrorON:Boolean = false; // 라소 mirror 클릭할 때마다 반전
 
         public static var lassoTransformData:Array = []; // 라소 변형 데이터
         public static var isLassoImageCopied:Boolean = false; // lasso 복사 누르면 올려줌
@@ -125,7 +126,7 @@ package Modules.Tools
             DottedLineTool.lineTo(pts[0][0], pts[0][1], true);
         }
 
-        public static function resetLassoLayerScale():void
+        private static function resetLassoLayerScale():void
         {
             if (lassoLayer1.scaleY !== 1.0)
             {
@@ -136,7 +137,7 @@ package Modules.Tools
                 LassoTool.redrawLassoOutline();
             }
         }
-        public static function resetLassoLayerRotation():void
+        private static function resetLassoLayerRotation():void
         {
             if (lassoLayer1.rotation !== 0)
             {
@@ -254,7 +255,7 @@ package Modules.Tools
             }
         }
 
-        public static function mergeLassoImageIntoToRefLayer():void
+        private static function mergeLassoImageIntoToRefLayer():void
         {
             ReferenceLayerController.handleOneMoreClickMergeIntoRefLayer(
                     _lassoMenuBox,
@@ -267,7 +268,7 @@ package Modules.Tools
                     });
         }
 
-        public static function lassoMenuHintONEvent(e:MouseEvent):void
+        private static function lassoMenuHintONEvent(e:MouseEvent):void
         {
             if (!_isStarted)
             {
@@ -329,13 +330,13 @@ package Modules.Tools
             rect = null;
         }
 
-        public static function mergeLayerByLassoTool():void
+        private static function mergeLayerByLassoTool():void
         {
             _lassoMenuBox.lassoLayerMerge.alpha = UITheme.OFFALPHA;
             mergeLassoImage();
             addLassoLayerMergeCommand(1);
         }
-        public static function swapLayerByLassoTool():void
+        private static function swapLayerByLassoTool():void
         {
             if (_lassoMenuBox.lassoLayerSwap.alpha < 1.0)
             {
@@ -348,7 +349,7 @@ package Modules.Tools
             CanvasController.playLayerSwapEffect(_lassoMenuBox.lassoLayerSwap);
         }
 
-        public static function copyCanvasImageToLassoTool():void
+        private static function copyCanvasImageToLassoTool():void
         {
             if (isLassoImageCopied)
             {
@@ -359,7 +360,7 @@ package Modules.Tools
             restoreToLastBmpd();
         }
 
-        public static function startLassoImageRotation():void
+        private static function startLassoImageRotation():void
         {
             var getAngle:Function = UIController.showCanvasRotateCursorMouseDrag(lassoLayer1);
             function onDragStart():void
@@ -381,7 +382,7 @@ package Modules.Tools
             DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
         }
 
-        public static function startLassoImageResize():void
+        private static function startLassoImageResize():void
         {
             const mirrorScale:Number = (lassoLayer1.scaleX < 0) ? -1.0 : 1.0;
             var getScale:Function = Utils.updateImageScaleMouseDrag(lassoLayer1.scaleX);
@@ -426,7 +427,7 @@ package Modules.Tools
             return false;
         }
 
-        public static function startLassoImageMove():void
+        private static function startLassoImageMove():void
         {
             var getMovedPos:Function = Utils.updateImagePosMouseDrag(lassoLayer1, CanvasController.canvasAnchorPoint.rotation);
             function onMouseUp():void
@@ -841,7 +842,7 @@ package Modules.Tools
                 ReferenceLayerController.refLayerMenuBox.visible = false;
             }
             setAlphaButtonsOnLassoTool(UITheme.OFFALPHA);
-            InputManager.addInputEventsLassoTool();
+            addInputEventsLassoTool();
         }
 
         // zoom이나 rotate reg포인트 바뀔때마다
@@ -916,7 +917,7 @@ package Modules.Tools
                     ang, boxX, boxY];
         }
 
-        public static function applyLassoImageToCanvas():void
+        private static function applyLassoImageToCanvas():void
         {
             if (_isStarted === true)
             {
@@ -1018,7 +1019,7 @@ package Modules.Tools
         // 라소박스 변형이랑 플래그 초기화
         public static function resetLassoBox():void
         {
-            InputManager.removeInputEventsLassoTool();
+            removeInputEventsLassoTool();
             _isStarted = false;
             isLassoMirrorON = false;
             isLassoImageCopied = false;
@@ -1074,27 +1075,27 @@ package Modules.Tools
             setAlphaButtonsOnLassoTool(1.0);
         }
 
-        public static function move1PXUp():void
+        private static function move1PXUp():void
         {
             _move1PX(LASSO_1PX_MOVE_UP);
         }
 
-        public static function move1PXDown():void
+        private static function move1PXDown():void
         {
             _move1PX(LASSO_1PX_MOVE_DOWN);
         }
 
-        public static function move1PXRight():void
+        private static function move1PXRight():void
         {
             _move1PX(LASSO_1PX_MOVE_RIGHT);
         }
 
-        public static function move1PXLeft():void
+        private static function move1PXLeft():void
         {
             _move1PX(LASSO_1PX_MOVE_LEFT);
         }
 
-        public static function _move1PX(command:int):void
+        private static function _move1PX(command:int):void
         {
             var posX:Number = 0;
             var posY:Number = 0;
@@ -1112,6 +1113,447 @@ package Modules.Tools
             lassoLayer1.y += rotatedPoint.y;
             lassoLayer2.x = lassoLayer1.x;
             lassoLayer2.y = lassoLayer1.y;
+        }
+
+        // ---- 입력 처리 ----
+
+        // 올가미 메뉴 버튼은 누른 버튼에서 마우스를 뗐을때 실행됨 (InputManager.handleMouseClickStage가 호출)
+        private static function onClickLassoMenu(targetName:String):void
+        {
+            switch (targetName)
+            {
+            case "lassoRefLayer":
+                {
+                    mergeLassoImageIntoToRefLayer();
+                }
+                break;
+            case "lassoOK":
+                {
+                    applyLassoImageToCanvas();
+                }
+                break;
+            case "lassoCancel":
+                {
+                    cancelIfActive();
+                }
+                break;
+            case "lassoLayerMerge":
+                {
+                    if (_lassoMenuBox.lassoLayerMerge.alpha === 1.0)
+                    {
+                        mergeLayerByLassoTool();
+                    }
+                }
+                break;
+            case "lassoLayerSwap":
+                {
+                    if (_lassoMenuBox.lassoLayerSwap.alpha === 1.0)
+                    {
+                        swapLayerByLassoTool();
+                    }
+                }
+                break;
+            case "lasso1pxUp":
+                {
+                    _move1PX(LASSO_1PX_MOVE_UP);
+                }
+                break;
+            case "lasso1pxDown":
+                {
+                    _move1PX(LASSO_1PX_MOVE_DOWN);
+                }
+                break;
+            case "lasso1pxLeft":
+                {
+                    _move1PX(LASSO_1PX_MOVE_LEFT);
+                }
+                break;
+            case "lasso1pxRight":
+                {
+                    _move1PX(LASSO_1PX_MOVE_RIGHT);
+                }
+                break;
+            case "lassoCopy":
+                {
+                    copyCanvasImageToLassoTool();
+                }
+                break;
+            case "lassoMirror":
+                {
+                    isLassoMirrorON = !isLassoMirrorON;
+                    lassoLayer1.scaleX = -lassoLayer1.scaleX;
+                    lassoLayer2.scaleX = lassoLayer1.scaleX;
+                    // 캔버스가 회전한각도도 있어서 항상 세로축을 중심으로 대칭되게 regpoint각도를 보정값으로 넣어줌
+                    lassoLayer1.rotation = -lassoLayer1.rotation - (CanvasController.canvasAnchorPoint.rotation * 2);
+                    lassoLayer2.rotation = lassoLayer1.rotation;
+                }
+                break;
+            }
+        }
+
+        private static function onMouseUpLassoTool(e:MouseEvent):void
+        {
+            if (InputManager.getPressedKeyCount() === 1 && InputManager.getFirstPressedKey() === InputManager.KEY.space)
+            {
+                InputManager.updateLastKey();
+                _isLassoMenuHiddenTemp = true;
+                ToolController.setSelectedTool(ToolController.TOOL_HAND);
+                ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
+            }
+        }
+
+        private static function onMouseDownLassoTool(e:MouseEvent):void
+        {
+            if (CanvasController.isRightMouseClicked)
+            {
+                return;
+            }
+            const target:DisplayObject = e.target as DisplayObject;
+            if (!target)
+            {
+                return;
+            }
+            const targetName:String = target.name;
+            if (Utils.isCursorInDrawArea() && _lassoMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            {
+                if (_isLassoMenuHiddenTemp)
+                {
+                    lassoMenuBox.visible = false;
+                    if (ToolController.isSelectedTool(ToolController.TOOL_HAND))
+                        HandTool.startInDrawMode();
+                    else if (ToolController.isSelectedTool(ToolController.TOOL_ZOOM))
+                        ZoomTool.start();
+                    else if (ToolController.isSelectedTool(ToolController.TOOL_ROTATE))
+                        RotateTool.startInDrawMode();
+                }
+                else
+                {
+                    startLassoImageMove();
+                }
+            }
+            else
+            {
+                switch (targetName)
+                {
+                    case "lassoMove":
+                        {
+                            startLassoImageMove();
+                        }
+                        break;
+                    case "lassoResize":
+                        {
+                            startLassoImageResize();
+                        }
+                        break;
+                    case "lassoRotate":
+                        {
+                            startLassoImageRotation();
+                        }
+                        break;
+                    case "navStageBG":
+                    case "navBitmapBG":
+                    case "navLayer1Bitmap":
+                    case "navLayer2Bitmap":
+                        {
+                            CanvasController.startCanvasMoveByCanvasNavigator(false);
+                        }
+                        break;
+                    case "navCursor":
+                        {
+                            CanvasController.startCanvasMoveByCanvasNavigator(true);
+                        }
+                        break;
+                    case "lassoMenuMoveButton":
+                        {
+                            Utils.setAsTopChild(lassoMenuBox);
+                            DragInteraction.startBoxDrag(lassoMenuBox);
+                        }
+                        break;
+                    case "sideBarScrollBar":
+                        {
+                            SidebarController.startScrollSidebarByDrag();
+                        }
+                        break;
+                    case "toolZoomIn":
+                        {
+                            CanvasController.zoomInCanvas(true, false);
+                        }
+                        break;
+                    case "toolZoomOut":
+                        {
+                            CanvasController.zoomInCanvas(false, false);
+                        }
+                        break;
+                    case "toolRotate":
+                        {
+                            lassoMenuBox.visible = false;
+                            _isLassoMenuHiddenTemp = true;
+                            RotateTool.startInDrawMode();
+                        }
+                        break;
+                    case "lasso1pxUp":
+                    case "lasso1pxDown":
+                    case "lasso1pxLeft":
+                    case "lasso1pxRight":
+                    case "lassoCopy":
+                    case "lassoOK":
+                    case "lassoCancel":
+                    case "lassoRefLayer":
+                    case "lassoLayerMerge":
+                    case "lassoLayerSwap":
+                    case "lassoMirror":
+                        InputManager.handleMouseClickStage(targetName, onClickLassoMenu);
+                        break;
+                    case "sideBarPositionButton":
+                    case "sideBarPositionButton2":
+                    case "sideBarOFFButton":
+                    case "sideBarOFFButton2":
+                    case "sideBarONButton":
+                    case "sideBarONButton2":
+                        InputManager.handleMouseClickStage(targetName);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private static function onKeyUpLassoTool(e:KeyboardEvent):void
+        {
+            const keyCode:uint = e.keyCode;
+            if (_isLassoMenuHiddenTemp && !CanvasController.isMouseLeftClicked)
+            {
+                _isLassoMenuHiddenTemp = false;
+            }
+            InputManager.checkGeneralKeyUp();
+
+            // 마지막으로 처리한 키를 뗐는데 아직 누르고 있는 키가 있으면 남은 키로 다시 처리함
+            if (InputManager.isKeyPressed() && !CaptureController.isCaptureModeON && !ReplayState.isReplayModeON && InputManager.isLastKey(keyCode))
+            {
+                onKeyDownLassoTool(null);
+            }
+        }
+
+        private static function onKeyDownLassoTool(e:KeyboardEvent):void
+        {
+            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging)
+            {
+                return;
+            }
+
+            const keyCode:uint = InputManager.getFirstPressedKey();
+
+            if (keyCode === InputManager.KEY.space)
+            {
+                if (InputManager.checkSubKey(2, true, handleSpaceSubKeyLassoTool))
+                {
+                    return;
+                }
+
+                if (InputManager.isLastKey(keyCode))
+                {
+                    return;
+                }
+
+                InputManager.updateLastKey();
+                _isLassoMenuHiddenTemp = true;
+                ToolController.setSelectedTool(ToolController.TOOL_HAND);
+                ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
+            }
+            else if (InputManager.isPressingShift())
+            {
+                if (InputManager.checkSubKey(2, true, handleShiftSubKeyLassoTool))
+                {
+                    return;
+                }
+            }
+
+            if (InputManager.isLastKey(keyCode))
+            {
+                return;
+            }
+
+            InputManager.updateLastKey();
+
+            switch (keyCode)
+            {
+                case InputManager.KEY.tab:
+                case InputManager.KEY.backslash:
+                    if (SidebarController.isSidebarVisible)
+                    {
+                        SidebarController.hideSidebarPermanent();
+                    }
+                    else
+                    {
+                        SidebarController.showSidebarPermanent();
+                    }
+                    break;
+
+                case InputManager.KEY.w:
+                case InputManager.KEY.i:
+                    _isLassoMenuHiddenTemp = true;
+                    InputManager.updateLastKey();
+                    ToolController.setSelectedTool(ToolController.TOOL_ZOOM);
+                    ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ZOOM);
+                    break;
+
+                case InputManager.KEY.s:
+                case InputManager.KEY.k:
+                    _isLassoMenuHiddenTemp = true;
+                    InputManager.updateLastKey();
+                    ToolController.setSelectedTool(ToolController.TOOL_ROTATE);
+                    ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ROTATE);
+                    break;
+
+                case InputManager.KEY.enter:
+                    applyLassoImageToCanvas();
+                    break;
+
+                case InputManager.KEY.esc:
+                case InputManager.KEY.backspace:
+                    cancelIfActive();
+                    break;
+            }
+        }
+
+        private static function onRightMouseDownLassoTool(e:MouseEvent):void
+        {
+            if (!isStarted)
+            {
+                return;
+            }
+            const target:DisplayObject = e.target as DisplayObject;
+            if (!target)
+                return;
+            const targetName:String = target.name;
+            if (targetName === "toolZoom"
+                    || targetName === "toolZoomIn"
+                    || targetName === "toolZoomOut")
+            {
+                if (CanvasController.canvasZoomMultipler !== 1.0)
+                {
+                    CanvasController.resetZoomDrawMode();
+                    UIController.updateCanvasNaigatorCursor();
+                }
+            }
+            else if (targetName === "toolRotate")
+            {
+                if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                {
+                    CanvasController.resetRotationDrawMode();
+                    UIController.updateCanvasNaigatorCursor();
+                }
+            }
+        }
+
+        private static function onRightMouseUpLassoTool(e:MouseEvent):void
+        {
+            if (!isStarted || CanvasController.isMouseLeftClicked)
+            {
+                return;
+            }
+            const target:DisplayObject = e.target as DisplayObject;
+            if (!target)
+                return;
+            const targetName:String = target.name;
+            if (targetName === "toolZoom"
+                    || targetName === "toolZoomIn"
+                    || targetName === "toolZoomOut"
+                    || targetName === "toolRotate")
+            {
+                return;
+            }
+            if (lassoMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false || targetName === "lassoOK")
+            {
+                applyLassoImageToCanvas();
+                return;
+            }
+            if (targetName === "lassoRotate")
+            {
+                resetLassoLayerRotation();
+            }
+            else if (targetName === "lassoResize")
+            {
+                resetLassoLayerScale();
+            }
+        }
+
+        private static function removeInputEventsLassoTool():void
+        {
+            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpLassoTool);
+            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLassoTool);
+            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLassoTool);
+            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool);
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool);
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool);
+            InputManager.addInputEventsDrawMode();
+        }
+
+        private static function addInputEventsLassoTool():void
+        {
+            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLassoTool, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLassoTool, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLassoTool, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool, false, InputPriority.MODE);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(MouseEvent.MOUSE_OVER, lassoMenuHintONEvent);
+            InputManager.removeInputEventsDrawMode();
+        }
+
+        private static function handleShiftSubKeyLassoTool(input:int):void
+        {
+            switch (input)
+            {
+                case InputManager.KEY.s:
+                case InputManager.KEY.k:
+                    if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                    {
+                        CanvasController.resetRotationDrawMode();
+                        UIController.updateCanvasNaigatorCursor();
+                    }
+                    return;
+
+                case InputManager.KEY.w:
+                case InputManager.KEY.i:
+                    if (CanvasController.canvasZoomMultipler !== 1.0)
+                    {
+                        CanvasController.resetZoomDrawMode();
+                        UIController.updateCanvasNaigatorCursor();
+                    }
+                    return;
+            }
+        }
+        private static function handleSpaceSubKeyLassoTool(input:int):void
+        {
+            // 키 2개 조합만 체크함
+            if (!InputManager.isTwoKeyPressed())
+            {
+                return;
+            }
+
+            switch (input)
+            {
+                case InputManager.KEY.w:
+                case InputManager.KEY.i:
+                    move1PXUp();
+                    break;
+
+                case InputManager.KEY.a:
+                case InputManager.KEY.j:
+                    move1PXLeft();
+                    break;
+
+                case InputManager.KEY.s:
+                case InputManager.KEY.k:
+                    move1PXDown();
+                    break;
+
+                case InputManager.KEY.d:
+                case InputManager.KEY.l:
+                    move1PXRight();
+                    break;
+            }
         }
     }
 }
