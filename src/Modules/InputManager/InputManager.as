@@ -412,12 +412,12 @@ package Modules.InputManager
                         {
                             if (e.delta > 0)
                             {
-                                CanvasView.zoomInCanvas(true, false);
+                                CanvasView.viewport.zoomStep(true);
                                 HintController.showMouseHintTemp(Math.floor(CanvasView.canvasZoomMultiplier * 100) + "%");
                             }
                             else
                             {
-                                CanvasView.zoomInCanvas(false, false);
+                                CanvasView.viewport.zoomStep(false);
                                 HintController.showMouseHintTemp(Math.floor(CanvasView.canvasZoomMultiplier * 100) + "%");
                             }
                         }

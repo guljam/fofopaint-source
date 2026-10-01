@@ -1,5 +1,6 @@
 ﻿package
 {
+    import Modules.CanvasViewport;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.CanvasNavigator;
@@ -123,6 +124,7 @@
             CaptureArea.setMainInstance(this);
 
             CanvasView.setMainInstance(this);
+            CanvasViewport.setMainInstance(this);
             CanvasResizer.setMainInstance(this);
             CanvasNavigator.setMainInstance(this);
             ClipboardManager.setMainInstance(this);

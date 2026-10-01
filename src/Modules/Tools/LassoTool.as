@@ -1281,12 +1281,12 @@ package Modules.Tools
                         break;
                     case "toolZoomIn":
                         {
-                            CanvasView.zoomInCanvas(true, false);
+                            CanvasView.viewport.zoomStep(true);
                         }
                         break;
                     case "toolZoomOut":
                         {
-                            CanvasView.zoomInCanvas(false, false);
+                            CanvasView.viewport.zoomStep(false);
                         }
                         break;
                     case "toolRotate":

@@ -60,7 +60,7 @@ package Modules.Tools
 
             const zoomValue:Number = CanvasView.canvasZoomMultiplierList[startZoomIndex];
             CanvasView.canvasZoomIndex = startZoomIndex;
-            CanvasView.updateCanvasScale(zoomValue, false);
+            CanvasView.viewport.setScale(zoomValue);
 
             HintController.showMouseHint(Math.floor(zoomValue * 100) + "%");
             fixMouseHintPos();
@@ -168,14 +168,14 @@ package Modules.Tools
                 if (LassoTool.isLassoMenuHiddenTemp === true)
                 {
                     gp = LassoTool.lassoLayer1.localToGlobal(new Point(0, 0));
-                    CanvasView.moveCanvasAnchorPoint(gp.x, gp.y, false);
+                    CanvasView.viewport.moveAnchorPoint(gp.x, gp.y);
                 }
                 else
                 {
                     gp = CanvasView.canvasPanel.localToGlobal(new Point(0, 0));
                     const panelLimitedPos:Point = getCanvasBoundLimitPoint(CanvasView.canvasPanel, CanvasView.canvasPanel.mouseX, CanvasView.canvasPanel.mouseY, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, CanvasView.canvasZoomMultiplier, -CanvasView.canvasAnchorPoint.rotation);
                     // 캔버스 0,0점이 글로벌좌표 기준으로 어느 위치에 있는지 더해줘야함
-                    CanvasView.moveCanvasAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y, false);
+                    CanvasView.viewport.moveAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y);
                 }
 
                 lastMousePos.setTo(main.stage.mouseX, main.stage.mouseY);

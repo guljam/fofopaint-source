@@ -267,7 +267,7 @@ package Modules.UIEngine
             {
                 if (ReplayController.isReplayRestartTimerON())
                 {
-                    CanvasView.centerCanvas("replay");
+                    ReplayDrawer.viewport.centerIn("replay");
                 }
                 else
                 {

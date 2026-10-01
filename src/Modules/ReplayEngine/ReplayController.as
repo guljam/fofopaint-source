@@ -623,7 +623,7 @@ package Modules.ReplayEngine
                 ReplayFileCache.rLastCacheImageIndex = -2;
                 ReplayFileCache.rTempCachedLastImageIndex = -2;
                 UndoController.undoToIndex(ReplayState.rMemoryData.length - 1);
-                CanvasView.centerCanvas("replay");
+                ReplayDrawer.viewport.centerIn("replay");
                 ReplayModeInput.addEvents();
                 ReplayDrawer.rCanvasAnchorPoint.visible = true;
             }
@@ -635,8 +635,8 @@ package Modules.ReplayEngine
                 CanvasView.canvasAnchorPoint.rotation = 0;
                 ReplayDrawer.setRcursorRotation(0);
                 CanvasView.canvasZoomIndex = 3;
-                CanvasView.updateCanvasScale(1.0);
-                CanvasView.centerCanvas("draw");
+                CanvasView.viewport.setScale(1.0);
+                CanvasView.viewport.centerIn("draw");
                 UndoController.resetUndoState();
                 DrawModeInput.addEvents();
             }
@@ -1271,7 +1271,7 @@ package Modules.ReplayEngine
             FOFOTimer.remove("replayRestartTimer");
             updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
             Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
-            CanvasView.updateCanvasScale(ReplayState.rLastCanvasZoomMultiplier, true);
+            ReplayDrawer.viewport.setScale(ReplayState.rLastCanvasZoomMultiplier);
         }
 
         public static function isReplayRestartTimerON():Boolean
@@ -1546,7 +1546,7 @@ package Modules.ReplayEngine
             {
                 ReplayState.rMemoryDataReadON = false;
                 updateReplayTimeBarFromDrawMode();
-                CanvasView.centerCanvas("replay");
+                ReplayDrawer.viewport.centerIn("replay");
 
                 // 이거 안해주고 리플레이틀고 프레임 조작 안하고 재생하면 중간부터 되서 데이터가 꼬임
                 ReplayState.isReplayFinished = true;
@@ -1564,7 +1564,7 @@ package Modules.ReplayEngine
 
                 updateDeleteReplayDataButtonsState();
                 ReplayState.isReplaySlideShowMode = false;
-                CanvasView.keepCanvasPanelInStage(true);
+                ReplayDrawer.viewport.keepInStage();
                 SidebarController.hideSidebarTemporary();
                 UIController.updateTopbarIconsReplayMode();
                 ReplayModeInput.addEvents();
@@ -1810,8 +1810,8 @@ package Modules.ReplayEngine
             const center:Point = UIController.getStageCenterPos("replay");
             ReplayState.rLastCanvasZoomMultiplier = 1.0;
             ReplayState.rCanvasZoomIndex = CanvasView.canvasZoomMultiplierList.indexOf(1.0);
-            CanvasView.moveCanvasAnchorPoint(center.x, center.y, true);
-            CanvasView.updateCanvasScale(1.0, true);
+            ReplayDrawer.viewport.moveAnchorPoint(center.x, center.y);
+            ReplayDrawer.viewport.setScale(1.0);
             setFitReplayCanvasToViewportOFF();
             rFollowMouse.updateBounds();
         }
@@ -1940,7 +1940,7 @@ package Modules.ReplayEngine
         public static function resetRotationReplayMode():void
         {
             const center:Point = UIController.getStageCenterPos("replay");
-            CanvasView.moveCanvasAnchorPoint(center.x, center.y, true);
+            ReplayDrawer.viewport.moveAnchorPoint(center.x, center.y);
             ReplayDrawer.rCanvasAnchorPoint.rotation = 0;
             ReplayDrawer.setRcursorRotation(0);
         }

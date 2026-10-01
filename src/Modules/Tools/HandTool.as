@@ -1,6 +1,6 @@
 package Modules.Tools
 {
-    import Modules.DrawEngine.CanvasView;
+    import Modules.CanvasViewport;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.UIController;
     import Modules.InputPriority;
@@ -14,7 +14,6 @@ package Modules.Tools
     import Modules.ToolController;
     import Modules.PenSizePreviewCursor;
     import Modules.ReplayEngine.ReplayController;
-    import Modules.ReplayEngine.ReplayDrawer;
 
     public class HandTool
     {
@@ -49,7 +48,7 @@ package Modules.Tools
             main.stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
 
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
-            CanvasView.keepCanvasPanelInStage(isReplayMode);
+            CanvasViewport.forMode(isReplayMode).keepInStage();
 
             if (isDrawMode)
             {
@@ -115,7 +114,7 @@ package Modules.Tools
             isReplayMode = fromReplayMode;
             isDrawMode = !fromReplayMode;
 
-            xAnc = (isDrawMode) ? CanvasView.canvasAnchorPoint : ReplayDrawer.rCanvasAnchorPoint;
+            xAnc = CanvasViewport.forMode(isReplayMode).anchor;
 
             old.setTo(main.stage.mouseX, main.stage.mouseY);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);

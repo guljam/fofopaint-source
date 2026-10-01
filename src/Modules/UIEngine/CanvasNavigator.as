@@ -96,7 +96,7 @@ package Modules.UIEngine
             {
                 MouseState.endDrag("canvasNavigator");
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
-                CanvasView.keepCanvasPanelInStage();
+                CanvasView.viewport.keepInStage();
                 updateCursor();
                 if (LassoTool.isStarted)
                 {
@@ -125,7 +125,7 @@ package Modules.UIEngine
                 sy = my;
                 updateCursor();
             }
-            CanvasView.moveCanvasAnchorPoint(0, 0);
+            CanvasView.viewport.moveAnchorPoint(0, 0);
             if (LassoTool.isStarted)
             {
                 LassoTool._lassoMenuBox.visible = false;

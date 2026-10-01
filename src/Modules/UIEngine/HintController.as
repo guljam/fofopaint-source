@@ -1,6 +1,6 @@
 package Modules.UIEngine
 {
-    import Modules.DrawEngine.CanvasView;
+    import Modules.CanvasViewport;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.MouseState;
     import Modules.AboutBoxController;
@@ -8,7 +8,6 @@ package Modules.UIEngine
     import Modules.ColorPickerController;
     import Modules.Tools.FillPenTool;
     import Modules.ReplayEngine.ReplayController;
-    import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
     import Modules.SidebarController;
     import Modules.ToolController;
@@ -107,10 +106,10 @@ package Modules.UIEngine
                 FOFOTimer.remove("bottomHintOffDelay");
 
                 const targetName:String = target.name;
-                const xCanvasPanel:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasPanel : CanvasView.canvasPanel;
+                const xCanvasPanel:Sprite = CanvasViewport.current().panel;
                 if (CaptureController.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
                 {
-                    showHintHighlightBox((ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasLayer1Bitmap : DrawCanvas.canvasLayer1Bitmap);
+                    showHintHighlightBox(CanvasViewport.current().layer1Bitmap);
                     showBottomHint(hint);
                 }
                 else if (!(targetName === "rCanvasPanel"

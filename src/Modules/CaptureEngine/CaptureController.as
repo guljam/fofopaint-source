@@ -1,5 +1,6 @@
 package Modules.CaptureEngine
 {
+    import Modules.CanvasViewport;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasResizer;
@@ -191,7 +192,7 @@ package Modules.CaptureEngine
 
         public static function executeCaptureFlashEffect():void
         {
-            var xPanel:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasPanel : CanvasView.canvasPanel;
+            var xPanel:Sprite = CanvasViewport.current().panel;
             var posX:Number;
             var posY:Number;
             var canvasWidth:Number;
@@ -312,7 +313,7 @@ package Modules.CaptureEngine
         {
             _isCaptureCanvasFlipped = flag;
             CanvasView.fitCanvasToViewportMargin();
-            const xAnc:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasAnchorPoint : CanvasView.canvasAnchorPoint;
+            const xAnc:Sprite = CanvasViewport.current().anchor;
 
             if (_captureCanvasRotationStep === 1)
             {
@@ -583,10 +584,10 @@ package Modules.CaptureEngine
         {
             const replayMode:Boolean = ReplayState.isReplayModeON;
             const data:Object = canvasStateBeforeCaptureMode;
-            const xBitmap1:Bitmap = (replayMode) ? ReplayDrawer.rCanvasLayer1Bitmap : DrawCanvas.canvasLayer1Bitmap;
-            const xBitmap11:Bitmap = (replayMode) ? ReplayDrawer.rCanvasLayer2Bitmap : DrawCanvas.canvasLayer2Bitmap;
-            const xAnc:Sprite = (replayMode) ? ReplayDrawer.rCanvasAnchorPoint : CanvasView.canvasAnchorPoint;
-            const xPanel:Sprite = (replayMode) ? ReplayDrawer.rCanvasPanel : CanvasView.canvasPanel;
+            const xBitmap1:Bitmap = CanvasViewport.forMode(replayMode).layer1Bitmap;
+            const xBitmap11:Bitmap = CanvasViewport.forMode(replayMode).layer2Bitmap;
+            const xAnc:Sprite = CanvasViewport.forMode(replayMode).anchor;
+            const xPanel:Sprite = CanvasViewport.forMode(replayMode).panel;
 
             xBitmap1.smoothing = false;
             xBitmap11.smoothing = false;
@@ -619,7 +620,7 @@ package Modules.CaptureEngine
 
             if (!ReplayState.isReplayCanvasFitToWindow)
             {
-                CanvasView.updateCanvasScale(data.z, replayMode);
+                CanvasViewport.forMode(replayMode).setScale(data.z);
             }
 
             HintController.resetLastBottomHintTargetRect();
@@ -641,7 +642,7 @@ package Modules.CaptureEngine
                 restoreCanvasBackgroundColorDrawMode();
             }
 
-            CanvasView.keepCanvasPanelInStage(replayMode);
+            CanvasViewport.forMode(replayMode).keepInStage();
             canvasStateBeforeCaptureMode = {};
         }
     }
