@@ -9,7 +9,7 @@ package Modules.Tools
     import flash.events.MouseEvent;
     import Modules.CanvasController;
     import Modules.ReferenceLayerController;
-    import Modules.InputManager;
+    import Modules.InputManager.InputManager;
     import Modules.ToolController;
     import Modules.PenSizePreviewCursor;
     import Modules.ReplayEngine.ReplayController;

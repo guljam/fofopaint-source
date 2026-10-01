@@ -7,7 +7,7 @@ package Modules.Tools
     import Modules.CaptureEngine.CaptureController;
     import Modules.ColorPickerController;
     import Modules.FileManager;
-    import Modules.InputManager;
+    import Modules.InputManager.InputManager;
     import Modules.ReferenceLayerController;
     import Modules.ToolController;
     import Modules.Utils;

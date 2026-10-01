@@ -7,7 +7,7 @@ package Modules.Tools
     import Modules.ReferenceLayerController;
     import flash.geom.Point;
     import Modules.DragInteraction;
-    import Modules.InputManager;
+    import Modules.InputManager.InputManager;
     import Modules.PenSizePreviewCursor;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;

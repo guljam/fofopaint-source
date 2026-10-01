@@ -10,7 +10,7 @@ package Modules.CaptureEngine
     import Modules.ColorPickerController;
     import Modules.CanvasController;
     import Modules.CanvasGridOverlay;
-    import Modules.InputManager;
+    import Modules.InputManager.InputManager;
     import Modules.ReferenceLayerController;
     import Modules.BackgroundWorkerCoordinator;
     import flash.desktop.Clipboard;

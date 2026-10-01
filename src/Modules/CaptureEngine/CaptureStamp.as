@@ -5,7 +5,7 @@ package Modules.CaptureEngine
     import Modules.InputPriority;
     import Modules.Utils;
     import Modules.PaletteController;
-    import Modules.InputManager;
+    import Modules.InputManager.InputManager;
     import Modules.CanvasController;
     import flash.display.BitmapData;
     import flash.display.Bitmap;

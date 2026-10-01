@@ -10,7 +10,7 @@ package Modules.Tools
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
     import Modules.ImageViewWindow;
-    import Modules.InputManager;
+    import Modules.InputManager.InputManager;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
     import Modules.ToolController;

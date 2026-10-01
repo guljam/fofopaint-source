@@ -3,7 +3,7 @@ package Modules.Tools
     import Modules.CanvasController;
     import Modules.ColorPickerController;
     import Modules.DrawingFinish;
-    import Modules.InputManager;
+    import Modules.InputManager.InputManager;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.PaletteController;

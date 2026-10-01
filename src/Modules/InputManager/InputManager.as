@@ -1,5 +1,24 @@
-package Modules
+package Modules.InputManager
 {
+    import Modules.AboutBoxController;
+    import Modules.ActivityWorkTimer;
+    import Modules.AppUpdater;
+    import Modules.CanvasController;
+    import Modules.CanvasGridOverlay;
+    import Modules.ClipboardManager;
+    import Modules.ColorPickerController;
+    import Modules.DragInteraction;
+    import Modules.FileManager;
+    import Modules.ImageViewWindow;
+    import Modules.ImeController;
+    import Modules.InputPriority;
+    import Modules.MouseState;
+    import Modules.PenSizePreviewCursor;
+    import Modules.ReferenceLayerController;
+    import Modules.SidebarController;
+    import Modules.ToolController;
+    import Modules.UndoController;
+    import Modules.Utils;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;

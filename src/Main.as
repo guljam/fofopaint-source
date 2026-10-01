@@ -19,7 +19,7 @@
     import Modules.FileManager;
     import Modules.Tools.FillPenTool;
     import Modules.ImageViewWindow;
-    import Modules.InputManager;
+    import Modules.InputManager.InputManager;
     import Modules.PaletteController;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;

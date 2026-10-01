@@ -34,7 +34,7 @@ package Modules.ReplayEngine
     import Modules.DragInteraction;
     import Modules.FileManager;
     import Modules.ImageViewWindow;
-    import Modules.InputManager;
+    import Modules.InputManager.InputManager;
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;

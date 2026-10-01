@@ -4,7 +4,7 @@ package
     import Modules.UIEngine.UIController;
     import flash.events.Event;
     import Modules.AppStateManager;
-    import Modules.InputManager;
+    import Modules.InputManager.InputManager;
     import Modules.ImeController;
     import Modules.MouseState;
     import Modules.ClipboardManager;

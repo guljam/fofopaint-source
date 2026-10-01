@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.InputManager.InputManager;
     import Modules.UIEngine.UITheme;
     import Symbols.ColorPickerSet;
     import Symbols.NumPadSet;

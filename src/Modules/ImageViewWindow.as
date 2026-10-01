@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.InputManager.InputManager;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureController;
