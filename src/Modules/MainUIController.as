@@ -444,7 +444,9 @@ package Modules
         // 그래서 같은 크기에서 몇 번을 호출해도 결과가 같고(멱등), 리사이즈 이벤트를 놓쳐도 다음 호출이 전부 보정한다.
         // 호출 지점: 창 리사이즈 이벤트(0.2초 디바운스), 최대화 복원 종료, 캐시 생성 종료 등 "상태가 확정된" 곳.
         // 주의: 앱 데이터 복원 중에는 화면 상태가 아직 확정되지 않았으므로 아무것도 하지 않는다.
-        public static function applyLayout():void
+        // force: 창 크기 변화가 없어도 크롬(상단바/사이드바/하단바 등)을 현재 스테이지 크기로 다시 맞춘다.
+        //        복원파일 없이 처음 실행할 때처럼 lastAppWindowSize가 실제 배치와 무관하게 미리 채워진 경우에 쓴다.
+        public static function applyLayout(force:Boolean = false):void
         {
             if (AppStateManager.isLoadingAppData)
             {
@@ -454,7 +456,7 @@ package Modules
             const dx:Number = Math.round((main.stage.nativeWindow.width - lastAppWindowSize.width) / 1.75);
             const dy:Number = Math.round((main.stage.nativeWindow.height - lastAppWindowSize.height) / 1.75);
 
-            if (dx === 0 && dy === 0)
+            if (dx === 0 && dy === 0 && !force)
             {
                 closeAppIfPending();
                 return;

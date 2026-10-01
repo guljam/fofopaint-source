@@ -107,7 +107,7 @@
 			if (overflow > 0)
 			{
 				releaseNoteButton.x -= overflow;
-				versionInfo.x -= overflow; // 두 글자 사이 간격 유지
+				versionInfo.x -= overflow; // 두 글자 사이 간격 유지				
 			}
 		}
 
@@ -118,6 +118,7 @@
 			alignTextCenter(aboutMeLink.downState);
 			const b:Rectangle = aboutMeLink.getBounds(this);
 			aboutMeLink.x += centerX - (b.x + b.width / 2);
+			aboutMeLink.y += 3;
 		}
 
 		// 기존 패널 바깥으로 여백을 넓혀 둥근 회색 테두리를 깔아줌

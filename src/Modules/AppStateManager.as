@@ -540,6 +540,10 @@ package Modules
                         {
                             CanvasController.centerCanvas("draw");
                             MainUIController.updateCanvasNaigatorCursor();
+
+                            // lastAppWindowSize를 미리 1000x800으로 채워뒀기 때문에 리사이즈 이벤트의 applyLayout은 dx/dy 0으로 지나간다.
+                            // 크기가 확정된 이 시점에 UI 배치를 강제로 한 번 맞춰준다.
+                            MainUIController.applyLayout(true);
                             return false;
                         }
 
