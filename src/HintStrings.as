@@ -25,13 +25,13 @@
         public static const STRING_MERGE_INTO_REFLAYER:String = "Merge into reference layer";
         public static const STRING_REFLAYER_IMAGE_OPACITY:String = "Image opacity ";
         public static const STRING_RIGHT_CLICK_TO_RESET:String = "Right-click to reset";
-        public static const STRING_VARIBALE_HINT:String = "!";
+        public static const STRING_VARIABLE_HINT:String = "!";
 
         static private const hintsCaptureMode:Object =
             {
                 "capOff": "Exit capture mode [esc / backspace / f1 / f7]",
-                "capSave": STRING_VARIBALE_HINT,
-                "capClipBoard": STRING_VARIBALE_HINT,
+                "capSave": STRING_VARIABLE_HINT,
+                "capClipBoard": STRING_VARIABLE_HINT,
                 "capTrans": "Toggle background color",
                 "capRotate": "Rotate canvas by 90°",
                 "capFlip": "Flip image",
@@ -62,33 +62,33 @@
                 "sideBarONButton": "Show sidebar [tab / \\]",
                 "sideBarONButton2": "Show sidebar [tab / \\]",
                 "topBarColorButton": "Change UI color theme",
-                "dpiButton": STRING_VARIBALE_HINT,
+                "dpiButton": STRING_VARIABLE_HINT,
                 "newWindowCloseButton": "Close image view [esc]",
-                "newWindowButton": "Image view _ Drag to move _ Right-click to fit size",
+                "newWindowButton": "Image view _ Drag to move _ Right-click to fit to window",
                 "aboutButton": "About FOFO PAINT",
-                "updateButton": STRING_VARIBALE_HINT,
-                "timer" : STRING_VARIBALE_HINT,
+                "updateButton": STRING_VARIABLE_HINT,
+                "timer" : STRING_VARIABLE_HINT,
 
                 // 리플레이 모드
                 "replayModeButton": "Enter replay mode [f1 / f7]",
                 "repCaptureButton": "Enter capture mode [ctrl+c / ctrl+m]",
-                "playButton": "Play [enter / space] _ Right-click on viewport",
+                "playButton": "Play [enter / space / right-click on viewport]",
                 "pauseButton": "Pause [enter / space / esc / backspace]",
-                "replayPrev": "Prev step [left / z / .] _ Prev frame [Shift + (left / z / .) / right-click]",
-                "replayNext": "Next step [right / x / ,] _ Next frame [Shift + (right / x / ,) / right-click]",
+                "replayPrev": "Previous step [left / z / .] _ Previous frame [shift+left / shift+z / shift+. / right-click]",
+                "replayNext": "Next step [right / x / ,] _ Next frame [shift+right / shift+x / shift+, / right-click]",
                 "repNewFileButton": "Create new file from current frame",
                 "cutPrevDataButton": "Trim all before current frame",
                 "superUndoButton": "Trim all after current frame",
-                "replaySpeedSliderWrapper": "Playback speed [up / down, f  / v, h / n]",
+                "replaySpeedSliderWrapper": "Playback speed [up / down, f / v, h / n]",
                 "replayZoomOutButton": "Zoom out _ " + STRING_RIGHT_CLICK_TO_RESET,
                 "replayZoomInButton": "Zoom in _ " + STRING_RIGHT_CLICK_TO_RESET,
                 "replayFitToWindowButton": "Toggle fit to viewport",
                 "replayRotateButton": "Rotate _ " + STRING_RIGHT_CLICK_TO_RESET,
                 "replayRepeatButton": "Toggle loop playback",
-                "trackBar": STRING_VARIBALE_HINT,
+                "trackBar": STRING_VARIABLE_HINT,
 
                 // 그리드 슬라이더
-                "gridSliderWrapper": STRING_VARIBALE_HINT,
+                "gridSliderWrapper": STRING_VARIABLE_HINT,
                 "gridMoveLeftButton": "Nudge left _ Hold to repeat _ " + STRING_RIGHT_CLICK_TO_RESET,
                 "gridMoveRightButton": "Nudge right _ Hold to repeat _ " + STRING_RIGHT_CLICK_TO_RESET,
                 "gridMoveUpButton": "Nudge up _ Hold to repeat _ " + STRING_RIGHT_CLICK_TO_RESET,
@@ -97,16 +97,16 @@
                 // 펜옵션
                 "shapeCircle": "Circle",
                 "shapeRect": "Rectangle",
-                "penSmoothSliderWapper": STRING_VARIBALE_HINT,
+                "penSmoothSliderWapper": STRING_VARIABLE_HINT,
 
-                "sharpLineButtonWrapper": "Toggle Sharp line [3 / 8]",
-                "sharpLineOFFButton": "Toggle Sharp line [3 / 8]",
-                "sharpLineONButton": "Toggle Sharp line [3 / 8]",
-                "sharpLineText": "Toggle Sharp line [3 / 8]",
-                "airBrushButtonWrapper": "Toggle Air brush [4 / 7]",
-                "airBrushOFFButton": "Toggle Air brush [4 / 7]",
-                "airBrushONButton": "Toggle Air brush [4 / 7]",
-                "airBrushText": "Toggle Air brush [4 / 7]",
+                "sharpLineButtonWrapper": "Toggle sharp line [3 / 8]",
+                "sharpLineOFFButton": "Toggle sharp line [3 / 8]",
+                "sharpLineONButton": "Toggle sharp line [3 / 8]",
+                "sharpLineText": "Toggle sharp line [3 / 8]",
+                "airBrushButtonWrapper": "Toggle air brush [4 / 7]",
+                "airBrushOFFButton": "Toggle air brush [4 / 7]",
+                "airBrushONButton": "Toggle air brush [4 / 7]",
+                "airBrushText": "Toggle air brush [4 / 7]",
 
                 "layer1SelectButton": "Select Layer 1 [1 / 9] _ Click again to solo",
                 "layer2SelectButton": "Select Layer 2 [2 / 0] _ Click again to solo",
@@ -123,8 +123,8 @@
                 "toolFillPen": "Fill pen [q / o]",
                 "toolEraser": "Eraser [d / j]",
                 "toolEyedropper": "Eyedropper [c / m]",
-                "toolUndo": STRING_VARIBALE_HINT,
-                "toolRedo": STRING_VARIBALE_HINT,
+                "toolUndo": STRING_VARIABLE_HINT,
+                "toolRedo": STRING_VARIABLE_HINT,
                 "toolMirror": "Flip canvas [a / l]",
                 "toolLasso": "Lasso [r / y]",
                 "toolLine": "Line [shift]",
@@ -146,10 +146,10 @@
                 "swapPositionButton": "Swap palette position",
                 "colorHistoryBox": "Color history _ Drag to add to My Palette",
                 "myPaletteBox": "Hold to add, remove, or restore _ Drag to swap position",
-                "rgbInfoText": STRING_VARIBALE_HINT,
+                "rgbInfoText": STRING_VARIABLE_HINT,
                 "paperColorButton": "Change background color",
                 "penColorButton": "Change pen color",
-                "currentColor": STRING_VARIBALE_HINT,
+                "currentColor": STRING_VARIABLE_HINT,
                 "transColorButton": "Toggle transparency [c+space / m+space]",
                 "myPaletteButton": "My Palette _ Click to expand / collapse _ Hold to clear",
                 "drawrPresetButton": "Drawr presets _ Hold to clear scratch pad",
@@ -157,16 +157,16 @@
                 "scratchPad": "Scratch pad _ Drag to draw _ Click or [c / m] to select color",
 
                 // 캔버스 네비게이터
-                "navStageBG": "Canvas Navigator",
-                "navBitmapBG": "Canvas Navigator",
-                "navCursor": "Canvas Navigator",
-                "navLayer1Bitmap": "Canvas Navigator",
-                "navLayer2Bitmap": "Canvas Navigator"
+                "navStageBG": "Canvas navigator",
+                "navBitmapBG": "Canvas navigator",
+                "navCursor": "Canvas navigator",
+                "navLayer1Bitmap": "Canvas navigator",
+                "navLayer2Bitmap": "Canvas navigator"
             };
 
         public static function getActivityWorkTimeHintString():String
         {
-            return "Work time _ Hold to reset, Total app run time : " + ActivityWorkTimer.getFormattedAppUpTimeString();
+            return "Work time _ Hold to reset _ Total app run time: " + ActivityWorkTimer.getFormattedAppUpTimeString();
         }
 
         static private function initSizeAndAlphaButtonHintString():void
@@ -213,7 +213,7 @@
 
         public static function getGridGapAdjustHintString(multi:uint, gap:uint):String
         {
-            return "Grid " + (multi * gap) + "px (" + multi + "/20)";
+            return "Grid: " + (multi * gap) + "px (" + multi + "/20)";
         }
 
         public static function getNewFileHintString():String
@@ -299,7 +299,7 @@
             const arr:Vector.<Number> = (ColorPickerController.isHSVInfoTextMode) ? Global.HEXtoHSV(pickedColor, ColorPickerController.hsvColorData[0]) : Global.HEXtoRGB(pickedColor);
             const mode:String = (ColorPickerController.isHSVInfoTextMode) ? "HSV" : "RGB";
 
-            return "Current color : " + mode + " " + arr[0] + "," + arr[1] + "," + arr[2];
+            return "Current color: " + mode + " " + arr[0] + "," + arr[1] + "," + arr[2];
         }
 
         public static function getHintFromTargetNameRefLayer(targetName:String):String
@@ -337,7 +337,7 @@
                     break;
                 case "refMemoryTrainingOnButton":
                 case "refMemoryTrainingOffButton":
-                    str = "Toggle Memory training";
+                    str = "Toggle memory training";
                     break;
                 case "refClearImageButton":
                     str = "Hold to erase reference image";
@@ -403,7 +403,7 @@
                     str = "Nudge image [space + wasd or ijkl]";
                     break;
                 case "lassoLayerMerge":
-                    str = "Merge into layer 2";
+                    str = "Merge into Layer 2";
                     break;
                 case "lassoLayerSwap":
                     str = getLassoMenuHintSwapLayer();
@@ -417,7 +417,7 @@
 
         public static function getDeleteReplayDataHintString():String
         {
-            return "Triming data..";
+            return "Trimming data...";
         }
 
         public static function getReplayRestartHintString(count:Number):String
@@ -442,12 +442,12 @@
 
         public static function getCanvasLayerSwappedHintString():String
         {
-            return "Layers has been swapped " + ((CanvasController.isLayerSwapped) ? "1 / 2" : "2 / 1");
+            return "Layers have been swapped " + ((CanvasController.isLayerSwapped) ? "1 / 2" : "2 / 1");
         }
 
         static private function getFinalHint(targetName:String,hintStringSet:Object):String
         {
-            if (hintStringSet[targetName] !== STRING_VARIBALE_HINT)
+            if (hintStringSet[targetName] !== STRING_VARIABLE_HINT)
             {
                 return hintStringSet[targetName];
             }

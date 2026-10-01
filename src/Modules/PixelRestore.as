@@ -7,40 +7,21 @@ package Modules
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.system.ApplicationDomain;
-    import flash.system.Worker;
     import flash.utils.ByteArray;
-    import flash.utils.getDefinitionByName;
 
     // 투명 BitmapData는 내부에 premultiplied(색 x 알파) 값으로 저장돼서
     // copyPixelsToByteArray로 꺼낸 값을 setPixels로 다시 넣으면 반투명 픽셀이 1씩 어두워지고, 왕복할수록 누적됨
     // copyPixelsToByteArray 출력값과 내부값은 1:1이라 저장할때는 손실이 없고 불러올때만 바로잡으면 됨
-    // 처음 쓸때 런타임 변환을 측정해서 표를 만들고
-    // ANE(com.fofo.pixeldump)가 있으면 내부 버퍼에 원래 값을 직접 써넣고, 없으면(워커, 네이티브 빌드가 없는 운영체제) AS3로 입력값을 바꿔서 setPixels 함
+    // 처음 쓸때 런타임 변환을 측정해서 표를 만들고, AS3로 입력값을 바꿔서 setPixels 함
     // 저장쪽에는 적용하면 안됨 (두번 적용되면 틀어짐)
     public final class PixelRestore
     {
-        // ANE의 library.swf에 있는 클래스 (anesrc/pixeldump), 워커에는 ANE가 로드되지 않아서 직접 참조하지 않고 이름으로 찾음
-        private static const NATIVE_CLASS_NAME:String = "com.fofo.pixeldump.PixelDump";
-        // .air 패키징(-target air)은 ANE를 넣을 수 없어서 끔, 다시 쓰려면 fofoPaint-app.xml의 extensions도 되살려야함
-        private static const USE_NATIVE:Boolean = false;
-        private static const NATIVE_OK:int = 1;
         private static const TABLE_LENGTH:int = 65536; // 표 인덱스: 알파 << 8 | copyPixelsToByteArray 출력값
         private static const CHUNK_LENGTH:int = 1 << 20; // 한번에 작업 영역으로 복사해서 바꾸는 픽셀 바이트 수
         // AS3 경로용 domainMemory 버퍼, 앞 TABLE_LENGTH는 출력값 -> setPixels 입력값 표이고 뒤는 작업 영역
         // 측정이나 자체 검증에 실패하면 null로 두고 기존 setPixels 그대로 씀
         private static var workMemory:ByteArray = null;
-        private static var nativeApi:Object = null; // 쓸 수 있으면 com.fofo.pixeldump.PixelDump 클래스, 아니면 null
         private static var isTableReady:Boolean = false;
-
-        public static function get isNativeEnabled():Boolean
-        {
-            if (!isTableReady)
-            {
-                buildTable();
-            }
-
-            return nativeApi !== null;
-        }
 
         // bmpd.setPixels(rect, pixels)와 같지만 저장할때의 내부 픽셀값을 그대로 복원해줌
         public static function setPixels(bmpd:BitmapData, rect:Rectangle, pixels:ByteArray):void
@@ -52,14 +33,6 @@ package Modules
 
             if (bmpd.transparent)
             {
-                // ANE는 비트맵 전체를 한번에 채우는 경우만 처리
-                if (nativeApi !== null && rect.x === 0 && rect.y === 0 && rect.width === bmpd.width && rect.height === bmpd.height
-                        && nativeApi.restore(bmpd, pixels, pixels.position) === NATIVE_OK)
-                {
-                    pixels.position += rect.width * rect.height * 4; // setPixels처럼 읽은 만큼 넘겨줌
-                    return;
-                }
-
                 if (workMemory !== null)
                 {
                     remap(pixels, rect.width * rect.height * 4);
@@ -114,10 +87,9 @@ package Modules
 
             try
             {
-                const inputTable:ByteArray = new ByteArray(); // 출력값 -> setPixels 입력값 (AS3 경로)
-                const internalTable:ByteArray = new ByteArray(); // 출력값 -> 내부 premultiplied 값 (ANE 경로)
+                const inputTable:ByteArray = new ByteArray(); // 출력값 -> setPixels 입력값
 
-                if (!measureTables(inputTable, internalTable))
+                if (!measureTables(inputTable))
                 {
                     trace("PixelRestore: runtime conversion is not reversible, using plain setPixels");
                     return;
@@ -138,9 +110,7 @@ package Modules
                     return;
                 }
 
-                initializeNative(internalTable);
-                internalTable.clear();
-                trace("PixelRestore: " + ((nativeApi !== null) ? "native" : "actionscript"));
+                trace("PixelRestore: actionscript");
             }
             catch (error:Error)
             {
@@ -149,69 +119,8 @@ package Modules
             }
         }
 
-        private static function initializeNative(internalTable:ByteArray):void
-        {
-            var api:Object;
-
-            // 워커에서도 ANE 클래스는 보이지만 ExtensionContext를 만들 수 없음(#3731), AS3 경로만 씀
-            if (!USE_NATIVE || !Worker.current.isPrimordial)
-            {
-                return;
-            }
-
-            try
-            {
-                api = getDefinitionByName(NATIVE_CLASS_NAME);
-            }
-            catch (error:Error)
-            {
-                return;
-            }
-
-            try
-            {
-                // 네이티브 빌드가 없는 운영체제(default 플랫폼)면 false
-                if (!api.open())
-                {
-                    return;
-                }
-
-                const tableResult:int = api.setTable(internalTable);
-
-                if (tableResult !== NATIVE_OK)
-                {
-                    trace("PixelRestore native: setTable " + tableResult);
-                }
-                else
-                {
-                    nativeApi = api;
-
-                    if (verifyRestore(restoreWithNative))
-                    {
-                        return;
-                    }
-
-                    trace("PixelRestore native: check failed");
-                }
-            }
-            catch (error:Error)
-            {
-                trace("PixelRestore native: " + error);
-            }
-
-            nativeApi = null;
-
-            try
-            {
-                api.close();
-            }
-            catch (error:Error)
-            {
-            }
-        }
-
-        // 모든 (알파, 입력값) 조합을 setPixels로 넣어보고 내부값과 출력값을 비교해서 두 표를 채움
-        private static function measureTables(inputTable:ByteArray, internalTable:ByteArray):Boolean
+        // 모든 (알파, 입력값) 조합을 setPixels로 넣어보고 내부값과 출력값을 비교해서 표를 채움
+        private static function measureTables(inputTable:ByteArray):Boolean
         {
             const rect:Rectangle = new Rectangle(0, 0, 256, 256);
             const input:ByteArray = new ByteArray();
@@ -267,15 +176,13 @@ package Modules
             }
 
             inputTable.length = TABLE_LENGTH;
-            internalTable.length = TABLE_LENGTH;
 
             for (i = 0;i < TABLE_LENGTH;i++)
             {
                 const internalFromOutput:int = outputToInternal[i];
                 const restoredInput:int = (internalFromOutput !== -1) ? internalToInput[(i & 0xFF00) | internalFromOutput] : -1;
-                // 측정에 없던 값(실제 출력에는 나오지 않음)은 입력값은 그대로, 내부값은 계산값으로 둠
+                // 측정에 없던 값(실제 출력에는 나오지 않음)은 입력값 그대로 둠
                 inputTable[i] = (restoredInput !== -1) ? restoredInput : (i & 0xFF);
-                internalTable[i] = (internalFromOutput !== -1) ? internalFromOutput : Math.round((i & 0xFF) * (i >> 8) / 255);
             }
 
             grid.dispose();
@@ -290,11 +197,6 @@ package Modules
             remap(saved, saved.length);
             bitmap.setPixels(bitmap.rect, saved);
             return true;
-        }
-
-        private static function restoreWithNative(bitmap:BitmapData, saved:ByteArray):Boolean
-        {
-            return nativeApi.restore(bitmap, saved, 0) === NATIVE_OK;
         }
 
         // 채널마다 다른 무작위 반투명 픽셀로 저장 -> 복원을 해보고 내부값이 그대로인지 확인

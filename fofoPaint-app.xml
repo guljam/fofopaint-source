@@ -44,12 +44,4 @@
   <customUpdateUI>false</customUpdateUI>
   <allowBrowserInvocation>false</allowBrowserInvocation>
   <supportedProfiles>desktop</supportedProfiles>
-  <!-- <extensions>
-    <extensionID>com.fofo.threadtest</extensionID>
-</extensions> -->
-  <!-- 픽셀 복원 ANE, adl/adt 실행시 -extdir extension 필요 (asconfig.json airOptions.extdir)
-       .air 패키징(-target air)은 ANE를 넣을 수 없어서 비활성화, 다시 쓰려면 PixelRestore.USE_NATIVE도 true로
-  <extensions>
-    <extensionID>com.fofo.pixeldump</extensionID>
-  </extensions> -->
 </application>
