@@ -367,9 +367,23 @@ package Modules.UIEngine
                 ToolController.updateSelectedToolViewBoxPos();
             }
 
-            main.updateStageBGSize();
+            updateStageBGSize();
             SidebarController.checkFOFOPosition();
             HintController.updateBottomBarLayoutAndColor();
+        }
+
+        // 파일 드래그 드롭등 마우스 이벤트에서도 target이 null이 되는등
+        // 방지를 위해서 스테이지 전체 +2사이즈 여백으로 뒷부분 전체를 투명하게 깔아줌
+        public static function updateStageBGSize():void
+        {
+            UIController.stageBG.graphics.clear();
+            UIController.stageBG.graphics.beginFill(0, 0.0);
+            UIController.stageBG.graphics.drawRect(-2, -2, main.stage.stageWidth + 4, main.stage.stageHeight + 4);
+            UIController.stageBG.graphics.endFill();
+            if (UIController.stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
+            {
+                ReplayController.setReplayCompleteCanvasCenter();
+            }
         }
 
         // 지금 배치가 유효한 창 크기를 기록한다. 다음 리사이즈는 이 크기와 비교한다.

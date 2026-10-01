@@ -279,7 +279,6 @@ package Modules.Tools
 
         private static function onRightMouseDownLineTool(e:MouseEvent):void
         {
-            trace('apply');
             apply();
         }
 

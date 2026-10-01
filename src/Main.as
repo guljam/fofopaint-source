@@ -205,20 +205,6 @@
             NativeApplication.nativeApplication.autoExit = true;
         }
 
-        // 파일 드래그 드롭등 마우스 이벤트에서도 target이 null이 되는등
-        // 방지를 위해서 스테이지 전체 +2사이즈 여백으로 뒷부분 전체를 투명하게 깔아줌
-        public function updateStageBGSize():void
-        {
-            UIController.stageBG.graphics.clear();
-            UIController.stageBG.graphics.beginFill(0, 0.0);
-            UIController.stageBG.graphics.drawRect(-2, -2, stage.stageWidth + 4, stage.stageHeight + 4);
-            UIController.stageBG.graphics.endFill();
-            if (UIController.stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
-            {
-                ReplayController.setReplayCompleteCanvasCenter();
-            }
-        }
-
         public function addGlobalEvents():void
         {
             // 전역스테이지 이벤트 cMouseMoveStage <- 스테이지 마우스 무브는 클로저로 하고있음

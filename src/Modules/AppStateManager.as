@@ -285,7 +285,7 @@ package Modules
                         AppWindowState.lastAppWindowSize.height = appStateObject.stageNativeWindowHeight;
 
                         // 캔버스 bg를 한번 업데이트해춤 on window resize이벤트에서는 앱이 정보가 로드되고 있을때 차단되기 때문에
-                        main.updateStageBGSize();
+                        UIController.updateStageBGSize();
 
                         // UI Scale & Color
                         UITheme.setScaleIndex(appStateObject.uiScaleIndex);
