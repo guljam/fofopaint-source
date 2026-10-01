@@ -75,7 +75,7 @@ package
             InputManager.clearKeyBuffer();
             InputManager.removeKeyRepeatEvents(null);
             FOFOTimer.remove("pressholdtimer");
-            ToolController.cancelOpacityDrag();
+            ToolController.cancelOptionButtonDrag();
             if (ToolController.isToolBox2Showing)
             {
                 CanvasController.isRightMouseClicked = false;

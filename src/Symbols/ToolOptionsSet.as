@@ -10,7 +10,7 @@
 
 	public class ToolOptionsSet extends Sprite
 	{
-		private const penSizeBox:Sprite = new Sprite();
+		public const penSizeBox:Sprite = new Sprite();
 		public const opaBox:Sprite = new Sprite();
 		public const sharpLineButtonWrapper:Sprite = new Sprite();
 		public const airBrushButtonWrapper:Sprite = new Sprite();

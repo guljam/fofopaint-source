@@ -381,7 +381,7 @@ package Modules
 
         public static function selectPenSizeButton(targetName:String):void
         {
-            const numberOnly:String = targetName.substr(11, targetName.length);
+            const numberOnly:String = targetName.substr(Global.NSIZE_BUTTON_PREFIX.length);
             const index:uint = parseInt(numberOnly);
 
             setDrawToolSize(index);
@@ -1262,7 +1262,7 @@ package Modules
                 if (!isSelectedTool(TOOL_FILLPEN))
                 {
                     selectPenToolIfNotDrawingTool(true);
-                    selectPenSizeButton(targetName);
+                    onPenSizeButtonDown(targetName);
                 }
                 return true;
             }
@@ -1486,66 +1486,81 @@ package Modules
         public static function onOpacityButtonDown(targetName:String):void
         {
             setDrawingToolOpacity(targetName);
-            startOpacityDrag(targetName);
+            startOptionButtonDrag(toolOptionsBox.opaBox, Global.ALPHA_BUTTON_PREFIX, targetName, setDrawingToolOpacity);
         }
 
-        private static var isOpacityDragging:Boolean = false;
-        private static var lastDragOpacityButton:String = "";
-        private static var wasMouseDraggingBeforeOpacityDrag:Boolean = false;
-
-        private static function startOpacityDrag(startButtonName:String):void
+        // 펜 크기 버튼을 눌렀을때 즉시 적용하고, 누른채 다른 버튼 위로 끌면 따라서 선택함
+        public static function onPenSizeButtonDown(targetName:String):void
         {
-            if (isOpacityDragging)
+            selectPenSizeButton(targetName);
+            startOptionButtonDrag(toolOptionsBox.penSizeBox, Global.NSIZE_BUTTON_PREFIX, targetName, selectPenSizeButton);
+        }
+
+        private static var isOptionButtonDragging:Boolean = false;
+        private static var optionDragBox:Sprite = null;
+        private static var optionDragPrefix:String = "";
+        private static var optionDragApply:Function = null;
+        private static var lastDragOptionButton:String = "";
+        private static var wasMouseDraggingBeforeOptionDrag:Boolean = false;
+
+        private static function startOptionButtonDrag(box:Sprite, prefix:String, startButtonName:String, apply:Function):void
+        {
+            if (isOptionButtonDragging)
             {
                 return;
             }
 
-            isOpacityDragging = true;
-            lastDragOpacityButton = startButtonName;
-            wasMouseDraggingBeforeOpacityDrag = CanvasController.isMouseDragging;
+            isOptionButtonDragging = true;
+            optionDragBox = box;
+            optionDragPrefix = prefix;
+            optionDragApply = apply;
+            lastDragOptionButton = startButtonName;
+            wasMouseDraggingBeforeOptionDrag = CanvasController.isMouseDragging;
             CanvasController.isMouseDragging = true;
 
-            toolOptionsBox.opaBox.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverOpacityDrag);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, endOpacityDrag, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(Event.MOUSE_LEAVE, endOpacityDrag);
+            box.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverOptionButtonDrag);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, endOptionButtonDrag, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(Event.MOUSE_LEAVE, endOptionButtonDrag);
         }
 
         // 포커스를 잃으면(alt+tab 등) mouseUp이 안 오므로 AppWindowState.onWindowDeactivate에서 호출함
-        public static function cancelOpacityDrag():void
+        public static function cancelOptionButtonDrag():void
         {
-            if (isOpacityDragging)
+            if (isOptionButtonDragging)
             {
-                endOpacityDrag(null);
+                endOptionButtonDrag(null);
             }
         }
 
-        private static function onMouseOverOpacityDrag(e:MouseEvent):void
+        private static function onMouseOverOptionButtonDrag(e:MouseEvent):void
         {
             if (!e.buttonDown)
             {
-                endOpacityDrag(e);
+                endOptionButtonDrag(e);
                 return;
             }
 
             const target:DisplayObject = e.target as DisplayObject;
 
-            if (!target || target.name === lastDragOpacityButton || target.name.indexOf(Global.ALPHA_BUTTON_PREFIX) !== 0)
+            if (!target || target.name === lastDragOptionButton || target.name.indexOf(optionDragPrefix) !== 0)
             {
                 return;
             }
 
-            lastDragOpacityButton = target.name;
-            setDrawingToolOpacity(target.name);
+            lastDragOptionButton = target.name;
+            optionDragApply(target.name);
         }
 
-        private static function endOpacityDrag(e:Event):void
+        private static function endOptionButtonDrag(e:Event):void
         {
-            isOpacityDragging = false;
-            CanvasController.isMouseDragging = wasMouseDraggingBeforeOpacityDrag;
+            isOptionButtonDragging = false;
+            CanvasController.isMouseDragging = wasMouseDraggingBeforeOptionDrag;
 
-            toolOptionsBox.opaBox.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverOpacityDrag);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, endOpacityDrag);
-            main.stage.removeEventListener(Event.MOUSE_LEAVE, endOpacityDrag);
+            optionDragBox.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverOptionButtonDrag);
+            main.stage.removeEventListener(MouseEvent.MOUSE_UP, endOptionButtonDrag);
+            main.stage.removeEventListener(Event.MOUSE_LEAVE, endOptionButtonDrag);
+            optionDragBox = null;
+            optionDragApply = null;
         }
     }
 }
