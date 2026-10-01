@@ -542,7 +542,7 @@
 		{
 			//todo 나중에 리팩토링 다되면 분리되면 제거 main
 			const main:Main = Main._instance;
-			if (LassoTool._isLassoToolStarted === true || AboutBoxController.isAboutBoxOpened === true)
+			if (LassoTool.isStarted === true || AboutBoxController.isAboutBoxOpened === true)
 			{
 				return;
 			}

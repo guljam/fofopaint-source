@@ -525,9 +525,9 @@ package Modules
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
                 keepCanvasPanelInStage();
                 MainUIController.updateCanvasNaigatorCursor();
-                if (LassoTool._isLassoToolStarted)
+                if (LassoTool.isStarted)
                 {
-                    if (LassoTool._isLassoMenuHiddenTemp === true)
+                    if (LassoTool.isLassoMenuHiddenTemp === true)
                     {
                         LassoTool.showLassoMenuBox();
                     }
@@ -553,10 +553,10 @@ package Modules
                 MainUIController.updateCanvasNaigatorCursor();
             }
             moveCanvasAnchorPoint(0, 0);
-            if (LassoTool._isLassoToolStarted)
+            if (LassoTool.isStarted)
             {
                 LassoTool._lassoMenuBox.visible = false;
-                LassoTool._isLassoMenuHiddenTemp = true;
+                LassoTool.isLassoMenuHiddenTemp = true;
             }
             // 클릭한 지점이 커서 바깥부분일때 강제로 캔버스 중심으로 옮겨줌
             if (!navCursorClicked)
@@ -1370,7 +1370,7 @@ package Modules
                 {
                     PenSizePreviewCursor.updateZoom(zoomValue);
                 }
-                if (LassoTool._isLassoToolStarted)
+                if (LassoTool.isStarted)
                 {
                     LassoTool.redrawLassoOutline();
                 }

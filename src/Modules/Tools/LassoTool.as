@@ -76,10 +76,10 @@ package Modules.Tools
         public static var lassoLayer2:Sprite = new Sprite(); // lassoLayer2 레이어
         public static var lassoLayer2Bitmap:Bitmap = new Bitmap(); // lassoLayer2의 비트맵
 
-        public static var _isLassoToolStarted:Boolean = false; // 라소툴로 영역 선택하면 올려줌
+        private static var _isStarted:Boolean = false; // 라소툴로 영역 선택하면 올려줌
+        private static var _isLassoMenuHiddenTemp:Boolean = false; // 툴 고정 상태에서 줌툴 클릭 시 메뉴를 잠시 숨기는 플래그
         public static var lassoFirstData:Array = []; // 이 값과 비교해서 달라진 게 있으면 OK할 때 적용
         public static var isLassoMirrorON:Boolean = false; // 라소 mirror 클릭할 때마다 반전
-        public static var _isLassoMenuHiddenTemp:Boolean = false; // 툴 고정 상태에서 줌툴 클릭 시 메뉴를 잠시 숨기는 플래그
 
         public static var lassoTransformData:Array = []; // 라소 변형 데이터
         public static var isLassoImageCopied:Boolean = false; // lasso 복사 누르면 올려줌
@@ -103,7 +103,7 @@ package Modules.Tools
 
         public static function redrawLassoOutline():void
         {
-            if (!_isLassoToolStarted || lassoTransformData.length < 2)
+            if (!_isStarted || lassoTransformData.length < 2)
                 return;
 
             const pts:Array = lassoTransformData[1];
@@ -142,9 +142,9 @@ package Modules.Tools
                 lassoLayer2.rotation = 0;
             }
         }
-        public static function get isLassoToolStarted():Boolean
+        public static function get isStarted():Boolean
         {
-            return _isLassoToolStarted;
+            return _isStarted;
         }
 
         public static function get lassoMenuBox():LassoMenuSet
@@ -234,7 +234,7 @@ package Modules.Tools
         public static function recordLassoAndRefLayerBoxLastPos():void
         {
             const arr:Array = lassoAndRefLayerBoxLastPos;
-            if (_isLassoToolStarted)
+            if (_isStarted)
             {
                 arr[0] = _lassoMenuBox.x;
                 arr[1] = _lassoMenuBox.y;
@@ -267,7 +267,7 @@ package Modules.Tools
 
         public static function lassoMenuHintONEvent(e:MouseEvent):void
         {
-            if (!_isLassoToolStarted)
+            if (!_isStarted)
             {
                 main.stage.removeEventListener(MouseEvent.MOUSE_OVER, lassoMenuHintONEvent);
                 return;
@@ -629,7 +629,7 @@ package Modules.Tools
 
         public static function startLassoSelection():void
         {
-            if (_isLassoToolStarted === true || CanvasController.isAllLayerInvisible())
+            if (_isStarted === true || CanvasController.isAllLayerInvisible())
                 return;
 
             const clickX:Number = CanvasController.canvasDrawLayerChild.mouseX;
@@ -801,7 +801,7 @@ package Modules.Tools
             drawLassoPreviewLine(true);
             // 라소 메뉴 마우스 커서에보이기
             lassoFirstData = [lassoLayer1.x, lassoLayer1.y, lassoLayer1.scaleX, lassoLayer1.scaleY, lassoLayer1.rotation];
-            _isLassoToolStarted = true;
+            _isStarted = true;
             setDefaultLassoMenuPos(_lassoMenuBox);
             MainUIController.keepBoxInsideViewPort(_lassoMenuBox);
             if (CanvasController.checkedLayer || !checklayer1 || !checklayer2)
@@ -899,7 +899,7 @@ package Modules.Tools
 
         public static function applyLassoImageToCanvas():void
         {
-            if (_isLassoToolStarted === true)
+            if (_isStarted === true)
             {
                 if (hasLassoImageChanges() === true) // 사용후에 ok하면 처리해줌
                 {
@@ -981,7 +981,7 @@ package Modules.Tools
 
         public static function cancelIfActive():void
         {
-            if (!_isLassoToolStarted)
+            if (!_isStarted)
             {
                 return;
             }
@@ -1000,7 +1000,7 @@ package Modules.Tools
         public static function resetLassoBox():void
         {
             InputManager.removeInputEventsLassoTool();
-            _isLassoToolStarted = false;
+            _isStarted = false;
             isLassoMirrorON = false;
             isLassoImageCopied = false;
             _isLassoMenuHiddenTemp = false;

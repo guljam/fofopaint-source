@@ -235,7 +235,7 @@ package Modules
             SidebarController.sideBar.y = Math.round(STAGE_TOP_OFFSET);
             SidebarController.sideBar.updateSideBGSize(SidebarController.getSideBarBGHeight());
 
-            if (LassoTool._isLassoToolStarted)
+            if (LassoTool.isStarted)
                 keepBoxInsideViewPort(LassoTool._lassoMenuBox);
             if (ReferenceLayerController.isRefLayerMenuON)
                 keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
@@ -505,7 +505,7 @@ package Modules
         // 떠 있는 팝업들이 창 밖으로 나가지 않게 같이 이동시킨다.
         private static function applyPopupLayout(dx:Number, dy:Number):void
         {
-            if (LassoTool._isLassoToolStarted)
+            if (LassoTool.isStarted)
             {
                 LassoTool._lassoMenuBox.x += dx;
                 LassoTool._lassoMenuBox.y += dy;

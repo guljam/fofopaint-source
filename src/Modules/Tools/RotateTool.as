@@ -41,9 +41,9 @@ package Modules.Tools
 
             if (!isReplayMode)
             {
-                if (LassoTool._isLassoToolStarted)
+                if (LassoTool.isStarted)
                 {
-                    if (LassoTool._isLassoMenuHiddenTemp === true)
+                    if (LassoTool.isLassoMenuHiddenTemp === true)
                     {
                         LassoTool.showLassoMenuBox();
                     }

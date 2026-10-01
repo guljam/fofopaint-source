@@ -45,9 +45,9 @@ package Modules.Tools
             {
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
 
-                if (LassoTool._isLassoToolStarted)
+                if (LassoTool.isStarted)
                 {
-                    if (LassoTool._isLassoMenuHiddenTemp === true)
+                    if (LassoTool.isLassoMenuHiddenTemp === true)
                     {
                         LassoTool.showLassoMenuBox();
                     }

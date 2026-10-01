@@ -688,7 +688,7 @@ package Modules
 
             checkFOFOPosition();
 
-            if (LassoTool._isLassoToolStarted)
+            if (LassoTool.isStarted)
             {
                 MainUIController.keepBoxInsideViewPort(LassoTool._lassoMenuBox);
             }

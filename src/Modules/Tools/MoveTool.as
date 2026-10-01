@@ -112,7 +112,7 @@ package Modules.Tools
 
             resetLayerBitmapPos();
 
-            if (LassoTool._isLassoToolStarted === false)
+            if (LassoTool.isStarted === false)
             {
                 var command:String = "move";
 

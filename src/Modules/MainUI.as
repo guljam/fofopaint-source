@@ -179,7 +179,7 @@ package Modules
 			{
 				showBottomHintForTargetCaptureMode(target);
 			}
-			else if (LassoTool._isLassoToolStarted)
+			else if (LassoTool.isStarted)
 			{
 				if (LassoTool.isHintAvailableWithLassoToolStarted(target))
 				{

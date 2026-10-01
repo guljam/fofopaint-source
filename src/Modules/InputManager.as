@@ -781,10 +781,10 @@ package Modules
                 MainUI.hideMouseHint();
             }
 
-            if (LassoTool._isLassoToolStarted)
+            if (LassoTool.isStarted)
             {
                 LassoTool._lassoMenuBox.visible = false;
-                LassoTool._isLassoMenuHiddenTemp = true;
+                LassoTool.isLassoMenuHiddenTemp = true;
             }
 
             if (ReplayState.isReplayModeON)
@@ -958,7 +958,7 @@ package Modules
         {
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
 
-            if (LassoTool._isLassoToolStarted === true)
+            if (LassoTool.isStarted === true)
             {
                 ToolController.closeToolBox2();
                 return;
@@ -1881,7 +1881,7 @@ package Modules
 
         public static function onRightMouseDownLassoTool(e:MouseEvent):void
         {
-            if (!LassoTool.isLassoToolStarted)
+            if (!LassoTool.isStarted)
             {
                 return;
             }
@@ -1911,7 +1911,7 @@ package Modules
 
         public static function onRightMouseUpLassoTool(e:MouseEvent):void
         {
-            if (!LassoTool._isLassoToolStarted || CanvasController.isMouseLeftClicked)
+            if (!LassoTool.isStarted || CanvasController.isMouseLeftClicked)
             {
                 return;
             }
