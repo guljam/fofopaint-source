@@ -125,7 +125,7 @@ package Modules
 
                 const logFolder:File = dataFolderPath.resolvePath("log");
                 logFolder.createDirectory();
-                const logFile:File = logFolder.resolvePath("fofo_crash_log_" + dateKey + ".txt");
+                const logFile:File = logFolder.resolvePath("fofo_error_log_" + dateKey + ".txt");
                 var logText:String = "[" + now.toString() + "]\r\n";
 
                 if (errorObject is Error)
@@ -852,13 +852,37 @@ package Modules
             InputManager.startPressHoldKey((!fromShortcut) ? MainUI.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, CanvasController.resetAllCanvasAndReplayData, null, isReplayDataLocked);
         }
 
-        public static function openLocalManualFolder():void
+        // 통합 메뉴얼(manual/manual.html)을 기본 브라우저로 염
+        public static function openLocalManual():void
         {
-            var targetFolder:File = File.applicationDirectory.resolvePath("manual");
-            if (targetFolder.exists && targetFolder.isDirectory)
+            var manualFile:File = File.applicationDirectory.resolvePath("manual/manual.html");
+            if (manualFile.exists)
             {
-                var request:URLRequest = new URLRequest(targetFolder.url);
+                var request:URLRequest = new URLRequest(manualFile.url);
                 navigateToURL(request);
+            }
+        }
+
+        // 앱데이터\버전\log 폴더를 탐색기로 염, 크래시가 없어서 폴더가 없으면 만들어서 엶
+        public static function openCrashLogFolder():void
+        {
+            if (dataFolderPath === null)
+            {
+                return;
+            }
+
+            const logFolder:File = dataFolderPath.resolvePath("log");
+            try
+            {
+                if (!logFolder.exists)
+                {
+                    logFolder.createDirectory();
+                }
+                logFolder.openWithDefaultApplication();
+            }
+            catch (error:Error)
+            {
+                trace("Open crash log folder failed: " + error);
             }
         }
 

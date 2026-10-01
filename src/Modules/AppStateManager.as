@@ -154,16 +154,16 @@ package Modules
                 arr = fs.readObject() as Array;
                 fs.close();
 
-                //신버전
+                // 신버전
                 if (arr[2] is CacheImageMetaData)
                 {
                     metaData = arr[2];
                     arr[0].uncompress();
-                    newRectangle = new Rectangle(0, 0, metaData.bmpdWidth,metaData.bmpdHeight);
+                    newRectangle = new Rectangle(0, 0, metaData.bmpdWidth, metaData.bmpdHeight);
 
                     if (ReplayFileCache.rFirstImageLayer1BitmapData)
                         ReplayFileCache.rFirstImageLayer1BitmapData.dispose();
-                    ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(metaData.bmpdWidth,metaData.bmpdHeight, true, 0);
+                    ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(metaData.bmpdWidth, metaData.bmpdHeight, true, 0);
                     ReplayFileCache.rFirstImageLayer1BitmapData.lock();
                     PixelRestore.setPixels(ReplayFileCache.rFirstImageLayer1BitmapData, newRectangle, arr[0]);
                     ReplayFileCache.rFirstImageLayer1BitmapData.unlock();
@@ -172,7 +172,7 @@ package Modules
 
                     if (ReplayFileCache.rFirstImageLayer2BitmapData)
                         ReplayFileCache.rFirstImageLayer2BitmapData.dispose();
-                    ReplayFileCache.rFirstImageLayer2BitmapData = new BitmapData(metaData.bmpdWidth,metaData.bmpdHeight, true, 0);
+                    ReplayFileCache.rFirstImageLayer2BitmapData = new BitmapData(metaData.bmpdWidth, metaData.bmpdHeight, true, 0);
                     ReplayFileCache.rFirstImageLayer2BitmapData.lock();
                     PixelRestore.setPixels(ReplayFileCache.rFirstImageLayer2BitmapData, newRectangle, arr[1]);
                     ReplayFileCache.rFirstImageLayer2BitmapData.unlock();
@@ -180,10 +180,10 @@ package Modules
                     ReplaySaveMetaData.firstImageBG = metaData.bgColor;
                     ReplaySaveMetaData.firstImageMirrorFlag = metaData.mirrorFlag;
                 }
-                else //구버전
+                else // 구버전
                 {
                     arr[0].uncompress();
-                    newRectangle = new Rectangle(0, 0, arr[1],arr[2]);
+                    newRectangle = new Rectangle(0, 0, arr[1], arr[2]);
 
                     if (ReplayFileCache.rFirstImageLayer1BitmapData)
                     {
@@ -282,7 +282,7 @@ package Modules
                         MainUIController.lastAppWindowSize.width = appStateObject.stageNativeWindowWidth;
                         MainUIController.lastAppWindowSize.height = appStateObject.stageNativeWindowHeight;
 
-                        //캔버스 bg를 한번 업데이트해춤 on window resize이벤트에서는 앱이 정보가 로드되고 있을때 차단되기 때문에
+                        // 캔버스 bg를 한번 업데이트해춤 on window resize이벤트에서는 앱이 정보가 로드되고 있을때 차단되기 때문에
                         main.updateStageBGSize();
 
                         // UI Scale & Color
@@ -467,12 +467,11 @@ package Modules
 
                         MainUIController.updateCanvasNaigatorCursor();
                         PenSizePreviewCursor.updateSizeAndShape();
-                            isLoadingAppData = false;
+                        isLoadingAppData = false;
                         MainUIController.updateWindowTitle();
                         CanvasController.selectLayer1(false);
 
-
-                        if(ReplayState.isGeneratingCacheImages())
+                        if (ReplayState.isGeneratingCacheImages())
                         {
                             // 닫을때 로드박스에 깔려있던 흐린 배경 이미지를 다시 깔아줌
                             const preview:BitmapData = ReplayFileCache.loadCachePreview();
@@ -492,11 +491,11 @@ package Modules
                             }
 
                             ReplayFileCache.createFirstImageCache(
-                                ReplayFileCache.rFirstImageLayer1BitmapData,
-                                ReplayFileCache.rFirstImageLayer2BitmapData,
-                                ReplaySaveMetaData.firstImageBG,
-                                ReplaySaveMetaData.firstImageMirrorFlag);
-                            ReplayController.startGeneratingReplayCacheImage(true,null);
+                                    ReplayFileCache.rFirstImageLayer1BitmapData,
+                                    ReplayFileCache.rFirstImageLayer2BitmapData,
+                                    ReplaySaveMetaData.firstImageBG,
+                                    ReplaySaveMetaData.firstImageMirrorFlag);
+                            ReplayController.startGeneratingReplayCacheImage(true, null);
                         }
                         // 캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
                         if (appStateObject.lastWindowState === 1)
@@ -521,6 +520,20 @@ package Modules
                 MainUIController.lastAppWindowSize.width = 1000;
                 MainUIController.lastAppWindowSize.height = 800;
 
+                CanvasController.applyCavnvasSizeDrawMode(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, 0, 0, false);
+                MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+
+                ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
+                ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
+
+                AboutBoxController.openAboutBox(true);
+                MainUIController.applyUIColorSet();
+
+                CanvasController.canvasInfoBox.init(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, Math.floor(CanvasController.canvasZoomMultipler * 100), CanvasController.canvasAnchorPoint.rotation, false);
+                CanvasController.selectLayer1(false);
+
+                PaletteController.initMyPaletteHistory();
+
                 FOFOTimer.add(0.3, true, function ():Boolean
                     {
                         if (main.stage.nativeWindow.width === 1000 && main.stage.nativeWindow.height === 800)
@@ -535,19 +548,6 @@ package Modules
                         return true;
                     });
 
-                CanvasController.applyCavnvasSizeDrawMode(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, 0, 0, false);
-                MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-
-                ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
-                ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
-
-                AboutBoxController.openAboutBox(true);
-                MainUIController.applyUIColorSet();
-
-                CanvasController.canvasInfoBox.init(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, Math.floor(CanvasController.canvasZoomMultipler * 100), CanvasController.canvasAnchorPoint.rotation, false);
-                CanvasController.selectLayer1(false);
-
-                PaletteController.initMyPaletteHistory();
                 isLoadingAppData = false;
             }
 

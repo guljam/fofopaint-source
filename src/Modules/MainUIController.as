@@ -374,11 +374,9 @@ package Modules
                 case "releaseNoteButton":
                 case "resetAppButton":
                 case "aboutButton":
-                case "kor":
-                case "jp":
-                case "eng":
                 case "aboutHomePageLink":
                 case "aboutManualFolder":
+                case "aboutErrorLogFolder":
                     // case "aboutMeLink":
                     InputManager.handleMouseClickStage(targetName);
                     break;
