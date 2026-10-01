@@ -1,5 +1,7 @@
 package Modules.ReplayEngine
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.MouseState;
@@ -33,8 +35,6 @@ package Modules.ReplayEngine
     import Modules.FileManager;
     import Modules.ImageViewWindow;
     import Modules.InputManager;
-    import Modules.MainUI;
-    import Modules.MainUIController;
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
@@ -174,7 +174,7 @@ package Modules.ReplayEngine
                     ReplayController.seekBarBox.setReplayPrograssBarMaxWidth();
                 }
 
-                MainUI.topBar.repNewFileButton.alpha = UITheme.OFFALPHA;
+                UIController.topBar.repNewFileButton.alpha = UITheme.OFFALPHA;
                 ReplayDrawer.rReplayFOFOCursor.visible = false;
                 finalize();
             }
@@ -352,23 +352,23 @@ package Modules.ReplayEngine
         {
             if (ReplayState.isGeneratingCacheImages() || FileManager.isReplayDataLocked() || ReplayState.isReplayStarted)
             {
-                MainUI.topBar.superUndoButton.alpha = UITheme.OFFALPHA;
-                MainUI.topBar.cutPrevDataButton.alpha = UITheme.OFFALPHA;
-                MainUI.topBar.repNewFileButton.alpha = UITheme.OFFALPHA;
+                UIController.topBar.superUndoButton.alpha = UITheme.OFFALPHA;
+                UIController.topBar.cutPrevDataButton.alpha = UITheme.OFFALPHA;
+                UIController.topBar.repNewFileButton.alpha = UITheme.OFFALPHA;
             }
             else
             {
-                MainUI.topBar.repNewFileButton.alpha = 1.0;
+                UIController.topBar.repNewFileButton.alpha = 1.0;
 
                 if (ReplayState.rNowFrame > 0 && ReplayState.rNowFrame < ReplayState.TOTAL_FRAME)
                 {
-                    MainUI.topBar.superUndoButton.alpha = 1.0;
-                    MainUI.topBar.cutPrevDataButton.alpha = 1.0;
+                    UIController.topBar.superUndoButton.alpha = 1.0;
+                    UIController.topBar.cutPrevDataButton.alpha = 1.0;
                 }
                 else
                 {
-                    MainUI.topBar.superUndoButton.alpha = UITheme.OFFALPHA;
-                    MainUI.topBar.cutPrevDataButton.alpha = UITheme.OFFALPHA;
+                    UIController.topBar.superUndoButton.alpha = UITheme.OFFALPHA;
+                    UIController.topBar.cutPrevDataButton.alpha = UITheme.OFFALPHA;
                 }
             }
         }
@@ -810,7 +810,7 @@ package Modules.ReplayEngine
         public static function resetReplaySpeedBar():void
         {
             ReplayState.rReplaySpeedMultipler = 1.0; // 속도 리셋
-            MainUI.topBar.replaySpeedSliderCursor.x = MainUI.topBar.replaySpeedSlider.x + 1.5;
+            UIController.topBar.replaySpeedSliderCursor.x = UIController.topBar.replaySpeedSlider.x + 1.5;
         }
 
         // total frame file max frame등등은 수동으로 초기화
@@ -870,7 +870,7 @@ package Modules.ReplayEngine
                         replayCompleteEffect();
                         startReplayRestartTimer();
                         showCompleteImageToBGReplayMode();
-                        MainUI.hideBottomHint();
+                        HintController.hideBottomHint();
                         return false;
                     }
 
@@ -1084,7 +1084,7 @@ package Modules.ReplayEngine
                 ? getReplayRemainingTimeString(ReplayState.rReplaySpeedMultipler, ReplayState.TOTAL_FRAME)
                 : formatReplayTime(ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) * ReplayState.WAIT_TICK_MS / 1000 / ReplayState.rReplaySpeedMultipler);
             const finalStr:String = HintStrings.getReplaySpeedHintString(ReplayState.rReplaySpeedMultipler, timeStr);
-            MainUI.showMouseHintTemp(finalStr);
+            HintController.showMouseHintTemp(finalStr);
         }
 
         // keyfunc
@@ -1120,7 +1120,7 @@ package Modules.ReplayEngine
             }
 
             ReplayState.rReplaySpeedMultipler = _rSpeed;
-            MainUI.topBar.setSpeedButtonPosByValue(_rSpeed, maxSpeed);
+            UIController.topBar.setSpeedButtonPosByValue(_rSpeed, maxSpeed);
             showReplaySpeedMouseHint();
         }
 
@@ -1139,8 +1139,8 @@ package Modules.ReplayEngine
             }
 
             // setSpeedButtonPosByValue도 오프셋 수정해주어야함
-            const minDist:Number = MainUI.topBar.replaySpeedSlider.x + 1.5;
-            const maxDist:Number = minDist + MainUI.topBar.replaySpeedSlider.width - 2.5;
+            const minDist:Number = UIController.topBar.replaySpeedSlider.x + 1.5;
+            const maxDist:Number = minDist + UIController.topBar.replaySpeedSlider.width - 2.5;
             const maxSpeed:Number = ReplayState.REPLAY_MAX_SPEED;
             var oldSpeed:Number;
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
@@ -1184,7 +1184,7 @@ package Modules.ReplayEngine
                     mx = maxDist;
                 }
 
-                MainUI.topBar.replaySpeedSliderCursor.x = mx;
+                UIController.topBar.replaySpeedSliderCursor.x = mx;
                 setSpeed(mx);
                 showReplaySpeedMouseHint();
 
@@ -1209,11 +1209,11 @@ package Modules.ReplayEngine
 
             function replaySpeedButtomMoveEvent(e:MouseEvent):void
             {
-                moveButton(MainUI.topBar.replaySpeedSliderWrapper.mouseX);
+                moveButton(UIController.topBar.replaySpeedSliderWrapper.mouseX);
             }
 
-            moveButton(MainUI.topBar.replaySpeedSliderWrapper.mouseX);
-            setSpeed(MainUI.topBar.replaySpeedSliderWrapper.mouseX);
+            moveButton(UIController.topBar.replaySpeedSliderWrapper.mouseX);
+            setSpeed(UIController.topBar.replaySpeedSliderWrapper.mouseX);
             showReplaySpeedMouseHint();
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent, false, InputPriority.DEFAULT);
@@ -1227,11 +1227,11 @@ package Modules.ReplayEngine
         {
             if (ReplayState.REPLAY_MAX_SPEED === 1.0)
             {
-                MainUI.topBar.replaySpeedSliderWrapper.alpha = UITheme.OFFALPHA;
+                UIController.topBar.replaySpeedSliderWrapper.alpha = UITheme.OFFALPHA;
             }
             else
             {
-                MainUI.topBar.replaySpeedSliderWrapper.alpha = 1.0;
+                UIController.topBar.replaySpeedSliderWrapper.alpha = 1.0;
             }
         }
 
@@ -1308,36 +1308,36 @@ package Modules.ReplayEngine
 
             if (ReplayState.isReplayRepeatON)
             {
-                MainUI.topBar.replayRepeatButton.alpha = 1.0;
+                UIController.topBar.replayRepeatButton.alpha = 1.0;
             }
             else
             {
-                MainUI.topBar.replayRepeatButton.alpha = UITheme.OFFALPHA;
+                UIController.topBar.replayRepeatButton.alpha = UITheme.OFFALPHA;
             }
         }
 
         public static function hideTopbarOnReplayStart():void
         {
-            if (MainUI.topBar.visible === true)
+            if (UIController.topBar.visible === true)
             {
                 ReplayController.seekBarBox.y = 0;
                 ReplayController.seekBarBox.hideReplayControlButton();
-                MainUI.topBar.visible = false;
-                MainUI.hideBottomHint();
-                MainUI.hideMouseHint();
+                UIController.topBar.visible = false;
+                HintController.hideBottomHint();
+                HintController.hideMouseHint();
             }
         }
 
         public static function showTopbarOnReplayEnd():void
         {
-            if (MainUI.topBar.visible === false)
+            if (UIController.topBar.visible === false)
             {
-                MainUI.topBar.visible = true;
+                UIController.topBar.visible = true;
                 seekBarBox.y = lastReplayTimeBoxYPos;
                 seekBarBox.setPlayButtonVisible(true);
                 seekBarBox.showReplayControlButton();
-                MainUI.hideBottomHint();
-                MainUI.hideMouseHint();
+                HintController.hideBottomHint();
+                HintController.hideMouseHint();
             }
         }
 
@@ -1446,16 +1446,16 @@ package Modules.ReplayEngine
             CanvasController.canvasPanel.addChild(ReplayDrawer.rReplayFOFOCursor);
             ReplayDrawer.setRcursorRotation(CanvasController.canvasAnchorPoint.rotation);
 
-            if (MainUI.mouseHint.isShowing())
+            if (HintController.mouseHint.isShowing())
             {
-                MainUI.hideMouseHint();
+                HintController.hideMouseHint();
             }
 
             ReplayController.seekBarBox.pauseButton.visible = false;
             Utils.setAsTopChild(ReplayController.seekBarBox);
             ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
-            MainUIController.updateStageOffset();
-            MainUIController.updateCanvasNaigatorCursor();
+            UIController.updateStageOffset();
+            UIController.updateCanvasNaigatorCursor();
 
             if (PenTool.isTransparentPenColor)
             {
@@ -1468,7 +1468,7 @@ package Modules.ReplayEngine
 
             PenSizePreviewCursor.updateSizeAndShape();
             PenSizePreviewCursor.updatePosAndVisibility();
-            MainUIController.updateTopbarIconsDrawMode();
+            UIController.updateTopbarIconsDrawMode();
             CanvasController.canvasInfoBox.setZoom(CanvasController.canvasZoomMultipler);
             ReplayDrawer.updateReplayCursorScale(CanvasController.canvasZoomMultipler);
             UndoController.resumeDeepUndo();
@@ -1499,7 +1499,7 @@ package Modules.ReplayEngine
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             PenSizePreviewCursor.setVisible(false);
             ReplayController.seekBarBox.pauseButton.visible = false;
-            ReplayController.seekBarBox.y = Math.floor(MainUI.topBar.BARSIZE * UITheme.getUIScale() - 4);
+            ReplayController.seekBarBox.y = Math.floor(UIController.topBar.BARSIZE * UITheme.getUIScale() - 4);
             lastReplayTimeBoxYPos = ReplayController.seekBarBox.y;
             Utils.setAsTopChild(ReplayController.seekBarBox);
             ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
@@ -1510,9 +1510,9 @@ package Modules.ReplayEngine
                 ColorPickerController.closeNumpad();
             }
 
-            if (MainUI.mouseHint.isShowing())
+            if (HintController.mouseHint.isShowing())
             {
-                MainUI.hideMouseHint();
+                HintController.hideMouseHint();
             }
 
             ReplayDrawer.rReplayFOFOCursor.alpha = 1.0;
@@ -1520,9 +1520,9 @@ package Modules.ReplayEngine
             ReplayDrawer.rCanvasPanel.addChild(ReplayDrawer.rReplayFOFOCursor);
             Utils.setAsTopChild(ReplayDrawer.rReplayFOFOCursor);
             ReplayDrawer.setRcursorRotation(ReplayDrawer.rCanvasAnchorPoint.rotation);
-            MainUIController.updateStageOffset();
+            UIController.updateStageOffset();
             FOFOTimer.remove("rCursorOffAlphaAnimTimer");
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
             UndoController.suspendDeepUndo();
             frameOnEnterReplayMode = ReplayState.rNowFrame;
             updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame()); // 최대 속도 계산
@@ -1561,7 +1561,7 @@ package Modules.ReplayEngine
                 ReplayState.isReplaySlideShowMode = false;
                 CanvasController.keepCanvasPanelInStage(true);
                 SidebarController.hideSidebarTemporary();
-                MainUIController.updateTopbarIconsReplayMode();
+                UIController.updateTopbarIconsReplayMode();
                 InputManager.addInputEventsReplayMode();
 
                 if (ReplayState.isReplayCanvasFitToWindow)
@@ -1611,10 +1611,10 @@ package Modules.ReplayEngine
                     {
                         count = frameRate;
 
-                        if (!MainUI.isHighlightBoxVisible())
+                        if (!HintController.isHighlightBoxVisible())
                         {
                             Mouse.hide();
-                            MainUI.hideBottomHint();
+                            HintController.hideBottomHint();
                             isMouseHided = true;
                             updateMousePos();
                         }
@@ -1663,7 +1663,7 @@ package Modules.ReplayEngine
             var isNotCenterX:Boolean; // 캔버스 중점위치, 창 중점위치 사이 거리
             var isNotCenterY:Boolean;
             const leftLimit:Number = padding;
-            const topLimit:Number = padding + MainUI.topBar.BARSIZE;
+            const topLimit:Number = padding + UIController.topBar.BARSIZE;
             var rightLimit:Number;
             var bottomLimit:Number;
 
@@ -1680,16 +1680,16 @@ package Modules.ReplayEngine
                 top = bounds.top;
                 bottom = bounds.bottom;
                 stw = main.stage.stageWidth;
-                sth = main.stage.stageHeight - (MainUI.topBar.BARSIZE) * scale;
+                sth = main.stage.stageHeight - (UIController.topBar.BARSIZE) * scale;
                 zoom = ReplayState.rCanvasZoomMultiplier;
                 isCanvasWidthSmallerStage = right - left < stw;
                 isCanvasHeightSmallerStage = bottom - top < sth;
                 // 캔버스 중점위치, 창 중점위치 사이 거리
-                windowCenterPos.setTo(Math.floor(stw / 2 - (right + left) / 2), Math.floor((MainUI.topBar.BARSIZE) * scale + sth / 2 - (bottom + top) / 2));
+                windowCenterPos.setTo(Math.floor(stw / 2 - (right + left) / 2), Math.floor((UIController.topBar.BARSIZE) * scale + sth / 2 - (bottom + top) / 2));
                 isNotCenterX = Math.abs(windowCenterPos.x) > 0; // 캔버스 중점위치, 창 중점위치 사이 거리
                 isNotCenterY = Math.abs(windowCenterPos.y) > 0;
                 rightLimit = stw - padding;
-                bottomLimit = sth + MainUI.topBar.BARSIZE - padding;
+                bottomLimit = sth + UIController.topBar.BARSIZE - padding;
             }
 
             function check(viewCenterFlag:Boolean):void
@@ -1773,7 +1773,7 @@ package Modules.ReplayEngine
 
             FOFOTimer.addByName("replayHideCursorCheckTimer", 0.0, true, function ():Boolean
                 {
-                    if (!ReplayState.isReplayModeON || MainUI.topBar.visible)
+                    if (!ReplayState.isReplayModeON || UIController.topBar.visible)
                     {
                         replayHideCursor.show();
                         return false;
@@ -1802,7 +1802,7 @@ package Modules.ReplayEngine
 
         public static function resetZoomReplayMode():void
         {
-            const center:Point = MainUIController.getStageCenterPos("replay");
+            const center:Point = UIController.getStageCenterPos("replay");
             ReplayState.rLastCanvasZoomMultiplier = 1.0;
             ReplayState.rCanvasZoomIndex = CanvasController.canvasZoomMultiplerList.indexOf(1.0);
             CanvasController.moveCanvasAnchorPoint(center.x, center.y, true);
@@ -1881,9 +1881,9 @@ package Modules.ReplayEngine
 
         private static function hideCompleteImageToBGReplayMode():void
         {
-            if (MainUI.stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
+            if (UIController.stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
             {
-                MainUI.stageBG.removeChild(rCanvasCompleteAnchorPoint);
+                UIController.stageBG.removeChild(rCanvasCompleteAnchorPoint);
             }
 
             if (rCanvasCompleteBitmap.bitmapData)
@@ -1915,7 +1915,7 @@ package Modules.ReplayEngine
             glow.strength = 2;
             glow.quality = 3;
             ReplayDrawer.rCanvasPanel.filters = [glow];
-            MainUI.stageBG.addChild(rCanvasCompleteAnchorPoint);
+            UIController.stageBG.addChild(rCanvasCompleteAnchorPoint);
         }
 
         public static function toggleFitToCanvasReplayMode():void
@@ -1923,18 +1923,18 @@ package Modules.ReplayEngine
             if (ReplayState.isReplayCanvasFitToWindow)
             {
                 resetZoomReplayMode();
-                MainUI.topBar.replayFitToWindowButton.alpha = UITheme.OFFALPHA;
+                UIController.topBar.replayFitToWindowButton.alpha = UITheme.OFFALPHA;
             }
             else
             {
                 setFitReplayCanvasToViewportON();
-                MainUI.topBar.replayFitToWindowButton.alpha = 1.0;
+                UIController.topBar.replayFitToWindowButton.alpha = 1.0;
             }
         }
 
         public static function resetRotationReplayMode():void
         {
-            const center:Point = MainUIController.getStageCenterPos("replay");
+            const center:Point = UIController.getStageCenterPos("replay");
             CanvasController.moveCanvasAnchorPoint(center.x, center.y, true);
             ReplayDrawer.rCanvasAnchorPoint.rotation = 0;
             ReplayDrawer.setRcursorRotation(0);
@@ -2074,7 +2074,7 @@ package Modules.ReplayEngine
             CanvasController.fitCanvasToViewportMargin(ReplayState.isReplayCanvasFitToWindow);
             CanvasController.applyCanvasFlashEffect(ReplayDrawer.rCanvasPanel, 0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT, function ():Boolean
                 {
-                    return MainUI.topBar.visible;
+                    return UIController.topBar.visible;
                 });
         }
 

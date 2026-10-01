@@ -1,13 +1,13 @@
 package Modules.Tools
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.InputPriority;
     import Modules.CanvasController;
     import Modules.CaptureEngine.CaptureController;
     import Modules.ColorPickerController;
     import Modules.FileManager;
     import Modules.InputManager;
-    import Modules.MainUI;
-    import Modules.MainUIController;
     import Modules.ReferenceLayerController;
     import Modules.ToolController;
     import Modules.Utils;
@@ -55,7 +55,7 @@ package Modules.Tools
             lensMat.translate(tx, ty);
             lensMat.scale(2.0 * CanvasController.canvasZoomMultipler, 2.0 * CanvasController.canvasZoomMultipler);
 
-            eyedropperLens.bitmap.bitmapData.fillRect(lensRect, MainUIController.STAGE_BG_COLOR);
+            eyedropperLens.bitmap.bitmapData.fillRect(lensRect, UIController.STAGE_BG_COLOR);
             eyedropperLens.bitmap.bitmapData.draw(canvasBGShape, lensMat, null, null, lensRect);
 
             if (CanvasController.canvasLayer2Bitmap.visible)
@@ -157,7 +157,7 @@ package Modules.Tools
                 if (PenTool.isTransparentPenColor)
                 {
                     ColorPickerController.selectCurrentColor(false);
-                    MainUI.showMouseHintTemp("Current color selected");
+                    HintController.showMouseHintTemp("Current color selected");
                 }
                 else
                 {
@@ -168,7 +168,7 @@ package Modules.Tools
                         ColorPickerController.selectTransparentColor();
                     }
 
-                    MainUI.showMouseHintTemp("Transparent color selected");
+                    HintController.showMouseHintTemp("Transparent color selected");
                 }
 
                 exitEyeDropperTool(false);

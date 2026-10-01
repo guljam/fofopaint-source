@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.HintController;
     import flash.display.InteractiveObject;
     import flash.events.FocusEvent;
     import flash.events.IMEEvent;
@@ -185,7 +186,7 @@ package Modules
             {
                 lastHintTime = now;
                 processKeyCount = 0;
-                MainUI.showMouseHintTemp(HintStrings.STRING_IME_ON_HINT, 4.0);
+                HintController.showMouseHintTemp(HintStrings.STRING_IME_ON_HINT, 4.0);
             }
         }
 

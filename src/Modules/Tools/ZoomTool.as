@@ -1,11 +1,11 @@
 package Modules.Tools
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CanvasController;
     import flash.geom.Point;
-    import Modules.MainUI;
     import Modules.ReferenceLayerController;
-    import Modules.MainUIController;
     import Modules.CanvasGridOverlay;
     import Modules.DragInteraction;
     import Modules.PenSizePreviewCursor;
@@ -32,8 +32,8 @@ package Modules.Tools
 
         private static function fixMouseHintPos():void
         {
-            MainUI.mouseHint.x = clickPos.x - MainUI.mouseHint.width / 2;
-            MainUI.mouseHint.y = clickPos.y - 35 * UITheme.getUIScale();
+            HintController.mouseHint.x = clickPos.x - HintController.mouseHint.width / 2;
+            HintController.mouseHint.y = clickPos.y - 35 * UITheme.getUIScale();
         }
 
         private static function zoomToolMouseMoveEvent2(dist:Number):void
@@ -60,7 +60,7 @@ package Modules.Tools
             CanvasController.canvasZoomIndex = startZoomIndex;
             CanvasController.updateCanvasScale(zoomValue, false);
 
-            MainUI.showMouseHint(Math.floor(zoomValue * 100) + "%");
+            HintController.showMouseHint(Math.floor(zoomValue * 100) + "%");
             fixMouseHintPos();
         }
 
@@ -108,7 +108,7 @@ package Modules.Tools
         {
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
             PenSizePreviewCursor.updateSizeAndShape();
-            MainUI.hideMouseHint();
+            HintController.hideMouseHint();
             
             ReferenceLayerController.setRefLayerAndGridVisible(true);
 
@@ -117,7 +117,7 @@ package Modules.Tools
                 LassoTool.showLassoMenuBox();
             }
 
-            MainUIController.updateCanvasNaigatorCursor();
+            UIController.updateCanvasNaigatorCursor();
 
             if (CanvasGridOverlay.gridGapMultiplier > 0 && lastZoom !== CanvasController.canvasZoomMultipler)
             {
@@ -183,7 +183,7 @@ package Modules.Tools
                 ReferenceLayerController.setRefLayerAndGridVisible(false);
 
                 clickPos.setTo(main.stage.mouseX, main.stage.mouseY);
-                MainUI.showMouseHint(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
+                HintController.showMouseHint(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
                 fixMouseHintPos();
             }
 

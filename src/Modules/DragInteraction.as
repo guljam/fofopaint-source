@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UIController;
     import flash.display.DisplayObject;
     import flash.events.MouseEvent;
     import flash.geom.Point;
@@ -85,7 +86,7 @@ package Modules
 
             function onMouseUp():void
             {
-                MainUIController.keepBoxInsideViewPort(target);
+                UIController.keepBoxInsideViewPort(target);
             }
 
             startDragInteraction(onDragStart, onMouseMove, onMouseUp);

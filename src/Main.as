@@ -1,5 +1,7 @@
 ﻿package
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.ImeController;
@@ -18,8 +20,6 @@
     import Modules.FillPenTool;
     import Modules.ImageViewWindow;
     import Modules.InputManager;
-    import Modules.MainUI;
-    import Modules.MainUIController;
     import Modules.PaletteController;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
@@ -124,8 +124,8 @@
             DragInteraction.setMainInstance(this);
             FileManager.setMainInstance(this);
             ImageViewWindow.setMainInstance(this);
-            MainUI.setMainInstance(this);
-            MainUIController.setMainInstance(this);
+            HintController.setMainInstance(this);
+            UIController.setMainInstance(this);
             PaletteController.setMainInstance(this);
             PenSizePreviewCursor.setMainInstance(this);
             ReferenceLayerController.setMainInstance(this);
@@ -158,7 +158,7 @@
             initializeStageSettings();
             CanvasController.initializeCanvas();
             ReplayController.initializeReplayCanvas();
-            MainUI.initializeAppMenus();
+            UIController.initializeAppMenus();
             CanvasController.initializeResizeButtonFamily();
             CaptureController.initializeCaptureModeTransparentBG();
             BackgroundWorkerCoordinator.initializeWorker();
@@ -177,12 +177,12 @@
             AppUpdater.checkUpdate();
             ImeController.init();
             ColorPickerController.colorPickerBox.setActiveColorPreset(0);
-            MainUI.mouseHint.updateBGColor();
+            HintController.mouseHint.updateBGColor();
             SidebarController.moveSideBar("left"); // 컨트롤 박스 크기가 set pentool 이후에 제대로 바뀜 원인 모름
             stage.addChild(SidebarController.fofo);
             stage.setChildIndex(SidebarController.fofo, stage.getChildIndex(SidebarController.sideBar) + (stage.getChildIndex(SidebarController.fofo) < stage.getChildIndex(SidebarController.sideBar) ? 0 : 1));
             HintStrings.setMainInstance(this);
-            MainUI.bottomHint.visible = true;
+            HintController.bottomHint.visible = true;
             ToolController.selectPenTool();
             ToolController.addHintEventToolBox2();
             ClipboardManager.checkCanUseClipBoardButton();
@@ -203,11 +203,11 @@
         // 방지를 위해서 스테이지 전체 +2사이즈 여백으로 뒷부분 전체를 투명하게 깔아줌
         public function updateStageBGSize():void
         {
-            MainUI.stageBG.graphics.clear();
-            MainUI.stageBG.graphics.beginFill(0, 0.0);
-            MainUI.stageBG.graphics.drawRect(-2, -2, stage.stageWidth + 4, stage.stageHeight + 4);
-            MainUI.stageBG.graphics.endFill();
-            if (MainUI.stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
+            UIController.stageBG.graphics.clear();
+            UIController.stageBG.graphics.beginFill(0, 0.0);
+            UIController.stageBG.graphics.drawRect(-2, -2, stage.stageWidth + 4, stage.stageHeight + 4);
+            UIController.stageBG.graphics.endFill();
+            if (UIController.stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
             {
                 ReplayController.setReplayCompleteCanvasCenter();
             }
@@ -230,7 +230,7 @@
             stage.addEventListener(MouseEvent.MOUSE_MOVE, InputManager.onMouseMoveUpdatePenPreviewCursor);
             stage.addEventListener(MouseEvent.MOUSE_UP, InputManager.onMouseMoveUpdatePenPreviewCursor, false, InputPriority.MODE);
             stage.addEventListener(Event.MOUSE_LEAVE, InputManager.onMouseLeaveStage, true);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, MainUI.onMouseMoveBottomHint);
+            stage.addEventListener(MouseEvent.MOUSE_MOVE, HintController.onMouseMoveBottomHint);
             stage.nativeWindow.x = Capabilities.screenResolutionX / 2 - 680 / 2;
             stage.nativeWindow.y = Capabilities.screenResolutionY / 2 - 768 / 2 - 50;
             stage.nativeWindow.addEventListener(Event.RESIZE, AppWindowState.onWindowResize);
@@ -263,7 +263,7 @@
                     {
                         msg = String(errorObject);
                     }
-                    MainUI.showMouseHintTemp(msg, 10.0);
+                    HintController.showMouseHintTemp(msg, 10.0);
                 }
                 catch (hintError:Error)
                 {

@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import flash.display.Shape;
     import flash.events.KeyboardEvent;
@@ -47,7 +49,7 @@ package Modules
         private static function clearGrid():void
         {
             lastGridGapValue = 0;
-            MainUI.topBar.setGridMoveButtonAlpha(UITheme.OFFALPHA);
+            UIController.topBar.setGridMoveButtonAlpha(UITheme.OFFALPHA);
             canvasGrid.visible = false;
             canvasGrid.graphics.clear();
         }
@@ -126,15 +128,15 @@ package Modules
 
         private static function cGridFunc():Object
         {
-            const minDist:Number = MainUI.topBar.gridSlider.x + 1.5;
-            const maxDist:Number = minDist + MainUI.topBar.gridSlider.width - 2.5;
+            const minDist:Number = UIController.topBar.gridSlider.x + 1.5;
+            const maxDist:Number = minDist + UIController.topBar.gridSlider.width - 2.5;
             const step:Number = 20;
             const div:Number = (maxDist - minDist) / step;
             var oldValue:Number;
 
             function setCursorPosByValue(value:Number):void
             {
-                MainUI.topBar.gridSliderCursor.x = value * div + minDist;
+                UIController.topBar.gridSliderCursor.x = value * div + minDist;
             }
 
             function drawGridByValue(mx:Number, initFlag:Boolean):void
@@ -158,14 +160,14 @@ package Modules
                     {
                         gridGapMultiplier = 0;
                         oldValue = 0;
-                        MainUI.hideBottomHint();
+                        HintController.hideBottomHint();
                         clearGrid();
                         return;
                     }
                     else
                     {
-                        if (MainUI.topBar.isGridMoveButtonOFFAlpha())
-                            MainUI.topBar.setGridMoveButtonAlpha(1.0);
+                        if (UIController.topBar.isGridMoveButtonOFFAlpha())
+                            UIController.topBar.setGridMoveButtonAlpha(1.0);
 
                         if (oldValue > 0 && value > 0)
                         {
@@ -175,7 +177,7 @@ package Modules
 
                         gridGapMultiplier = value;
                         oldValue = value;
-                        MainUI.showMouseHintTemp(HintStrings.getGridGapAdjustHintString(value, GRID_GAP));
+                        HintController.showMouseHintTemp(HintStrings.getGridGapAdjustHintString(value, GRID_GAP));
                         drawGrid();
                     }
                 }
@@ -192,7 +194,7 @@ package Modules
 
             function onMouseMoveGridButton(e:MouseEvent):void
             {
-                var mx:Number = MainUI.topBar.gridSliderWrapper.mouseX;
+                var mx:Number = UIController.topBar.gridSliderWrapper.mouseX;
 
                 if (mx < minDist)
                 {
@@ -204,7 +206,7 @@ package Modules
                 }
 
                 drawGridByValue(mx, false);
-                MainUI.showBottomHint(HintStrings.getHintFromTargetName("gridSliderWrapper"));
+                HintController.showBottomHint(HintStrings.getHintFromTargetName("gridSliderWrapper"));
             }
 
             function repeatGridMoveByValue(moveX:Number, moveY:Number):void
@@ -231,13 +233,13 @@ package Modules
                     return;
                 const targetName:String = e.target.name;
 
-                if (targetName === "gridButton" || MainUI.topBar.gridButtonWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+                if (targetName === "gridButton" || UIController.topBar.gridButtonWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
                 {
                     off();
                     return;
                 }
 
-                if (MainUI.topBar.gridMoveButtonWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                if (UIController.topBar.gridMoveButtonWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                 {
                     if (e.target.alpha === 1.0)
                     {
@@ -256,10 +258,10 @@ package Modules
                             repeatGridMoveByValue(p.x, p.y);
                     }
                 }
-                else if (MainUI.topBar.gridSliderWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                else if (UIController.topBar.gridSliderWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                 {
                     oldValue = gridGapMultiplier;
-                    drawGridByValue(MainUI.topBar.gridSliderWrapper.mouseX, true);
+                    drawGridByValue(UIController.topBar.gridSliderWrapper.mouseX, true);
                     main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
                     main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton, false, InputPriority.DEFAULT);
                     MouseState.beginDrag("gridSlider", function ():void
@@ -279,7 +281,7 @@ package Modules
                         {
                             if (gridGapMultiplier !== 0)
                             {
-                                MainUI.hideBottomHint();
+                                HintController.hideBottomHint();
                                 oldValue = 0;
                                 resetGrid();
                             }
@@ -321,7 +323,7 @@ package Modules
                 {
                     if (gridGapMultiplier !== 0)
                     {
-                        MainUI.hideBottomHint();
+                        HintController.hideBottomHint();
                         resetGrid();
                     }
                 }
@@ -333,7 +335,7 @@ package Modules
 
             function off():void
             {
-                MainUI.hideBottomHint();
+                HintController.hideBottomHint();
                 MouseState.endDrag("gridSlider");
                 InputManager.removeKeyRepeatEvents(null);
                 main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton);
@@ -341,25 +343,25 @@ package Modules
                 main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
                 main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton);
-                MainUI.topBar.setReplaySpeedBarToGridSliderOFF(main.stage);
+                UIController.topBar.setReplaySpeedBarToGridSliderOFF(main.stage);
                 InputManager.clearKeyBuffer();
                 InputManager.addInputEventsDrawMode();
             }
 
             function start(shortcutKey:Boolean):void
             {
-                if (MainUI.topBar.gridButtonWrapper.visible === false)
+                if (UIController.topBar.gridButtonWrapper.visible === false)
                 {
                     InputManager.removeInputEventsDrawMode();
-                    MainUI.topBar.setGridMoveButtonAlpha(gridGapMultiplier > 0 ? 1.0 : UITheme.OFFALPHA);
-                    MainUI.topBar.setReplaySpeedBarToGridSliderON(shortcutKey);
+                    UIController.topBar.setGridMoveButtonAlpha(gridGapMultiplier > 0 ? 1.0 : UITheme.OFFALPHA);
+                    UIController.topBar.setReplaySpeedBarToGridSliderON(shortcutKey);
                     setCursorPosByValue(gridGapMultiplier);
 
                     if (shortcutKey)
                     {
-                        const p:Point = MainUI.topBar.globalToLocal(new Point(main.stage.mouseX, main.stage.mouseY));
-                        MainUI.topBar.gridButtonWrapper.x = p.x - MainUI.topBar.gridSliderWrapper.x - MainUI.topBar.gridSliderCursor.x;
-                        MainUI.topBar.gridButtonWrapper.y = p.y - MainUI.topBar.gridSliderWrapper.y - MainUI.topBar.gridSliderCursor.y;
+                        const p:Point = UIController.topBar.globalToLocal(new Point(main.stage.mouseX, main.stage.mouseY));
+                        UIController.topBar.gridButtonWrapper.x = p.x - UIController.topBar.gridSliderWrapper.x - UIController.topBar.gridSliderCursor.x;
+                        UIController.topBar.gridButtonWrapper.y = p.y - UIController.topBar.gridSliderWrapper.y - UIController.topBar.gridSliderCursor.y;
                     }
 
                     main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton, false, InputPriority.MODE);

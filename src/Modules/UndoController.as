@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
     import flash.geom.Point;
@@ -49,7 +51,7 @@ package Modules
                 else
                 {
                     ReplayDrawer.rReplayFOFOCursor.visible = false;
-                    MainUI.hideMouseHint();
+                    HintController.hideMouseHint();
                 }
             }
             else
@@ -260,7 +262,7 @@ package Modules
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
 
-            MainUIController.updateCanvasNaigatorCursor();
+            UIController.updateCanvasNaigatorCursor();
             FileManager.enableNewFileButton();
         }
     }

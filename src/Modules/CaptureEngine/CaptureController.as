@@ -1,11 +1,11 @@
 package Modules.CaptureEngine
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.Utils;
     import Modules.SidebarController;
     import Modules.PenSizePreviewCursor;
-    import Modules.MainUIController;
-    import Modules.MainUI;
     import Modules.FileManager;
     import Modules.ColorPickerController;
     import Modules.CanvasController;
@@ -135,17 +135,17 @@ package Modules.CaptureEngine
 
          public static function toggleLayerCaptureMode(layer:int):void
         {
-            MainUI.topBar.capClipBoard.alpha = 1.0;
+            UIController.topBar.capClipBoard.alpha = 1.0;
             const replayMode:Boolean = ReplayState.isReplayModeON;
             var bitmap:Bitmap = replayMode
                 ? (layer == 1 ? ReplayDrawer.rCanvasLayer1Bitmap : ReplayDrawer.rCanvasLayer2Bitmap)
                 : (layer == 1 ? CanvasController.canvasLayer1Bitmap : CanvasController.canvasLayer2Bitmap);
             var button:DisplayObject = (layer == 1)
-                ? MainUI.topBar.capLayer1VisibleButton
-                : MainUI.topBar.capLayer2VisibleButton;
+                ? UIController.topBar.capLayer1VisibleButton
+                : UIController.topBar.capLayer2VisibleButton;
             var otherButton:DisplayObject = (layer == 1)
-                ? MainUI.topBar.capLayer2VisibleButton
-                : MainUI.topBar.capLayer1VisibleButton;
+                ? UIController.topBar.capLayer2VisibleButton
+                : UIController.topBar.capLayer1VisibleButton;
 
             if (bitmap.visible)
             {
@@ -292,7 +292,7 @@ package Modules.CaptureEngine
         {
             Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT, getCaptrueImageBitmapdata(true), false);
             // WorkspaceView.showMouseHintTemp("The image copied to clipboard successfully");
-            MainUI.topBar.capClipBoard.alpha = UITheme.OFFALPHA;
+            UIController.topBar.capClipBoard.alpha = UITheme.OFFALPHA;
         }
 
         public static function initializeCaptureModeTransparentBG():void
@@ -320,7 +320,7 @@ package Modules.CaptureEngine
                 xAnc.rotation = 90;
             }
 
-            MainUI.topBar.capClipBoard.alpha = 1.0;
+            UIController.topBar.capClipBoard.alpha = 1.0;
             if (!initFlag)
             {
                 CaptureArea.updateDrawArea();
@@ -375,7 +375,7 @@ package Modules.CaptureEngine
             {
                 restoreCanvasBackgroundColorDrawMode();
             }
-            MainUI.topBar.capClipBoard.alpha = 1.0;
+            UIController.topBar.capClipBoard.alpha = 1.0;
         }
 
         public static function rotateCaptureImage(rotateValue:uint, initFlag:Boolean):void
@@ -389,7 +389,7 @@ package Modules.CaptureEngine
             _captureCanvasRotationStep = rotateValue;
 
             CanvasController.fitCanvasToViewportMargin();
-            MainUI.topBar.capClipBoard.alpha = 1.0;
+            UIController.topBar.capClipBoard.alpha = 1.0;
             if (!initFlag)
             {
                 CaptureArea.updateDrawArea();
@@ -423,7 +423,7 @@ package Modules.CaptureEngine
 
             activateCaptureUI();
             CaptureArea.startHoverTracking();
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
 
             var xAnc:Sprite;
             var xPanel:Sprite;
@@ -476,8 +476,8 @@ package Modules.CaptureEngine
                     "layer2": layer2
                 };
 
-            MainUI.resetLastBottomHintTargetRect();
-            MainUI.topBar.capClipBoard.alpha = 1.0;
+            HintController.resetLastBottomHintTargetRect();
+            UIController.topBar.capClipBoard.alpha = 1.0;
             _captureCanvasRotationStep = 0;
             _isCaptureCanvasFlipped = false;
             CanvasController.fitCanvasToViewportMargin();
@@ -524,16 +524,16 @@ package Modules.CaptureEngine
                 ReferenceLayerController.refLayerMenuBox.visible = false;
             }
 
-            MainUIController.updateTopbarIconsCaptureMode();
+            UIController.updateTopbarIconsCaptureMode();
             ReplayDrawer.rReplayFOFOCursor.visible = false;
 
-            if (MainUI.mouseHint.isShowing())
+            if (HintController.mouseHint.isShowing())
             {
-                MainUI.hideMouseHint();
+                HintController.hideMouseHint();
             }
 
             InputManager.addInputEventsCaptrueMode();
-            MainUIController.updateStageOffset();
+            UIController.updateStageOffset();
         }
 
         private static function deactivateCaptureUI():void
@@ -544,7 +544,7 @@ package Modules.CaptureEngine
 
             if (replayMode)
             {
-                MainUIController.updateTopbarIconsReplayMode();
+                UIController.updateTopbarIconsReplayMode();
                 InputManager.addInputEventsReplayMode();
                 ReplayController.seekBarBox.visible = true;
             }
@@ -559,12 +559,12 @@ package Modules.CaptureEngine
                     ReferenceLayerController.refLayerMenuBox.visible = true;
                 }
                 PenSizePreviewCursor.setCursorInVisibleFlag(false);
-                MainUIController.updateTopbarIconsDrawMode();
+                UIController.updateTopbarIconsDrawMode();
                 InputManager.addInputEventsDrawMode();
             }
 
             ColorPickerController.switchColorPickerModePen();
-            MainUIController.updateStageOffset();
+            UIController.updateStageOffset();
         }
 
         public static function resetCaptureCanvasChangeValue():void
@@ -617,14 +617,14 @@ package Modules.CaptureEngine
                 CanvasController.updateCanvasScale(data.z, replayMode);
             }
 
-            MainUI.resetLastBottomHintTargetRect();
-            MainUI.hideMouseHint();
+            HintController.resetLastBottomHintTargetRect();
+            HintController.hideMouseHint();
             _captureWindowMove.setTo(0, 0);
             PenSizePreviewCursor.updateSizeAndShape();
 
             // prev box 사각형 업데이트가 있기 때문에 xAnc위치가 갱신된 다음에 해주어야함
             deactivateCaptureUI();
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
 
             if (replayMode)
             {

@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.HintController;
     import Symbols.AboutWindowSet;
 
     import flash.events.MouseEvent;
@@ -98,7 +99,7 @@ package Modules
             _isAboutBoxOpened = true;
 
             CanvasController.isMouseClickBlocked = true;
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
 
             InputManager.removeInputEventsDrawMode();
 

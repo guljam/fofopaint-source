@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UIController;
     import flash.utils.Timer;
     import flash.utils.getTimer;
     import flash.events.TimerEvent;
@@ -31,8 +32,8 @@ package Modules
             lastWorkTime = getTimer();
             lastAppUpTime += lastWorkTime / 1000;
             totalWorkTime = 0;
-            MainUI.topBar.timer.text = "00:00:00";
-            MainUI.topBar.updateTimerPos(main.stage.stageWidth);
+            UIController.topBar.timer.text = "00:00:00";
+            UIController.topBar.updateTimerPos(main.stage.stageWidth);
         }
 
         public static function setRunningTime(newTime:int):void
@@ -90,9 +91,9 @@ package Modules
 
         public static function update():void
         {
-            MainUI.topBar.timer.text = getFormattedWorkTime();
-            MainUI.topBar.timerAFkDot.visible = false;
-            MainUI.topBar.updateTimerPos(main.stage.stageWidth);
+            UIController.topBar.timer.text = getFormattedWorkTime();
+            UIController.topBar.timerAFkDot.visible = false;
+            UIController.topBar.updateTimerPos(main.stage.stageWidth);
         }
         private static function onTimer(event:TimerEvent):Boolean
         {
@@ -102,8 +103,8 @@ package Modules
                     || (!CanvasController.isMouseLeftClicked && !CanvasController.isRightMouseClicked && !InputManager.isKeyPressed()
                         && main.stage.mouseX === lastMousePosX && main.stage.mouseY === lastMousePosY))
             {
-                MainUI.topBar.timerAFkDot.visible = !MainUI.topBar.timerAFkDot.visible;
-                MainUI.topBar.updateTimerPos(main.stage.stageWidth);
+                UIController.topBar.timerAFkDot.visible = !UIController.topBar.timerAFkDot.visible;
+                UIController.topBar.updateTimerPos(main.stage.stageWidth);
             }
             else
             {

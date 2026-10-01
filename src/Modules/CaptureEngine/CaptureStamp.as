@@ -1,10 +1,10 @@
 package Modules.CaptureEngine
 {
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.Utils;
     import Modules.PaletteController;
-    import Modules.MainUI;
     import Modules.InputManager;
     import Modules.CanvasController;
     import flash.display.BitmapData;
@@ -59,21 +59,21 @@ package Modules.CaptureEngine
         {
             if (_isCaptureStampEnabled)
             {
-                MainUI.topBar.capStamp.alpha = 1.0;
-                MainUI.topBar.captureInputWarpper.visible = true;
-                MainUI.topBar.capStampFont.visible = true;
+                UIController.topBar.capStamp.alpha = 1.0;
+                UIController.topBar.captureInputWarpper.visible = true;
+                UIController.topBar.capStampFont.visible = true;
             }
             else
             {
-                MainUI.topBar.capStamp.alpha = UITheme.OFFALPHA;
-                MainUI.topBar.captureInputWarpper.visible = false;
-                MainUI.topBar.capStampFont.visible = false;
+                UIController.topBar.capStamp.alpha = UITheme.OFFALPHA;
+                UIController.topBar.captureInputWarpper.visible = false;
+                UIController.topBar.capStampFont.visible = false;
             }
         }
 
         public static function toggleCaptureStampButton():void
         {
-            MainUI.topBar.capClipBoard.alpha = 1.0;
+            UIController.topBar.capClipBoard.alpha = 1.0;
             _isCaptureStampEnabled = !_isCaptureStampEnabled;
             updateCaptureStampButtonAlpha();
             CaptureStamp.update();
@@ -141,7 +141,7 @@ package Modules.CaptureEngine
 
         private static function onMouseDownShowStampFontList(e:MouseEvent):void
         {
-            if (!(captureStampFontListBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) || MainUI.topBar.capStampFont.hitTestPoint(main.stage.mouseX, main.stage.mouseY)))
+            if (!(captureStampFontListBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) || UIController.topBar.capStampFont.hitTestPoint(main.stage.mouseX, main.stage.mouseY)))
             {
                 hideStampFontList();
             }
@@ -151,9 +151,9 @@ package Modules.CaptureEngine
         {
             if (!captureStampFontListBox.visible)
             {
-                const gp:Point = MainUI.topBar.capStampFont.localToGlobal(new Point(0, 0));
+                const gp:Point = UIController.topBar.capStampFont.localToGlobal(new Point(0, 0));
                 captureStampFontListBox.x = gp.x;
-                captureStampFontListBox.y = MainUI.topBar.BARSIZE * MainUI.topBar.scaleX;
+                captureStampFontListBox.y = UIController.topBar.BARSIZE * UIController.topBar.scaleX;
                 captureStampFontListBox.updateSystemFontList();
                 captureStampFontListBox.setScale(UITheme.getUIScale());
                 Utils.setAsTopChild(captureStampFontListBox);
@@ -175,13 +175,13 @@ package Modules.CaptureEngine
         private static function checkCaptrueStampBMPDHeight(twolineFlag:Boolean, mainTextWidth:Number):Number
         {
             var maxHeight:Number = kungDateStr(twolineFlag, true);
-            const lines1:int = MainUI.topBar.getCaptureInputFinalLines();
+            const lines1:int = UIController.topBar.getCaptureInputFinalLines();
 
             if (lines1 === 2)
                 return maxHeight;
 
             const height2:Number = kungMainStr(twolineFlag, mainTextWidth, true);
-            const lines2:int = MainUI.topBar.getCaptureInputFinalLines();
+            const lines2:int = UIController.topBar.getCaptureInputFinalLines();
 
             if (lines2 === 2)
                 return height2;
@@ -196,7 +196,7 @@ package Modules.CaptureEngine
             textformat.font = newFont;
             captureStampFontListBox.setSelectFont(newFont);
             captureStampFontListBox.updateFontListSelect(newFont);
-            MainUI.topBar.captureInputFinal.setTextFormat(textformat);
+            UIController.topBar.captureInputFinal.setTextFormat(textformat);
 
             if (updateFlag)
             {
@@ -235,16 +235,16 @@ package Modules.CaptureEngine
 
         private static function getTextWidthText(text:String, offset:Number):Number
         {
-            const backupStr:String = MainUI.topBar.captureInputFinal.text;
-            const backupWidth:Number = MainUI.topBar.getCaptureInputFinalWidth();
+            const backupStr:String = UIController.topBar.captureInputFinal.text;
+            const backupWidth:Number = UIController.topBar.getCaptureInputFinalWidth();
 
-            MainUI.topBar.setCaptureInputFinalWidth(CanvasController.CANVAS_MAX_SIZE);
-            MainUI.topBar.setCaptureInputFinalString(text);
+            UIController.topBar.setCaptureInputFinalWidth(CanvasController.CANVAS_MAX_SIZE);
+            UIController.topBar.setCaptureInputFinalString(text);
 
-            const width:Number = MainUI.topBar.captureInputFinal.textWidth + offset;
+            const width:Number = UIController.topBar.captureInputFinal.textWidth + offset;
 
-            MainUI.topBar.setCaptureInputFinalString(backupStr);
-            MainUI.topBar.setCaptureInputFinalWidth(backupWidth);
+            UIController.topBar.setCaptureInputFinalString(backupStr);
+            UIController.topBar.setCaptureInputFinalWidth(backupWidth);
 
             return width;
         }
@@ -262,18 +262,18 @@ package Modules.CaptureEngine
         private static function kungStamp(textStr:String, textWidth:Number, align:String, posX:Number, offsetX:Number, testHeightFlag:Boolean):Number
         {
             textformat.align = align;
-            MainUI.topBar.captureInputFinal.defaultTextFormat = textformat;
-            MainUI.topBar.setCaptureInputFinalWidth(textWidth);
-            MainUI.topBar.setCaptureInputFinalString(textStr);
+            UIController.topBar.captureInputFinal.defaultTextFormat = textformat;
+            UIController.topBar.setCaptureInputFinalWidth(textWidth);
+            UIController.topBar.setCaptureInputFinalString(textStr);
 
             if (testHeightFlag)
             {
-                return MainUI.topBar.captureInputFinal.textHeight;
+                return UIController.topBar.captureInputFinal.textHeight;
             }
 
             bmpdMat.identity();
             bmpdMat.translate(posX + offsetX, 0);
-            captrueStampBMPD.draw(MainUI.topBar.captureInputFinal, bmpdMat);
+            captrueStampBMPD.draw(UIController.topBar.captureInputFinal, bmpdMat);
 
             return 0;
         }
@@ -287,7 +287,7 @@ package Modules.CaptureEngine
 
         private static function kungMainStr(newLine:Boolean, textWidth:Number, testHeightFlag:Boolean):Number
         {
-            return kungStamp(MainUI.topBar.getCaptureInputString(), textWidth, "left", getTextWidthDate(newLine), 0, testHeightFlag);
+            return kungStamp(UIController.topBar.getCaptureInputString(), textWidth, "left", getTextWidthDate(newLine), 0, testHeightFlag);
         }
 
         private static function kungDateStr(newLine:Boolean, testHeightFlag:Boolean):Number
@@ -323,13 +323,13 @@ package Modules.CaptureEngine
         {
             FOFOTimer.add(0.0, false, function ():void
                 {
-                    MainUI.topBar.captureInput.setSelection(0, MainUI.topBar.captureInput.text.length);
+                    UIController.topBar.captureInput.setSelection(0, UIController.topBar.captureInput.text.length);
                 });
         }
 
         private static function onChangeCaptureStampInput(e:Event):void
         {
-            MainUI.topBar.capClipBoard.alpha = 1.0;
+            UIController.topBar.capClipBoard.alpha = 1.0;
 
             if (!FOFOTimer.hasTimer("inputUpdateTimer"))
             {
@@ -803,14 +803,14 @@ package Modules.CaptureEngine
                 var mainTextWidth:Number = bmpdWidth - (dateStrWidth + appStrWidth) - 1;
 
                 textformat.size = defaultFontSize;
-                MainUI.topBar.captureInput.maxChars = 0;
-                MainUI.topBar.captureInputFinal.defaultTextFormat = textformat;
-                MainUI.topBar.setCaptureInputFinalWidth(mainTextWidth);
-                MainUI.topBar.setCaptureInputFinalString(MainUI.topBar.getCaptureInputString());
+                UIController.topBar.captureInput.maxChars = 0;
+                UIController.topBar.captureInputFinal.defaultTextFormat = textformat;
+                UIController.topBar.setCaptureInputFinalWidth(mainTextWidth);
+                UIController.topBar.setCaptureInputFinalString(UIController.topBar.getCaptureInputString());
 
                 var twolineFlag:Boolean = false;
 
-                if (MainUI.topBar.getCaptureInputFinalLines() >= 2)
+                if (UIController.topBar.getCaptureInputFinalLines() >= 2)
                 {
                     twolineFlag = true;
                     var loopcount:int = 0;
@@ -818,29 +818,29 @@ package Modules.CaptureEngine
                     do
                     {
                         textformat.size = defaultFontSize - loopcount;
-                        MainUI.topBar.captureInputFinal.defaultTextFormat = textformat;
+                        UIController.topBar.captureInputFinal.defaultTextFormat = textformat;
 
                         dateStrWidth = getTextWidthDate(true);
                         appStrWidth = getTextWidthAppName(true);
                         mainTextWidth = bmpdWidth - (dateStrWidth + appStrWidth) - 1;
 
-                        MainUI.topBar.setCaptureInputFinalWidth(mainTextWidth);
-                        MainUI.topBar.setCaptureInputFinalString(MainUI.topBar.getCaptureInputString());
+                        UIController.topBar.setCaptureInputFinalWidth(mainTextWidth);
+                        UIController.topBar.setCaptureInputFinalString(UIController.topBar.getCaptureInputString());
 
                         loopcount++;
 
                         if (defaultFontSize - loopcount <= 13)
                         {
                             // 글씨크기를 한계까지 줄이고 칸이 꽉차면 더이상 입력 못하게함
-                            if (MainUI.topBar.captureInputFinal.numLines >= 3)
+                            if (UIController.topBar.captureInputFinal.numLines >= 3)
                             {
-                                MainUI.topBar.captureInput.maxChars = 1;
-                                MainUI.topBar.captureInput.text = MainUI.topBar.captureInput.text.slice(0, -1);
+                                UIController.topBar.captureInput.maxChars = 1;
+                                UIController.topBar.captureInput.text = UIController.topBar.captureInput.text.slice(0, -1);
                             }
                             break;
                         }
                     }
-                    while (MainUI.topBar.getCaptureInputFinalLines() >= 3);
+                    while (UIController.topBar.getCaptureInputFinalLines() >= 3);
                 }
 
                 if (captrueStampBMPD)
@@ -855,11 +855,11 @@ package Modules.CaptureEngine
 
                 if (getColorBrightness(stampBGColor) >= 150)
                 {
-                    MainUI.topBar.captureInputFinal.textColor = 0x0;
+                    UIController.topBar.captureInputFinal.textColor = 0x0;
                 }
                 else
                 {
-                    MainUI.topBar.captureInputFinal.textColor = 0xFFFFFF;
+                    UIController.topBar.captureInputFinal.textColor = 0xFFFFFF;
                 }
 
                 kungDateStr(twolineFlag, false);
@@ -921,8 +921,8 @@ package Modules.CaptureEngine
 
             captrueStampBMPD = null;
 
-            MainUI.topBar.captureInput.removeEventListener(Event.CHANGE, onChangeCaptureStampInput);
-            MainUI.topBar.captureInput.removeEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureStampInput);
+            UIController.topBar.captureInput.removeEventListener(Event.CHANGE, onChangeCaptureStampInput);
+            UIController.topBar.captureInput.removeEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureStampInput);
 
             captureStampBitmap.visible = false;
 
@@ -947,8 +947,8 @@ package Modules.CaptureEngine
             textformat.font = null;
             stampBGColor = null;
 
-            MainUI.topBar.captureInput.addEventListener(Event.CHANGE, onChangeCaptureStampInput);
-            MainUI.topBar.captureInput.addEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureStampInput);
+            UIController.topBar.captureInput.addEventListener(Event.CHANGE, onChangeCaptureStampInput);
+            UIController.topBar.captureInput.addEventListener(FocusEvent.FOCUS_IN, onFocusInCaptureStampInput);
         }
     }
 }

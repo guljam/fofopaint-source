@@ -1,5 +1,7 @@
 package Modules.Tools
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.MouseState;
@@ -8,8 +10,6 @@ package Modules.Tools
     import Modules.DragInteraction;
     import Modules.ImageViewWindow;
     import Modules.InputManager;
-    import Modules.MainUI;
-    import Modules.MainUIController;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
     import Modules.ToolController;
@@ -240,7 +240,7 @@ package Modules.Tools
             {
                 arr[0] = _lassoMenuBox.x;
                 arr[1] = _lassoMenuBox.y;
-                MainUIController.keepBoxInsideViewPort(_lassoMenuBox);
+                UIController.keepBoxInsideViewPort(_lassoMenuBox);
                 arr[2] = _lassoMenuBox.x;
                 arr[3] = _lassoMenuBox.y;
             }
@@ -248,7 +248,7 @@ package Modules.Tools
             {
                 arr[4] = ReferenceLayerController.refLayerMenuBox.x;
                 arr[5] = ReferenceLayerController.refLayerMenuBox.y;
-                MainUIController.keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
+                UIController.keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
                 arr[6] = ReferenceLayerController.refLayerMenuBox.x;
                 arr[7] = ReferenceLayerController.refLayerMenuBox.y;
             }
@@ -361,7 +361,7 @@ package Modules.Tools
 
         public static function startLassoImageRotation():void
         {
-            var getAngle:Function = MainUI.showCanvasRotateCursorMouseDrag(lassoLayer1);
+            var getAngle:Function = UIController.showCanvasRotateCursorMouseDrag(lassoLayer1);
             function onDragStart():void
             {
                 setOptimizeView(true);
@@ -369,7 +369,7 @@ package Modules.Tools
             function onMouseUp():void
             {
                 getAngle = null;
-                MainUI.hideCanvasRotateCursor();
+                UIController.hideCanvasRotateCursor();
                 setOptimizeView(false);
             }
             function onMouseMove():void
@@ -389,13 +389,13 @@ package Modules.Tools
             function onDragStart():void
             {
                 setOptimizeView(true);
-                MainUI.showMouseHint(HintStrings.getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
+                HintController.showMouseHint(HintStrings.getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
             }
             function onMouseUp():void
             {
                 getScale = null;
-                MainUIController.keepBoxInsideViewPort(_lassoMenuBox);
-                MainUI.hideMouseHint();
+                UIController.keepBoxInsideViewPort(_lassoMenuBox);
+                HintController.hideMouseHint();
                 LassoTool.redrawLassoOutline();
                 setOptimizeView(false);
             }
@@ -406,7 +406,7 @@ package Modules.Tools
                 lassoLayer1.scaleY = scale;
                 lassoLayer2.scaleX = lassoLayer1.scaleX;
                 lassoLayer2.scaleY = lassoLayer1.scaleY;
-                MainUI.showMouseHint(HintStrings.getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
+                HintController.showMouseHint(HintStrings.getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
             }
             DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
         }
@@ -432,7 +432,7 @@ package Modules.Tools
             function onMouseUp():void
             {
                 getMovedPos = null;
-                MainUIController.keepBoxInsideViewPort(_lassoMenuBox);
+                UIController.keepBoxInsideViewPort(_lassoMenuBox);
                 setOptimizeView(false);
             }
             function onMouseMove():void
@@ -822,7 +822,7 @@ package Modules.Tools
             lassoFirstData = [lassoLayer1.x, lassoLayer1.y, lassoLayer1.scaleX, lassoLayer1.scaleY, lassoLayer1.rotation];
             _isStarted = true;
             setDefaultLassoMenuPos(_lassoMenuBox);
-            MainUIController.keepBoxInsideViewPort(_lassoMenuBox);
+            UIController.keepBoxInsideViewPort(_lassoMenuBox);
             if (CanvasController.checkedLayer || !checklayer1 || !checklayer2)
             {
                 _lassoMenuBox.lassoLayerSwap.alpha = UITheme.OFFALPHA;

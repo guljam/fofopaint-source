@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.CaptureEngine.CaptureController;
@@ -126,7 +127,7 @@ package Modules
             appStateObject.isMyPaletteExpended = PaletteController.isMyPaletteExpended;
             appStateObject.isColorPickerBoxPositionSwapped = ColorPickerController.isColorPickerBoxPositionSwapped;
 
-            appStateObject.captureStampText = MainUI.topBar.captureInput.text;
+            appStateObject.captureStampText = UIController.topBar.captureInput.text;
             appStateObject.isCaptureStampON = CaptureStamp.isCaptureStampEnabled;
             appStateObject.captureStampFont = CaptureStamp.getFontName();
 
@@ -288,9 +289,9 @@ package Modules
 
                         // UI Scale & Color
                         UITheme.setScaleIndex(appStateObject.uiScaleIndex);
-                        MainUIController.applyUIScale();
+                        UIController.applyUIScale();
                         UITheme.setUIColorIndex(appStateObject.uiColorIndex);
-                        MainUIController.applyUIColorSet();
+                        UIController.applyUIColorSet();
 
                         // Canvas Settings
                         CanvasController.canvasZoomIndex = appStateObject.canvasZoomIndex;
@@ -458,7 +459,7 @@ package Modules
                         // UI Miscellaneous
                         SidebarController.sideBarScrollPanel.y = appStateObject.scrollSetMovedY;
 
-                        MainUI.topBar.captureInput.text = appStateObject.captureStampText;
+                        UIController.topBar.captureInput.text = appStateObject.captureStampText;
                         CaptureStamp.setCaptureStampEnabled(appStateObject.isCaptureStampON);
 
                         if (appStateObject.captureStampFont)
@@ -466,7 +467,7 @@ package Modules
                             CaptureStamp.changeFont(appStateObject.captureStampFont, false);
                         }
 
-                        MainUIController.updateCanvasNaigatorCursor();
+                        UIController.updateCanvasNaigatorCursor();
                         PenSizePreviewCursor.updateSizeAndShape();
                         isLoadingAppData = false;
                         AppWindowState.updateWindowTitle();
@@ -505,7 +506,7 @@ package Modules
 
                             // 최대화 완료 RESIZE 이벤트가 오지 않아도 화면이 갱신되도록 한 번 더 예약해둔다.
                             // applyLayout은 멱등이라 이벤트가 먼저 처리했으면 dx 0으로 지나간다.
-                            FOFOTimer.addByName("settleLayoutTimer", 0.3, false, MainUIController.applyLayout);
+                            FOFOTimer.addByName("settleLayoutTimer", 0.3, false, UIController.applyLayout);
                         }
                     });
             }
@@ -528,7 +529,7 @@ package Modules
                 ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
 
                 AboutBoxController.openAboutBox(true);
-                MainUIController.applyUIColorSet();
+                UIController.applyUIColorSet();
 
                 CanvasController.canvasInfoBox.init(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, Math.floor(CanvasController.canvasZoomMultipler * 100), CanvasController.canvasAnchorPoint.rotation, false);
                 CanvasController.selectLayer1(false);
@@ -540,11 +541,11 @@ package Modules
                         if (main.stage.nativeWindow.width === 1000 && main.stage.nativeWindow.height === 800)
                         {
                             CanvasController.centerCanvas("draw");
-                            MainUIController.updateCanvasNaigatorCursor();
+                            UIController.updateCanvasNaigatorCursor();
 
                             // lastAppWindowSize를 미리 1000x800으로 채워뒀기 때문에 리사이즈 이벤트의 applyLayout은 dx/dy 0으로 지나간다.
                             // 크기가 확정된 이 시점에 UI 배치를 강제로 한 번 맞춰준다.
-                            MainUIController.applyLayout(true);
+                            UIController.applyLayout(true);
                             return false;
                         }
 

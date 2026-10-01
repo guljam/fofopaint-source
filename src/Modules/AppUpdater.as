@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import flash.filesystem.File;
     import flash.net.navigateToURL;
     import flash.net.URLRequest;
@@ -50,7 +52,7 @@ package Modules
         {
             FileManager.closeLoadMenuBox();
             isUpdatePendingAfterSaving = false;
-            MainUI.topBar.hideUpdateButton();
+            UIController.topBar.hideUpdateButton();
 
             if (status === FLAG_UPDATE_READY)
             {
@@ -78,7 +80,7 @@ package Modules
             }
             catch (err)
             {
-                MainUI.showMouseHintTemp("Skip update (debub mode)");
+                HintController.showMouseHintTemp("Skip update (debub mode)");
             }
         }
         private static function isNewVersion(newVersion:String):Boolean
@@ -183,7 +185,7 @@ package Modules
                 fileLoader = null;
 
                 status = updateState;
-                MainUI.topBar.showUpdateButton();
+                UIController.topBar.showUpdateButton();
             }
 
             function onDownloadFailed(e:Event):void

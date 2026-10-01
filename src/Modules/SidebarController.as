@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.LassoTool;
@@ -91,8 +93,8 @@ package Modules
             const scale:Number = UITheme.getUIScale();
             const fofoHeight:Number = fofo.height - 10 * scale;
 
-            const fofoTopRect:Rectangle = new Rectangle(sideBar.x, MainUIController.STAGE_TOP_OFFSET, sideBarWidth, fofoHeight);
-            const fofoBottomRect:Rectangle = new Rectangle(sideBar.x, main.stage.stageHeight - MainUIController.STAGE_BOTTOM_OFFSET - fofoHeight, sideBarWidth, fofoHeight);
+            const fofoTopRect:Rectangle = new Rectangle(sideBar.x, UIController.STAGE_TOP_OFFSET, sideBarWidth, fofoHeight);
+            const fofoBottomRect:Rectangle = new Rectangle(sideBar.x, main.stage.stageHeight - UIController.STAGE_BOTTOM_OFFSET - fofoHeight, sideBarWidth, fofoHeight);
 
             const gp:Point = sideBarScrollPanel.localToGlobal(new Point(0, 0));
             const sideBarRect:Rectangle = new Rectangle(gp.x - sideBarScrollPanel.x * scale, gp.y, sideBar.getWidth(), getSidebarConstHeight() * scale);
@@ -140,7 +142,7 @@ package Modules
 
                 case FOFO.COLLISION_BOTTOM:
                     {
-                        fofo.setTop(MainUIController.STAGE_TOP_OFFSET);
+                        fofo.setTop(UIController.STAGE_TOP_OFFSET);
                         alignFOFOToSidebar();
                         fofo.visible = true;
                     }
@@ -149,7 +151,7 @@ package Modules
                 case FOFO.COLLISION_TOP:
                     {
                         alignFOFOToSidebar();
-                        fofo.setBottom(main.stage.stageHeight - MainUIController.STAGE_BOTTOM_OFFSET);
+                        fofo.setBottom(main.stage.stageHeight - UIController.STAGE_BOTTOM_OFFSET);
                         fofo.visible = true;
                     }
                     break;
@@ -190,7 +192,7 @@ package Modules
                 ReferenceLayerController.refLayerMenuBox.visible = true;
             }
 
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
             ColorPickerController.closeNumpad();
         }
 
@@ -207,7 +209,7 @@ package Modules
 
         private static function onRightMouseDownQuickSidebar(e:MouseEvent):void
         {
-            if (!e.target || ColorPickerController.numPadBox.visible || MainUIController.isPopUpWindowOpened())
+            if (!e.target || ColorPickerController.numPadBox.visible || UIController.isPopUpWindowOpened())
             {
                 return;
             }
@@ -219,7 +221,7 @@ package Modules
                     if (CanvasController.canvasZoomMultipler !== 1.0)
                     {
                         CanvasController.resetZoomDrawMode();
-                        MainUIController.updateCanvasNaigatorCursor();
+                        UIController.updateCanvasNaigatorCursor();
                     }
                     break;
 
@@ -227,7 +229,7 @@ package Modules
                     if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                     {
                         CanvasController.resetRotationDrawMode();
-                        MainUIController.updateCanvasNaigatorCursor();
+                        UIController.updateCanvasNaigatorCursor();
                     }
                     break;
 
@@ -329,14 +331,14 @@ package Modules
                 ReferenceLayerController.refLayerMenuBox.visible = false;
             }
 
-            if (MainUI.mouseHint.isShowing())
+            if (HintController.mouseHint.isShowing())
             {
-                MainUI.hideMouseHint();
+                HintController.hideMouseHint();
             }
 
-            if (MainUI.isBottomBarVisible())
+            if (HintController.isBottomBarVisible())
             {
-                MainUI.hideBottomHint();
+                HintController.hideBottomHint();
             }
 
             if (ToolController.selectedToolViewBitmap.visible)
@@ -487,7 +489,7 @@ package Modules
 
                 if (((isRightSidebar && main.stage.mouseX > main.stage.stageWidth - sideBarWidth)
                             || (!isRightSidebar && main.stage.mouseX < sideBarWidth))
-                        && main.mouseY > MainUIController.STAGE_TOP_OFFSET)
+                        && main.mouseY > UIController.STAGE_TOP_OFFSET)
                 {
                     startShowSideBarTemporary();
                 }
@@ -501,7 +503,7 @@ package Modules
                 const mx:Number = main.stage.mouseX;
                 const my:Number = main.stage.mouseY;
 
-                if ((!isRightSidebar && mx <= 15 || isRightSidebar && mx >= main.stage.stageWidth - 15) && my > MainUIController.STAGE_TOP_OFFSET)
+                if ((!isRightSidebar && mx <= 15 || isRightSidebar && mx >= main.stage.stageWidth - 15) && my > UIController.STAGE_TOP_OFFSET)
                 {
                     startShowSideBarTemporary();
                 }
@@ -544,8 +546,8 @@ package Modules
 
         private static function updateSidebarLayout():void
         {
-            MainUIController.updateStageOffset();
-            MainUIController.updateCanvasNaigatorCursor();
+            UIController.updateStageOffset();
+            UIController.updateCanvasNaigatorCursor();
 
             checkFOFOPosition();
 
@@ -560,11 +562,11 @@ package Modules
             isSidebarVisible = true;
             sideBar.visible = true;
 
-            MainUI.topBar.checkSideBarONOFFButton(true, isRightSidebar);
+            UIController.topBar.checkSideBarONOFFButton(true, isRightSidebar);
 
             updateSidebarLayout();
 
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
 
             LassoTool.recordLassoAndRefLayerBoxLastPos();
 
@@ -581,11 +583,11 @@ package Modules
             isSidebarVisible = false;
             sideBar.visible = false;
 
-            MainUI.topBar.checkSideBarONOFFButton(false, isRightSidebar);
+            UIController.topBar.checkSideBarONOFFButton(false, isRightSidebar);
 
             updateSidebarLayout();
 
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
 
             LassoTool.restoreLassoAndRefLayerBoxLastPos();
 
@@ -636,7 +638,7 @@ package Modules
 
             setSidebarDefaultPos();
 
-            MainUIController.updateStageOffset();
+            UIController.updateStageOffset();
 
             sideBarScrollPanel.x = isRight ? 9 : 5;
             sideBarScrollPanel.y = scrollSetMovedY;
@@ -664,54 +666,54 @@ package Modules
 
             resetScrollBarX();
 
-            sideBar.y = MainUI.topBar.BARSIZE * MainUI.topBar.scaleX;
+            sideBar.y = UIController.topBar.BARSIZE * UIController.topBar.scaleX;
 
             if (!ignoreCheckStageOffset)
             {
                 if (isRight)
                 {
-                    CanvasController.canvasAnchorPoint.x -= MainUIController.STAGE_RIGHT_OFFSET;
+                    CanvasController.canvasAnchorPoint.x -= UIController.STAGE_RIGHT_OFFSET;
                 }
                 else
                 {
-                    CanvasController.canvasAnchorPoint.x += MainUIController.STAGE_LEFT_OFFSET;
+                    CanvasController.canvasAnchorPoint.x += UIController.STAGE_LEFT_OFFSET;
                 }
             }
 
             if (sideBar.visible)
             {
-                MainUI.topBar.sideBarOFFButton.visible = isRight;
-                MainUI.topBar.sideBarOFFButton2.visible = !isRight;
+                UIController.topBar.sideBarOFFButton.visible = isRight;
+                UIController.topBar.sideBarOFFButton2.visible = !isRight;
             }
             else
             {
-                MainUI.topBar.sideBarONButton.visible = isRight;
-                MainUI.topBar.sideBarONButton2.visible = !isRight;
+                UIController.topBar.sideBarONButton.visible = isRight;
+                UIController.topBar.sideBarONButton2.visible = !isRight;
             }
 
-            MainUI.topBar.sideBarPositionButton.visible = !isRight;
-            MainUI.topBar.sideBarPositionButton2.visible = isRight;
+            UIController.topBar.sideBarPositionButton.visible = !isRight;
+            UIController.topBar.sideBarPositionButton2.visible = isRight;
 
             checkFOFOPosition();
 
             if (LassoTool.isStarted)
             {
-                MainUIController.keepBoxInsideViewPort(LassoTool._lassoMenuBox);
+                UIController.keepBoxInsideViewPort(LassoTool._lassoMenuBox);
             }
 
             if (ReferenceLayerController.isRefLayerMenuON)
             {
-                MainUIController.keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
+                UIController.keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
             }
 
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
         }
 
         public static function updateScrollBarColorAndHeight():void
         {
             const scale:Number = UITheme.getUIScale();
-            const topBarHeight:Number = Math.round(MainUI.topBar.BARSIZE * scale);
-            const height:Number = Math.round((main.stage.stageHeight - topBarHeight - MainUIController.STAGE_BOTTOM_OFFSET) / scale);
+            const topBarHeight:Number = Math.round(UIController.topBar.BARSIZE * scale);
+            const height:Number = Math.round((main.stage.stageHeight - topBarHeight - UIController.STAGE_BOTTOM_OFFSET) / scale);
 
             const color1:uint = UITheme.getUIFGColor();
             const color2:uint = UITheme.getUIBGColor();
@@ -750,14 +752,14 @@ package Modules
 
         public static function getSideBarBGHeight():Number
         {
-            return (main.stage.stageHeight - MainUI.topBar.BARSIZE * UITheme.getUIScale()) / UITheme.getUIScale();
+            return (main.stage.stageHeight - UIController.topBar.BARSIZE * UITheme.getUIScale()) / UITheme.getUIScale();
         }
 
         private static function keepScrollSetInStage():void
         {
             const scale:Number = UITheme.getUIScale();
             const limitTop:Number = Math.floor(-sideBarConstHeight + 20.0);
-            const limitBottom:Number = Math.floor(main.stage.stageHeight - MainUIController.STAGE_TOP_OFFSET - MainUIController.STAGE_BOTTOM_OFFSET - 20.0 * scale);
+            const limitBottom:Number = Math.floor(main.stage.stageHeight - UIController.STAGE_TOP_OFFSET - UIController.STAGE_BOTTOM_OFFSET - 20.0 * scale);
 
             if (sideBarScrollPanel.y < limitTop)
             {
@@ -825,9 +827,9 @@ package Modules
 
             checkFOFOPosition();
 
-            if (MainUI.bottomBar.visible || MainUI.isHighlightBoxVisible())
+            if (HintController.bottomBar.visible || HintController.isHighlightBoxVisible())
             {
-                MainUI.hideBottomHint();
+                HintController.hideBottomHint();
             }
         }
 

@@ -1,51 +1,111 @@
-package Modules
+package Modules.UIEngine
 {
-    import Modules.UIEngine.UITheme;
-    import Modules.CaptureEngine.CaptureStamp;
+    import Modules.AboutBoxController;
+    import Modules.AppStateManager;
+    import Modules.CanvasController;
     import Modules.CaptureEngine.CaptureController;
-
-    import Modules.SidebarController;
-    import Modules.Tools.LassoTool;
-
-    import flash.display.DisplayObject;
-    import flash.events.Event;
-    import flash.geom.Point;
-    import flash.geom.Rectangle;
-    import Modules.Tools.EyeDropperTool;
+    import Modules.CaptureEngine.CaptureStamp;
+    import Modules.ClipboardManager;
+    import Modules.ColorPickerController;
+    import Modules.FileManager;
+    import Modules.FillPenTool;
+    import Modules.ImageViewWindow;
+    import Modules.ReferenceLayerController;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.SidebarController;
+    import Modules.ToolController;
+    import Modules.Tools.EyeDropperTool;
+    import Modules.Tools.LassoTool;
+    import Modules.Utils;
+    import Symbols.TopMenuSet;
 
-    public final class MainUIController
+    import flash.display.DisplayObject;
+    import flash.display.Sprite;
+    import flash.geom.Point;
+    import flash.geom.Rectangle;
+
+    // 스테이지 UI 배치: 표시 순서, 뷰포트 여백, 창 크기 변경 배치, UI 색상/스케일을 각 패널에 반영
+    public final class UIController
     {
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
         }
-        public static var STAGE_BG_COLOR:uint = 0xCCCCCC;
 
-        private static const BOTTOM_BAR_HEIGHT:Number = 25;
+        // todo 커스텀 마우스 커서랑 최종적으로 앱 상세 살정할수있는 작은 옵션 버튼들 창 만들어야함, 현재 계속 누르고 있는 확인은 실제 확인창 만들어서 그냥 쉽게 선택하게 하기
+        public static const stageBG:Sprite = new Sprite(); // 드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
+        public static const topBar:TopMenuSet = new TopMenuSet();
+        public static var STAGE_BG_COLOR:uint = 0xCCCCCC;
 
         public static var STAGE_TOP_OFFSET:Number = 0, // 창 상하좌우 여백
             STAGE_LEFT_OFFSET:Number = 0,
-            STAGE_BOTTOM_OFFSET:Number = BOTTOM_BAR_HEIGHT,
+            STAGE_BOTTOM_OFFSET:Number = HintController.BOTTOM_BAR_HEIGHT,
             STAGE_RIGHT_OFFSET:Number = 0;
 
+        public static function initializeAppMenus():void
+        {
+            topBar.name = "topBar";
+            SidebarController.sideBarScrollBar.name = "sideBarScrollBar";
+            topBar.makeTopbarBG(UITheme.getDefaultUIColor());
+            updateTopbarIconsDrawMode();
+
+            FillPenTool.fillPenBox.x = -FillPenTool.fillPenBox.width - 3;
+            FillPenTool.fillPenBox.y = -FillPenTool.fillPenBox.height - 3;
+
+            CanvasController.canvasNavigatorBox.scrollRect = new Rectangle(0, 0, CanvasController.canvasNavigatorBox.width, CanvasController.canvasNavigatorBox.height);
+
+            SidebarController.sideBarScrollPanel.addChild(CanvasController.canvasNavigatorBox);
+            SidebarController.sideBarScrollPanel.addChild(CanvasController.canvasInfoBox);
+            ToolController.toolBox.moveCanvasControlButtonsTo(CanvasController.canvasInfoBox);
+            SidebarController.sideBarScrollPanel.addChild(ToolController.toolBox);
+            SidebarController.sideBarScrollPanel.addChild(ToolController.toolOptionsBox);
+            SidebarController.sideBarScrollPanel.addChild(ColorPickerController.colorPickerBox);
+
+            SidebarController.sideBar.addChild(SidebarController.sideBarScrollBar);
+            SidebarController.sideBar.addChild(SidebarController.sideBarScrollPanel);
+            SidebarController.sideBar.updateSideBGSize(SidebarController.getSideBarBGHeight());
+            SidebarController.sideBarScrollBar.alpha = 0.75;
+            STAGE_TOP_OFFSET = topBar.BARSIZE;
+
+            CaptureStamp.captureStampFontListBox.y = 100;
+
+            topBar.updateTimerPos(main.stage.stageWidth);
+            topBar.replayFitToWindowButton.alpha = UITheme.OFFALPHA;
+
+            ToolController.selectedToolViewBitmap.name = "selectedToolViewBitmap";
+            ToolController.selectedToolViewBitmap.visible = false;
+
+            main.stage.addChild(FileManager.loadMenuBox);
+            main.stage.addChild(ReferenceLayerController.refLayerMenuBox);
+            main.stage.addChild(AboutBoxController.aboutBox);
+            main.stage.addChild(SidebarController.sideBar);
+            main.stage.addChild(FillPenTool.fillPenBox);
+            main.stage.addChild(ToolController.toolBox2);
+            main.stage.addChild(CanvasController.canvasRotateCursor);
+            main.stage.addChild(ColorPickerController.numPadBox);
+            main.stage.addChild(CaptureStamp.captureStampFontListBox);
+            main.stage.addChild(topBar);
+            HintController.initialize();
+            main.stage.addChild(ToolController.selectedToolViewBitmap);
+        }
+
         public static function updateTopbarIconsDrawMode():void
-		{
-			MainUI.topBar.updateIconsByMode(0);
-		}
+        {
+            topBar.updateIconsByMode(0);
+        }
 
-		public static function updateTopbarIconsReplayMode():void
-		{
-			MainUI.topBar.updateIconsByMode(1);
-		}
+        public static function updateTopbarIconsReplayMode():void
+        {
+            topBar.updateIconsByMode(1);
+        }
 
-		public static function updateTopbarIconsCaptureMode():void
-		{
-			MainUI.topBar.updateIconsByMode(2);
-		}
+        public static function updateTopbarIconsCaptureMode():void
+        {
+            topBar.updateIconsByMode(2);
+        }
 
         public static function getViewportRect():Rectangle
         {
@@ -69,7 +129,7 @@ package Modules
 
         public static function isPopUpWindowOpened():Boolean
         {
-            return MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible || FileManager.loadMenuBox.visible || AboutBoxController.aboutBox.visible;
+            return topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible || FileManager.loadMenuBox.visible || AboutBoxController.aboutBox.visible;
         }
 
         public static function updateStageOffset():void
@@ -81,9 +141,9 @@ package Modules
             STAGE_RIGHT_OFFSET = 0;
             STAGE_LEFT_OFFSET = 0;
 
-            if (MainUI.topBar.visible)
+            if (topBar.visible)
             {
-                STAGE_TOP_OFFSET += MainUI.topBar.BARSIZE * scale;
+                STAGE_TOP_OFFSET += topBar.BARSIZE * scale;
             }
 
             if (ReplayController.seekBarBox.visible)
@@ -117,14 +177,14 @@ package Modules
 
             SidebarController.sideBar.setScale(scale);
             SidebarController.setSidebarDefaultPos();
-            MainUI.topBar.setScale(scale);
-            MainUI.topBar.updateTopbarBG(stw);
-            MainUI.topBar.updateTimerPos(main.stage.stageWidth);
+            topBar.setScale(scale);
+            topBar.updateTopbarBG(stw);
+            topBar.updateTimerPos(main.stage.stageWidth);
             ReplayController.seekBarBox.setScale(scale);
             CanvasController.canvasRotateCursor.setScale(scale);
-            MainUI.mouseHint.setScale(scale);
-            MainUI.bottomBar.scaleX = scale;
-            MainUI.bottomBar.scaleY = scale;
+            HintController.mouseHint.setScale(scale);
+            HintController.bottomBar.scaleX = scale;
+            HintController.bottomBar.scaleY = scale;
             LassoTool._lassoMenuBox.setScale(scale);
             ReferenceLayerController.refLayerMenuBox.setScale(scale);
             FillPenTool.fillPenBox.setScale(scale);
@@ -149,7 +209,7 @@ package Modules
                 keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
 
             updateCanvasNaigatorCursor();
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
         }
 
         public static function updateCanvasNaigatorCursor():void
@@ -208,7 +268,7 @@ package Modules
             applyChromeLayout();
 
             rebaseLayout();
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
 
             AppWindowState.closeAppIfPending();
         }
@@ -280,8 +340,8 @@ package Modules
                 }
             }
 
-            MainUI.topBar.updateTopbarBG(main.stage.stageWidth);
-            MainUI.topBar.updateTimerPos(main.stage.stageWidth);
+            topBar.updateTopbarBG(main.stage.stageWidth);
+            topBar.updateTimerPos(main.stage.stageWidth);
 
             SidebarController.sideBar.updateSideBGSize(SidebarController.getSideBarBGHeight());
 
@@ -309,7 +369,7 @@ package Modules
 
             main.updateStageBGSize();
             SidebarController.checkFOFOPosition();
-            updateBottomBarLayoutAndColor();
+            HintController.updateBottomBarLayoutAndColor();
         }
 
         // 지금 배치가 유효한 창 크기를 기록한다. 다음 리사이즈는 이 크기와 비교한다.
@@ -339,7 +399,7 @@ package Modules
         {
             const scale:Number = UITheme.getUIScale();
             const center:Point = new Point(0, 0);
-            var topBarOffset:Number = MainUI.topBar.BARSIZE * scale;
+            var topBarOffset:Number = topBar.BARSIZE * scale;
 
             if (mode === "draw")
             {
@@ -370,26 +430,26 @@ package Modules
             const color:uint = UITheme.getUIStageColor();
 
             main.stage.color = color;
-            MainUIController.STAGE_BG_COLOR = color;
+            STAGE_BG_COLOR = color;
         }
 
         public static function cycleUIColor():void
         {
             UITheme.setNextUIColor();
             applyUIColorSet();
-            MainUI.showMouseHintTemp(UITheme.getUIColorName());
+            HintController.showMouseHintTemp(UITheme.getUIColorName());
         }
 
         public static function applyUIColorSet():void
         {
             updateStageBGColor();
-            updateBottomBarLayoutAndColor();
+            HintController.updateBottomBarLayoutAndColor();
 
-            CanvasController.canvasNavigatorBox.chanegStageColor(MainUIController.STAGE_BG_COLOR);
+            CanvasController.canvasNavigatorBox.chanegStageColor(STAGE_BG_COLOR);
 
             if (ImageViewWindow.isCanvasWindowON)
             {
-                ImageViewWindow.canvasWindow.stage.color = MainUIController.STAGE_BG_COLOR;
+                ImageViewWindow.canvasWindow.stage.color = STAGE_BG_COLOR;
             }
 
             SidebarController.sideBar.updateUIColor();
@@ -404,11 +464,11 @@ package Modules
             LassoTool._lassoMenuBox.updateUIColor();
             ColorPickerController.numPadBox.updateUIColor();
             ReferenceLayerController.refLayerMenuBox.updateUIColor();
-            MainUI.topBar.updateUIColor();
+            topBar.updateUIColor();
             ReplayController.seekBarBox.updateUIColor();
             CaptureStamp.captureStampFontListBox.updateUIColor();
-            MainUI.mouseHint.updateBGColor();
-            MainUI.bottomHint.updateHintTextColor(0);
+            HintController.mouseHint.updateBGColor();
+            HintController.bottomHint.updateHintTextColor(0);
 
             CanvasController.setResizeButtonColor();
             SidebarController.updateScrollBarColorAndHeight();
@@ -422,22 +482,75 @@ package Modules
             ClipboardManager.checkCanUseClipBoardButton();
             ColorPickerController.updatePickerBoxTransBGBrightness();
 
-            if (MainUI.isBottomBarVisible())
+            if (HintController.isBottomBarVisible())
             {
-                MainUI.hideBottomHint();
+                HintController.hideBottomHint();
             }
         }
 
-        public static function updateBottomBarLayoutAndColor():void
+        public static function hideCanvasRotateCursor():void
         {
-            MainUI.bottomBar.x = 0;
-            MainUI.bottomBar.y = main.stage.stageHeight - MainUIController.BOTTOM_BAR_HEIGHT * UITheme.getUIScale();
+            CanvasController.canvasRotateCursor.visible = false;
+        }
 
-            MainUI.bottomBar.graphics.clear();
-            // WorkspaceView.bottomBar.graphics.lineStyle(0,0xFF0000,0.0);
-            MainUI.bottomBar.graphics.beginFill(UITheme.getHintBGColor(), 0.75);
-            MainUI.bottomBar.graphics.drawRect(-3, 0, main.stage.stageWidth + 6, MainUIController.BOTTOM_BAR_HEIGHT + 3);
-            MainUI.bottomBar.graphics.endFill();
+        public static function showCanvasRotateCursorMouseDrag(target:DisplayObject):Function
+        {
+            const snapThreshold:Number = 82;
+            CanvasController.canvasRotateCursor.x = main.stage.mouseX;
+            CanvasController.canvasRotateCursor.y = main.stage.mouseY + (65 * UITheme.getUIScale());
+            CanvasController.canvasRotateCursor.rotateArrow.rotation = target.rotation;
+            Utils.setAsTopChild(CanvasController.canvasRotateCursor);
+            CanvasController.canvasRotateCursor.visible = true;
+
+            const toDeg:Number = 180.0 / Math.PI;
+            // 움직인 각도합 로테이트 캔버스 마지막각도를 넣어줌 rad로 변환
+
+            var sumAng:Number = target.rotation;
+            // 각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값
+            var lastAng:Number = Math.atan2(main.stage.mouseX - CanvasController.canvasRotateCursor.x, main.stage.mouseY - CanvasController.canvasRotateCursor.y) * toDeg;
+            var activateSnapFlag:Boolean = false;
+            var ignoreSnapFlag:Boolean = true;
+            var snappedAng:Number = 0;
+
+            return function ():Number
+            {
+                const nowAng:Number = Math.atan2(main.stage.mouseX - CanvasController.canvasRotateCursor.x, main.stage.mouseY - CanvasController.canvasRotateCursor.y) * toDeg;
+                const subAng:Number = lastAng - nowAng;
+
+                lastAng = nowAng;
+                sumAng += subAng;
+                var deg:Number = sumAng;
+                const snap90:Number = Math.abs(deg % 90.0); // 90도 스냅 변수
+                const snap90N:Number = 90.0 - snap90;
+                const snapAng:Number = (snap90 > snap90N) ? snap90 : snap90N;
+
+                if (snapAng > snapThreshold && ignoreSnapFlag === false)
+                {
+                    activateSnapFlag = true;
+                    deg = Math.round(deg / 90) * 90;
+                    if (snappedAng !== deg)
+                    {
+                        snappedAng = deg;
+                    }
+                }
+                else if (activateSnapFlag === true)
+                {
+                    sumAng = snappedAng;
+                    deg = snappedAng;
+                    activateSnapFlag = false;
+                    ignoreSnapFlag = true;
+                }
+                else if (ignoreSnapFlag === true)
+                {
+                    if (snapAng <= snapThreshold)
+                    {
+                        ignoreSnapFlag = false;
+                    }
+                }
+
+                CanvasController.canvasRotateCursor.rotateArrow.rotation = deg;
+                return Math.round(deg);
+            };
         }
     }
 }

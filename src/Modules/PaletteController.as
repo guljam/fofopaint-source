@@ -1,6 +1,7 @@
 package Modules
 {
 
+    import Modules.UIEngine.HintController;
     import Modules.SidebarController;
     import Modules.Tools.PenTool;
 
@@ -291,7 +292,7 @@ package Modules
         {
             isMyPaletteExpended = false;
             updateMyPaletteList();
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
             SidebarController.checkFOFOPosition();
         }
 
@@ -299,7 +300,7 @@ package Modules
         {
             isMyPaletteExpended = true;
             updateMyPaletteList();
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
             SidebarController.checkFOFOPosition();
         }
 

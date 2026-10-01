@@ -1,7 +1,8 @@
 package Modules.CaptureEngine
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.InputPriority;
-    import Modules.MainUI;
     import Modules.MouseState;
     import Modules.CanvasController;
     import flash.display.CapsStyle;
@@ -159,7 +160,7 @@ package Modules.CaptureEngine
                 return EDGE_NONE;
             }
 
-            if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) || CaptureStamp.captureStampFontListBox.visible)
+            if (UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) || CaptureStamp.captureStampFontListBox.visible)
             {
                 return EDGE_NONE;
             }
@@ -224,7 +225,7 @@ package Modules.CaptureEngine
                 CaptureController.onCaptureAreaDragStarted();
             }
 
-            MainUI.showBottomHint(getRotatedRectSizeString());
+            HintController.showBottomHint(getRotatedRectSizeString());
             drawArea();
         }
 
@@ -278,7 +279,7 @@ package Modules.CaptureEngine
                 rectClamped.width = rectRaw.width;
                 rectClamped.height = rectRaw.height;
                 normalizeRectClamped();
-                MainUI.showBottomHint(getRotatedRectSizeString());
+                HintController.showBottomHint(getRotatedRectSizeString());
                 drawArea();
             }
             else if (Math.abs(subX) >= mouseMoveThreshold || Math.abs(subY) >= mouseMoveThreshold)
@@ -291,7 +292,7 @@ package Modules.CaptureEngine
                 rectClamped.y = rectRaw.y;
                 rectClamped.width = rectRaw.width;
                 rectClamped.height = rectRaw.height;
-                MainUI.showBottomHint(getRotatedRectSizeString());
+                HintController.showBottomHint(getRotatedRectSizeString());
                 mouseMoved = true;
                 CaptureController.onCaptureAreaDragStarted();
             }
@@ -315,7 +316,7 @@ package Modules.CaptureEngine
                 // rect길이가 음수인경우 cx cy를 양수로 다시 맞추어줌
                 normalizeRectClamped();
                 validateCaptureArea();
-                MainUI.topBar.capClipBoard.alpha = 1.0;
+                UIController.topBar.capClipBoard.alpha = 1.0;
                 drawArea();
                 CaptureController.onCaptureAreaChanged();
             }
@@ -442,7 +443,7 @@ package Modules.CaptureEngine
         {
             clearAreaState();
             captureDragAreaOverlay.graphics.clear();
-            MainUI.topBar.capClipBoard.alpha = 1.0;
+            UIController.topBar.capClipBoard.alpha = 1.0;
             CaptureController.onCaptureAreaChanged();
         }
 
@@ -460,7 +461,7 @@ package Modules.CaptureEngine
                 MouseState.endDrag(DRAG_OWNER);
             }
             isDragging = false;
-            MainUI.topBar.capClipBoard.alpha = 1.0;
+            UIController.topBar.capClipBoard.alpha = 1.0;
         }
 
         public static function isFullImageCapture():Boolean
@@ -500,7 +501,7 @@ package Modules.CaptureEngine
 
         public static function start():void
         {
-            if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            if (UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
                 if (ReplayState.isReplayModeON) // 리플레이 변수로 변경
                 {

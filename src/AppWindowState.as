@@ -1,8 +1,9 @@
 package
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import flash.events.Event;
     import Modules.AppStateManager;
-    import Modules.MainUIController;
     import Modules.InputManager;
     import Modules.ImeController;
     import Modules.MouseState;
@@ -19,7 +20,6 @@ package
     import Modules.ReplayEngine.ReplayState;
     import Modules.UndoController;
     import Modules.ColorPickerController;
-    import Modules.MainUI;
     import Modules.ActivityWorkTimer;
     import Modules.ImageViewWindow;
     import Modules.CaptureEngine.CaptureController;
@@ -53,7 +53,7 @@ package
                 return;
             }
 
-            FOFOTimer.addByName("windowResizeDelayTimer", 0.2, false, MainUIController.applyLayout);
+            FOFOTimer.addByName("windowResizeDelayTimer", 0.2, false, UIController.applyLayout);
         }
 
         public static function onWindowActive(e:Event):void
@@ -118,7 +118,7 @@ package
             {
                 ColorPickerController.colorPickerBox.scratchPad.removeCheckMouseDistEvent();
             }
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
             ToolController.selectLastUsedTool();
             lastWindowDeactivateTime = getTimer();
         }

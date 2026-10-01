@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureController;
     import Symbols.RotateCursorSet;
@@ -94,7 +96,7 @@ package Modules
 
         public static function resetRotationDrawMode():void
         {
-            const center:Point = MainUIController.getStageCenterPos("draw");
+            const center:Point = UIController.getStageCenterPos("draw");
             PenSizePreviewCursor.updateSizeAndShape();
             moveCanvasAnchorPoint(center.x, center.y, false);
             canvasAnchorPoint.rotation = 0;
@@ -294,7 +296,7 @@ package Modules
         {
             if (!canvasLayer1Bitmap.visible && !canvasLayer2Bitmap.visible)
             {
-                MainUI.showMouseHintTemp("All layer locked");
+                HintController.showMouseHintTemp("All layer locked");
                 return true;
             }
             return false;
@@ -428,7 +430,7 @@ package Modules
         {
             if (canvasZoomMultipler !== 1.0)
             {
-                const center:Point = MainUIController.getStageCenterPos("draw");
+                const center:Point = UIController.getStageCenterPos("draw");
                 const gcenter:Point = canvasPanel.globalToLocal(new Point(center.x, center.y));
                 const gp:Point = canvasPanel.localToGlobal(new Point(0, 0));
                 const panelLimitedPos:Point = ZoomTool.getCanvasBoundLimitPoint(canvasPanel, gcenter.x, gcenter.y, CANVAS_WIDTH, CANVAS_HEIGHT, canvasAnchorPoint.scaleY, -canvasAnchorPoint.rotation);
@@ -465,18 +467,18 @@ package Modules
             const newZoom:Number = canvasZoomMultiplerList[newZoomIndex];
             if (isReplayMode)
             {
-                center = MainUIController.getStageCenterPos("replay");
+                center = UIController.getStageCenterPos("replay");
                 ReplayState.rLastCanvasZoomMultiplier = newZoom;
                 ReplayController.setFitReplayCanvasToViewportOFF();
                 ReplayState.rCanvasZoomIndex = newZoomIndex;
                 moveCanvasAnchorPoint(center.x, center.y, true);
                 updateCanvasScale(newZoom, isReplayMode);
                 ReplayController.rFollowMouse.updateBounds();
-                MainUI.showMouseHintTemp(String(Math.floor(newZoom * 100)) + "%");
+                HintController.showMouseHintTemp(String(Math.floor(newZoom * 100)) + "%");
             }
             else
             {
-                center = MainUIController.getStageCenterPos("draw");
+                center = UIController.getStageCenterPos("draw");
                 const gcenter:Point = canvasPanel.globalToLocal(new Point(center.x, center.y));
                 const gp:Point = canvasPanel.localToGlobal(new Point(0, 0));
                 const panelLimitedPos:Point = ZoomTool.getCanvasBoundLimitPoint(canvasPanel, gcenter.x, gcenter.y, CANVAS_WIDTH, CANVAS_HEIGHT, xAnc.scaleY, -xAnc.rotation);
@@ -484,7 +486,7 @@ package Modules
                 moveCanvasAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y, false);
                 updateCanvasScale(newZoom, isReplayMode);
                 PenSizePreviewCursor.updateSizeAndShape();
-                MainUIController.updateCanvasNaigatorCursor();
+                UIController.updateCanvasNaigatorCursor();
                 if (CanvasGridOverlay.gridGapMultiplier > 0)
                 {
                     CanvasGridOverlay.drawGrid();
@@ -500,7 +502,7 @@ package Modules
             const uiScale:Number = UITheme.getUIScale();
 
             ReferenceLayerController.setRefLayerAndGridVisible(false);
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
 
             function centerCanvas(mx:Number, my:Number):void
             {
@@ -514,7 +516,7 @@ package Modules
                 var p:Point = Utils.rotatePoint(moveX, moveY, -canvasAnchorPoint.rotation);
                 canvasAnchorPoint.x += Math.round(p.x);
                 canvasAnchorPoint.y += Math.round(p.y);
-                MainUIController.updateCanvasNaigatorCursor();
+                UIController.updateCanvasNaigatorCursor();
             }
 
             function onMouseUpCanvasNavigator(e:MouseEvent):void
@@ -522,7 +524,7 @@ package Modules
                 MouseState.endDrag("canvasNavigator");
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
                 keepCanvasPanelInStage();
-                MainUIController.updateCanvasNaigatorCursor();
+                UIController.updateCanvasNaigatorCursor();
                 if (LassoTool.isStarted)
                 {
                     if (LassoTool.isLassoMenuHiddenTemp === true)
@@ -548,7 +550,7 @@ package Modules
                 canvasAnchorPoint.y += Math.round(p.y);
                 sx = mx;
                 sy = my;
-                MainUIController.updateCanvasNaigatorCursor();
+                UIController.updateCanvasNaigatorCursor();
             }
             moveCanvasAnchorPoint(0, 0);
             if (LassoTool.isStarted)
@@ -780,10 +782,10 @@ package Modules
             const halfCanvas:Number = (main.stage.stageWidth - SidebarController.sideBar.getWidth()) / 2;
             var stageHalf:Number = (SidebarController.sideBar.visible === false) ? main.stage.stageWidth / 2
                 : (SidebarController.isRightSidebar) ? halfCanvas
-                : MainUIController.STAGE_LEFT_OFFSET + halfCanvas;
+                : UIController.STAGE_LEFT_OFFSET + halfCanvas;
             // 창 절반을 기준점으로 앵커포인트 x축 이동.
             canvasAnchorPoint.x += Math.round((stageHalf - p.x) * 2);
-            MainUIController.updateCanvasNaigatorCursor();
+            UIController.updateCanvasNaigatorCursor();
             FileManager.isFileAlreadySaved = false; // 미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
             ReplayDrawer.mirrorRCursorPos();
 
@@ -1066,7 +1068,7 @@ package Modules
                             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveReizeButtonD);
                     }
                     canvasSizeChanging = false;
-                    MainUI.hideMouseHint();
+                    HintController.hideMouseHint();
                     updateCanvasResizeButtonVisible((isMouseCursorInStage() && isRightMouseClicked) || InputManager.isPressingControl());
                     canvasAnchorPoint.removeChild(resizePreviewRect);
                     canvasAnchorPoint.removeChild(resizePreviewRatioRect);
@@ -1147,12 +1149,12 @@ package Modules
                         subY = info[0] - oldHeight;
                         finalHeight = info[0];
                         const str:String = flipRatioString(info[1]);
-                        MainUI.showMouseHint(oldWidth + " x " + finalHeight + " (" + str + ")");
+                        HintController.showMouseHint(oldWidth + " x " + finalHeight + " (" + str + ")");
                         return subY;
                     }
                 }
                 finalHeight = height;
-                MainUI.showMouseHint(oldWidth + " x " + finalHeight);
+                HintController.showMouseHint(oldWidth + " x " + finalHeight);
                 return subY;
             }
             function updateWidth(flipFlag:Boolean):Number
@@ -1173,12 +1175,12 @@ package Modules
                     {
                         subX = info[0] - oldWidth;
                         finalWidth = info[0];
-                        MainUI.showMouseHint(oldWidth + " x " + finalHeight + " (" + info[1] + ")");
+                        HintController.showMouseHint(oldWidth + " x " + finalHeight + " (" + info[1] + ")");
                         return subX;
                     }
                 }
                 finalWidth = width;
-                MainUI.showMouseHint(finalWidth + " x " + oldHeight);
+                HintController.showMouseHint(finalWidth + " x " + oldHeight);
                 return subX;
             }
             function onMouseMoveReizeButtonD(e:MouseEvent):void
@@ -1212,7 +1214,7 @@ package Modules
                 finalWidth = oldWidth;
                 finalHeight = oldHeight;
                 bgColor = CANVAS_BG_COLOR;
-                stageColor = MainUIController.STAGE_BG_COLOR;
+                stageColor = UIController.STAGE_BG_COLOR;
                 subX = 0;
                 subY = 0;
                 canvasSizeChanging = false;
@@ -1316,7 +1318,7 @@ package Modules
             canvasLayer2Bitmap.name = "canvasLayer2Bitmap";
             canvasDrawLayer.name = "canvasDrawLayer";
             canvasDrawLayerChild.name = "canvasDrawShape";
-            MainUI.stageBG.name = "stageBG";
+            UIController.stageBG.name = "stageBG";
             ReferenceLayerController.canvasRefLayer.name = "canvasRefLayer";
             CanvasGridOverlay.canvasGrid.name = "canvasGrid";
             canvasFlashEffect.name = "canvasFlash";
@@ -1350,13 +1352,13 @@ package Modules
             canvasPanel.x = Math.floor(-canvasPanel.width / 2);
             canvasPanel.y = Math.floor(-canvasPanel.height / 2);
             canvasAnchorPoint.addChild(canvasPanel);
-            main.stage.addChild(MainUI.stageBG);
+            main.stage.addChild(UIController.stageBG);
             main.stage.addChild(EyeDropperTool.eyedropperLens);
             main.stage.addChild(LassoTool._lassoMenuBox);
             main.stage.addChild(canvasAnchorPoint);
             main.stage.addChild(PenSizePreviewCursor.getCursorShape());
             main.stage.setChildIndex(canvasAnchorPoint, 0);
-            main.stage.setChildIndex(MainUI.stageBG, 0);
+            main.stage.setChildIndex(UIController.stageBG, 0);
         }
 
         public static function updateCanvasScale(zoomValue:Number, isReplayMode:Boolean = false):void
@@ -1418,10 +1420,10 @@ package Modules
             }
             const offset:int = 100; // 최소 100픽셀 은 보여야함
             const bounds:Object = Utils.getBoundRect(xCanvas);
-            const leftLimit:Number = MainUIController.STAGE_LEFT_OFFSET + offset;
-            const rightLimit:Number = main.stage.stageWidth - (MainUIController.STAGE_RIGHT_OFFSET + offset);
-            const topLimit:Number = MainUIController.STAGE_TOP_OFFSET + offset;
-            const bottomLimit:Number = main.stage.stageHeight - (MainUIController.STAGE_BOTTOM_OFFSET + offset);
+            const leftLimit:Number = UIController.STAGE_LEFT_OFFSET + offset;
+            const rightLimit:Number = main.stage.stageWidth - (UIController.STAGE_RIGHT_OFFSET + offset);
+            const topLimit:Number = UIController.STAGE_TOP_OFFSET + offset;
+            const bottomLimit:Number = main.stage.stageHeight - (UIController.STAGE_BOTTOM_OFFSET + offset);
             // getbound는 보이는 그대로 사각형 끝점 좌표를 반환함
             const left:Number = bounds.left;
             const top:Number = bounds.top;
@@ -1445,7 +1447,7 @@ package Modules
             var xCanvas:Sprite;
             var w:Number;
             var h:Number;
-            var center:Point = MainUIController.getStageCenterPos(mode);
+            var center:Point = UIController.getStageCenterPos(mode);
             // mode "capture"는 중심 좌표 계산용이고 대상 캔버스는 현재 모드(리플레이/드로우)를 따라감
             if (mode === "replay" || (mode === "capture" && ReplayState.isReplayModeON))
             {
@@ -1482,7 +1484,7 @@ package Modules
         {
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             PenSizePreviewCursor.setVisible(false);
-            MainUI.showMouseHint(CANVAS_WIDTH + " x " + CANVAS_HEIGHT);
+            HintController.showMouseHint(CANVAS_WIDTH + " x " + CANVAS_HEIGHT);
             main.resizeCanvas.start(targetName);
         }
 
@@ -1493,10 +1495,10 @@ package Modules
                 return;
             }
             const uiscale:Number = UITheme.getUIScale();
-            const offsetX:Number = 44 + MainUIController.STAGE_LEFT_OFFSET + MainUIController.STAGE_RIGHT_OFFSET;
-            const offsetY:Number = (CaptureController.isCaptureModeON) ? (MainUI.topBar.BARSIZE) * uiscale + 42 * uiscale : (MainUI.topBar.BARSIZE) * uiscale + 42 * uiscale;
+            const offsetX:Number = 44 + UIController.STAGE_LEFT_OFFSET + UIController.STAGE_RIGHT_OFFSET;
+            const offsetY:Number = (CaptureController.isCaptureModeON) ? (UIController.topBar.BARSIZE) * uiscale + 42 * uiscale : (UIController.topBar.BARSIZE) * uiscale + 42 * uiscale;
             const stw:int = main.stage.stageWidth - offsetX;
-            const sth:int = main.stage.stageHeight - offsetY - MainUIController.STAGE_BOTTOM_OFFSET;
+            const sth:int = main.stage.stageHeight - offsetY - UIController.STAGE_BOTTOM_OFFSET;
             var xBitmap1:Bitmap;
             var xBitmap11:Bitmap;
             var xAnc:Sprite;
@@ -1636,7 +1638,7 @@ package Modules
             // addundo에서 활성화 해주고 있기 때문에
             FileManager.setNewFileAvailable(false);
             AppWindowState.markWindowTitleAsDirty();
-            MainUIController.updateCanvasNaigatorCursor();
+            UIController.updateCanvasNaigatorCursor();
         }
 
         // 드로우 모드 캔버스 상태를 리플레 캔버스 상태랑 똑같이 만들어줌
@@ -1661,7 +1663,7 @@ package Modules
         {
             if (target.width !== source.width || target.height !== source.height)
             {
-                MainUI.showMouseHintTemp("CanvasController.copyPixels() failed : Not same size", 10.0);
+                HintController.showMouseHintTemp("CanvasController.copyPixels() failed : Not same size", 10.0);
                 return;
             }
 

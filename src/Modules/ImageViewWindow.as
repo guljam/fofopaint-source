@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureController;
 
@@ -165,8 +166,8 @@ package Modules
             _isCanvasWindowON = false;
             if (!ReplayState.isReplayModeON && !CaptureController.isCaptureModeON)
             {
-                MainUI.topBar.newWindowButton.visible = true;
-                MainUI.topBar.newWindowCloseButton.visible = false;
+                UIController.topBar.newWindowButton.visible = true;
+                UIController.topBar.newWindowCloseButton.visible = false;
             }
             main.stage.nativeWindow.activate();
         }
@@ -222,8 +223,8 @@ package Modules
 
             if (!ReplayState.isReplayModeON && !CaptureController.isCaptureModeON)
             {
-                MainUI.topBar.newWindowButton.visible = false;
-                MainUI.topBar.newWindowCloseButton.visible = true;
+                UIController.topBar.newWindowButton.visible = false;
+                UIController.topBar.newWindowCloseButton.visible = true;
             }
             if (canvasWindow.stage.getChildByName("canvasWindowCanvasPanel") === null)
             {
@@ -244,7 +245,7 @@ package Modules
                 if (canvasWindowInfo[0] === 0)
                 {
 
-                    canvasWindowInfo[0] = main.stage.nativeWindow.x + MainUI.topBar.newWindowButton.x - canvasWindowInfo[2] / 2;
+                    canvasWindowInfo[0] = main.stage.nativeWindow.x + UIController.topBar.newWindowButton.x - canvasWindowInfo[2] / 2;
                     canvasWindowInfo[1] = main.stage.nativeWindow.y;
                 }
                 canvasWindow.bounds = new Rectangle(canvasWindowInfo[0], canvasWindowInfo[1], canvasWindowInfo[2], canvasWindowInfo[3]);

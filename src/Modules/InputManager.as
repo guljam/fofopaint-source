@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.CaptureEngine.CaptureController;
@@ -163,11 +165,11 @@ package Modules
                 {
                     pressHoldFrameCount = 0;
                     pressHoldCountDownTime = countDownTime;
-                    MainUI.hideMouseHint();
+                    HintController.hideMouseHint();
                 }
                 if (hintStr !== "")
                 {
-                    MainUI.showMouseHint(hintStr + " " + pressHoldCountDownTime);
+                    HintController.showMouseHint(hintStr + " " + pressHoldCountDownTime);
                 }
                 FOFOTimer.addByName("pressholdtimer", 0.0, true, function ():Boolean
                     {
@@ -190,7 +192,7 @@ package Modules
                             pressHoldFrameCount = 0;
                             pressHoldCountDownTime--;
                         }
-                        MainUI.showMouseHint(hintStr + " " + pressHoldCountDownTime);
+                        HintController.showMouseHint(hintStr + " " + pressHoldCountDownTime);
                         if (pressHoldCountDownTime <= 0)
                         {
                             cancelHoldingKey();
@@ -370,8 +372,8 @@ package Modules
                         case "dpiButton":
                             {
                                 UITheme.setNextScaleIndex();
-                                MainUIController.applyUIScale();
-                                MainUI.showMouseHintTemp(UITheme.getUIScaleString());
+                                UIController.applyUIScale();
+                                HintController.showMouseHintTemp(UITheme.getUIScaleString());
                             }
                             break;
                         case "updateButton":
@@ -482,7 +484,7 @@ package Modules
                             break;
                         case "topBarColorButton":
                             {
-                                MainUIController.cycleUIColor();
+                                UIController.cycleUIColor();
                             }
                             break;
                         case "gridButton":
@@ -665,13 +667,13 @@ package Modules
                         case "layerMergeButton":
                             {
                                 CanvasController.mergeImageIntoLayer2();
-                                MainUI.showMouseHintTemp("Layers has been merged to layer 2");
+                                HintController.showMouseHintTemp("Layers has been merged to layer 2");
                             }
                             break;
                         case "layerSwapButton":
                             {
                                 CanvasController.swapLayer();
-                                MainUI.showMouseHintTemp(HintStrings.getCanvasLayerSwappedHintString());
+                                HintController.showMouseHintTemp(HintStrings.getCanvasLayerSwappedHintString());
                             }
                             break;
                         default:
@@ -686,7 +688,7 @@ package Modules
         {
             checkInvalidKey();
             MouseState.onLeftDown();
-            MainUI.hideBottomHint();
+            HintController.hideBottomHint();
         }
 
         public static function onMouseUpStage(e:MouseEvent):void
@@ -714,7 +716,7 @@ package Modules
         public static function onMouseWheelStage(e:MouseEvent):void
         {
             if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging
-                    || MainUIController.isPopUpWindowOpened()
+                    || UIController.isPopUpWindowOpened()
                     || CaptureController.isCaptureModeON || !SidebarController.isQuickSidebarActive && InputManager.isKeyPressed() || InputManager.getCommandKey() !== 0)
             {
                 return;
@@ -744,12 +746,12 @@ package Modules
                             if (e.delta > 0)
                             {
                                 CanvasController.zoomInCanvas(true, false);
-                                MainUI.showMouseHintTemp(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
+                                HintController.showMouseHintTemp(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
                             }
                             else
                             {
                                 CanvasController.zoomInCanvas(false, false);
-                                MainUI.showMouseHintTemp(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
+                                HintController.showMouseHintTemp(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
                             }
                         }
                     });
@@ -771,7 +773,7 @@ package Modules
 
             if (FOFOTimer.hasTimer("toolTipTempONTimer"))
             {
-                MainUI.hideMouseHint();
+                HintController.hideMouseHint();
             }
 
             if (LassoTool.isStarted)
@@ -874,7 +876,7 @@ package Modules
             // 디버그 확인용
             // if(isPressedKey(KEY.f12))
             // {
-            //     MainUIController.applyLayout();
+            //     UIController.applyLayout();
             // }
 
             checkInvalidKey();
@@ -1171,7 +1173,7 @@ package Modules
                 if (CanvasController.canvasZoomMultipler !== 1.0)
                 {
                     CanvasController.resetZoomDrawMode();
-                    MainUIController.updateCanvasNaigatorCursor();
+                    UIController.updateCanvasNaigatorCursor();
                 }
                 return;
             }
@@ -1180,7 +1182,7 @@ package Modules
                 if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                 {
                     CanvasController.resetRotationDrawMode();
-                    MainUIController.updateCanvasNaigatorCursor();
+                    UIController.updateCanvasNaigatorCursor();
                 }
                 return;
             }
@@ -1538,7 +1540,7 @@ package Modules
                     || CanvasController.isKeyReleasedBeforeMouseUp
                     || FillPenTool.isStarted
                     || LineTool.isStarted
-                    || MainUIController.isPopUpWindowOpened())
+                    || UIController.isPopUpWindowOpened())
             {
                 return;
             }
@@ -1883,7 +1885,7 @@ package Modules
                 if (CanvasController.canvasZoomMultipler !== 1.0)
                 {
                     CanvasController.resetZoomDrawMode();
-                    MainUIController.updateCanvasNaigatorCursor();
+                    UIController.updateCanvasNaigatorCursor();
                 }
             }
             else if (targetName === "toolRotate")
@@ -1891,7 +1893,7 @@ package Modules
                 if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                 {
                     CanvasController.resetRotationDrawMode();
-                    MainUIController.updateCanvasNaigatorCursor();
+                    UIController.updateCanvasNaigatorCursor();
                 }
             }
         }
@@ -1960,7 +1962,7 @@ package Modules
                     if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                     {
                         CanvasController.resetRotationDrawMode();
-                        MainUIController.updateCanvasNaigatorCursor();
+                        UIController.updateCanvasNaigatorCursor();
                     }
                     return;
 
@@ -1969,7 +1971,7 @@ package Modules
                     if (CanvasController.canvasZoomMultipler !== 1.0)
                     {
                         CanvasController.resetZoomDrawMode();
-                        MainUIController.updateCanvasNaigatorCursor();
+                        UIController.updateCanvasNaigatorCursor();
                     }
                     return;
             }
@@ -2055,7 +2057,7 @@ package Modules
                         if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                         {
                             CanvasController.resetRotationDrawMode();
-                            MainUIController.updateCanvasNaigatorCursor();
+                            UIController.updateCanvasNaigatorCursor();
                         }
                     }
                     return;
@@ -2065,7 +2067,7 @@ package Modules
                         if (CanvasController.canvasZoomMultipler !== 1.0)
                         {
                             CanvasController.resetZoomDrawMode();
-                            MainUIController.updateCanvasNaigatorCursor();
+                            UIController.updateCanvasNaigatorCursor();
                         }
                     }
                     return;
@@ -2122,13 +2124,13 @@ package Modules
                     {
                         if (CanvasController.isLayer2Selected)
                         {
-                            MainUI.showMouseHintTemp("Layer 1 selected");
+                            HintController.showMouseHintTemp("Layer 1 selected");
                             CanvasController.selectLayer1(false);
                         }
                         else
                         {
                             CanvasController.selectLayer1(CanvasController.canvasLayer2Bitmap.visible);
-                            MainUI.showMouseHintLayerVisible();
+                            HintController.showMouseHintLayerVisible();
                         }
                         if (ToolController.toolOptionsBox.layer2CheckedButton.visible)
                         {
@@ -2141,13 +2143,13 @@ package Modules
                     {
                         if (!CanvasController.isLayer2Selected)
                         {
-                            MainUI.showMouseHintTemp("Layer 2 selected");
+                            HintController.showMouseHintTemp("Layer 2 selected");
                             CanvasController.selectLayer2(false);
                         }
                         else
                         {
                             CanvasController.selectLayer2(CanvasController.canvasLayer1Bitmap.visible);
-                            MainUI.showMouseHintLayerVisible();
+                            HintController.showMouseHintLayerVisible();
                         }
                         if (ToolController.toolOptionsBox.layer1CheckedButton.visible)
                         {
@@ -2239,7 +2241,7 @@ package Modules
         public static function onMouseDownDrawMode(e:MouseEvent):void
         {
             if (FillPenTool.isStarted || LineTool.isStarted || FileManager.loadMenuBox.visible
-                    || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
+                    || UIController.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;
             }
@@ -2321,7 +2323,7 @@ package Modules
                     return;
                 case "timer":
                     {
-                        startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
+                        startPressHoldKey(UIController.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
                     }
                     return;
                 case "newFileButton":
@@ -2452,7 +2454,7 @@ package Modules
             trace('right down');
             if (CanvasController.isMouseLeftClicked || isKeyPressed() || isPressingControl() || SidebarController.isQuickSidebarActive
                     || FillPenTool.isStarted || LineTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
-                    || FileManager.loadMenuBox.visible || MainUI.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
+                    || FileManager.loadMenuBox.visible || UIController.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;
             }
@@ -2471,8 +2473,8 @@ package Modules
                         if (UITheme.getUIScaleIndex() !== 0)
                         {
                             UITheme.resetScaleIndex();
-                            MainUIController.applyUIScale();
-                            MainUI.showMouseHintTemp(UITheme.getUIScaleString());
+                            UIController.applyUIScale();
+                            HintController.showMouseHintTemp(UITheme.getUIScaleString());
                         }
                     }
                     break;
@@ -2483,7 +2485,7 @@ package Modules
                         if (CanvasController.canvasZoomMultipler !== 1.0)
                         {
                             CanvasController.resetZoomDrawMode();
-                            MainUIController.updateCanvasNaigatorCursor();
+                            UIController.updateCanvasNaigatorCursor();
                         }
                     }
                     break;
@@ -2492,7 +2494,7 @@ package Modules
                     {
                         if (CanvasGridOverlay.gridGapMultiplier !== 0)
                         {
-                            MainUI.hideBottomHint();
+                            HintController.hideBottomHint();
                             CanvasGridOverlay.resetGrid();
                         }
                     }
@@ -2503,7 +2505,7 @@ package Modules
                         if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
                         {
                             CanvasController.resetRotationDrawMode();
-                            MainUIController.updateCanvasNaigatorCursor();
+                            UIController.updateCanvasNaigatorCursor();
                         }
                     }
                     break;
@@ -2544,7 +2546,7 @@ package Modules
                 return;
             }
 
-            if (main.stage.focus === MainUI.topBar.captureInput)
+            if (main.stage.focus === UIController.topBar.captureInput)
             {
                 if (firstKey === KEY.esc || firstKey === KEY.enter || isPressingControl())
                 {
@@ -2574,7 +2576,7 @@ package Modules
                 else if (secondKey === KEY.c || secondKey === KEY.comma)
                 {
                     CaptureController.executeCaptureFlashEffect();
-                    if (MainUI.topBar.capClipBoard.alpha === 1.0)
+                    if (UIController.topBar.capClipBoard.alpha === 1.0)
                     {
                         CaptureController.copyCaptureImageToCilpBoard();
                     }
@@ -2657,14 +2659,14 @@ package Modules
             if (targetName === "capClipBoard")
             {
                 CaptureController.executeCaptureFlashEffect();
-                if (target.alpha < 1.0 && MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                if (target.alpha < 1.0 && UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                 {
                     return;
                 }
                 InputManager.handleMouseClickStage(targetName);
             }
 
-            if (target.alpha < 1.0 && MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (target.alpha < 1.0 && UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
             {
                 return;
             }
@@ -2699,7 +2701,7 @@ package Modules
                     InputManager.handleMouseClickStage(targetName);
                     break;
                 case "timer":
-                    startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
+                    startPressHoldKey(UIController.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
                     break;
                 default:
                     if (!CanvasController.isMouseClickBlocked)
@@ -2712,7 +2714,7 @@ package Modules
 
         private static function onRightMouseDownCaptureMode(e:MouseEvent):void
         {
-            if (MainUI.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            if (UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
                 if (!CaptureController.isFullImageCapture())
                 {
@@ -2961,7 +2963,7 @@ package Modules
             {
                 case "repNewFileButton":
                     {
-                        startPressHoldKey(MainUI.topBar.repNewFileButton, HintStrings.getNewFileHintString(),
+                        startPressHoldKey(UIController.topBar.repNewFileButton, HintStrings.getNewFileHintString(),
                                 function ():Boolean
                                 {
                                     return ReplayController.prepareDeleteReplayData("total");
@@ -2976,9 +2978,9 @@ package Modules
                     break;
                 case "cutPrevDataButton":
                     {
-                        if (MainUI.topBar.cutPrevDataButton.alpha === 1.0)
+                        if (UIController.topBar.cutPrevDataButton.alpha === 1.0)
                         {
-                            startPressHoldKey(MainUI.topBar.cutPrevDataButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
+                            startPressHoldKey(UIController.topBar.cutPrevDataButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
                                 {
                                     return ReplayController.prepareDeleteReplayData("before");
                                 },
@@ -2993,9 +2995,9 @@ package Modules
                     break;
                 case "superUndoButton":
                     {
-                        if (MainUI.topBar.superUndoButton.alpha === 1.0)
+                        if (UIController.topBar.superUndoButton.alpha === 1.0)
                         {
-                            startPressHoldKey(MainUI.topBar.superUndoButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
+                            startPressHoldKey(UIController.topBar.superUndoButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
                                 {
                                     return ReplayController.prepareDeleteReplayData("after");
                                 },
@@ -3054,7 +3056,7 @@ package Modules
                     break;
                 case "timer":
                     {
-                        startPressHoldKey(MainUI.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
+                        startPressHoldKey(UIController.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
                     }
                     break;
                 case "drawModeButton":

@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.Tools.PenTool;
 
@@ -71,7 +73,7 @@ package Modules
 
         public static function updateSelectedToolViewBoxPos():void
         {
-            const viewportRect:Rectangle = MainUIController.getViewportRect();
+            const viewportRect:Rectangle = UIController.getViewportRect();
 
             selectedToolViewBitmap.x = viewportRect.x + viewportRect.width / 2 - selectedToolViewBitmap.width / 2;
             selectedToolViewBitmap.y = viewportRect.y + 20 * UITheme.getUIScale();
@@ -240,7 +242,7 @@ package Modules
                 alpha = PenTool.penAlphaList[PenTool.eraserAlphaIndex];
             }
 
-            MainUI.showMouseHintTemp(tooltype + size + "px, " + alpha * 100 + "%");
+            HintController.showMouseHintTemp(tooltype + size + "px, " + alpha * 100 + "%");
         }
 
         // opabox의 커서 위치와 색깔을 바꿈
@@ -469,7 +471,7 @@ package Modules
 
                     PenTool.penSmoothSlideValue = value;
                     oldValue = value;
-                    MainUI.showBottomHint(HintStrings.getHintFromTargetName("penSmoothSliderWrapper"));
+                    HintController.showBottomHint(HintStrings.getHintFromTargetName("penSmoothSliderWrapper"));
                 }
             }
 
@@ -1325,7 +1327,7 @@ package Modules
                         else
                         {
                             CanvasController.selectLayer1(CanvasController.canvasLayer2Bitmap.visible);
-                            MainUI.showMouseHintLayerVisible();
+                            HintController.showMouseHintLayerVisible();
                         }
 
                         if (toolOptionsBox.layer2CheckedButton.visible)
@@ -1343,7 +1345,7 @@ package Modules
                         else
                         {
                             CanvasController.selectLayer2(CanvasController.canvasLayer1Bitmap.visible);
-                            MainUI.showMouseHintLayerVisible();
+                            HintController.showMouseHintLayerVisible();
                         }
 
                         if (toolOptionsBox.layer1CheckedButton.visible)
@@ -1420,11 +1422,11 @@ package Modules
 
             if (isSharpLineON)
             {
-                MainUI.showMouseHintTemp("Sharp line ON");
+                HintController.showMouseHintTemp("Sharp line ON");
             }
             else
             {
-                MainUI.showMouseHintTemp("Sharp line OFF");
+                HintController.showMouseHintTemp("Sharp line OFF");
             }
         }
 
@@ -1433,9 +1435,9 @@ package Modules
             isPenAirBrushON = !isPenAirBrushON;
             toggleAirBrushCheckBox(isPenAirBrushON, true);
             if (isPenAirBrushON)
-                MainUI.showMouseHintTemp("Pen Air brush ON");
+                HintController.showMouseHintTemp("Pen Air brush ON");
             else
-                MainUI.showMouseHintTemp("Pen Air brush OFF");
+                HintController.showMouseHintTemp("Pen Air brush OFF");
         }
 
         public static function togglePenAirBrushButton(flag:Boolean):void
@@ -1467,9 +1469,9 @@ package Modules
             PenTool.isEraserAirBrushON = !PenTool.isEraserAirBrushON;
             toggleAirBrushCheckBox(PenTool.isEraserAirBrushON, false);
             if (PenTool.isEraserAirBrushON)
-                MainUI.showMouseHintTemp("Eraser Air brush ON");
+                HintController.showMouseHintTemp("Eraser Air brush ON");
             else
-                MainUI.showMouseHintTemp("Eraser Air brush OFF");
+                HintController.showMouseHintTemp("Eraser Air brush OFF");
         }
 
         public static function toggleEraseAirBrushButton(flag:Boolean):void

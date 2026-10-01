@@ -1,7 +1,8 @@
 package Modules
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.MainUIController;
 
     import Symbols.RefLayerMenuSet;
 
@@ -217,7 +218,7 @@ package Modules
             refLayerMenuBox.y = Math.floor(main.stage.mouseY - 8);
             refLayerMenuBox.visible = true;
 
-            MainUIController.keepBoxInsideViewPort(refLayerMenuBox);
+            UIController.keepBoxInsideViewPort(refLayerMenuBox);
 
             if (isRefLayerMenuON === false)
             {
@@ -361,7 +362,7 @@ package Modules
 
         public static function startRefLayerRotation():void
         {
-            const getangle:Function = MainUI.showCanvasRotateCursorMouseDrag(canvasRefLayer);
+            const getangle:Function = UIController.showCanvasRotateCursorMouseDrag(canvasRefLayer);
 
             function onDragStart():void
             {
@@ -378,7 +379,7 @@ package Modules
             {
                 FileManager.isFileAlreadySaved = false;
                 refLayerMenuBox.visible = true;
-                MainUI.hideCanvasRotateCursor();
+                UIController.hideCanvasRotateCursor();
                 canvasRefLayerBitmap.smoothing = true;
             }
 
@@ -391,7 +392,7 @@ package Modules
 
             function onDragStart():void
             {
-                MainUI.showMouseHint(HintStrings.getImageScaleHint(canvasRefLayerBitmapData.width, canvasRefLayerBitmapData.height, Math.abs(canvasRefLayer.scaleX), true));
+                HintController.showMouseHint(HintStrings.getImageScaleHint(canvasRefLayerBitmapData.width, canvasRefLayerBitmapData.height, Math.abs(canvasRefLayer.scaleX), true));
                 refLayerMenuBox.visible = false;
                 canvasRefLayerBitmap.smoothing = false;
             }
@@ -402,7 +403,7 @@ package Modules
                 if (scale)
                     canvasRefLayer.scaleX = (canvasRefLayer.scaleX < 0) ? -scale : scale;
                 canvasRefLayer.scaleY = scale;
-                MainUI.showMouseHint(HintStrings.getImageScaleHint(canvasRefLayerBitmapData.width, canvasRefLayerBitmapData.height, scale, true));
+                HintController.showMouseHint(HintStrings.getImageScaleHint(canvasRefLayerBitmapData.width, canvasRefLayerBitmapData.height, scale, true));
             }
 
             function onMouseUp():void
@@ -410,7 +411,7 @@ package Modules
                 FileManager.isFileAlreadySaved = false;
                 refLayerMenuBox.visible = true;
                 canvasRefLayerBitmap.smoothing = true;
-                MainUI.hideMouseHint();
+                HintController.hideMouseHint();
             }
 
             DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
@@ -703,7 +704,7 @@ package Modules
 
         public static function showRefLayerIsEmptyHint():void
         {
-            MainUI.showMouseHintTemp("The reference layer is empty");
+            HintController.showMouseHintTemp("The reference layer is empty");
         }
 
         public static function isRefLayerEmpty():Boolean

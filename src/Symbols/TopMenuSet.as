@@ -1,6 +1,7 @@
 ﻿package Symbols
 {
 
+	import Modules.UIEngine.UIController;
 	import Modules.UIEngine.UITheme;
 	import Modules.SidebarController;
 	import flash.display.Sprite;
@@ -17,7 +18,6 @@
 
 	import Modules.AppUpdater;
 	import Modules.ImageViewWindow;
-	import Modules.MainUI;
 	import Modules.Utils;
 	import Modules.CaptureEngine.CaptureController;
 	import Modules.Tools.LassoTool;
@@ -564,9 +564,9 @@
 				}
 
 				if (ImageViewWindow.isCanvasWindowON)
-					MainUI.topBar.newWindowButton.visible = false;
+					UIController.topBar.newWindowButton.visible = false;
 				else
-					MainUI.topBar.newWindowCloseButton.visible = false;
+					UIController.topBar.newWindowCloseButton.visible = false;
 			}
 			else if (mode === 1)
 			{

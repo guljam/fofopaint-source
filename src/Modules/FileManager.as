@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.CaptureEngine.CaptureController;
@@ -507,13 +509,13 @@ package Modules
             InputManager.removeKeyRepeatEvents(null);
             CanvasController.canvasLayer1Bitmap.visible = true;
             CanvasController.canvasLayer2Bitmap.visible = true;
-            MainUI.topBar.captureButton.alpha = 1.0;
+            UIController.topBar.captureButton.alpha = 1.0;
             setNewFileAvailable(true);
             ReferenceLayerController.refLayerMenuBox.refTransferCanvasImageButton.alpha = 1.0;
             ColorPickerController.selectCurrentColor(false);
             ToolController.selectPenToolIfNotDrawingTool(false);
             CanvasController.canvasNavigatorBox.updateImage();
-            MainUIController.updateCanvasNaigatorCursor();
+            UIController.updateCanvasNaigatorCursor();
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();
@@ -639,9 +641,9 @@ package Modules
         public static function showLoadFaildMouseHint():void
         {
             isLoadPendingAfterSaving = false;
-            MainUI.showMouseHintTemp("Load failed");
-            MainUI.mouseHint.y = main.stage.mouseY;
-            MainUI.mouseHint.x = main.stage.mouseX;
+            HintController.showMouseHintTemp("Load failed");
+            HintController.mouseHint.y = main.stage.mouseY;
+            HintController.mouseHint.x = main.stage.mouseX;
         }
 
         public static function setFileBrowserIsOpen(flag:Boolean):void
@@ -845,7 +847,7 @@ package Modules
             {
                 return;
             }
-            InputManager.startPressHoldKey((!fromShortcut) ? MainUI.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, CanvasController.resetAllCanvasAndReplayData, null, isReplayDataLocked);
+            InputManager.startPressHoldKey((!fromShortcut) ? UIController.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, CanvasController.resetAllCanvasAndReplayData, null, isReplayDataLocked);
         }
 
         // 통합 메뉴얼(manual/manual.html)을 기본 브라우저로 염
@@ -1108,7 +1110,7 @@ package Modules
 
         public static function showReplayDataLockedHint():void
         {
-            MainUI.showMouseHintTemp("Waiting for background tasks...");
+            HintController.showMouseHintTemp("Waiting for background tasks...");
         }
 
         public static function canCreateNewFile():Boolean
@@ -1268,10 +1270,10 @@ package Modules
         {
             const locked:Boolean = isReplayDataLocked();
             const offAlpha:Number = UITheme.OFFALPHA;
-            MainUI.topBar.saveButton.alpha = (BackgroundWorkerCoordinator.isSaveInProgress) ? offAlpha : 1.0;
-            MainUI.topBar.loadButton.alpha = (locked) ? offAlpha : 1.0;
-            MainUI.topBar.clipBoardButton.alpha = (!locked && ClipboardManager.isClipBoardButtonActivated) ? 1.0 : offAlpha;
-            MainUI.topBar.newFileButton.alpha = (!locked && isNewFileAvailable) ? 1.0 : offAlpha;
+            UIController.topBar.saveButton.alpha = (BackgroundWorkerCoordinator.isSaveInProgress) ? offAlpha : 1.0;
+            UIController.topBar.loadButton.alpha = (locked) ? offAlpha : 1.0;
+            UIController.topBar.clipBoardButton.alpha = (!locked && ClipboardManager.isClipBoardButtonActivated) ? 1.0 : offAlpha;
+            UIController.topBar.newFileButton.alpha = (!locked && isNewFileAvailable) ? 1.0 : offAlpha;
             if (ReplayState.isReplayModeON)
             {
                 ReplayController.updateDeleteReplayDataButtonsState();
@@ -1580,7 +1582,7 @@ package Modules
                 }
                 else
                 {
-                    MainUI.showMouseHintTemp("Already saved");
+                    HintController.showMouseHintTemp("Already saved");
                 }
                 return;
             }
@@ -1849,7 +1851,7 @@ package Modules
             UndoController.updateCanvasStateAfterUndo();
 
             ReplayDrawer.rReplayFOFOCursor.visible = false;
-            MainUI.hideMouseHint();
+            HintController.hideMouseHint();
 
             bmpd.dispose();
             bmpd1.dispose();

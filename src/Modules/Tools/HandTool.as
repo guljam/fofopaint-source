@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.UIEngine.UIController;
     import Modules.InputPriority;
     import Modules.MouseState;
     import flash.geom.Point;
@@ -10,7 +11,6 @@ package Modules.Tools
     import Modules.ReferenceLayerController;
     import Modules.InputManager;
     import Modules.ToolController;
-    import Modules.MainUIController;
     import Modules.PenSizePreviewCursor;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
@@ -67,7 +67,7 @@ package Modules.Tools
                 }
 
                 ToolController.toolBox.setCursorVisible(true);
-                MainUIController.updateCanvasNaigatorCursor();
+                UIController.updateCanvasNaigatorCursor();
             }
             else
             {
