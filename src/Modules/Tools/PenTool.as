@@ -81,6 +81,46 @@ package Modules.Tools
 		public static var airBrushSizeDrawMode:int = 0;
 		public static var airBrushClipRectOffsetData:Array = [0, 4, 2, 2, 0, 0, 0, -2, -5, -5, -10, -16, -43];
 
+		public static function getClipRectOffsetAirBrush(size:int):Number
+		{
+			const len:uint = penSizeList.length;
+			for (var i:uint = 1;i < len;i++)
+			{
+				if (penSizeList[i] === size)
+				{
+					return size + airBrushClipRectOffsetData[i];
+				}
+			}
+			return 0;
+		}
+
+		public static function getBlurSize(size:Number, z:Number):Number
+		{
+			var blurSize:Number = size / 2;
+			if (blurSize <= 2)
+				blurSize = 2;
+			else if (blurSize > 30)
+				blurSize = 30;
+			return blurSize * z;
+		}
+
+		public static function getRefinedPoint(mx:Number, my:Number):Point
+		{
+			mx = Math.round(mx * 100) / 100;
+			my = Math.round(my * 100) / 100;
+			if (ToolController.isSharpLineON)
+			{
+				my = Math.floor(my);
+				mx = Math.floor(mx);
+			}
+			else if (penSmoothSlideValue === 0 && (CanvasController.canvasAnchorPoint.rotation % 90 === 0))
+			{
+				my = Math.round(my);
+				mx = Math.round(mx);
+			}
+			return new Point(mx, my);
+		}
+
 		private static function isCircleRectColliding(cx:Number, cy:Number, r:Number, rx:Number, ry:Number, w:Number, h:Number):Boolean
 		{
 			const px:Number = Math.max(rx, Math.min(cx, rx + w));
@@ -177,7 +217,7 @@ package Modules.Tools
 				setCanUndoDataFlagON();
 			}
 
-			const filteredPos:Point = CanvasController.getRefinedPoint(mx, my);
+			const filteredPos:Point = PenTool.getRefinedPoint(mx, my);
 			mx = filteredPos.x + offsetForSharpline;
 			my = filteredPos.y + offsetForSharpline;
 
@@ -206,7 +246,7 @@ package Modules.Tools
 
 				if (xShape)
 				{
-					const filteredStartPos:Point = CanvasController.getRefinedPoint(clickPos.x, clickPos.y);
+					const filteredStartPos:Point = PenTool.getRefinedPoint(clickPos.x, clickPos.y);
 					filteredStartPos.x = filteredStartPos.x + offsetForSharpline;
 					filteredStartPos.y = filteredStartPos.y + offsetForSharpline;
 
@@ -250,7 +290,7 @@ package Modules.Tools
 
 					if (airBrushSizeDrawMode > 0)
 					{
-						const blurSize:Number = CanvasController.getBlurSize(airBrushSizeDrawMode, 1.0);
+						const blurSize:Number = PenTool.getBlurSize(airBrushSizeDrawMode, 1.0);
 						CanvasController.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
 						CanvasController.canvasDrawLayerBitmapData.draw(CanvasController.canvasDrawLayerChild, null, null, "layer");
 						CanvasController.canvasDrawLayerChild.filters = [];
@@ -309,7 +349,7 @@ package Modules.Tools
 
 		private static function skipMouseMovePos(mx:Number, my:Number):Boolean
 		{
-			var filteredPos:Point = CanvasController.getRefinedPoint(mx, my);
+			var filteredPos:Point = PenTool.getRefinedPoint(mx, my);
 			mx = filteredPos.x;
 			my = filteredPos.y;
 
@@ -508,7 +548,7 @@ package Modules.Tools
 
 			CanvasController.resetCanvasDrawLayerCliprect();
 
-			const filteredPos:Point = CanvasController.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
+			const filteredPos:Point = PenTool.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
 
 			clickPos.copyFrom(filteredPos);
 			clickPosDot.setTo(filteredPos.x + offsetForSharpline, filteredPos.y + offsetForSharpline);

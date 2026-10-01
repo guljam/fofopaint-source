@@ -465,7 +465,7 @@ package Modules.Tools
 
             DottedLineTool.setLineScale(CanvasController.canvasZoomMultipler);
 
-            const filteredPos:Point = CanvasController.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
+            const filteredPos:Point = PenTool.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
             var mx:Number = filteredPos.x + _pos05Offset;
             var my:Number = filteredPos.y + _pos05Offset;
 
@@ -497,7 +497,7 @@ package Modules.Tools
 
         private static function onMouseMoveFillPen(e:MouseEvent):void
         {
-            const filteredPos:Point = CanvasController.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
+            const filteredPos:Point = PenTool.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
             const mx:Number = filteredPos.x + _pos05Offset;
             const my:Number = filteredPos.y + _pos05Offset;
 
@@ -611,7 +611,7 @@ package Modules.Tools
                 main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
                 MouseState.beginDrag(FILLPEN_DRAG_OWNER, finishFillPenDrag);
 
-                const filteredPos:Point = CanvasController.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
+                const filteredPos:Point = PenTool.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
                 const mx:Number = filteredPos.x + _pos05Offset;
                 const my:Number = filteredPos.y + _pos05Offset;
 

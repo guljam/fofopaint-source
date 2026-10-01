@@ -35,7 +35,7 @@ package Modules
 
             if (PenTool.airBrushSizeDrawMode > 0)
             {
-                const blurSize:Number = CanvasController.getBlurSize(PenTool.airBrushSizeDrawMode, 1.0);
+                const blurSize:Number = PenTool.getBlurSize(PenTool.airBrushSizeDrawMode, 1.0);
                 CanvasController.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
                 CanvasController.canvasDrawLayerBitmapData.draw(CanvasController.canvasDrawLayerChild);
                 CanvasController.canvasDrawLayerChild.filters = [];

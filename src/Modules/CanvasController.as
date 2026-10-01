@@ -199,45 +199,6 @@ package Modules
                 });
         }
 
-        public static function resetRCanvasDrawLayerCliprect2():void
-        {
-            ReplayDrawer.rCanvasDrawLayerClipRect.x = 0;
-            ReplayDrawer.rCanvasDrawLayerClipRect.y = 0;
-            ReplayDrawer.rCanvasDrawLayerClipRect.width = 0;
-            ReplayDrawer.rCanvasDrawLayerClipRect.height = 0;
-        }
-
-        public static function extandRCanvasDrawLayerCliprect2():void
-        {
-            var rairBrushOffset:Number = (ReplayState.rAirBrushSize2 > 0) ? getClipRectOffsetAirBrush(ReplayState.rAirBrushSize2) : 1;
-            ReplayDrawer.rCanvasDrawLayerClipRect.x -= rairBrushOffset;
-            ReplayDrawer.rCanvasDrawLayerClipRect.y -= rairBrushOffset;
-            ReplayDrawer.rCanvasDrawLayerClipRect.width += (rairBrushOffset * 2);
-            ReplayDrawer.rCanvasDrawLayerClipRect.height += (rairBrushOffset * 2);
-        }
-
-        public static function extandRCanvasDrawLayerCliprect():void
-        {
-            var rairBrushOffset:Number = (ReplayState.rAirBrushSize > 0) ? getClipRectOffsetAirBrush(ReplayState.rAirBrushSize) : 1;
-            ReplayDrawer.rCanvasDrawLayerClipRectLegacy.x -= rairBrushOffset;
-            ReplayDrawer.rCanvasDrawLayerClipRectLegacy.y -= rairBrushOffset;
-            ReplayDrawer.rCanvasDrawLayerClipRectLegacy.width += (rairBrushOffset * 2);
-            ReplayDrawer.rCanvasDrawLayerClipRectLegacy.height += (rairBrushOffset * 2);
-        }
-
-        public static function resetRCanvasDrawLayerCliprect():void
-        {
-            ReplayDrawer.rCanvasDrawLayerClipRectLegacy.x = 0;
-            ReplayDrawer.rCanvasDrawLayerClipRectLegacy.y = 0;
-            ReplayDrawer.rCanvasDrawLayerClipRectLegacy.width = 0;
-            ReplayDrawer.rCanvasDrawLayerClipRectLegacy.height = 0;
-        }
-
-        public static function updateRCanvasDrawLayerCliprect():void
-        {
-            ReplayDrawer.rCanvasDrawLayerClipRectLegacy = ReplayDrawer.rCanvasDrawLayerClipRectLegacy.union(ReplayDrawer.rCanvasDrawShape.getBounds(ReplayDrawer.rCanvasPanel));
-        }
-
         public static function resetCanvasDrawLayerCliprect():void
         {
             canvasDrawLayerClipRect.x = 0;
@@ -248,7 +209,7 @@ package Modules
 
         public static function extandCanvasDrawLayerCliprect():void
         {
-            var airBrushOffset:Number = (PenTool.airBrushSizeDrawMode > 0) ? getClipRectOffsetAirBrush(PenTool.airBrushSizeDrawMode) : 1;
+            var airBrushOffset:Number = (PenTool.airBrushSizeDrawMode > 0) ? PenTool.getClipRectOffsetAirBrush(PenTool.airBrushSizeDrawMode) : 1;
             canvasDrawLayerClipRect.x -= airBrushOffset;
             canvasDrawLayerClipRect.y -= airBrushOffset;
             canvasDrawLayerClipRect.width += (airBrushOffset * 2);
@@ -258,19 +219,6 @@ package Modules
         public static function updateCanvasDrawLayerCliprect():void
         {
             canvasDrawLayerClipRect = canvasDrawLayerClipRect.union(canvasDrawLayerChild.getBounds(canvasPanel));
-        }
-
-        public static function getClipRectOffsetAirBrush(size:int):Number
-        {
-            const len:uint = PenTool.penSizeList.length;
-            for (var i:uint = 1;i < len;i++)
-            {
-                if (PenTool.penSizeList[i] === size)
-                {
-                    return size + PenTool.airBrushClipRectOffsetData[i];
-                }
-            }
-            return 0;
         }
 
         public static function playLayerSwapEffect(target:DisplayObject):void
@@ -397,23 +345,6 @@ package Modules
         public static function isToolEnabledByLayerUnChecked():Boolean
         {
             return checkedLayer === 0;
-        }
-
-        public static function getRefinedPoint(mx:Number, my:Number):Point
-        {
-            mx = Math.round(mx * 100) / 100;
-            my = Math.round(my * 100) / 100;
-            if (ToolController.isSharpLineON)
-            {
-                my = Math.floor(my);
-                mx = Math.floor(mx);
-            }
-            else if (PenTool.penSmoothSlideValue === 0 && (canvasAnchorPoint.rotation % 90 === 0))
-            {
-                my = Math.round(my);
-                mx = Math.round(mx);
-            }
-            return new Point(mx, my);
         }
 
         public static function resetZoomDrawMode():void
@@ -564,24 +495,6 @@ package Modules
                         onMouseUpCanvasNavigator(null);
                     });
             }
-        }
-
-        // 원점 penSmoothX oy로부터 dx쪽으로 dist 만큼 떨어진 거리 점을 리턴함
-        public static function movePointAngleDist(ox:Number, oy:Number, dx:Number, dy:Number, dist:Number):Point
-        {
-            const rad:Number = Math.atan2(dx - ox, dy - oy);
-            return new Point(ox + dist * Math.sin(rad)
-                    , oy + dist * Math.cos(rad));
-        }
-
-        public static function getBlurSize(size:Number, z:Number):Number
-        {
-            var blurSize:Number = size / 2;
-            if (blurSize <= 2)
-                blurSize = 2;
-            else if (blurSize > 30)
-                blurSize = 30;
-            return blurSize * z;
         }
 
         public static function bringCanvasDrawLayerAboveLayer1():void
@@ -1560,14 +1473,6 @@ package Modules
                 xBitmap1.smoothing = true;
                 xBitmap11.smoothing = true;
             }
-        }
-
-        public static function updateCanvasBGPanelReplayMode(color:uint):void
-        {
-            ReplayDrawer.rCanvasPanel.graphics.clear();
-            ReplayDrawer.rCanvasPanel.graphics.beginFill(color);
-            ReplayDrawer.rCanvasPanel.graphics.drawRect(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT);
-            ReplayDrawer.rCanvasPanel.graphics.endFill();
         }
 
         public static function updateCanvasPanelColorAndSize():void

@@ -19,6 +19,7 @@ package Modules.ReplayEngine
     import Modules.FileManager;
     import Modules.UndoHistory;
     import Modules.UndoController;
+    import Modules.Tools.PenTool;
 
     public class ReplayDrawer
     {
@@ -44,6 +45,44 @@ package Modules.ReplayEngine
 
         private static var readCount:Number = 0;
         private static var rMemoryDataLen:uint;
+
+        public static function resetRCanvasDrawLayerClipRect():void
+        {
+            rCanvasDrawLayerClipRect.setEmpty();
+        }
+
+        public static function extendRCanvasDrawLayerClipRect():void
+        {
+            const rairBrushOffset:Number = (ReplayState.rAirBrushSize2 > 0) ? PenTool.getClipRectOffsetAirBrush(ReplayState.rAirBrushSize2) : 1;
+            rCanvasDrawLayerClipRect.x -= rairBrushOffset;
+            rCanvasDrawLayerClipRect.y -= rairBrushOffset;
+            rCanvasDrawLayerClipRect.width += (rairBrushOffset * 2);
+            rCanvasDrawLayerClipRect.height += (rairBrushOffset * 2);
+        }
+
+        public static function updateRCanvasDrawLayerClipRect():void
+        {
+            rCanvasDrawLayerClipRect = rCanvasDrawLayerClipRect.union(rCanvasDrawShape.getBounds(rCanvasPanel));
+        }
+
+        public static function resetRCanvasDrawLayerClipRectLegacy():void
+        {
+            rCanvasDrawLayerClipRectLegacy.setEmpty();
+        }
+
+        public static function extendRCanvasDrawLayerClipRectLegacy():void
+        {
+            const rairBrushOffset:Number = (ReplayState.rAirBrushSize > 0) ? PenTool.getClipRectOffsetAirBrush(ReplayState.rAirBrushSize) : 1;
+            rCanvasDrawLayerClipRectLegacy.x -= rairBrushOffset;
+            rCanvasDrawLayerClipRectLegacy.y -= rairBrushOffset;
+            rCanvasDrawLayerClipRectLegacy.width += (rairBrushOffset * 2);
+            rCanvasDrawLayerClipRectLegacy.height += (rairBrushOffset * 2);
+        }
+
+        public static function updateRCanvasDrawLayerClipRectLegacy():void
+        {
+            rCanvasDrawLayerClipRectLegacy = rCanvasDrawLayerClipRectLegacy.union(rCanvasDrawShape.getBounds(rCanvasPanel));
+        }
 
         // 데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
         public static function finalizeRemainingReplayData():void
@@ -330,7 +369,7 @@ package Modules.ReplayEngine
         // drawdone에서 줌된 blur사이즈가 아니 1배율 블러를 적용해야 제대로 되기 때문에 이거해줌
         public static function blurReplayCanvasByDefaultValue():void
         {
-            const blurSize:Number = CanvasController.getBlurSize(ReplayState.rAirBrushSize, 1.0);
+            const blurSize:Number = PenTool.getBlurSize(ReplayState.rAirBrushSize, 1.0);
             const blurf:BlurFilter = new BlurFilter(blurSize, blurSize, 3);
             rCanvasDrawShape.filters = [blurf];
         }
@@ -343,7 +382,7 @@ package Modules.ReplayEngine
 
         public static function blurReplayCanvasByValue(size:Number):void
         {
-            const blurSize:Number = CanvasController.getBlurSize(size, ReplayState.rCanvasZoomMultiplier);
+            const blurSize:Number = PenTool.getBlurSize(size, ReplayState.rCanvasZoomMultiplier);
             const blurf:BlurFilter = new BlurFilter(blurSize, blurSize, 3);
             ReplayState.rAirBrushSize = size;
             rCanvasDrawShape.filters = [blurf];
@@ -461,7 +500,10 @@ package Modules.ReplayEngine
         public static function updateCanvasBGColorReplayMode(color:uint):void
         {
             ReplayState.RCANVAS_BG_COLOR = color;
-            CanvasController.updateCanvasBGPanelReplayMode(color);
+            rCanvasPanel.graphics.clear();
+            rCanvasPanel.graphics.beginFill(color);
+            rCanvasPanel.graphics.drawRect(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT);
+            rCanvasPanel.graphics.endFill();
         }
 
         public static function updateCanvasSizeReplayMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, movedFlag:Boolean = false):void
@@ -558,11 +600,6 @@ package Modules.ReplayEngine
             rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, CanvasController.canvasLayer2BitmapData, rCanvasLayer2Bitmap);
             syncCanvasSizeReplayMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height);
             updateCanvasBGColorReplayMode(CanvasController.CANVAS_BG_COLOR);
-        }
-
-        public static function updateRCanvasDrawLayerCliprect2():void
-        {
-            rCanvasDrawLayerClipRect = rCanvasDrawLayerClipRect.union(rCanvasDrawShape.getBounds(rCanvasPanel));
         }
 
         public static function makeMemoryCacheImage(completedStepStartFrame:Number):void

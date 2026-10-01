@@ -1,5 +1,6 @@
 package Modules.ReplayEngine
 {
+    import Modules.Tools.PenTool;
     import flash.geom.Point;
     import Modules.Tools.LassoTool;
     import flash.display.LineScaleMode;
@@ -249,11 +250,11 @@ package Modules.ReplayEngine
 
             if (index === 0)
             {
-                CanvasController.resetRCanvasDrawLayerCliprect2();
+                ReplayDrawer.resetRCanvasDrawLayerClipRect();
             }
             else
             {
-                ReplayDrawer.updateRCanvasDrawLayerCliprect2();
+                ReplayDrawer.updateRCanvasDrawLayerClipRect();
             }
         }
 
@@ -289,11 +290,11 @@ package Modules.ReplayEngine
 
             if (index === 0)
             {
-                CanvasController.resetRCanvasDrawLayerCliprect();
+                ReplayDrawer.resetRCanvasDrawLayerClipRectLegacy();
             }
             else
             {
-                CanvasController.updateRCanvasDrawLayerCliprect();
+                ReplayDrawer.updateRCanvasDrawLayerClipRectLegacy();
             }
         }
 
@@ -448,7 +449,7 @@ package Modules.ReplayEngine
             {
                 setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
             }
-            CanvasController.resetRCanvasDrawLayerCliprect2();
+            ReplayDrawer.resetRCanvasDrawLayerClipRect();
         }
 
         public static function fill4(data:Array):void
@@ -471,7 +472,7 @@ package Modules.ReplayEngine
             {
                 setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
             }
-            CanvasController.resetRCanvasDrawLayerCliprect();
+            ReplayDrawer.resetRCanvasDrawLayerClipRectLegacy();
         }
 
         public static function fill3(data:Array):void
@@ -592,7 +593,7 @@ package Modules.ReplayEngine
             }
 
             ReplayDrawer.rCanvasDrawShape.graphics.endFill();
-            CanvasController.resetRCanvasDrawLayerCliprect2();
+            ReplayDrawer.resetRCanvasDrawLayerClipRect();
             if (!ReplayState.isGeneratingCacheImages())
             {
                 setRCursorPos(startX, startY);
@@ -647,7 +648,7 @@ package Modules.ReplayEngine
             }
 
             ReplayDrawer.rCanvasDrawShape.graphics.endFill();
-            CanvasController.resetRCanvasDrawLayerCliprect();
+            ReplayDrawer.resetRCanvasDrawLayerClipRectLegacy();
 
             if (!ReplayState.isGeneratingCacheImages())
             {
@@ -679,7 +680,7 @@ package Modules.ReplayEngine
             else
                 ReplayDrawer.rCanvasDrawShape.graphics.drawCircle(startX, startY, size / 2);
             ReplayDrawer.rCanvasDrawShape.graphics.endFill();
-            CanvasController.resetRCanvasDrawLayerCliprect();
+            ReplayDrawer.resetRCanvasDrawLayerClipRectLegacy();
 
             if (!ReplayState.isGeneratingCacheImages())
             {
@@ -741,7 +742,7 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(size, color);
 
             ReplayDrawer.rCanvasDrawShape.graphics.drawPath(command, xydata);
-            CanvasController.resetRCanvasDrawLayerCliprect2();
+            ReplayDrawer.resetRCanvasDrawLayerClipRect();
 
             if (!ReplayState.isGeneratingCacheImages())
             {
@@ -773,7 +774,7 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(size, color);
             ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             ReplayDrawer.rCanvasDrawShape.graphics.lineTo(endX, endY);
-            CanvasController.resetRCanvasDrawLayerCliprect2();
+            ReplayDrawer.resetRCanvasDrawLayerClipRect();
             if (!ReplayState.isGeneratingCacheImages())
             {
                 setRCursorPos(endX, endY);
@@ -805,7 +806,7 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(size, color);
             ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             ReplayDrawer.rCanvasDrawShape.graphics.lineTo(endX, endY);
-            CanvasController.resetRCanvasDrawLayerCliprect();
+            ReplayDrawer.resetRCanvasDrawLayerClipRectLegacy();
             if (!ReplayState.isGeneratingCacheImages())
             {
                 setRCursorPos(endX, endY);
@@ -1149,7 +1150,7 @@ package Modules.ReplayEngine
         {
             if (ReplayState.rAirBrushSize2 > 0)
             {
-                const blurSize:Number = CanvasController.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
+                const blurSize:Number = PenTool.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
                 ReplayDrawer.rCanvasDrawShape.filters = [new BlurFilter(blurSize, blurSize, 3)];
                 ReplayDrawer.rCanvasDrawLayerBitmapData.draw(ReplayDrawer.rCanvasDrawShape);
                 CanvasController.canvasDrawLayerChild.filters = [];
@@ -1160,7 +1161,7 @@ package Modules.ReplayEngine
             }
 
             ReplayDrawer.rCanvasDrawLayerBitmap.bitmapData = ReplayDrawer.rCanvasDrawLayerBitmapData;
-            ReplayDrawer.updateRCanvasDrawLayerCliprect2();
+            ReplayDrawer.updateRCanvasDrawLayerClipRect();
             ReplayDrawer.rCanvasDrawShape.graphics.clear();
         }
 
@@ -1168,7 +1169,7 @@ package Modules.ReplayEngine
         {
             ReplayDrawer.rCanvasDrawLayerBitmapData.draw(ReplayDrawer.rCanvasDrawShape);
             ReplayDrawer.rCanvasDrawLayerBitmap.bitmapData = ReplayDrawer.rCanvasDrawLayerBitmapData;
-            ReplayDrawer.updateRCanvasDrawLayerCliprect2();
+            ReplayDrawer.updateRCanvasDrawLayerClipRect();
             ReplayDrawer.rCanvasDrawShape.graphics.clear();
         }
 
@@ -1179,7 +1180,7 @@ package Modules.ReplayEngine
                 ReplayDrawer.blurReplayCanvasByDefaultValue();
                 ReplayDrawer.rCanvasDrawLayerBitmapData.draw(ReplayDrawer.rCanvasDrawShape);
                 ReplayDrawer.rCanvasDrawLayerBitmap.bitmapData = ReplayDrawer.rCanvasDrawLayerBitmapData;
-                CanvasController.updateRCanvasDrawLayerCliprect();
+                ReplayDrawer.updateRCanvasDrawLayerClipRectLegacy();
                 ReplayDrawer.rCanvasDrawShape.graphics.clear();
                 ReplayDrawer.blurReplayCanvasByValue(ReplayState.rAirBrushSize);
             }
@@ -1187,7 +1188,7 @@ package Modules.ReplayEngine
             {
                 ReplayDrawer.rCanvasDrawLayerBitmapData.draw(ReplayDrawer.rCanvasDrawShape);
                 ReplayDrawer.rCanvasDrawLayerBitmap.bitmapData = ReplayDrawer.rCanvasDrawLayerBitmapData;
-                CanvasController.updateRCanvasDrawLayerCliprect();
+                ReplayDrawer.updateRCanvasDrawLayerClipRectLegacy();
                 ReplayDrawer.rCanvasDrawShape.graphics.clear();
             }
         }
@@ -1218,7 +1219,7 @@ package Modules.ReplayEngine
 
             if (ReplayState.rAirBrushSize2 > 0)
             {
-                const blurSize:Number = CanvasController.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
+                const blurSize:Number = PenTool.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
                 ReplayDrawer.rCanvasDrawShape.filters = [new BlurFilter(blurSize, blurSize, 3)];
                 ReplayDrawer.rCanvasDrawLayerBitmapData.draw(ReplayDrawer.rCanvasDrawShape);
                 ReplayDrawer.rCanvasDrawShape.filters = [];
@@ -1229,8 +1230,8 @@ package Modules.ReplayEngine
             }
 
             ReplayDrawer.rCanvasDrawLayerBitmap.bitmapData = ReplayDrawer.rCanvasDrawLayerBitmapData;
-            ReplayDrawer.updateRCanvasDrawLayerCliprect2();
-            CanvasController.extandRCanvasDrawLayerCliprect2();
+            ReplayDrawer.updateRCanvasDrawLayerClipRect();
+            ReplayDrawer.extendRCanvasDrawLayerClipRect();
 
             if (subLayer)
             {
@@ -1254,12 +1255,12 @@ package Modules.ReplayEngine
             const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
             ReplayDrawer.rCanvasDrawLayerBitmapData.draw(ReplayDrawer.rCanvasDrawShape);
             ReplayDrawer.rCanvasDrawLayerBitmap.bitmapData = ReplayDrawer.rCanvasDrawLayerBitmapData;
-            ReplayDrawer.updateRCanvasDrawLayerCliprect2();
-            CanvasController.extandRCanvasDrawLayerCliprect2();
+            ReplayDrawer.updateRCanvasDrawLayerClipRect();
+            ReplayDrawer.extendRCanvasDrawLayerClipRect();
 
             if (ReplayState.rAirBrushSize2 > 0)
             {
-                const blurSize:Number = CanvasController.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
+                const blurSize:Number = PenTool.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
                 ReplayDrawer.rCanvasDrawLayerBitmapData.applyFilter(ReplayDrawer.rCanvasDrawLayerBitmapData, ReplayDrawer.rCanvasDrawLayerClipRect, new Point(ReplayDrawer.rCanvasDrawLayerClipRect.x, ReplayDrawer.rCanvasDrawLayerClipRect.y), new BlurFilter(blurSize, blurSize, 3));
                 ReplayDrawer.rCanvasDrawLayerBitmap.bitmapData = ReplayDrawer.rCanvasDrawLayerBitmapData;
             }
@@ -1298,8 +1299,8 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasDrawLayerBitmap.bitmapData = ReplayDrawer.rCanvasDrawLayerBitmapData;
             }
 
-            CanvasController.updateRCanvasDrawLayerCliprect();
-            CanvasController.extandRCanvasDrawLayerCliprect();
+            ReplayDrawer.updateRCanvasDrawLayerClipRectLegacy();
+            ReplayDrawer.extendRCanvasDrawLayerClipRectLegacy();
 
             if (subLayer)
             {
