@@ -108,6 +108,7 @@
             AboutBoxController.setMainInstance(this);
             AppUpdater.setMainInstance(this);
             AppStateManager.setMainInstance(this);
+            AppWindowState.setMainInstance(this);
             ActivityWorkTimer.setMainInstance(this);
             BackgroundWorkerCoordinator.setMainInstance(this);
             CanvasGridOverlay.setMainInstance(this);
@@ -197,8 +198,6 @@
             NativeApplication.nativeApplication.autoExit = true;
         }
 
-
-
         // 파일 드래그 드롭등 마우스 이벤트에서도 target이 null이 되는등
         // 방지를 위해서 스테이지 전체 +2사이즈 여백으로 뒷부분 전체를 투명하게 깔아줌
         public function updateStageBGSize():void
@@ -231,10 +230,10 @@
             stage.addEventListener(MouseEvent.MOUSE_MOVE, MainUI.onMouseMoveBottomHint);
             stage.nativeWindow.x = Capabilities.screenResolutionX / 2 - 680 / 2;
             stage.nativeWindow.y = Capabilities.screenResolutionY / 2 - 768 / 2 - 50;
-            stage.nativeWindow.addEventListener(Event.RESIZE, MainUIController.onWindowResize);
-            stage.nativeWindow.addEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
-            stage.nativeWindow.addEventListener(Event.ACTIVATE, MainUIController.onWindowActive);
-            stage.nativeWindow.addEventListener(Event.CLOSING, FileManager.onWindowClosingEvent);
+            stage.nativeWindow.addEventListener(Event.RESIZE, AppWindowState.onWindowResize);
+            stage.nativeWindow.addEventListener(Event.DEACTIVATE, AppWindowState.onWindowDeactivate);
+            stage.nativeWindow.addEventListener(Event.ACTIVATE, AppWindowState.onWindowActive);
+            stage.nativeWindow.addEventListener(Event.CLOSING, AppWindowState.onWindowClosingEvent);
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, ReplayController.onDragEnterStage);
             stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, FileManager.onDragDropStage);
             stage.addEventListener(MouseEvent.MOUSE_WHEEL, InputManager.onMouseWheelStage);

@@ -144,8 +144,8 @@ package Modules
 
         public static function resetApp():void
         {
-            main.stage.nativeWindow.removeEventListener(Event.CLOSING, FileManager.onWindowClosingEvent);
-            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, FileManager.onWindowDeactivate);
+            main.stage.nativeWindow.removeEventListener(Event.CLOSING, AppWindowState.onWindowClosingEvent);
+            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, AppWindowState.onWindowDeactivate);
             const files:File = File.applicationStorageDirectory;
             files.deleteDirectory(true);
         }

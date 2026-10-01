@@ -1044,7 +1044,7 @@ package Modules
 
                 if (targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) == 0)
                 {
-                    ToolController.setDrawingToolOpacity(targetName);
+                    ToolController.onOpacityButtonDown(targetName);
                     return;
                 }
 

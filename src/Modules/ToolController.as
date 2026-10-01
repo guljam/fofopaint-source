@@ -10,6 +10,7 @@ package Modules
     import flash.display.DisplayObject;
     import flash.display.SimpleButton;
     import flash.display.Sprite;
+    import flash.events.Event;
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
@@ -1251,7 +1252,7 @@ package Modules
 
             if (targetName.indexOf(Global.ALPHA_BUTTON_PREFIX) == 0)
             {
-                ToolController.setDrawingToolOpacity(targetName);
+                ToolController.onOpacityButtonDown(targetName);
                 selectPenToolIfNotDrawingTool(true);
                 return true;
             }
@@ -1476,9 +1477,75 @@ package Modules
 
         public static function setDrawingToolOpacity(targetName:String):void
         {
-            const number:String = targetName.substr(11, targetName.length);
+            const number:String = targetName.substr(Global.ALPHA_BUTTON_PREFIX.length);
             const index:int = parseInt(number);
             ToolController.applyDrawingToolAlpha(PenTool.penAlphaList[index]);
+        }
+
+        // opabox 버튼을 눌렀을때 즉시 적용하고, 누른채 다른 버튼 위로 끌면 따라서 선택함
+        public static function onOpacityButtonDown(targetName:String):void
+        {
+            setDrawingToolOpacity(targetName);
+            startOpacityDrag(targetName);
+        }
+
+        private static var isOpacityDragging:Boolean = false;
+        private static var lastDragOpacityButton:String = "";
+        private static var wasMouseDraggingBeforeOpacityDrag:Boolean = false;
+
+        private static function startOpacityDrag(startButtonName:String):void
+        {
+            if (isOpacityDragging)
+            {
+                return;
+            }
+
+            isOpacityDragging = true;
+            lastDragOpacityButton = startButtonName;
+            wasMouseDraggingBeforeOpacityDrag = CanvasController.isMouseDragging;
+            CanvasController.isMouseDragging = true;
+
+            toolOptionsBox.opaBox.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverOpacityDrag);
+            main.stage.addEventListener(MouseEvent.MOUSE_UP, endOpacityDrag, false, InputPriority.DEFAULT);
+            main.stage.addEventListener(Event.MOUSE_LEAVE, endOpacityDrag);
+        }
+
+        // 포커스를 잃으면(alt+tab 등) mouseUp이 안 오므로 AppWindowState.onWindowDeactivate에서 호출함
+        public static function cancelOpacityDrag():void
+        {
+            if (isOpacityDragging)
+            {
+                endOpacityDrag(null);
+            }
+        }
+
+        private static function onMouseOverOpacityDrag(e:MouseEvent):void
+        {
+            if (!e.buttonDown)
+            {
+                endOpacityDrag(e);
+                return;
+            }
+
+            const target:DisplayObject = e.target as DisplayObject;
+
+            if (!target || target.name === lastDragOpacityButton || target.name.indexOf(Global.ALPHA_BUTTON_PREFIX) !== 0)
+            {
+                return;
+            }
+
+            lastDragOpacityButton = target.name;
+            setDrawingToolOpacity(target.name);
+        }
+
+        private static function endOpacityDrag(e:Event):void
+        {
+            isOpacityDragging = false;
+            CanvasController.isMouseDragging = wasMouseDraggingBeforeOpacityDrag;
+
+            toolOptionsBox.opaBox.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverOpacityDrag);
+            main.stage.removeEventListener(MouseEvent.MOUSE_UP, endOpacityDrag);
+            main.stage.removeEventListener(Event.MOUSE_LEAVE, endOpacityDrag);
         }
     }
 }

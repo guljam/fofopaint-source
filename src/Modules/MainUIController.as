@@ -41,12 +41,6 @@ package Modules
             resizeButtonL:Sprite = new Sprite(),
             resizeButtonU:Sprite = new Sprite();
 
-        public static var lastAppWindowSize:Rectangle = new Rectangle(), // 창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
-            lastAppWindowState:int = 0;
-
-        // 종료 저장/close가 이미 시작됐는지 (종료 직전 applyLayout이 여러 경로로 중복 호출되는 것 방지)
-        private static var isCloseRequested:Boolean = false;
-
         public static function updateTopbarIconsDrawMode():void
 		{
 			MainUI.topBar.updateIconsByMode(0);
@@ -453,8 +447,8 @@ package Modules
                 return;
             }
 
-            const dx:Number = Math.round((main.stage.nativeWindow.width - lastAppWindowSize.width) / 1.75);
-            const dy:Number = Math.round((main.stage.nativeWindow.height - lastAppWindowSize.height) / 1.75);
+            const dx:Number = Math.round((main.stage.nativeWindow.width - AppWindowState.lastAppWindowSize.width) / 1.75);
+            const dy:Number = Math.round((main.stage.nativeWindow.height - AppWindowState.lastAppWindowSize.height) / 1.75);
 
             if (dx === 0 && dy === 0 && !force)
             {
@@ -576,13 +570,13 @@ package Modules
         // 뒤늦게 적용되어 위치가 밀리는 것을 막을 수 있다.
         public static function rebaseLayout():void
         {
-            lastAppWindowSize.setTo(0, 0, main.stage.nativeWindow.width, main.stage.nativeWindow.height);
+            AppWindowState.lastAppWindowSize.setTo(0, 0, main.stage.nativeWindow.width, main.stage.nativeWindow.height);
         }
 
         // 종료 대기 중이면 저장하고 창을 닫는다(마지막 종료 트리거).
         private static function closeAppIfPending():void
         {
-            if (!FileManager.isAppClosing || isCloseRequested)
+            if (!AppWindowState.isAppClosing || AppWindowState.isCloseRequested)
             {
                 return;
             }
@@ -592,21 +586,12 @@ package Modules
                 return;
             }
 
-            isCloseRequested = true;
+            AppWindowState.isCloseRequested = true;
             FileManager.deleteTempDirectory();
             FileManager.saveAllAppData();
             main.stage.nativeWindow.close();
         }
 
-        public static function onWindowResize(e:Event):void
-        {
-            if (AppStateManager.isLoadingAppData)
-            {
-                return;
-            }
-
-            FOFOTimer.addByName("windowResizeDelayTimer", 0.2, false, applyLayout);
-        }
 
         public static function keepBoxInsideViewPort(target:DisplayObject):void
         {
@@ -651,21 +636,6 @@ package Modules
             }
 
             return center;
-        }
-
-        public static function onWindowActive(e:Event):void
-        {
-            InputManager.tryDisableIME();
-            ClipboardManager.checkCanUseClipBoardButton();
-
-            if (AboutBoxController.isAboutBoxOpened)
-            {
-                CanvasController.isMouseClickBlocked = true;
-            }
-            else
-            {
-                InputManager.unblockMouseClickAfterDelay();
-            }
         }
 
         private static function updateStageBGColor():void

@@ -76,7 +76,7 @@ package Modules
             appStateObject.stageNativeWindowHeight = windowBounds.height;
 
             appStateObject.saveFileName = FileManager.lastSaveFileName;
-            appStateObject.lastWindowState = MainUIController.lastAppWindowState;
+            appStateObject.lastWindowState = AppWindowState.lastAppWindowState;
             appStateObject.uiColorIndex = Global.getUIColorIndex();
             appStateObject.appRunningTime = ActivityWorkTimer.getRunningTime();
 
@@ -279,8 +279,8 @@ package Modules
                         main.stage.nativeWindow.x = appStateObject.stageNativeWindowX;
                         main.stage.nativeWindow.y = appStateObject.stageNativeWindowY;
 
-                        MainUIController.lastAppWindowSize.width = appStateObject.stageNativeWindowWidth;
-                        MainUIController.lastAppWindowSize.height = appStateObject.stageNativeWindowHeight;
+                        AppWindowState.lastAppWindowSize.width = appStateObject.stageNativeWindowWidth;
+                        AppWindowState.lastAppWindowSize.height = appStateObject.stageNativeWindowHeight;
 
                         // 캔버스 bg를 한번 업데이트해춤 on window resize이벤트에서는 앱이 정보가 로드되고 있을때 차단되기 때문에
                         main.updateStageBGSize();
@@ -517,8 +517,8 @@ package Modules
 
                 PaletteController.initializeMyPaletteList();
 
-                MainUIController.lastAppWindowSize.width = 1000;
-                MainUIController.lastAppWindowSize.height = 800;
+                AppWindowState.lastAppWindowSize.width = 1000;
+                AppWindowState.lastAppWindowSize.height = 800;
 
                 CanvasController.applyCavnvasSizeDrawMode(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, 0, 0, false);
                 MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
@@ -547,8 +547,8 @@ package Modules
                             return false;
                         }
 
-                        main.stage.nativeWindow.width = MainUIController.lastAppWindowSize.width;
-                        main.stage.nativeWindow.height = MainUIController.lastAppWindowSize.height;
+                        main.stage.nativeWindow.width = AppWindowState.lastAppWindowSize.width;
+                        main.stage.nativeWindow.height = AppWindowState.lastAppWindowSize.height;
                         return true;
                     });
 

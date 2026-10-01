@@ -97,12 +97,6 @@ package Modules
         private static var loadMenuBoxFileType:String;
         private static var loadMenuBoxFile:File;
 
-        // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
-        public static var lastWindowDeactivateTime:int = 0;
-
-        // 앱종료할때 올려줌 창 최대화 되어있는 상태를 원래대로 하고 window resize이벤트에서 마지막에 종료 호출
-        public static var isAppClosing:Boolean = false;
-
         public static function writeCrashLog(errorObject:*):void
         {
             if (isWritingCrashLog || dataFolderPath === null)
@@ -1783,63 +1777,16 @@ package Modules
         {
             if (main.stage.nativeWindow.displayState === "maximized")
             {
-                MainUIController.lastAppWindowState = 1;
+                AppWindowState.lastAppWindowState = 1;
                 main.stage.nativeWindow.restore();
             }
             else
             {
-                MainUIController.lastAppWindowState = 0;
+                AppWindowState.lastAppWindowState = 0;
                 deleteTempDirectory();
                 saveAllAppData();
                 main.stage.nativeWindow.close();
             }
-        }
-
-        public static function onWindowDeactivate(e:Event):void
-        {
-            CanvasController.isMouseClickBlocked = true;
-            main.resizeCanvas.exit(true);
-            InputManager.clearKeyBuffer();
-            InputManager.removeKeyRepeatEvents(null);
-            FOFOTimer.remove("pressholdtimer");
-            if (ToolController.isToolBox2Showing)
-            {
-                CanvasController.isRightMouseClicked = false;
-                ToolController.closeToolBox2();
-            }
-            if (!SidebarController.isSidebarVisible)
-            {
-                SidebarController.startHidingSidebarTemporary();
-            }
-            if (getTimer() - lastWindowDeactivateTime >= 3000
-                    && !BackgroundWorkerCoordinator.isSaveInProgress
-                    && !isFileBrowserOpened
-                    && !isLoadPendingAfterSaving
-                    && !AppUpdater.isUpdatePendingAfterSaving
-                    && !loadMenuBox.visible
-                    && !ReplayState.isGeneratingCacheImages())
-            {
-                saveAllAppData();
-            }
-            lastWindowDeactivateTime = getTimer();
-            if (SidebarController.isQuickSidebarActive && !UndoManager.isDeepUndoEnabled)
-            {
-                SidebarController.deactivateQuickSidebar();
-            }
-            if (ColorPickerController.numPadBox.visible)
-            {
-                ColorPickerController.closeNumpad();
-            }
-            if (ColorPickerController.numPadBox.isLCHSliderActive())
-            {
-                ColorPickerController.numPadBox.removeOKLCHMouseEvent();
-            }
-            if (ColorPickerController.colorPickerBox.scratchPad.isScratchStarted)
-            {
-                ColorPickerController.colorPickerBox.scratchPad.removeCheckMouseDistEvent();
-            }
-            MainUI.hideBottomHint();
-            ToolController.selectLastUsedTool();
         }
 
         // todo 이것은 mainui controller로 가야하지 않을까
@@ -1855,67 +1802,6 @@ package Modules
             }
         }
 
-        public static function onWindowClosingEvent(e:Event):void
-        {
-            isAppClosing = true;
-            e.preventDefault();
-            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, onWindowDeactivate);
-            InputManager.removeInputEventCaptrueMode();
-            InputManager.removeInputEventsDrawMode();
-            InputManager.removeInputEventsReplayMode();
-            ActivityWorkTimer.stop();
-
-            if (ImageViewWindow.canvasWindow !== null)
-            {
-                ImageViewWindow.canvasWindow.visible = false;
-            }
-
-            if (CaptureController.isCaptureModeON === true)
-            {
-                CaptureController.handleExitCaptureMode();
-            }
-
-            if (ReplayState.isReplayStarted === true)
-            {
-                ReplayController.stopReplay();
-            }
-
-            if (LassoTool.isStarted)
-            {
-                LassoTool.cancelLassoTool();
-            }
-
-            // 캐시 이미지 만드는 중이면 멈춰야 앱이 종료됨 (다음 실행때 이어서 만듬)
-            // 이어 만들때 다시 깔아주도록 지금 로드박스 배경 이미지도 저장
-            if (ReplayState.isGeneratingCacheImages())
-            {
-                ReplayController.stopGeneratingReplayCacheImage();
-                ReplayFileCache.saveCachePreview(loadMenuBox.getPreviewImage());
-            }
-
-            if (BackgroundWorkerCoordinator.isWorkerBusy())
-            {
-                if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
-                {
-                    main.stage.nativeWindow.title = "Waiting for remaining tasks...";
-                    openLoadMenuBoxOnClosing();
-                    FOFOTimer.addByName("pollTimerWaitWorkerStop", BackgroundWorkerCoordinator.getWaitPollingInterval(), true, function ():Boolean
-                        {
-                            if (BackgroundWorkerCoordinator.isWorkerStopped())
-                            {
-                                FOFOTimer.remove("pollTimerWaitWorkerStop");
-                                checkWindowMaximizedAndSaveAllData();
-                                return false;
-                            }
-                            return true;
-                        });
-                }
-            }
-            else
-            {
-                checkWindowMaximizedAndSaveAllData();
-            }
-        }
 
         public static function loadUndoData():void
         {
