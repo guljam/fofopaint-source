@@ -7,17 +7,13 @@ package Modules
     import Modules.Tools.LassoTool;
 
     import flash.display.DisplayObject;
-    import flash.display.Sprite;
     import flash.events.Event;
-    import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Modules.Tools.EyeDropperTool;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
-
-    // todo: 캔버스 리사이즈 버튼은 나중에 따로 분리 해야함
 
     public final class MainUIController
     {
@@ -35,12 +31,6 @@ package Modules
             STAGE_BOTTOM_OFFSET:Number = BOTTOM_BAR_HEIGHT,
             STAGE_RIGHT_OFFSET:Number = 0;
 
-        public static const
-            resizeButtonR:Sprite = new Sprite(), // 캔버스 리사이즈 하는 버튼
-            resizeButtonD:Sprite = new Sprite(),
-            resizeButtonL:Sprite = new Sprite(),
-            resizeButtonU:Sprite = new Sprite();
-
         public static function updateTopbarIconsDrawMode():void
 		{
 			MainUI.topBar.updateIconsByMode(0);
@@ -54,83 +44,6 @@ package Modules
 		public static function updateTopbarIconsCaptureMode():void
 		{
 			MainUI.topBar.updateIconsByMode(2);
-		}
-
-        public static function activateCaptureUI():void
-		{
-			const replayMode:Boolean = ReplayState.isReplayModeON;
-			CaptureController.resetCaptureArea();
-			MainUIController.updateCanvasResizeButtonVisible(false);
-			FOFOTimer.remove("rCursorOffAlphaAnimTimer");
-
-			if (replayMode)
-			{
-				MainUI.showTopbarOnReplayEnd();
-				ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
-				ReplayController.seekBarBox.visible = false;
-				InputManager.removeInputEventsReplayMode();
-			}
-			else
-			{
-				CanvasGridOverlay.canvasGrid.visible = false;
-				InputManager.removeInputEventsDrawMode();
-			}
-
-			if (SidebarController.isSidebarVisible)
-			{
-				SidebarController.hideSidebarTemporary();
-			}
-
-			PenSizePreviewCursor.setCursorInVisibleFlag(true);
-			PenSizePreviewCursor.setVisible(false);
-			ReferenceLayerController.canvasRefLayer.visible = false;
-
-			if (ReferenceLayerController.isRefLayerMenuON)
-			{
-				ReferenceLayerController.refLayerMenuBox.visible = false;
-			}
-
-			updateTopbarIconsCaptureMode();
-			ReplayDrawer.rReplayFOFOCursor.visible = false;
-
-			if (MainUI.mouseHint.isShowing())
-			{
-				MainUI.hideMouseHint();
-			}
-
-			InputManager.addInputEventsCaptrueMode();
-			MainUIController.updateStageOffset();
-		}
-
-		public static function deactivateCaptureUI():void
-		{
-			const replayMode:Boolean = ReplayState.isReplayModeON;
-			InputManager.removeInputEventCaptrueMode();
-			ReferenceLayerController.canvasRefLayer.visible = true;
-
-			if (replayMode)
-			{
-				updateTopbarIconsReplayMode();
-				InputManager.addInputEventsReplayMode();
-				ReplayController.seekBarBox.visible = true;
-			}
-			else
-			{
-				if (SidebarController.isSidebarVisible)
-				{
-					SidebarController.showSidebarPermanent();
-				}
-				if (ReferenceLayerController.isRefLayerMenuON)
-				{
-					ReferenceLayerController.refLayerMenuBox.visible = true;
-				}
-				PenSizePreviewCursor.setCursorInVisibleFlag(false);
-				updateTopbarIconsDrawMode();
-				InputManager.addInputEventsDrawMode();
-			}
-
-			ColorPickerController.switchColorPickerModePen();
-			MainUIController.updateStageOffset();
 		}
 
         public static function getViewportRect():Rectangle
@@ -238,32 +151,6 @@ package Modules
             MainUI.hideBottomHint();
         }
 
-        private static function setResizeButtonColor():void
-        {
-            const color:uint = Global.getUIResizeBarColor();
-
-            Utils.setColorTransform(resizeButtonL, color);
-            Utils.setColorTransform(resizeButtonR, color);
-            Utils.setColorTransform(resizeButtonU, color);
-            Utils.setColorTransform(resizeButtonD, color);
-        }
-
-        public static function markWindowTitleAsDirty():void
-        {
-            const titleEndStr:int = main.stage.nativeWindow.title.lastIndexOf(main.STRING_TITLE_FOFOPAINT);
-
-            if (titleEndStr > 0 && main.stage.nativeWindow.title.charAt(titleEndStr - 1) !== "*")
-            {
-                const starFileName:String = main.stage.nativeWindow.title.slice(0, titleEndStr) + "*";
-                main.stage.nativeWindow.title = starFileName + main.STRING_TITLE_FOFOPAINT;
-
-                if (ImageViewWindow.isCanvasWindowON)
-                {
-                    ImageViewWindow.copyMainWindowTitleToCanvasWindow();
-                }
-            }
-        }
-
         public static function updateCanvasNaigatorCursor():void
         {
             var newRightOffset:Number = 0;
@@ -292,147 +179,6 @@ package Modules
                     , CanvasController.CANVAS_WIDTH * zoom, CanvasController.canvasAnchorPoint.rotation);
         }
 
-        public static function updateWindowTitle():void
-        {
-            main.stage.nativeWindow.title = FileManager.lastSaveFileName + main.STRING_TITLE_FOFOPAINT;
-            if (ImageViewWindow.isCanvasWindowON)
-            {
-                ImageViewWindow.copyMainWindowTitleToCanvasWindow();
-            }
-        }
-
-        private static function hideCanvasResizeButtons():void
-        {
-            PenSizePreviewCursor.setCursorInVisibleFlag(false);
-            resizeButtonR.visible = false;
-            resizeButtonL.visible = false;
-            resizeButtonD.visible = false;
-            resizeButtonU.visible = false;
-        }
-
-        private static function showCanvasResizeButtons():void
-        {
-            PenSizePreviewCursor.setCursorInVisibleFlag(true);
-            resizeButtonR.visible = true;
-            resizeButtonL.visible = true;
-            resizeButtonD.visible = true;
-            resizeButtonU.visible = true;
-        }
-
-        public static function updateCanvasResizeButtonVisible(flag:Boolean):void
-        {
-            if (resizeButtonR.visible === flag)
-            {
-                return;
-            }
-
-            if (flag)
-            {
-                updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-                showCanvasResizeButtons();
-            }
-            else
-            {
-                hideCanvasResizeButtons();
-            }
-        }
-
-        public static function showCanvasResizeButtonVisibleDelay(flag:Boolean):void
-        {
-            if (flag)
-            {
-                updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-                ToolController.toolBox2.startResizeButtonWaitPrograssBarAnimation();
-                FOFOTimer.addByName("resizeButtonVisibleDelayTimer", 0.9, false, function ():void
-                    {
-                        showCanvasResizeButtons();
-                        CanvasController.enableTransparentBGDrawMode();
-                    });
-            }
-            else
-            {
-                FOFOTimer.remove("resizeButtonVisibleDelayTimer");
-                hideCanvasResizeButtons();
-                CanvasController.disableTransparentBGDrawMode();
-            }
-        }
-
-        public static function onAboutWindowMouseDown(e:MouseEvent):void
-        {
-            const targetName:String = e.target.name;
-
-            switch (targetName)
-            {
-                case "appResetButton":
-                case "versionInfo":
-                case "releaseNoteButton":
-                case "resetAppButton":
-                case "aboutButton":
-                case "aboutHomePageLink":
-                case "aboutManualFolder":
-                case "aboutErrorLogFolder":
-                    // case "aboutMeLink":
-                    InputManager.handleMouseClickStage(targetName);
-                    break;
-
-                default:
-                    AboutBoxController.closeAboutBox();
-                    break;
-            }
-        }
-
-        public static function initializeResizeButtonFamily():void
-        {
-            function drawRect(target:Sprite):void
-            {
-                target.visible = false;
-                target.graphics.clear();
-                target.graphics.beginFill(0xFF0000);
-                target.graphics.drawRect(0, 0, 10, 10);
-                target.graphics.endFill();
-            }
-            resizeButtonU.name = "resizeButtonU";
-            resizeButtonD.name = "resizeButtonD";
-            resizeButtonR.name = "resizeButtonR";
-            resizeButtonL.name = "resizeButtonL";
-
-            drawRect(resizeButtonU);
-            drawRect(resizeButtonD);
-            drawRect(resizeButtonL);
-            drawRect(resizeButtonR);
-
-            CanvasController.canvasAnchorPoint.addChild(resizeButtonU);
-            CanvasController.canvasAnchorPoint.addChild(resizeButtonD);
-            CanvasController.canvasAnchorPoint.addChild(resizeButtonR);
-            CanvasController.canvasAnchorPoint.addChild(resizeButtonL);
-        }
-
-        public static function updateResizeButtonPos(width:Number, height:Number):void
-        {
-            function setpos(target:Sprite, x:Number, y:Number, w:Number, h:Number):void
-            {
-                target.x = x;
-                target.y = y;
-                target.width = (w === 0) ? buttonSize : w;
-                target.height = (h === 0) ? buttonSize : h;
-            }
-
-            const z:Number = 1 / CanvasController.canvasZoomMultipler;
-            const buttonSize:Number = 20 * z;
-            const buttonSize2:Number = 40 * z;
-            const cpPosX:Number = CanvasController.canvasPanel.x;
-            const cpPosY:Number = CanvasController.canvasPanel.y;
-            const top:Number = cpPosY - buttonSize;
-            const bottom:Number = cpPosY + height;
-            const left:Number = cpPosX - buttonSize;
-            const right:Number = cpPosX + width;
-
-            setpos(resizeButtonU, left, top, width + buttonSize2, 0);
-            setpos(resizeButtonD, left, bottom, width + buttonSize2, 0);
-            setpos(resizeButtonL, left, top, 0, height + buttonSize);
-            setpos(resizeButtonR, right, top, 0, height + buttonSize);
-        }
-
         // 창 크기가 바뀐 뒤의 화면 배치를 "지금 창 크기" 기준으로 다시 계산한다.
         // 이동량은 마지막으로 배치했던 창 크기(lastAppWindowSize)와의 차이로만 구하고, 끝에서 그 기준을 갱신한다.
         // 그래서 같은 크기에서 몇 번을 호출해도 결과가 같고(멱등), 리사이즈 이벤트를 놓쳐도 다음 호출이 전부 보정한다.
@@ -452,7 +198,7 @@ package Modules
 
             if (dx === 0 && dy === 0 && !force)
             {
-                closeAppIfPending();
+                AppWindowState.closeAppIfPending();
                 return;
             }
 
@@ -463,7 +209,7 @@ package Modules
             rebaseLayout();
             MainUI.hideBottomHint();
 
-            closeAppIfPending();
+            AppWindowState.closeAppIfPending();
         }
 
         // 캔버스(그리기/리플레이/캡처)를 창이 커진 만큼 같이 이동시킨다.
@@ -573,26 +319,6 @@ package Modules
             AppWindowState.lastAppWindowSize.setTo(0, 0, main.stage.nativeWindow.width, main.stage.nativeWindow.height);
         }
 
-        // 종료 대기 중이면 저장하고 창을 닫는다(마지막 종료 트리거).
-        private static function closeAppIfPending():void
-        {
-            if (!AppWindowState.isAppClosing || AppWindowState.isCloseRequested)
-            {
-                return;
-            }
-
-            if (FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
-            {
-                return;
-            }
-
-            AppWindowState.isCloseRequested = true;
-            FileManager.deleteTempDirectory();
-            FileManager.saveAllAppData();
-            main.stage.nativeWindow.close();
-        }
-
-
         public static function keepBoxInsideViewPort(target:DisplayObject):void
         {
             const rect:Rectangle = target.getBounds(main.stage);
@@ -683,7 +409,7 @@ package Modules
             MainUI.mouseHint.updateBGColor();
             MainUI.bottomHint.updateHintTextColor(0);
 
-            MainUIController.setResizeButtonColor();
+            CanvasController.setResizeButtonColor();
             SidebarController.updateScrollBarColorAndHeight();
 
             if (ColorPickerController.isColorPickerModeBG)

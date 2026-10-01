@@ -48,6 +48,11 @@ package Modules
         public static const canvasNavigatorBox:CanvasNavigatorBoxSet = new CanvasNavigatorBoxSet();
         public static const canvasInfoBox:CanvasInfoSet = new CanvasInfoSet();
         public static const canvasFlashEffect:Sprite = new Sprite();
+        public static const
+            resizeButtonR:Sprite = new Sprite(), // 캔버스 리사이즈 하는 버튼
+            resizeButtonD:Sprite = new Sprite(),
+            resizeButtonL:Sprite = new Sprite(),
+            resizeButtonU:Sprite = new Sprite();
 
         public static var canvasAnchorPoint:Sprite = new Sprite(); // 회전 스프라이트 부모
         public static var canvasPanel:Sprite = new Sprite(); // 회색 부분을 제외한 그리기 영역 추가
@@ -1061,7 +1066,7 @@ package Modules
                     }
                     canvasSizeChanging = false;
                     MainUI.hideMouseHint();
-                    MainUIController.updateCanvasResizeButtonVisible((isMouseCursorInStage() && isRightMouseClicked) || InputManager.isPressingControl());
+                    updateCanvasResizeButtonVisible((isMouseCursorInStage() && isRightMouseClicked) || InputManager.isPressingControl());
                     canvasAnchorPoint.removeChild(resizePreviewRect);
                     canvasAnchorPoint.removeChild(resizePreviewRatioRect);
                     resizePreviewRect.graphics.clear();
@@ -1074,7 +1079,7 @@ package Modules
                             UndoController.applyDeepUndo();
                         }
                         applyCavnvasSizeDrawMode(finalWidth, finalHeight, subX, subY, centerMovedFlag);
-                        MainUIController.updateResizeButtonPos(finalWidth, finalHeight);
+                        updateResizeButtonPos(finalWidth, finalHeight);
                         ReplayState.pushCommand(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
                         UndoHistory.addNew();
                         if (ImageViewWindow.isCanvasWindowON)
@@ -1086,7 +1091,7 @@ package Modules
                 }
                 else
                 {
-                    MainUIController.updateCanvasResizeButtonVisible(false);
+                    updateCanvasResizeButtonVisible(false);
                     rightMouseupEventON = false;
                     main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent);
                 }
@@ -1240,7 +1245,7 @@ package Modules
                     ToolController.closeToolBox2();
                 }
 
-                MainUIController.updateCanvasResizeButtonVisible(false);
+                updateCanvasResizeButtonVisible(false);
                 main.stage.addEventListener(MouseEvent.MOUSE_UP, resizeButtonMouseUpEvent, false, InputPriority.DEFAULT);
                 if (rightMouseupEventON === false)
                 {
@@ -1629,7 +1634,7 @@ package Modules
             // reset vars보다 뒤에 와야함
             // addundo에서 활성화 해주고 있기 때문에
             FileManager.setNewFileAvailable(false);
-            MainUIController.markWindowTitleAsDirty();
+            AppWindowState.markWindowTitleAsDirty();
             MainUIController.updateCanvasNaigatorCursor();
         }
 
@@ -1663,6 +1668,125 @@ package Modules
             target.lock();
             target.copyPixels(source, copyPixelRect, Global.ZERO_POINT, null, null, false);
             target.unlock();
+        }
+
+        // 캔버스 상하좌우 리사이즈 버튼
+        public static function initializeResizeButtonFamily():void
+        {
+            function drawRect(target:Sprite):void
+            {
+                target.visible = false;
+                target.graphics.clear();
+                target.graphics.beginFill(0xFF0000);
+                target.graphics.drawRect(0, 0, 10, 10);
+                target.graphics.endFill();
+            }
+            resizeButtonU.name = "resizeButtonU";
+            resizeButtonD.name = "resizeButtonD";
+            resizeButtonR.name = "resizeButtonR";
+            resizeButtonL.name = "resizeButtonL";
+
+            drawRect(resizeButtonU);
+            drawRect(resizeButtonD);
+            drawRect(resizeButtonL);
+            drawRect(resizeButtonR);
+
+            canvasAnchorPoint.addChild(resizeButtonU);
+            canvasAnchorPoint.addChild(resizeButtonD);
+            canvasAnchorPoint.addChild(resizeButtonR);
+            canvasAnchorPoint.addChild(resizeButtonL);
+        }
+
+        public static function updateResizeButtonPos(width:Number, height:Number):void
+        {
+            function setpos(target:Sprite, x:Number, y:Number, w:Number, h:Number):void
+            {
+                target.x = x;
+                target.y = y;
+                target.width = (w === 0) ? buttonSize : w;
+                target.height = (h === 0) ? buttonSize : h;
+            }
+
+            const z:Number = 1 / canvasZoomMultipler;
+            const buttonSize:Number = 20 * z;
+            const buttonSize2:Number = 40 * z;
+            const cpPosX:Number = canvasPanel.x;
+            const cpPosY:Number = canvasPanel.y;
+            const top:Number = cpPosY - buttonSize;
+            const bottom:Number = cpPosY + height;
+            const left:Number = cpPosX - buttonSize;
+            const right:Number = cpPosX + width;
+
+            setpos(resizeButtonU, left, top, width + buttonSize2, 0);
+            setpos(resizeButtonD, left, bottom, width + buttonSize2, 0);
+            setpos(resizeButtonL, left, top, 0, height + buttonSize);
+            setpos(resizeButtonR, right, top, 0, height + buttonSize);
+        }
+
+        private static function hideCanvasResizeButtons():void
+        {
+            PenSizePreviewCursor.setCursorInVisibleFlag(false);
+            resizeButtonR.visible = false;
+            resizeButtonL.visible = false;
+            resizeButtonD.visible = false;
+            resizeButtonU.visible = false;
+        }
+
+        private static function showCanvasResizeButtons():void
+        {
+            PenSizePreviewCursor.setCursorInVisibleFlag(true);
+            resizeButtonR.visible = true;
+            resizeButtonL.visible = true;
+            resizeButtonD.visible = true;
+            resizeButtonU.visible = true;
+        }
+
+        public static function updateCanvasResizeButtonVisible(flag:Boolean):void
+        {
+            if (resizeButtonR.visible === flag)
+            {
+                return;
+            }
+
+            if (flag)
+            {
+                updateResizeButtonPos(CANVAS_WIDTH, CANVAS_HEIGHT);
+                showCanvasResizeButtons();
+            }
+            else
+            {
+                hideCanvasResizeButtons();
+            }
+        }
+
+        public static function showCanvasResizeButtonVisibleDelay(flag:Boolean):void
+        {
+            if (flag)
+            {
+                updateResizeButtonPos(CANVAS_WIDTH, CANVAS_HEIGHT);
+                ToolController.toolBox2.startResizeButtonWaitPrograssBarAnimation();
+                FOFOTimer.addByName("resizeButtonVisibleDelayTimer", 0.9, false, function ():void
+                    {
+                        showCanvasResizeButtons();
+                        enableTransparentBGDrawMode();
+                    });
+            }
+            else
+            {
+                FOFOTimer.remove("resizeButtonVisibleDelayTimer");
+                hideCanvasResizeButtons();
+                disableTransparentBGDrawMode();
+            }
+        }
+
+        public static function setResizeButtonColor():void
+        {
+            const color:uint = Global.getUIResizeBarColor();
+
+            Utils.setColorTransform(resizeButtonL, color);
+            Utils.setColorTransform(resizeButtonR, color);
+            Utils.setColorTransform(resizeButtonU, color);
+            Utils.setColorTransform(resizeButtonD, color);
         }
     }
 }

@@ -303,7 +303,7 @@ package Modules
                         CanvasController.canvasAnchorPoint.rotation = appStateObject.canvasAnchorPointRotation;
 
                         ReplayDrawer.setRcursorRotation(appStateObject.canvasAnchorPointRotation);
-                        MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+                        CanvasController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
                         CanvasController.canvasRotateCursor.rotateArrow.rotation = appStateObject.canvasAnchorPointRotation;
 
                         // Pen Tool Settings
@@ -468,7 +468,7 @@ package Modules
                         MainUIController.updateCanvasNaigatorCursor();
                         PenSizePreviewCursor.updateSizeAndShape();
                         isLoadingAppData = false;
-                        MainUIController.updateWindowTitle();
+                        AppWindowState.updateWindowTitle();
                         CanvasController.selectLayer1(false);
 
                         if (ReplayState.isGeneratingCacheImages())
@@ -521,7 +521,7 @@ package Modules
                 AppWindowState.lastAppWindowSize.height = 800;
 
                 CanvasController.applyCavnvasSizeDrawMode(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, 0, 0, false);
-                MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+                CanvasController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
 
                 ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
                 ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);

@@ -8,6 +8,9 @@ package Modules.CaptureEngine
     import Modules.FileManager;
     import Modules.ColorPickerController;
     import Modules.CanvasController;
+    import Modules.CanvasGridOverlay;
+    import Modules.InputManager;
+    import Modules.ReferenceLayerController;
     import Modules.BackgroundWorkerCoordinator;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
@@ -417,7 +420,7 @@ package Modules.CaptureEngine
                 SidebarController.startHidingSidebarTemporary();
             }
 
-            MainUIController.activateCaptureUI();
+            activateCaptureUI();
             CaptureArea.startHoverTracking();
             MainUI.hideBottomHint();
 
@@ -486,6 +489,83 @@ package Modules.CaptureEngine
             }
         }
 
+        private static function activateCaptureUI():void
+        {
+            const replayMode:Boolean = ReplayState.isReplayModeON;
+            resetCaptureArea();
+            CanvasController.updateCanvasResizeButtonVisible(false);
+            FOFOTimer.remove("rCursorOffAlphaAnimTimer");
+
+            if (replayMode)
+            {
+                ReplayController.showTopbarOnReplayEnd();
+                ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
+                ReplayController.seekBarBox.visible = false;
+                InputManager.removeInputEventsReplayMode();
+            }
+            else
+            {
+                CanvasGridOverlay.canvasGrid.visible = false;
+                InputManager.removeInputEventsDrawMode();
+            }
+
+            if (SidebarController.isSidebarVisible)
+            {
+                SidebarController.hideSidebarTemporary();
+            }
+
+            PenSizePreviewCursor.setCursorInVisibleFlag(true);
+            PenSizePreviewCursor.setVisible(false);
+            ReferenceLayerController.canvasRefLayer.visible = false;
+
+            if (ReferenceLayerController.isRefLayerMenuON)
+            {
+                ReferenceLayerController.refLayerMenuBox.visible = false;
+            }
+
+            MainUIController.updateTopbarIconsCaptureMode();
+            ReplayDrawer.rReplayFOFOCursor.visible = false;
+
+            if (MainUI.mouseHint.isShowing())
+            {
+                MainUI.hideMouseHint();
+            }
+
+            InputManager.addInputEventsCaptrueMode();
+            MainUIController.updateStageOffset();
+        }
+
+        private static function deactivateCaptureUI():void
+        {
+            const replayMode:Boolean = ReplayState.isReplayModeON;
+            InputManager.removeInputEventCaptrueMode();
+            ReferenceLayerController.canvasRefLayer.visible = true;
+
+            if (replayMode)
+            {
+                MainUIController.updateTopbarIconsReplayMode();
+                InputManager.addInputEventsReplayMode();
+                ReplayController.seekBarBox.visible = true;
+            }
+            else
+            {
+                if (SidebarController.isSidebarVisible)
+                {
+                    SidebarController.showSidebarPermanent();
+                }
+                if (ReferenceLayerController.isRefLayerMenuON)
+                {
+                    ReferenceLayerController.refLayerMenuBox.visible = true;
+                }
+                PenSizePreviewCursor.setCursorInVisibleFlag(false);
+                MainUIController.updateTopbarIconsDrawMode();
+                InputManager.addInputEventsDrawMode();
+            }
+
+            ColorPickerController.switchColorPickerModePen();
+            MainUIController.updateStageOffset();
+        }
+
         public static function resetCaptureCanvasChangeValue():void
         {
             _captureCanvasRotationStep = 0;
@@ -542,7 +622,7 @@ package Modules.CaptureEngine
             PenSizePreviewCursor.updateSizeAndShape();
 
             // prev box 사각형 업데이트가 있기 때문에 xAnc위치가 갱신된 다음에 해주어야함
-            MainUIController.deactivateCaptureUI();
+            deactivateCaptureUI();
             MainUI.hideBottomHint();
 
             if (replayMode)

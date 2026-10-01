@@ -360,6 +360,16 @@
             return "Swap layers " + ((LassoTool.isLassoLayerSwapButtonClicked) ? "*" : "");
         }
 
+        public static function getImageScaleHint(width:Number, height:Number, scale:Number, scaleXFlag:Boolean):String
+        {
+            const scaleStr:String = Math.round(scale * 100) + "%";
+            if (scaleXFlag)
+            {
+                return Math.round(width * scale) + " x " + Math.round(height * scale) + " (" + scaleStr + ")";
+            }
+            return Math.round(width) + " x " + Math.round(height) + " (" + scaleStr + ")";
+        }
+
         public static function getLayerVisibleHint(layer1:Boolean, layer2:Boolean):String
         {
             if (layer1)

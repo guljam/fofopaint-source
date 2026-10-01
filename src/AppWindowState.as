@@ -185,5 +185,49 @@ package
                 FileManager.checkWindowMaximizedAndSaveAllData();
             }
         }
+
+        public static function updateWindowTitle():void
+        {
+            main.stage.nativeWindow.title = FileManager.lastSaveFileName + main.STRING_TITLE_FOFOPAINT;
+            if (ImageViewWindow.isCanvasWindowON)
+            {
+                ImageViewWindow.copyMainWindowTitleToCanvasWindow();
+            }
+        }
+
+        public static function markWindowTitleAsDirty():void
+        {
+            const titleEndStr:int = main.stage.nativeWindow.title.lastIndexOf(main.STRING_TITLE_FOFOPAINT);
+
+            if (titleEndStr > 0 && main.stage.nativeWindow.title.charAt(titleEndStr - 1) !== "*")
+            {
+                const starFileName:String = main.stage.nativeWindow.title.slice(0, titleEndStr) + "*";
+                main.stage.nativeWindow.title = starFileName + main.STRING_TITLE_FOFOPAINT;
+
+                if (ImageViewWindow.isCanvasWindowON)
+                {
+                    ImageViewWindow.copyMainWindowTitleToCanvasWindow();
+                }
+            }
+        }
+
+        // 종료 대기 중이면 저장하고 창을 닫는다(마지막 종료 트리거).
+        public static function closeAppIfPending():void
+        {
+            if (!isAppClosing || isCloseRequested)
+            {
+                return;
+            }
+
+            if (FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
+            {
+                return;
+            }
+
+            isCloseRequested = true;
+            FileManager.deleteTempDirectory();
+            FileManager.saveAllAppData();
+            main.stage.nativeWindow.close();
+        }
     }
 }

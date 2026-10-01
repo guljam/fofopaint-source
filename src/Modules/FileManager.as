@@ -491,7 +491,7 @@ package Modules
                 ReferenceLayerController.refLayerRawTransformData = null;
                 ReferenceLayerController.canvasRefLayerBitmap.smoothing = true;
             }
-            MainUIController.updateWindowTitle();
+            AppWindowState.updateWindowTitle();
             CanvasController.selectLayer1(false);
             ReplayDrawer.selectReplaySubLayer(false);
             if (ToolController.toolOptionsBox.layer1CheckedButton.visible)
@@ -502,7 +502,7 @@ package Modules
             {
                 CanvasController.toggleLayer2Check();
             }
-            MainUIController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+            CanvasController.updateResizeButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
             InputManager.removeKeyRepeatEvents(null);
             CanvasController.canvasLayer1Bitmap.visible = true;
             CanvasController.canvasLayer2Bitmap.visible = true;
@@ -668,7 +668,7 @@ package Modules
             {
                 ToolController.toolOptionsBox.layerMergeButton.alpha = 1.0;
             }
-            MainUIController.markWindowTitleAsDirty();
+            AppWindowState.markWindowTitleAsDirty();
         }
 
         private static function getFinalBitmapDataFrom2020File(file:File, bgFlag:Boolean):BitmapData
@@ -1403,7 +1403,7 @@ package Modules
                 prepareLoadMenuBoxFromImageFile(file, toRefLayer);
             }
             setFileBrowserIsOpen(true);
-            MainUIController.showCanvasResizeButtonVisibleDelay(false);
+            CanvasController.showCanvasResizeButtonVisibleDelay(false);
             InputManager.removeInputEventsReplayMode();
             InputManager.removeInputEventsDrawMode();
             file.browseForOpen(windowTitle, [new FileFilter("All supported formats", "*.fofo;*.2020;*.png;*.jpg;*.jpeg;*.jfif;*.gif;*.webp")]);
@@ -1645,7 +1645,7 @@ package Modules
                     // 병합 이미지는 Worker 전송 후 Worker 쪽에서 dispose함
                     BackgroundWorkerCoordinator.startPngEncodingWorker(CanvasController.getMergedBitmapdtata(false, true, true, null), CanvasController.CANVAS_BG_COLOR, false, false);
                     saveFOFOFile();
-                    MainUIController.updateWindowTitle();
+                    AppWindowState.updateWindowTitle();
                     InputManager.clearKeyBuffer();
                     isFileAlreadySaved = true;
                     pollTimerWaitWorkerForImageSave(lastSaveFilePath, true);
@@ -1713,7 +1713,7 @@ package Modules
                     BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage, CanvasController.CANVAS_BG_COLOR, false, false);
                     mergedImage = null;
                     saveFOFOFile();
-                    MainUIController.updateWindowTitle();
+                    AppWindowState.updateWindowTitle();
                     pollTimerWaitWorkerForImageSave(lastSaveFilePath, false);
                 }
             }

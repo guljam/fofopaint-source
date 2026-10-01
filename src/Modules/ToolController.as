@@ -1039,7 +1039,7 @@ package Modules
 
             if (!ignoreResizeButtonVisible)
             {
-                MainUIController.showCanvasResizeButtonVisibleDelay(false);
+                CanvasController.showCanvasResizeButtonVisibleDelay(false);
             }
         }
 
@@ -1212,7 +1212,7 @@ package Modules
             toolBox2.alpha = 1.0;
             toolBox2.visible = true;
             isToolBox2Showing = true;
-            MainUIController.showCanvasResizeButtonVisibleDelay(true);
+            CanvasController.showCanvasResizeButtonVisibleDelay(true);
             Utils.setAsTopChild(toolBox2);
             InputManager.addInputEventsToolBox2();
             FOFOTimer.addByName("toolBox2HideCheckTimer", 0.1, true, function ():Boolean
@@ -1222,7 +1222,7 @@ package Modules
                         return false;
                     }
 
-                    if (MainUIController.resizeButtonR.visible)
+                    if (CanvasController.resizeButtonR.visible)
                     {
                         if (!toolBox2.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                         {

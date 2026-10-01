@@ -1505,9 +1505,9 @@ package Modules
                 {
                     main.resizeCanvas.exit(true);
                 }
-                if (MainUIController.resizeButtonR.visible)
+                if (CanvasController.resizeButtonR.visible)
                 {
-                    MainUIController.updateCanvasResizeButtonVisible(false);
+                    CanvasController.updateCanvasResizeButtonVisible(false);
                 }
             }
         }
@@ -1561,7 +1561,7 @@ package Modules
                 {
                     if (main.resizeCanvas.isResizing() === false)
                     {
-                        MainUIController.updateCanvasResizeButtonVisible(true);
+                        CanvasController.updateCanvasResizeButtonVisible(true);
                     }
                 }
                 return;

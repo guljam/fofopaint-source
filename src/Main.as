@@ -153,13 +153,13 @@
         {
             initializeModule();
             initializeTools();
-            MainUIController.updateWindowTitle();
-            MainUIController.markWindowTitleAsDirty();
+            AppWindowState.updateWindowTitle();
+            AppWindowState.markWindowTitleAsDirty();
             initializeStageSettings();
             CanvasController.initializeCanvas();
             ReplayController.initializeReplayCanvas();
             MainUI.initializeAppMenus();
-            MainUIController.initializeResizeButtonFamily();
+            CanvasController.initializeResizeButtonFamily();
             CaptureController.initializeCaptureModeTransparentBG();
             BackgroundWorkerCoordinator.initializeWorker();
             AppStateManager.loadAppState();

@@ -1261,7 +1261,7 @@ package Modules.ReplayEngine
         {
             ReplayController.seekBarBox.setPlayButtonVisible(true);
             hideCompleteImageToBGReplayMode();
-            MainUI.showTopbarOnReplayEnd();
+            showTopbarOnReplayEnd();
             FOFOTimer.remove("replayRestartTimer");
             updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
             Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, Global.getUIReplayEndBarColor());
@@ -1327,9 +1327,22 @@ package Modules.ReplayEngine
             }
         }
 
+        public static function showTopbarOnReplayEnd():void
+        {
+            if (MainUI.topBar.visible === false)
+            {
+                MainUI.topBar.visible = true;
+                seekBarBox.y = lastReplayTimeBoxYPos;
+                seekBarBox.setPlayButtonVisible(true);
+                seekBarBox.showReplayControlButton();
+                MainUI.hideBottomHint();
+                MainUI.hideMouseHint();
+            }
+        }
+
         public static function handleReplayStopButton():void
         {
-            MainUI.showTopbarOnReplayEnd();
+            showTopbarOnReplayEnd();
             stopReplay();
         }
 
@@ -2051,7 +2064,7 @@ package Modules.ReplayEngine
             CaptureController.resetCaptureCanvasChangeValue();
             FileManager.updateLastFilePathByRandomFileName();
             CanvasController.canvasInfoBox.setMirror(false);
-            MainUIController.updateWindowTitle();
+            AppWindowState.updateWindowTitle();
             InputManager.removeKeyRepeatEvents(null);
         }
 

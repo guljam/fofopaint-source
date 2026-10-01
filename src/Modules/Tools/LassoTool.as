@@ -388,7 +388,7 @@ package Modules.Tools
             function onDragStart():void
             {
                 setOptimizeView(true);
-                MainUI.showMouseHint(MainUI.getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
+                MainUI.showMouseHint(HintStrings.getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
             }
             function onMouseUp():void
             {
@@ -405,7 +405,7 @@ package Modules.Tools
                 lassoLayer1.scaleY = scale;
                 lassoLayer2.scaleX = lassoLayer1.scaleX;
                 lassoLayer2.scaleY = lassoLayer1.scaleY;
-                MainUI.showMouseHint(MainUI.getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
+                MainUI.showMouseHint(HintStrings.getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
             }
             DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
         }

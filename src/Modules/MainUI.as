@@ -64,16 +64,6 @@ package Modules
 			lastBottomHintTargetRect.height = 0;
 		}
 
-		public static function getImageScaleHint(width:Number, height:Number, scale:Number, scaleXFlag:Boolean):String
-		{
-			const scaleStr:String = Math.round(scale * 100) + "%";
-			if (scaleXFlag)
-			{
-				return Math.round(width * scale) + " x " + Math.round(height * scale) + " (" + scaleStr + ")";
-			}
-			return Math.round(width) + " x " + Math.round(height) + " (" + scaleStr + ")";
-		}
-
 		public static function isHintUnavailable():Boolean
 		{
 			return CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging || ToolController.isToolBox2Showing
@@ -586,21 +576,6 @@ package Modules
 		{
 			FOFOTimer.remove(BOTTOM_HINT_SCROLL_TIMER);
 			resetBottomHintScrolling();
-		}
-
-		public static function showTopbarOnReplayEnd():void
-		{
-			if (topBar.visible === false)
-			{
-
-				topBar.visible = true;
-				ReplayController.seekBarBox.y = ReplayController.lastReplayTimeBoxYPos;
-				ReplayController.seekBarBox.setPlayButtonVisible(true);
-				ReplayController.seekBarBox.showReplayControlButton();
-				hideBottomHint();
-				hideMouseHint();
-
-			}
 		}
 	}
 }

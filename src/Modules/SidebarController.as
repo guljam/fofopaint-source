@@ -475,7 +475,7 @@ package Modules
                 && !CaptureController.isCaptureModeON
                 && !ToolController.isToolBox2Showing
                 && !CanvasController.isMouseClickBlocked
-                && !MainUIController.resizeButtonR.visible;
+                && !CanvasController.resizeButtonR.visible;
         }
 
         private static function onMouseLeaveSideBar(e:Event):void

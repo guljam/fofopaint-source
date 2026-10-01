@@ -108,7 +108,7 @@ package Modules
 
                 FOFOTimer.addByName("openAboutPanelOFFTimer", 1.0, false, function ():void
                     {
-                        main.stage.addEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown, false, InputPriority.DEFAULT);
+                        main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown, false, InputPriority.DEFAULT);
                     });
             }
             else
@@ -116,7 +116,7 @@ package Modules
                 _aboutBox.resetAppButton.visible = true;
 
                 AppUpdater.checkUpdate();
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown, false, InputPriority.DEFAULT);
+                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown, false, InputPriority.DEFAULT);
             }
 
             _aboutBox.randomLogo();
@@ -126,7 +126,7 @@ package Modules
 
         public static function closeAboutBox():void
         {
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, MainUIController.onAboutWindowMouseDown);
+            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown);
 
             InputManager.removeInputEventCaptrueMode();
             InputManager.removeInputEventsReplayMode();
@@ -140,6 +140,30 @@ package Modules
                 {
                     CanvasController.isMouseClickBlocked = false;
                 });
+        }
+
+        private static function onAboutWindowMouseDown(e:MouseEvent):void
+        {
+            const targetName:String = e.target.name;
+
+            switch (targetName)
+            {
+                case "appResetButton":
+                case "versionInfo":
+                case "releaseNoteButton":
+                case "resetAppButton":
+                case "aboutButton":
+                case "aboutHomePageLink":
+                case "aboutManualFolder":
+                case "aboutErrorLogFolder":
+                    // case "aboutMeLink":
+                    InputManager.handleMouseClickStage(targetName);
+                    break;
+
+                default:
+                    closeAboutBox();
+                    break;
+            }
         }
 
         public static function resetApp():void

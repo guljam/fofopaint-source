@@ -391,7 +391,7 @@ package Modules
 
             function onDragStart():void
             {
-                MainUI.showMouseHint(MainUI.getImageScaleHint(canvasRefLayerBitmapData.width, canvasRefLayerBitmapData.height, Math.abs(canvasRefLayer.scaleX), true));
+                MainUI.showMouseHint(HintStrings.getImageScaleHint(canvasRefLayerBitmapData.width, canvasRefLayerBitmapData.height, Math.abs(canvasRefLayer.scaleX), true));
                 refLayerMenuBox.visible = false;
                 canvasRefLayerBitmap.smoothing = false;
             }
@@ -402,7 +402,7 @@ package Modules
                 if (scale)
                     canvasRefLayer.scaleX = (canvasRefLayer.scaleX < 0) ? -scale : scale;
                 canvasRefLayer.scaleY = scale;
-                MainUI.showMouseHint(MainUI.getImageScaleHint(canvasRefLayerBitmapData.width, canvasRefLayerBitmapData.height, scale, true));
+                MainUI.showMouseHint(HintStrings.getImageScaleHint(canvasRefLayerBitmapData.width, canvasRefLayerBitmapData.height, scale, true));
             }
 
             function onMouseUp():void
