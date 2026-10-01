@@ -192,7 +192,7 @@ package Modules.Tools
 
                         return false;
                     }
-                    else if (!CanvasController.isMouseLeftClicked && !SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                    else if (!MouseState.isLeftDown && !SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                     {
                         turnOffFillPenPreviewTimerCount--;
 
@@ -674,7 +674,7 @@ package Modules.Tools
         {
             const target:DisplayObject = e.target as DisplayObject;
 
-            if (CanvasController.isMouseLeftClicked
+            if (MouseState.isLeftDown
                     || SidebarController.isQuickSidebarActive
                     || !target
                     || ColorPickerController.numPadBox.visible)
@@ -804,7 +804,7 @@ package Modules.Tools
         {
             const pressedKey:uint = e.keyCode;
 
-            if (CanvasController.isMouseLeftClicked)
+            if (MouseState.isLeftDown)
             {
                 return;
             }
@@ -851,7 +851,7 @@ package Modules.Tools
             const keyCode:uint = e.keyCode;
             InputManager.resetLastKey();
 
-            if (CanvasController.isMouseLeftClicked)
+            if (MouseState.isLeftDown)
             {
                 if (keyCode === InputManager.KEY.q || keyCode === InputManager.KEY.o || keyCode === InputManager.KEY.enter)
                 {

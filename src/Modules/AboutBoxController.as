@@ -102,7 +102,7 @@ package Modules
             Utils.setAsTopChild(_aboutBox);
             _isAboutBoxOpened = true;
 
-            CanvasController.isMouseClickBlocked = true;
+            MouseState.isClickBlocked = true;
             HintController.hideBottomHint();
 
             DrawModeInput.removeEvents();
@@ -143,7 +143,7 @@ package Modules
 
             FOFOTimer.addByName("clickBlockTimer", 0.15, false, function ():void
                 {
-                    CanvasController.isMouseClickBlocked = false;
+                    MouseState.isClickBlocked = false;
                 });
         }
 

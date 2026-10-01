@@ -883,7 +883,7 @@ package Modules.ReplayEngine
                         lastCursorUpdateTime = nowTime;
                         ReplayDrawCommands.updateRCursorPos();
 
-                        if (!ReplayState.isReplayCanvasFitToWindow && !CanvasController.isMouseLeftClicked && !UndoController.isDeepUndoEnabled)
+                        if (!ReplayState.isReplayCanvasFitToWindow && !MouseState.isLeftDown && !UndoController.isDeepUndoEnabled)
                         {
                             rFollowMouse.check(ReplayState.isReplaySlideShowMode);
                         }
@@ -1582,7 +1582,7 @@ package Modules.ReplayEngine
 
             function isMouseMoved():Boolean
             {
-                return pos.x !== main.stage.mouseX || pos.y !== main.stage.mouseY || CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked;
+                return pos.x !== main.stage.mouseX || pos.y !== main.stage.mouseY || MouseState.isLeftDown || MouseState.isRightDown;
             }
 
             function updateMousePos():void

@@ -66,7 +66,7 @@ package
 
             if (AboutBoxController.isAboutBoxOpened)
             {
-                CanvasController.isMouseClickBlocked = true;
+                MouseState.isClickBlocked = true;
             }
             else
             {
@@ -76,12 +76,12 @@ package
 
         public static function onWindowDeactivate(e:Event):void
         {
-            CanvasController.isMouseClickBlocked = true;
+            MouseState.isClickBlocked = true;
             ImeController.onWindowDeactivate();
             FillPenTool.hideFillPenMenuBox();
             MouseState.finishAllDrags(); // 그리는 도중 포커스를 잃으면 mouseUp이 안오므로 획 등을 정상 종료함
             MouseState.resetAll();
-            CanvasController.isKeyReleasedBeforeMouseUp = false;
+            DrawModeInput.isKeyReleasedBeforeMouseUp = false;
             main.resizeCanvas.exit(true);
             InputManager.clearKeyBuffer();
             InputManager.removeKeyRepeatEvents(null);

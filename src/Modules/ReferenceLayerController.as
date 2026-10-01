@@ -134,7 +134,7 @@ package Modules
                 return;
             }
 
-            if (CanvasController.isMouseDragging === true)
+            if (MouseState.isDragging === true)
             {
                 return;
             }

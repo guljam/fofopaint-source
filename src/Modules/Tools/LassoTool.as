@@ -284,7 +284,7 @@ package Modules.Tools
                 }
                 return;
             }
-            if (CanvasController.isMouseDragging === true)
+            if (MouseState.isDragging === true)
             {
                 return;
             }
@@ -1205,7 +1205,7 @@ package Modules.Tools
 
         private static function onMouseDownLassoTool(e:MouseEvent):void
         {
-            if (CanvasController.isRightMouseClicked)
+            if (MouseState.isRightDown)
             {
                 return;
             }
@@ -1322,7 +1322,7 @@ package Modules.Tools
         private static function onKeyUpLassoTool(e:KeyboardEvent):void
         {
             const keyCode:uint = e.keyCode;
-            if (_isLassoMenuHiddenTemp && !CanvasController.isMouseLeftClicked)
+            if (_isLassoMenuHiddenTemp && !MouseState.isLeftDown)
             {
                 _isLassoMenuHiddenTemp = false;
             }
@@ -1337,7 +1337,7 @@ package Modules.Tools
 
         private static function onKeyDownLassoTool(e:KeyboardEvent):void
         {
-            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging)
+            if (MouseState.isLeftDown || MouseState.isRightDown || MouseState.isDragging)
             {
                 return;
             }
@@ -1449,7 +1449,7 @@ package Modules.Tools
 
         private static function onRightMouseUpLassoTool(e:MouseEvent):void
         {
-            if (!isStarted || CanvasController.isMouseLeftClicked)
+            if (!isStarted || MouseState.isLeftDown)
             {
                 return;
             }

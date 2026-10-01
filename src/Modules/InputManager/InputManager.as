@@ -141,8 +141,8 @@ package Modules.InputManager
             if (!FOFOTimer.hasTimer("pressholdtimer"))
             {
                 var keyBufferLenSave:uint = getPressedKeyCount();
-                var mouseClickONSave:Boolean = CanvasController.isMouseLeftClicked;
-                var rightMouseClickONSave:Boolean = CanvasController.isRightMouseClicked;
+                var mouseClickONSave:Boolean = MouseState.isLeftDown;
+                var rightMouseClickONSave:Boolean = MouseState.isRightDown;
                 const countDownTime:Number = 3;
                 const countDownTimeNow:Number = Math.ceil((main.stage.frameRate * 2.5) / countDownTime);
                 pressHoldCountDownTime = countDownTime;
@@ -166,8 +166,8 @@ package Modules.InputManager
                 }
                 FOFOTimer.addByName("pressholdtimer", 0.0, true, function ():Boolean
                     {
-                        if (CanvasController.isMouseLeftClicked !== mouseClickONSave
-                                || CanvasController.isRightMouseClicked !== rightMouseClickONSave
+                        if (MouseState.isLeftDown !== mouseClickONSave
+                                || MouseState.isRightDown !== rightMouseClickONSave
                                 || keyBufferLenSave !== getPressedKeyCount()
                                 || (button && button.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
                                 || (abortFunc !== null && abortFunc() === true))
@@ -382,7 +382,7 @@ package Modules.InputManager
 
         public static function onMouseWheelStage(e:MouseEvent):void
         {
-            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging
+            if (MouseState.isLeftDown || MouseState.isRightDown || MouseState.isDragging
                     || UIController.isPopUpWindowOpened()
                     || CaptureController.isCaptureModeON || !SidebarController.isQuickSidebarActive && InputManager.isKeyPressed() || InputManager.getCommandKey() !== 0)
             {
@@ -622,7 +622,7 @@ package Modules.InputManager
         {
             FOFOTimer.addByName("clickBlockTimer", 0.15, false, function ():void
                 {
-                    CanvasController.isMouseClickBlocked = false;
+                    MouseState.isClickBlocked = false;
                 });
         }
 

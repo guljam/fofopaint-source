@@ -277,7 +277,7 @@ package Modules
             {
                 if (e.keyCode === InputManager.KEY.f2 || e.keyCode === InputManager.KEY.f8)
                 {
-                    if (!(CanvasController.isMouseLeftClicked || CanvasController.isMouseDragging))
+                    if (!(MouseState.isLeftDown || MouseState.isDragging))
                     {
                         if (InputManager.isPressingShift())
                         {

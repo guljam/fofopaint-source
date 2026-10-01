@@ -3,12 +3,12 @@ package Modules
     import flash.events.MouseEvent;
 
     // 마우스 버튼 눌림 상태의 단일 소유자
-    // CanvasController.isMouseLeftClicked / isRightMouseClicked / isMouseDragging 은 여기로 위임함
     public class MouseState
     {
         public static var isLeftDown:Boolean = false;
         public static var isRightDown:Boolean = false;
         public static var isMiddleDown:Boolean = false;
+        public static var isClickBlocked:Boolean = false; // 알탭 하고나서 창활성화 되면 일정시간동안 작동하지 않게함
 
         // mouseUp으로 끝나는 진행 중인 상호작용(획 등)의 끝내기 함수 등록부 (owner -> Function)
         // mouseUp을 받을 수 없을때(alt+tab 등) 이벤트 객체 없이 직접 호출해서 정상 종료시키기 위함

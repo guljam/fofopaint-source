@@ -1,5 +1,6 @@
 package Modules.InputManager
 {
+    import Modules.MouseState;
     import Modules.ActivityWorkTimer;
     import Modules.CanvasController;
     import Modules.ClipboardManager;
@@ -155,7 +156,7 @@ package Modules.InputManager
         private static function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         {
             const firstKey:uint = InputManager.getFirstPressedKey();
-            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || InputManager.isLastKey(firstKey) || FileManager.loadMenuBox.visible)
+            if (MouseState.isLeftDown || MouseState.isRightDown || InputManager.isLastKey(firstKey) || FileManager.loadMenuBox.visible)
             {
                 return;
             }
@@ -271,7 +272,7 @@ package Modules.InputManager
 
         private static function onRightMouseDownReplayMode(e:MouseEvent):void
         {
-            if (CanvasController.isMouseLeftClicked || InputManager.isKeyPressed() || !e.target || FileManager.loadMenuBox.visible)
+            if (MouseState.isLeftDown || InputManager.isKeyPressed() || !e.target || FileManager.loadMenuBox.visible)
             {
                 return;
             }

@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.MouseState;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.InputPriority;
@@ -236,7 +237,7 @@ package Modules.Tools
 
         private static function isNotEyeDropperTool():Boolean
         {
-            return !ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || ReplayState.isReplayModeON || CaptureController.isCaptureModeON || FileManager.isFileBrowserOpened || CanvasController.isMouseClickBlocked;
+            return !ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || ReplayState.isReplayModeON || CaptureController.isCaptureModeON || FileManager.isFileBrowserOpened || MouseState.isClickBlocked;
         }
 
         private static function confirmEyeDropperSelection():void

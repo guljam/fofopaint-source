@@ -41,7 +41,7 @@ package Modules
             main = instance;
         }
 
-        // todo : mouse clicked right clicked, dragging은 마우스 관련 이벤트 변수로 옮기기,canvasNavigatorBox 분리하기
+        // todo : canvasNavigatorBox 분리하기
         // todo : 포멧팅 필요
         public static const CANVAS_MIN_SIZE:Number = 100;
         public static const CANVAS_MAX_SIZE:Number = 2000;
@@ -74,17 +74,6 @@ package Modules
         public static var canvasZoomMultiplerList:Array = [0.125, 0.25, 0.5, 0.75, 1.0, 1.50, 2.0, 3.0, 4.0, 6.0, 8.0];
         public static var canvasZoomMultipler:Number = 1.0;
         public static var canvasZoomIndex:int = 4;
-
-        // todo 나중에 앱창 마우스 관련으로 분리
-        // 마우스 버튼 상태는 MouseState가 소유함 (기존 호출부 호환용 위임)
-        public static function get isMouseLeftClicked():Boolean { return MouseState.isLeftDown; }
-        public static function set isMouseLeftClicked(value:Boolean):void { MouseState.isLeftDown = value; }
-        public static function get isRightMouseClicked():Boolean { return MouseState.isRightDown; }
-        public static function set isRightMouseClicked(value:Boolean):void { MouseState.isRightDown = value; }
-        // 읽기 전용. MouseState.beginDrag/endDrag 등록부로 판단함
-        public static function get isMouseDragging():Boolean { return MouseState.isDragging; }
-        public static var isMouseClickBlocked:Boolean = false; // 알탭 하고나서 창활성화 되면 일정시간동안 작동하지 않게함
-        public static var isKeyReleasedBeforeMouseUp:Boolean = false; // 키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
 
         public static var isLayer2Selected:Boolean = false;
         public static var checkedLayer:int = 0; // 레이어가 체크되면 저장해줌
@@ -1054,7 +1043,7 @@ package Modules
                     if (targetName !== null)
                     {
                         main.stage.removeEventListener(MouseEvent.MOUSE_UP, resizeButtonMouseUpEvent);
-                        if (!isRightMouseClicked)
+                        if (!MouseState.isRightDown)
                         {
                             rightMouseupEventON = false;
                             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent);
@@ -1070,7 +1059,7 @@ package Modules
                     }
                     canvasSizeChanging = false;
                     HintController.hideMouseHint();
-                    updateCanvasResizeButtonVisible((isMouseCursorInStage() && isRightMouseClicked) || InputManager.isPressingControl());
+                    updateCanvasResizeButtonVisible((isMouseCursorInStage() && MouseState.isRightDown) || InputManager.isPressingControl());
                     canvasAnchorPoint.removeChild(resizePreviewRect);
                     canvasAnchorPoint.removeChild(resizePreviewRatioRect);
                     resizePreviewRect.graphics.clear();

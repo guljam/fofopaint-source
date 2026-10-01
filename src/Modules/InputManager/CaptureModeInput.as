@@ -1,5 +1,6 @@
 package Modules.InputManager
 {
+    import Modules.MouseState;
     import Modules.ActivityWorkTimer;
     import Modules.CanvasController;
     import Modules.ClipboardManager;
@@ -141,7 +142,7 @@ package Modules.InputManager
                 return;
             }
 
-            if (CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked)
+            if (MouseState.isLeftDown || MouseState.isRightDown)
             {
                 return;
             }
@@ -267,7 +268,7 @@ package Modules.InputManager
                     InputManager.startPressHoldKey(UIController.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
                     break;
                 default:
-                    if (!CanvasController.isMouseClickBlocked)
+                    if (!MouseState.isClickBlocked)
                     {
                         CaptureController.startCaptureAreaSelection();
                     }

@@ -1,5 +1,6 @@
 package Modules.UIEngine
 {
+    import Modules.MouseState;
     import Modules.AboutBoxController;
     import Modules.CanvasController;
     import Modules.CaptureEngine.CaptureController;
@@ -80,7 +81,7 @@ package Modules.UIEngine
 
         public static function isHintUnavailable():Boolean
         {
-            return CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging || ToolController.isToolBox2Showing
+            return MouseState.isLeftDown || MouseState.isRightDown || MouseState.isDragging || ToolController.isToolBox2Showing
                 || ColorPickerController.numPadBox.visible || AboutBoxController.isAboutBoxOpened || ReplayState.isGeneratingCacheImages();
             // || isFillPenStarted
             // || isLassoToolStarted

@@ -1,5 +1,6 @@
 package Modules.InputManager
 {
+    import Modules.MouseState;
     import Modules.ActivityWorkTimer;
     import Modules.AppUpdater;
     import Modules.AboutBoxController;
@@ -46,6 +47,7 @@ package Modules.InputManager
         }
 
         private static var isEventsAdded:Boolean = false; // 이벤트 중복 추가 방지
+        public static var isKeyReleasedBeforeMouseUp:Boolean = false; // 키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
 
         public static function removeEvents():void
         {
@@ -175,7 +177,7 @@ package Modules.InputManager
                 case "replayModeButton":
                     {
                         ReplayController.enterReplayMode();
-                        CanvasController.isMouseLeftClicked = false; // 리플레이 버튼 누르고 나서 단축키가 안먹는 현상이 이거임
+                        MouseState.isLeftDown = false; // 리플레이 버튼 누르고 나서 단축키가 안먹는 현상이 이거임
                     }
                     break;
                 case "dpiButton":
@@ -304,9 +306,9 @@ package Modules.InputManager
             const keyCode:uint = e.keyCode;
             if (InputManager.isLastKey(keyCode))
             {
-                if (CanvasController.isMouseLeftClicked === true)
+                if (MouseState.isLeftDown === true)
                 {
-                    CanvasController.isKeyReleasedBeforeMouseUp = true;
+                    DrawModeInput.isKeyReleasedBeforeMouseUp = true;
                 }
                 else if (InputManager.isKeyPressed())
                 {
@@ -341,9 +343,9 @@ package Modules.InputManager
 
         private static function onKeyDownDrawMode(e:KeyboardEvent):void
         {
-            if (CanvasController.isMouseLeftClicked
-                    || CanvasController.isRightMouseClicked
-                    || CanvasController.isKeyReleasedBeforeMouseUp
+            if (MouseState.isLeftDown
+                    || MouseState.isRightDown
+                    || DrawModeInput.isKeyReleasedBeforeMouseUp
                     || FillPenTool.isStarted
                     || LineTool.isStarted
                     || UIController.isPopUpWindowOpened())
@@ -614,9 +616,9 @@ package Modules.InputManager
         // 키를 2개 이상 누르고 있을때 먼저 누른키를 떼면 다음키로 설정함
         private static function onMouseUpDrawMode(e:MouseEvent):void // mouseup1
         {
-            if (CanvasController.isKeyReleasedBeforeMouseUp) // 단축키 떼고 마우스 땠을때 원래대로 돌림
+            if (DrawModeInput.isKeyReleasedBeforeMouseUp) // 단축키 떼고 마우스 땠을때 원래대로 돌림
             {
-                CanvasController.isKeyReleasedBeforeMouseUp = false;
+                DrawModeInput.isKeyReleasedBeforeMouseUp = false;
                 if (InputManager.keyBuffer.length > 0)
                 {
                     onKeyDownDrawMode(null);
@@ -812,7 +814,7 @@ package Modules.InputManager
                     return;
             }
             // 캔버스 영역 밖에서는 해주지 않음
-            if (Utils.isCursorInDrawArea() && !CanvasController.isMouseClickBlocked)
+            if (Utils.isCursorInDrawArea() && !MouseState.isClickBlocked)
             {
                 switch (ToolController.nowTool)
                 {
@@ -855,7 +857,7 @@ package Modules.InputManager
         // todo numpad켜져있을때 캔버스 바로 클릭하면 바로 다른 툴 적용되게 바꾸어야함
         private static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
         {
-            if (CanvasController.isMouseLeftClicked || InputManager.isKeyPressed() || InputManager.isPressingControl() || SidebarController.isQuickSidebarActive
+            if (MouseState.isLeftDown || InputManager.isKeyPressed() || InputManager.isPressingControl() || SidebarController.isQuickSidebarActive
                     || FillPenTool.isStarted || LineTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
                     || FileManager.loadMenuBox.visible || UIController.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {

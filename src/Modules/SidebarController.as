@@ -200,7 +200,7 @@ package Modules
 
         public static function startDeactivteQuickSidebar():void
         {
-            if (CanvasController.isMouseLeftClicked && sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (MouseState.isLeftDown && sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
             {
                 main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpQuickSidebar, false, InputPriority.DEFAULT);
                 return;
@@ -431,7 +431,7 @@ package Modules
 
         private static function onMouseUpReactivateSidebarTempShow(e:MouseEvent):void
         {
-            if (!(CanvasController.isRightMouseClicked && CanvasController.isMouseLeftClicked))
+            if (!(MouseState.isRightDown && MouseState.isLeftDown))
             {
                 startTimerActivateSidebarShowTemp();
             }
@@ -451,7 +451,7 @@ package Modules
 
         private static function startShowSideBarTemporary():void
         {
-            if (!(CanvasController.isMouseLeftClicked || CanvasController.isRightMouseClicked || CanvasController.isMouseDragging))
+            if (!(MouseState.isLeftDown || MouseState.isRightDown || MouseState.isDragging))
             {
                 if (!isSidebarTempShowDeactivated)
                 {
@@ -479,7 +479,7 @@ package Modules
                 && !ReplayState.isReplayModeON
                 && !CaptureController.isCaptureModeON
                 && !ToolController.isToolBox2Showing
-                && !CanvasController.isMouseClickBlocked
+                && !MouseState.isClickBlocked
                 && !CanvasController.resizeButtonR.visible;
         }
 
