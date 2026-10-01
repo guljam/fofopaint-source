@@ -1,6 +1,7 @@
 package Modules.UIEngine
 {
-    import Modules.CanvasController;
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.ReferenceLayerController;
@@ -58,12 +59,12 @@ package Modules.UIEngine
                 }
             }
 
-            const gp:Point = CanvasController.canvasLayer1Bitmap.globalToLocal(new Point(newLeftOffset, UIController.STAGE_TOP_OFFSET));
-            const zoom:Number = CanvasController.canvasZoomMultipler;
+            const gp:Point = DrawCanvas.canvasLayer1Bitmap.globalToLocal(new Point(newLeftOffset, UIController.STAGE_TOP_OFFSET));
+            const zoom:Number = CanvasView.canvasZoomMultiplier;
             box.updateCursor(gp.x * zoom, gp.y * zoom
                     , main.stage.stageWidth - newRightOffset - newLeftOffset
                     , main.stage.stageHeight - UIController.STAGE_TOP_OFFSET - UIController.STAGE_BOTTOM_OFFSET
-                    , CanvasController.CANVAS_WIDTH * zoom, CanvasController.canvasAnchorPoint.rotation);
+                    , DrawCanvas.CANVAS_WIDTH * zoom, CanvasView.canvasAnchorPoint.rotation);
         }
 
         public static function startCanvasMove(navCursorClicked:Boolean):void
@@ -85,9 +86,9 @@ package Modules.UIEngine
                 const rectCenterY:Number = b.top + (b.bottom - b.top) / 2;
                 var moveX:Number = (rectCenterX - mx) / prevCursorScale / uiScale;
                 var moveY:Number = (rectCenterY - my) / prevCursorScale / uiScale;
-                var p:Point = Utils.rotatePoint(moveX, moveY, -CanvasController.canvasAnchorPoint.rotation);
-                CanvasController.canvasAnchorPoint.x += Math.round(p.x);
-                CanvasController.canvasAnchorPoint.y += Math.round(p.y);
+                var p:Point = Utils.rotatePoint(moveX, moveY, -CanvasView.canvasAnchorPoint.rotation);
+                CanvasView.canvasAnchorPoint.x += Math.round(p.x);
+                CanvasView.canvasAnchorPoint.y += Math.round(p.y);
                 updateCursor();
             }
 
@@ -95,7 +96,7 @@ package Modules.UIEngine
             {
                 MouseState.endDrag("canvasNavigator");
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
-                CanvasController.keepCanvasPanelInStage();
+                CanvasView.keepCanvasPanelInStage();
                 updateCursor();
                 if (LassoTool.isStarted)
                 {
@@ -117,14 +118,14 @@ package Modules.UIEngine
                 // previewBox.prevCursorMultiply를 곱해줘야 커서랑 같은 속도가 나옴
                 var moveX:Number = (sx - mx) / prevCursorScale;
                 var moveY:Number = (sy - my) / prevCursorScale;
-                var p:Point = Utils.rotatePoint(moveX, moveY, -CanvasController.canvasAnchorPoint.rotation);
-                CanvasController.canvasAnchorPoint.x += Math.round(p.x);
-                CanvasController.canvasAnchorPoint.y += Math.round(p.y);
+                var p:Point = Utils.rotatePoint(moveX, moveY, -CanvasView.canvasAnchorPoint.rotation);
+                CanvasView.canvasAnchorPoint.x += Math.round(p.x);
+                CanvasView.canvasAnchorPoint.y += Math.round(p.y);
                 sx = mx;
                 sy = my;
                 updateCursor();
             }
-            CanvasController.moveCanvasAnchorPoint(0, 0);
+            CanvasView.moveCanvasAnchorPoint(0, 0);
             if (LassoTool.isStarted)
             {
                 LassoTool._lassoMenuBox.visible = false;

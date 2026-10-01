@@ -1,5 +1,6 @@
 package Modules.ReplayEngine
 {
+    import Modules.DrawEngine.DrawCanvas;
     import flash.display.BitmapData;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
@@ -8,7 +9,6 @@ package Modules.ReplayEngine
     import flash.utils.ByteArray;
     import Modules.BackgroundWorkerCoordinator;
     import Modules.CacheImageMetaData;
-    import Modules.CanvasController;
     import Modules.FileManager;
     import Modules.ReplayDataCodec;
     import Modules.PixelRestore;
@@ -20,8 +20,8 @@ package Modules.ReplayEngine
         public static const REPLAY_DISK_CACHE_FRAME_INTERVAL:Number = 10000;
         public static const REPLAY_MEMORY_CACHE_FRAME_INTERVAL:Number = 700;
       
-        public static var rFirstImageLayer1BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-        public static var rFirstImageLayer2BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
+        public static var rFirstImageLayer1BitmapData:BitmapData = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
+        public static var rFirstImageLayer2BitmapData:BitmapData = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
         public static var rLastCacheImageIndex:int = -2; // 썸네일 인덱스 바뀌면 여기다 저장
         public static var rLastMemoryCachedImageIndex:int = -2; // 마지막에 그려준 캐쉬 이미지 번호를 저장
         public static var rTempCachedLastImageIndex:int = -2; // 더 잘게 쪼개준 이미지 인덱스 바뀌면 여기다 저장
@@ -378,7 +378,7 @@ package Modules.ReplayEngine
             rJumpImageFrameData = [];
             bmpd1.copyPixelsToByteArray(newRectangle, ba1);
             ba1.compress();
-            rFirstImageLayer1BitmapData = CanvasController.updateBitmapData(rFirstImageLayer1BitmapData, bmpd1, null);
+            rFirstImageLayer1BitmapData = DrawCanvas.updateBitmapData(rFirstImageLayer1BitmapData, bmpd1, null);
 
             if (bmpd2 === null)
             {
@@ -387,7 +387,7 @@ package Modules.ReplayEngine
 
             bmpd2.copyPixelsToByteArray(newRectangle, ba2);
             ba2.compress();
-            rFirstImageLayer2BitmapData = CanvasController.updateBitmapData(rFirstImageLayer2BitmapData, bmpd2, null);
+            rFirstImageLayer2BitmapData = DrawCanvas.updateBitmapData(rFirstImageLayer2BitmapData, bmpd2, null);
 
             ReplaySaveMetaData.firstImageMirrorFlag = mirrorFlag;
             ReplaySaveMetaData.firstImageBG= bgColor;

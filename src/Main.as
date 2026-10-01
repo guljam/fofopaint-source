@@ -1,5 +1,7 @@
 ﻿package
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.HintController;
@@ -12,7 +14,6 @@
     import Modules.AppStateVars;
     import Modules.AppUpdater;
     import Modules.BackgroundWorkerCoordinator;
-    import Modules.CanvasController;
     import Modules.CanvasGridOverlay;
     import Modules.CaptureEngine.CaptureController;
     import Modules.ClipboardManager;
@@ -121,7 +122,7 @@
             CaptureStamp.setMainInstance(this);
             CaptureArea.setMainInstance(this);
 
-            CanvasController.setMainInstance(this);
+            CanvasView.setMainInstance(this);
             CanvasResizer.setMainInstance(this);
             CanvasNavigator.setMainInstance(this);
             ClipboardManager.setMainInstance(this);
@@ -164,7 +165,7 @@
             AppWindowState.updateWindowTitle();
             AppWindowState.markWindowTitleAsDirty();
             initializeStageSettings();
-            CanvasController.initializeCanvas();
+            CanvasView.init();
             ReplayController.initializeReplayCanvas();
             UIController.initializeAppMenus();
             CanvasResizer.init();
@@ -178,7 +179,7 @@
             ReplayFileCache.initializeReplayDataFile();
             if (isNewReplayFile)
             {
-                ReplayFileCache.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+                ReplayFileCache.createFirstImageCache(DrawCanvas.canvasLayer1BitmapData, DrawCanvas.canvasLayer2BitmapData, DrawCanvas.CANVAS_BG_COLOR);
             }
             CanvasNavigator.box.updateImage();
             ActivityWorkTimer.start();

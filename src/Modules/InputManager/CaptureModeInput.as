@@ -2,7 +2,6 @@ package Modules.InputManager
 {
     import Modules.MouseState;
     import Modules.ActivityWorkTimer;
-    import Modules.CanvasController;
     import Modules.ClipboardManager;
     import Modules.FileManager;
     import Modules.InputPriority;

@@ -1,8 +1,10 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.StrokeBuffer;
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.CanvasController;
     import Modules.ColorPickerController;
     import Modules.DrawingFinish;
     import Modules.InputManager.InputManager;
@@ -161,7 +163,7 @@ package Modules.Tools
 
             FOFOTimer.addByName("fillColorUpdateTimer", 0.1, true, function ():Boolean
                 {
-                    const newXcolor:uint = (PenTool.isTransparentPenColor) ? CanvasController.CANVAS_BG_COLOR : ColorPickerController.colorPickerBox.rgbInfoBGColor;
+                    const newXcolor:uint = (PenTool.isTransparentPenColor) ? DrawCanvas.CANVAS_BG_COLOR : ColorPickerController.colorPickerBox.rgbInfoBGColor;
                     const newXAlpha:Number = PenTool.penAlpha;
                     const newXBlendMode:String = (PenTool.isTransparentPenColor) ? "erase" : null;
 
@@ -249,7 +251,7 @@ package Modules.Tools
 
         private static function checkFillPenUndoReady():Boolean
         {
-            if (canvasSizeRect.intersects(CanvasController.canvasDrawLayerChild.getBounds(CanvasController.canvasPanel)))
+            if (canvasSizeRect.intersects(StrokeBuffer.canvasDrawLayerChild.getBounds(CanvasView.canvasPanel)))
             {
                 return true;
             }
@@ -259,32 +261,32 @@ package Modules.Tools
 
         private static function showAlphaChanged():void
         {
-            CanvasController.canvasDrawLayer.alpha = xAlpha;
+            StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
         }
 
         private static function showFillColor():void
         {
-            CanvasController.canvasDrawLayerChild.graphics.clear();
+            StrokeBuffer.canvasDrawLayerChild.graphics.clear();
 
             if (data.length === 0)
             {
                 return;
             }
 
-            CanvasController.canvasDrawLayerChild.graphics.lineStyle(1, xColor);
-            CanvasController.canvasDrawLayerChild.graphics.beginFill(xColor);
-            CanvasController.canvasDrawLayerChild.graphics.drawPath(command, data);
-            CanvasController.canvasDrawLayerChild.graphics.endFill();
+            StrokeBuffer.canvasDrawLayerChild.graphics.lineStyle(1, xColor);
+            StrokeBuffer.canvasDrawLayerChild.graphics.beginFill(xColor);
+            StrokeBuffer.canvasDrawLayerChild.graphics.drawPath(command, data);
+            StrokeBuffer.canvasDrawLayerChild.graphics.endFill();
 
-            CanvasController.canvasDrawLayerChild.graphics.moveTo(data[data.length - 2], data[data.length - 1]);
-            CanvasController.canvasDrawLayerChild.graphics.lineTo(data[0], data[1]);
+            StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(data[data.length - 2], data[data.length - 1]);
+            StrokeBuffer.canvasDrawLayerChild.graphics.lineTo(data[0], data[1]);
 
-            CanvasController.canvasDrawLayer.alpha = xAlpha;
+            StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
         }
 
         private static function showDottedLine():void
         {
-            CanvasController.canvasDrawLayerChild.graphics.clear();
+            StrokeBuffer.canvasDrawLayerChild.graphics.clear();
 
             const len:uint = data.length;
 
@@ -293,7 +295,7 @@ package Modules.Tools
                 return;
             }
 
-            DottedLineTool.moveTo(CanvasController.canvasDrawLayerChild.graphics, data[0], data[1]);
+            DottedLineTool.moveTo(StrokeBuffer.canvasDrawLayerChild.graphics, data[0], data[1]);
 
             for (var i:uint = 2;i < len;i += 2)
             {
@@ -307,14 +309,14 @@ package Modules.Tools
                 CanvasLayers.bringCanvasDrawLayerAboveLayer1();
             }
 
-            CanvasController.canvasDrawLayer.alpha = 1.0;
+            StrokeBuffer.canvasDrawLayer.alpha = 1.0;
         }
 
         private static function exitFillPen():void
         {
             removeEventsFillPen();
 
-            CanvasController.canvasDrawLayer.alpha = 1.0;
+            StrokeBuffer.canvasDrawLayer.alpha = 1.0;
 
             mouseMoveCount = 0;
             _isStarted = false;
@@ -323,7 +325,7 @@ package Modules.Tools
             data = new <Number>[];
             commandUndoIndexArr = [];
 
-            CanvasController.canvasDrawLayerChild.graphics.clear();
+            StrokeBuffer.canvasDrawLayerChild.graphics.clear();
 
             if (ReferenceLayerController.isRefLayerMenuON)
             {
@@ -367,13 +369,13 @@ package Modules.Tools
                 data.push(data[0]);
                 data.push(data[1]); // 마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
 
-                CanvasController.canvasDrawLayer.alpha = xAlpha;
+                StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
                 ReplayState.pushCommand(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), ToolController.isPenAirBrushON, PenTool.airBrushSizeDrawMode]);
 
                 showFillColor();
             }
 
-            CanvasController.resetCanvasDrawLayerCliprect();
+            StrokeBuffer.resetCanvasDrawLayerClipRect();
             DrawingFinish.run();
 
             exitFillPen();
@@ -396,7 +398,7 @@ package Modules.Tools
                 data.length = 0;
                 commandUndoIndexArr[0] = 0;
 
-                CanvasController.canvasDrawLayerChild.graphics.clear();
+                StrokeBuffer.canvasDrawLayerChild.graphics.clear();
             }
             else
             {
@@ -422,8 +424,8 @@ package Modules.Tools
                 isStartedFromShortCut = false;
             }
 
-            canvasSizeRect.width = CanvasController.CANVAS_WIDTH;
-            canvasSizeRect.height = CanvasController.CANVAS_HEIGHT;
+            canvasSizeRect.width = DrawCanvas.CANVAS_WIDTH;
+            canvasSizeRect.height = DrawCanvas.CANVAS_HEIGHT;
 
             command = new Vector.<int>();
             data = new Vector.<Number>();
@@ -437,7 +439,7 @@ package Modules.Tools
             _afterKeyUpOK = false;
             _pos05Offset = ToolController.getSharpLinePosOffset(1.0);
 
-            xColor = (PenTool.isTransparentPenColor) ? CanvasController.CANVAS_BG_COLOR : PenTool.penColor;
+            xColor = (PenTool.isTransparentPenColor) ? DrawCanvas.CANVAS_BG_COLOR : PenTool.penColor;
             xAlpha = PenTool.penAlpha;
             xBlendMode = (PenTool.isTransparentPenColor) ? "erase" : null;
 
@@ -448,7 +450,7 @@ package Modules.Tools
 
             if (ToolController.isPenAirBrushON || PenTool.isEraserAirBrushON)
             {
-                CanvasController.canvasDrawLayerChild.filters = [];
+                StrokeBuffer.canvasDrawLayerChild.filters = [];
             }
 
             if (!PenTool.isTransparentPenColor)
@@ -465,9 +467,9 @@ package Modules.Tools
                 ReferenceLayerController.refLayerMenuBox.visible = false;
             }
 
-            DottedLineTool.setLineScale(CanvasController.canvasZoomMultipler);
+            DottedLineTool.setLineScale(CanvasView.canvasZoomMultiplier);
 
-            const filteredPos:Point = PenTool.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
+            const filteredPos:Point = PenTool.getRefinedPoint(StrokeBuffer.canvasDrawLayerChild.mouseX, StrokeBuffer.canvasDrawLayerChild.mouseY);
             var mx:Number = filteredPos.x + _pos05Offset;
             var my:Number = filteredPos.y + _pos05Offset;
 
@@ -479,7 +481,7 @@ package Modules.Tools
 
             lastMousePos.setTo(mx, my);
 
-            CanvasController.canvasDrawLayer.alpha = xAlpha;
+            StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
 
             ToolController.toolBox.setFillPenModeON();
             ToolController.toolOptionsBox.disableButtonFillPenStarted();
@@ -499,7 +501,7 @@ package Modules.Tools
 
         private static function onMouseMoveFillPen(e:MouseEvent):void
         {
-            const filteredPos:Point = PenTool.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
+            const filteredPos:Point = PenTool.getRefinedPoint(StrokeBuffer.canvasDrawLayerChild.mouseX, StrokeBuffer.canvasDrawLayerChild.mouseY);
             const mx:Number = filteredPos.x + _pos05Offset;
             const my:Number = filteredPos.y + _pos05Offset;
 
@@ -613,7 +615,7 @@ package Modules.Tools
                 main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
                 MouseState.beginDrag(FILLPEN_DRAG_OWNER, finishFillPenDrag);
 
-                const filteredPos:Point = PenTool.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
+                const filteredPos:Point = PenTool.getRefinedPoint(StrokeBuffer.canvasDrawLayerChild.mouseX, StrokeBuffer.canvasDrawLayerChild.mouseY);
                 const mx:Number = filteredPos.x + _pos05Offset;
                 const my:Number = filteredPos.y + _pos05Offset;
 
@@ -691,18 +693,18 @@ package Modules.Tools
             }
             else if (target.name === "toolZoomIn" || target.name === "toolZoomOut")
             {
-                if (CanvasController.canvasZoomMultipler !== 1.0)
+                if (CanvasView.canvasZoomMultiplier !== 1.0)
                 {
-                    CanvasController.resetZoomDrawMode();
+                    CanvasView.resetZoomDrawMode();
                     CanvasNavigator.updateCursor();
                 }
                 return;
             }
             else if (target.name === "toolRotate")
             {
-                if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                if (CanvasView.canvasAnchorPoint.rotation !== 0.0)
                 {
-                    CanvasController.resetRotationDrawMode();
+                    CanvasView.resetRotationDrawMode();
                     CanvasNavigator.updateCursor();
                 }
                 return;

@@ -1,12 +1,13 @@
 package Modules.CaptureEngine
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.Utils;
     import Modules.PaletteController;
     import Modules.InputManager.InputManager;
-    import Modules.CanvasController;
     import flash.display.BitmapData;
     import flash.display.Bitmap;
     import flash.text.TextFormat;
@@ -238,7 +239,7 @@ package Modules.CaptureEngine
             const backupStr:String = UIController.topBar.captureInputFinal.text;
             const backupWidth:Number = UIController.topBar.getCaptureInputFinalWidth();
 
-            UIController.topBar.setCaptureInputFinalWidth(CanvasController.CANVAS_MAX_SIZE);
+            UIController.topBar.setCaptureInputFinalWidth(DrawCanvas.CANVAS_MAX_SIZE);
             UIController.topBar.setCaptureInputFinalString(text);
 
             const width:Number = UIController.topBar.captureInputFinal.textWidth + offset;
@@ -316,7 +317,7 @@ package Modules.CaptureEngine
                 return null;
             }
 
-            return CanvasController.getMergedBitmapdtata(false, layer1, layer2, (fullImageFlag) ? null : clipRect, 100);
+            return DrawCanvas.getMergedBitmapData(false, layer1, layer2, (fullImageFlag) ? null : clipRect, 100);
         }
 
         private static function onFocusInCaptureStampInput(e:FocusEvent):void
@@ -367,8 +368,8 @@ package Modules.CaptureEngine
             if (CaptureController.isFullImageCapture())
             {
 
-                offsetX = (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
-                offsetY = (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
+                offsetX = (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_WIDTH : DrawCanvas.CANVAS_WIDTH;
+                offsetY = (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_HEIGHT : DrawCanvas.CANVAS_HEIGHT;
             }
             else
             {
@@ -395,7 +396,7 @@ package Modules.CaptureEngine
                 if (CaptureController.isFullImageCapture())
                 {
 
-                    return (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_WIDTH : CanvasController.CANVAS_WIDTH;
+                    return (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_WIDTH : DrawCanvas.CANVAS_WIDTH;
                 }
                 else
                 {
@@ -406,7 +407,7 @@ package Modules.CaptureEngine
             {
                 if (CaptureController.isFullImageCapture())
                 {
-                    return (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_HEIGHT : CanvasController.CANVAS_HEIGHT;
+                    return (ReplayState.isReplayModeON) ? ReplayState.RCANVAS_HEIGHT : DrawCanvas.CANVAS_HEIGHT;
                 }
                 else
                 {
@@ -766,8 +767,8 @@ package Modules.CaptureEngine
                     return;
                 }
 
-                const layer1Visible:Boolean = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasLayer1Bitmap.visible : CanvasController.canvasLayer1Bitmap.visible;
-                const layer2Visible:Boolean = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasLayer2Bitmap.visible : CanvasController.canvasLayer2Bitmap.visible;
+                const layer1Visible:Boolean = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasLayer1Bitmap.visible : DrawCanvas.canvasLayer1Bitmap.visible;
+                const layer2Visible:Boolean = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasLayer2Bitmap.visible : DrawCanvas.canvasLayer2Bitmap.visible;
 
                 var bitmapVisibleFlag:int = 0;
 
@@ -782,7 +783,7 @@ package Modules.CaptureEngine
 
                 if (stampBGColor === null || !rect.equals(lastRectArea) || lastBitmapVisibleFlag !== bitmapVisibleFlag)
                 {
-                    const tegakiBGColorIndex:int = PaletteController.myPaletteTegakiPreset.indexOf((ReplayState.isReplayModeON) ? ReplayState.RCANVAS_BG_COLOR : CanvasController.CANVAS_BG_COLOR);
+                    const tegakiBGColorIndex:int = PaletteController.myPaletteTegakiPreset.indexOf((ReplayState.isReplayModeON) ? ReplayState.RCANVAS_BG_COLOR : DrawCanvas.CANVAS_BG_COLOR);
 
                     if (tegakiBGColorIndex >= 10)
                     {
@@ -878,9 +879,9 @@ package Modules.CaptureEngine
                         ReplayDrawer.rCanvasPanel.addChild(captureStampBitmap);
                     }
                 }
-                else if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") === null)
+                else if (CanvasView.canvasPanel.getChildByName("captureStampBitmap") === null)
                 {
-                    CanvasController.canvasPanel.addChild(captureStampBitmap);
+                    CanvasView.canvasPanel.addChild(captureStampBitmap);
                 }
 
                 checkPosition(bmpdHeight);
@@ -894,9 +895,9 @@ package Modules.CaptureEngine
                         ReplayDrawer.rCanvasPanel.removeChild(captureStampBitmap);
                     }
                 }
-                else if (CanvasController.canvasPanel.getChildByName("captureStampBitmap") !== null)
+                else if (CanvasView.canvasPanel.getChildByName("captureStampBitmap") !== null)
                 {
-                    CanvasController.canvasPanel.removeChild(captureStampBitmap);
+                    CanvasView.canvasPanel.removeChild(captureStampBitmap);
                 }
 
                 captureStampBitmap.visible = false;
@@ -911,7 +912,7 @@ package Modules.CaptureEngine
             }
             else
             {
-                CanvasController.canvasPanel.scrollRect = new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+                CanvasView.canvasPanel.scrollRect = new Rectangle(0, 0, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
             }
 
             if (captrueStampBMPD)
@@ -941,7 +942,7 @@ package Modules.CaptureEngine
             }
             else
             {
-                CanvasController.canvasPanel.scrollRect = null;
+                CanvasView.canvasPanel.scrollRect = null;
             }
 
             textformat.font = null;

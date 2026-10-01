@@ -1,9 +1,11 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.StrokeBuffer;
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.InputPriority;
     import Modules.MouseState;
-	import Modules.CanvasController;
 	import Modules.ColorPickerController;
 	import Modules.DrawingFinish;
 	import Modules.PaletteController;
@@ -114,7 +116,7 @@ package Modules.Tools
 				my = Math.floor(my);
 				mx = Math.floor(mx);
 			}
-			else if (penSmoothSlideValue === 0 && (CanvasController.canvasAnchorPoint.rotation % 90 === 0))
+			else if (penSmoothSlideValue === 0 && (CanvasView.canvasAnchorPoint.rotation % 90 === 0))
 			{
 				my = Math.round(my);
 				mx = Math.round(mx);
@@ -133,7 +135,7 @@ package Modules.Tools
 
 		private static function setCanUndoDataFlagON():void
 		{
-			if (CanvasController.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
+			if (DrawCanvas.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
 			{
 				UndoHistory.canAddUndoData = true;
 			}
@@ -144,7 +146,7 @@ package Modules.Tools
 					UndoHistory.canAddUndoData = true;
 				}
 			}
-			else if (isCircleRectColliding(CanvasController.canvasPanel.mouseX, CanvasController.canvasPanel.mouseY, PenSizePreviewCursor.getSize(), 0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT))
+			else if (isCircleRectColliding(CanvasView.canvasPanel.mouseX, CanvasView.canvasPanel.mouseY, PenSizePreviewCursor.getSize(), 0, 0, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT))
 			{
 				UndoHistory.canAddUndoData = true;
 			}
@@ -152,15 +154,15 @@ package Modules.Tools
 
 		private static function lineStyleReady(shape:Boolean, size:uint, color:uint, alpha:Number):void
 		{
-			CanvasController.canvasDrawLayer.alpha = alpha;
+			StrokeBuffer.canvasDrawLayer.alpha = alpha;
 
 			if (shape === false)
 			{
-				CanvasController.canvasDrawLayerChild.graphics.lineStyle(size, color);
+				StrokeBuffer.canvasDrawLayerChild.graphics.lineStyle(size, color);
 			}
 			else
 			{
-				CanvasController.canvasDrawLayerChild.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.BEVEL);
+				StrokeBuffer.canvasDrawLayerChild.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.BEVEL);
 			}
 		}
 
@@ -242,7 +244,7 @@ package Modules.Tools
 			{
 				isMouseMoved = true;
 
-				CanvasController.canvasDrawLayerChild.graphics.clear();
+				StrokeBuffer.canvasDrawLayerChild.graphics.clear();
 				lineStyleReady(xShape, xSize, xColor, xAlpha);
 
 				if (xShape)
@@ -258,14 +260,14 @@ package Modules.Tools
 					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode]);
 					penPoints.push(extendedPos.x);
 					penPoints.push(extendedPos.y);
-					CanvasController.canvasDrawLayerChild.graphics.moveTo(extendedPos.x, extendedPos.y);
+					StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(extendedPos.x, extendedPos.y);
 				}
 				else
 				{
 					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode]);
 					penPoints.push(smoothPos.x + offsetForSharpline);
 					penPoints.push(smoothPos.y + offsetForSharpline);
-					CanvasController.canvasDrawLayerChild.graphics.moveTo(smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline);
+					StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline);
 				}
 			}
 
@@ -281,7 +283,7 @@ package Modules.Tools
 				penPoints.push(my);
 
 				moveEvent2Last.setTo(mx, my);
-				CanvasController.canvasDrawLayerChild.graphics.lineTo(mx, my);
+				StrokeBuffer.canvasDrawLayerChild.graphics.lineTo(mx, my);
 
 				mouseMovedCount++;
 
@@ -292,19 +294,19 @@ package Modules.Tools
 					if (airBrushSizeDrawMode > 0)
 					{
 						const blurSize:Number = PenTool.getBlurSize(airBrushSizeDrawMode, 1.0);
-						CanvasController.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
-						CanvasController.canvasDrawLayerBitmapData.draw(CanvasController.canvasDrawLayerChild, null, null, "layer");
-						CanvasController.canvasDrawLayerChild.filters = [];
+						StrokeBuffer.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
+						StrokeBuffer.canvasDrawLayerBitmapData.draw(StrokeBuffer.canvasDrawLayerChild, null, null, "layer");
+						StrokeBuffer.canvasDrawLayerChild.filters = [];
 					}
 					else
 					{
-						CanvasController.canvasDrawLayerBitmapData.draw(CanvasController.canvasDrawLayerChild, null, null, "layer");
+						StrokeBuffer.canvasDrawLayerBitmapData.draw(StrokeBuffer.canvasDrawLayerChild, null, null, "layer");
 					}
 
-					CanvasController.canvasDrawLayerBitmap.bitmapData = CanvasController.canvasDrawLayerBitmapData;
-					CanvasController.updateCanvasDrawLayerCliprect();
+					StrokeBuffer.canvasDrawLayerBitmap.bitmapData = StrokeBuffer.canvasDrawLayerBitmapData;
+					StrokeBuffer.updateCanvasDrawLayerClipRect();
 
-					CanvasController.canvasDrawLayerChild.graphics.clear();
+					StrokeBuffer.canvasDrawLayerChild.graphics.clear();
 					lineStyleReady(xShape, xSize, xColor, xAlpha);
 
 					const prevX:Number = penPoints[penPoints.length - 4];
@@ -319,21 +321,21 @@ package Modules.Tools
 						ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode]);
 						penPoints.push(prevX);
 						penPoints.push(prevY);
-						CanvasController.canvasDrawLayerChild.graphics.moveTo(prevX, prevY);
+						StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(prevX, prevY);
 					}
 					else
 					{
 						ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode]);
 						penPoints.push(mx);
 						penPoints.push(my);
-						CanvasController.canvasDrawLayerChild.graphics.moveTo(mx, my);
+						StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(mx, my);
 					}
 				}
 
 				if (xShape === true || sq1pxCursor === true)
 				{
 					const rad:Number = Math.atan2(mx - sqPenCursorLast.x, my - sqPenCursorLast.y);
-					const deg:Number = -rad * (180 / Math.PI) + CanvasController.canvasAnchorPoint.rotation;
+					const deg:Number = -rad * (180 / Math.PI) + CanvasView.canvasAnchorPoint.rotation;
 
 					PenSizePreviewCursor.setRotation(deg);
 
@@ -383,8 +385,8 @@ package Modules.Tools
 
 		private static function onMouseMovePenTool(e:MouseEvent):void
 		{
-			const mx:Number = CanvasController.canvasDrawLayerChild.mouseX;
-			const my:Number = CanvasController.canvasDrawLayerChild.mouseY;
+			const mx:Number = StrokeBuffer.canvasDrawLayerChild.mouseX;
+			const my:Number = StrokeBuffer.canvasDrawLayerChild.mouseY;
 
 			if (skipMouseMovePos(mx, my))
 			{
@@ -453,7 +455,7 @@ package Modules.Tools
 						updateExtendEndPoint(penPoints[pointLen - 4], penPoints[pointLen - 3], penPoints[pointLen - 2], penPoints[pointLen - 1], xSize / 8);
 
 						ReplayState.pushCommand(["lineTo", extendedPos.x, extendedPos.y]);
-						CanvasController.canvasDrawLayerChild.graphics.lineTo(extendedPos.x, extendedPos.y);
+						StrokeBuffer.canvasDrawLayerChild.graphics.lineTo(extendedPos.x, extendedPos.y);
 					}
 				}
 			}
@@ -461,10 +463,10 @@ package Modules.Tools
 			if (isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag))
 			{
 				ReplayState.clearCommandBuffer();
-				ReplayState.pushCommand(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode, CanvasController.canvasAnchorPoint.rotation]);
+				ReplayState.pushCommand(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode, CanvasView.canvasAnchorPoint.rotation]);
 
-				DotTool.start(xShape, xSize, xColor, clickPos.x, clickPos.y, CanvasController.canvasAnchorPoint.rotation);
-				CanvasController.resetCanvasDrawLayerCliprect();
+				DotTool.start(xShape, xSize, xColor, clickPos.x, clickPos.y, CanvasView.canvasAnchorPoint.rotation);
+				StrokeBuffer.resetCanvasDrawLayerClipRect();
 			}
 
 			penPoints.length = 0;
@@ -501,7 +503,7 @@ package Modules.Tools
 
 				if (isTransparentPenColor)
 				{
-					xColor = CanvasController.CANVAS_BG_COLOR;
+					xColor = DrawCanvas.CANVAS_BG_COLOR;
 					xBlendMode = "erase";
 				}
 				else
@@ -519,7 +521,7 @@ package Modules.Tools
 			else
 			{
 				xSize = eraserSize;
-				xColor = CanvasController.CANVAS_BG_COLOR;
+				xColor = DrawCanvas.CANVAS_BG_COLOR;
 				xAlpha = eraserAlpha;
 				xShape = eraserIsSquare;
 				xBlendMode = "erase";
@@ -544,12 +546,12 @@ package Modules.Tools
 			mouseMovedCount = 0;
 			isMouseMoved = false;
 
-			canvasSizeRect.width = CanvasController.CANVAS_WIDTH;
-			canvasSizeRect.height = CanvasController.CANVAS_HEIGHT;
+			canvasSizeRect.width = DrawCanvas.CANVAS_WIDTH;
+			canvasSizeRect.height = DrawCanvas.CANVAS_HEIGHT;
 
-			CanvasController.resetCanvasDrawLayerCliprect();
+			StrokeBuffer.resetCanvasDrawLayerClipRect();
 
-			const filteredPos:Point = PenTool.getRefinedPoint(CanvasController.canvasDrawLayerChild.mouseX, CanvasController.canvasDrawLayerChild.mouseY);
+			const filteredPos:Point = PenTool.getRefinedPoint(StrokeBuffer.canvasDrawLayerChild.mouseX, StrokeBuffer.canvasDrawLayerChild.mouseY);
 
 			clickPos.copyFrom(filteredPos);
 			clickPosDot.setTo(filteredPos.x + offsetForSharpline, filteredPos.y + offsetForSharpline);
@@ -575,7 +577,7 @@ package Modules.Tools
 				setCanUndoDataFlagON();
 			}
 
-			CanvasController.canvasDrawLayerChild.filters = [];
+			StrokeBuffer.canvasDrawLayerChild.filters = [];
 			main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
 			main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool, false, InputPriority.DEFAULT);
 			isStrokeActive = true;

@@ -1,10 +1,11 @@
 package Modules.CaptureEngine
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.InputPriority;
     import Modules.MouseState;
-    import Modules.CanvasController;
     import flash.display.CapsStyle;
     import flash.display.LineScaleMode;
     import flash.display.Shape;
@@ -350,7 +351,7 @@ package Modules.CaptureEngine
 
         private static function getCanvasScale():Number
         {
-            return (ReplayState.isReplayModeON) ? Math.abs(ReplayDrawer.rCanvasAnchorPoint.scaleX) : Math.abs(CanvasController.canvasAnchorPoint.scaleX);
+            return (ReplayState.isReplayModeON) ? Math.abs(ReplayDrawer.rCanvasAnchorPoint.scaleX) : Math.abs(CanvasView.canvasAnchorPoint.scaleX);
         }
 
         private static function drawArea():void
@@ -511,9 +512,9 @@ package Modules.CaptureEngine
                 }
                 else
                 {
-                    canvasWidth = CanvasController.CANVAS_WIDTH;
-                    canvasHeight = CanvasController.CANVAS_HEIGHT;
-                    xPanel = CanvasController.canvasPanel;
+                    canvasWidth = DrawCanvas.CANVAS_WIDTH;
+                    canvasHeight = DrawCanvas.CANVAS_HEIGHT;
+                    xPanel = CanvasView.canvasPanel;
                 }
 
                 const mx:Number = xPanel.mouseX;

@@ -1,5 +1,6 @@
 ﻿package Symbols
 {
+	import Modules.DrawEngine.DrawCanvas;
 	import flash.display.Sprite;
 	import flash.geom.ColorTransform;
 	import flash.display.BitmapData;
@@ -8,7 +9,6 @@
 	import flash.geom.Rectangle;
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
-	import Modules.CanvasController;
 
 	public class CanvasNavigatorBoxSet extends Sprite
 	{
@@ -87,11 +87,11 @@
 
 		public function updateImage():void
 		{
-			const w:Number = CanvasController.canvasLayer1BitmapData.width;
-			const h:Number = CanvasController.canvasLayer1BitmapData.height;
-			navLayer1Bitmap.bitmapData = CanvasController.canvasLayer1BitmapData;
+			const w:Number = DrawCanvas.canvasLayer1BitmapData.width;
+			const h:Number = DrawCanvas.canvasLayer1BitmapData.height;
+			navLayer1Bitmap.bitmapData = DrawCanvas.canvasLayer1BitmapData;
 			navLayer1Bitmap.smoothing = true;
-			navLayer2Bitmap.bitmapData = CanvasController.canvasLayer2BitmapData;
+			navLayer2Bitmap.bitmapData = DrawCanvas.canvasLayer2BitmapData;
 			navLayer2Bitmap.smoothing = true;
 
 			if (navBitmapLastWidth === w && navBitmapLastHeight === h)
@@ -116,7 +116,7 @@
 			navBitmapBG.height = navLayer1Bitmap.height;
 			navBitmapBG.x = navLayer1Bitmap.x;
 			navBitmapBG.y = navLayer1Bitmap.y;
-			changeprevBitmapBGColor(CanvasController.CANVAS_BG_COLOR);
+			changeprevBitmapBGColor(DrawCanvas.CANVAS_BG_COLOR);
 		}
 
 		public function changeprevBitmapBGColor(color:uint):void

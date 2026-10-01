@@ -1,5 +1,6 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.CanvasView;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.UIController;
     import Modules.InputPriority;
@@ -8,7 +9,6 @@ package Modules.Tools
     import flash.display.Sprite;
     import flash.display.Bitmap;
     import flash.events.MouseEvent;
-    import Modules.CanvasController;
     import Modules.ReferenceLayerController;
     import Modules.InputManager.InputManager;
     import Modules.ToolController;
@@ -49,7 +49,7 @@ package Modules.Tools
             main.stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
 
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
-            CanvasController.keepCanvasPanelInStage(isReplayMode);
+            CanvasView.keepCanvasPanelInStage(isReplayMode);
 
             if (isDrawMode)
             {
@@ -115,7 +115,7 @@ package Modules.Tools
             isReplayMode = fromReplayMode;
             isDrawMode = !fromReplayMode;
 
-            xAnc = (isDrawMode) ? CanvasController.canvasAnchorPoint : ReplayDrawer.rCanvasAnchorPoint;
+            xAnc = (isDrawMode) ? CanvasView.canvasAnchorPoint : ReplayDrawer.rCanvasAnchorPoint;
 
             old.setTo(main.stage.mouseX, main.stage.mouseY);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);

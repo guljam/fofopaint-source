@@ -13,7 +13,6 @@
     import Modules.Tools.LassoTool;
     import Modules.ToolController;
     import Modules.ActivityWorkTimer;
-    import Modules.CanvasController;
     import Modules.ReplayEngine.ReplayController;
 
     public class HintStrings

@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasView;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.InputManager.InputManager;
@@ -222,17 +223,17 @@ package Modules
             {
                 case "toolZoomIn":
                 case "toolZoomOut":
-                    if (CanvasController.canvasZoomMultipler !== 1.0)
+                    if (CanvasView.canvasZoomMultiplier !== 1.0)
                     {
-                        CanvasController.resetZoomDrawMode();
+                        CanvasView.resetZoomDrawMode();
                         CanvasNavigator.updateCursor();
                     }
                     break;
 
                 case "toolRotate":
-                    if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                    if (CanvasView.canvasAnchorPoint.rotation !== 0.0)
                     {
-                        CanvasController.resetRotationDrawMode();
+                        CanvasView.resetRotationDrawMode();
                         CanvasNavigator.updateCursor();
                     }
                     break;
@@ -676,11 +677,11 @@ package Modules
             {
                 if (isRight)
                 {
-                    CanvasController.canvasAnchorPoint.x -= UIController.STAGE_RIGHT_OFFSET;
+                    CanvasView.canvasAnchorPoint.x -= UIController.STAGE_RIGHT_OFFSET;
                 }
                 else
                 {
-                    CanvasController.canvasAnchorPoint.x += UIController.STAGE_LEFT_OFFSET;
+                    CanvasView.canvasAnchorPoint.x += UIController.STAGE_LEFT_OFFSET;
                 }
             }
 

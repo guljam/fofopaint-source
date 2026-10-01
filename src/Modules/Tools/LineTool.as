@@ -1,8 +1,9 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.StrokeBuffer;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.InputPriority;
-    import Modules.CanvasController;
     import Modules.ColorPickerController;
     import Modules.DrawingFinish;
     import Modules.InputManager.InputManager;
@@ -161,7 +162,7 @@ package Modules.Tools
         public static function cancel():void
         {
             removeEventsAndResetVar();
-            CanvasController.canvasDrawLayerChild.graphics.clear();
+            StrokeBuffer.canvasDrawLayerChild.graphics.clear();
         }
 
         public static function get isStarted():Boolean
@@ -222,25 +223,25 @@ package Modules.Tools
                 return;
             }
 
-            CanvasController.canvasDrawLayerChild.graphics.clear();
-            CanvasController.canvasDrawLayer.alpha = xAlpha;
+            StrokeBuffer.canvasDrawLayerChild.graphics.clear();
+            StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
 
             if (xShape)
             {
-                CanvasController.canvasDrawLayerChild.graphics.lineStyle(xSize, xColor, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
+                StrokeBuffer.canvasDrawLayerChild.graphics.lineStyle(xSize, xColor, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
             }
             else
             {
-                CanvasController.canvasDrawLayerChild.graphics.lineStyle(xSize, xColor);
+                StrokeBuffer.canvasDrawLayerChild.graphics.lineStyle(xSize, xColor);
             }
 
-            CanvasController.canvasDrawLayerChild.graphics.drawPath(command, data);
+            StrokeBuffer.canvasDrawLayerChild.graphics.drawPath(command, data);
         }
 
         private static function updateLinePreview():void
         {
-            const mx:Number = CanvasController.canvasDrawLayerChild.mouseX;
-            const my:Number = CanvasController.canvasDrawLayerChild.mouseY;
+            const mx:Number = StrokeBuffer.canvasDrawLayerChild.mouseX;
+            const my:Number = StrokeBuffer.canvasDrawLayerChild.mouseY;
 
             updateLastLineToData(mx, my);
             drawLine();
@@ -257,7 +258,7 @@ package Modules.Tools
                 ReplayState.pushCommand(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenTool.airBrushSizeDrawMode]);
             }
 
-            CanvasController.resetCanvasDrawLayerCliprect();
+            StrokeBuffer.resetCanvasDrawLayerClipRect();
             DrawingFinish.run();
             removeEventsAndResetVar();
         }
@@ -285,8 +286,8 @@ package Modules.Tools
 
         private static function onMouseDownLineTool(e:MouseEvent):void
         {
-            const mx:Number = CanvasController.canvasDrawLayerChild.mouseX;
-            const my:Number = CanvasController.canvasDrawLayerChild.mouseY;
+            const mx:Number = StrokeBuffer.canvasDrawLayerChild.mouseX;
+            const my:Number = StrokeBuffer.canvasDrawLayerChild.mouseY;
 
             if (!isSamePos(mx, my))
             {
@@ -317,15 +318,15 @@ package Modules.Tools
                 _isStarted = true;
                 PenSizePreviewCursor.setCursorInVisibleFlag(true);
 
-                canvasWidth = CanvasController.CANVAS_WIDTH;
-                canvasHeight = CanvasController.CANVAS_HEIGHT;
+                canvasWidth = DrawCanvas.CANVAS_WIDTH;
+                canvasHeight = DrawCanvas.CANVAS_HEIGHT;
                 xSize = PenTool.penSize;
                 xAlpha = PenTool.penAlpha;
                 xShape = PenTool.penIsSquare;
 
                 if (PenTool.isTransparentPenColor)
                 {
-                    xColor = CanvasController.CANVAS_BG_COLOR;
+                    xColor = DrawCanvas.CANVAS_BG_COLOR;
                     xBlendMode = "erase";
                 }
                 else
@@ -342,8 +343,8 @@ package Modules.Tools
                 command = new Vector.<int>();
                 data = new Vector.<Number>();
 
-                const mx:Number = CanvasController.canvasDrawLayerChild.mouseX;
-                const my:Number = CanvasController.canvasDrawLayerChild.mouseY;
+                const mx:Number = StrokeBuffer.canvasDrawLayerChild.mouseX;
+                const my:Number = StrokeBuffer.canvasDrawLayerChild.mouseY;
 
                 inputMoveToData(mx, my);
                 inputLineToData(mx, my);

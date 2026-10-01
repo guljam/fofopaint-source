@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.Tools.PenTool;
     import flash.display.Shape;
@@ -39,7 +40,7 @@ package Modules
 
         public static function getCursorBoundsWithCanvasPanel():Rectangle
         {
-            return _cursor.getBounds(CanvasController.canvasPanel);
+            return _cursor.getBounds(CanvasView.canvasPanel);
         }
 
         public static function getCursorShape():Shape
@@ -79,18 +80,18 @@ package Modules
 
         public static function updateCursorSize(size:Number):void
         {
-            cursorSize = size * CanvasController.canvasZoomMultipler;
+            cursorSize = size * CanvasView.canvasZoomMultiplier;
         }
 
         public static function updateZoom(z:Number):void
         {
             if (ToolController.isSelectedToolPenOrLine())
             {
-                cursorSize = PenTool.penSize * CanvasController.canvasZoomMultipler;
+                cursorSize = PenTool.penSize * CanvasView.canvasZoomMultiplier;
             }
             else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
             {
-                cursorSize = PenTool.eraserSize * CanvasController.canvasZoomMultipler;
+                cursorSize = PenTool.eraserSize * CanvasView.canvasZoomMultiplier;
             }
             else
             {
@@ -142,7 +143,7 @@ package Modules
                 _cursorSize = PenTool.eraserSize;
                 _cursorShape = PenTool.eraserIsSquare;
             }
-            const z:Number = CanvasController.canvasZoomMultipler;
+            const z:Number = CanvasView.canvasZoomMultiplier;
             if (_cursorSize * z === PenTool.penLastSizeAndShape[0] && _cursorShape === PenTool.penLastSizeAndShape[1])
             {
                 return;

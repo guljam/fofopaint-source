@@ -1,10 +1,10 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.CanvasView;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import flash.display.Sprite;
-    import Modules.CanvasController;
     import Modules.ReferenceLayerController;
     import flash.geom.Point;
     import Modules.DragInteraction;
@@ -66,7 +66,7 @@ package Modules.Tools
             }
 
             UIController.hideCanvasRotateCursor();
-            CanvasController.keepCanvasPanelInStage(isReplayMode);
+            CanvasView.keepCanvasPanelInStage(isReplayMode);
         }
 
         private static function onDragStart():void
@@ -80,7 +80,7 @@ package Modules.Tools
 
             const center:Point = UIController.getStageCenterPos("replay");
 
-            CanvasController.moveCanvasAnchorPoint(center.x, center.y, isReplayMode);
+            CanvasView.moveCanvasAnchorPoint(center.x, center.y, isReplayMode);
 
             // 캔버스 이동이 완료된후 함수를 초기화 시켜줌
             HintController.hideBottomHint();
@@ -99,7 +99,7 @@ package Modules.Tools
         private static function _start(fromReplayMode:Boolean):void
         {
             isReplayMode = fromReplayMode;
-            xAnc = (isReplayMode) ? ReplayDrawer.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
+            xAnc = (isReplayMode) ? ReplayDrawer.rCanvasAnchorPoint : CanvasView.canvasAnchorPoint;
             getAngle = UIController.showCanvasRotateCursorMouseDrag(xAnc);
 
             DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);

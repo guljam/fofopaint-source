@@ -1,9 +1,9 @@
 package Modules.UIEngine
 {
+    import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.AboutBoxController;
     import Modules.AppStateManager;
-    import Modules.CanvasController;
     import Modules.CaptureEngine.CaptureController;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.ClipboardManager;
@@ -256,7 +256,7 @@ package Modules.UIEngine
             if (CaptureController.isCaptureModeON)
             {
                 CaptureController.addCaptureWindowMove(dx, dy);
-                CanvasController.fitCanvasToViewportMargin();
+                CanvasView.fitCanvasToViewportMargin();
 
                 if (!CaptureController.isFullImageCapture())
                 {
@@ -267,7 +267,7 @@ package Modules.UIEngine
             {
                 if (ReplayController.isReplayRestartTimerON())
                 {
-                    CanvasController.centerCanvas("replay");
+                    CanvasView.centerCanvas("replay");
                 }
                 else
                 {
@@ -275,8 +275,8 @@ package Modules.UIEngine
                     ReplayDrawer.rCanvasAnchorPoint.y = ReplayDrawer.rCanvasAnchorPoint.y + dy;
                 }
 
-                CanvasController.canvasAnchorPoint.x = CanvasController.canvasAnchorPoint.x + dx;
-                CanvasController.canvasAnchorPoint.y = CanvasController.canvasAnchorPoint.y + dy;
+                CanvasView.canvasAnchorPoint.x = CanvasView.canvasAnchorPoint.x + dx;
+                CanvasView.canvasAnchorPoint.y = CanvasView.canvasAnchorPoint.y + dy;
             }
         }
 

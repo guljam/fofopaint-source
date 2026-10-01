@@ -1,6 +1,6 @@
 package Modules.Tools
 {
-    import Modules.CanvasController;
+    import Modules.DrawEngine.StrokeBuffer;
     import Modules.Utils;
 
     import flash.geom.Point;
@@ -12,9 +12,9 @@ package Modules.Tools
 
         public static function start(shape:Boolean, size:uint, color:uint, posX:Number, posY:Number, rotation:Number):void
         {
-            CanvasController.canvasDrawLayerChild.graphics.clear();
-            CanvasController.canvasDrawLayerChild.graphics.lineStyle(0, 0, 0);
-            CanvasController.canvasDrawLayerChild.graphics.beginFill(color);
+            StrokeBuffer.canvasDrawLayerChild.graphics.clear();
+            StrokeBuffer.canvasDrawLayerChild.graphics.lineStyle(0, 0, 0);
+            StrokeBuffer.canvasDrawLayerChild.graphics.beginFill(color);
     
             if (shape === true)
             {
@@ -34,15 +34,15 @@ package Modules.Tools
                 cmd.push(2);
                 pos.push(posX + p3.x);
                 pos.push(posY + p3.y);
-                CanvasController.canvasDrawLayerChild.graphics.drawPath(cmd, pos);
+                StrokeBuffer.canvasDrawLayerChild.graphics.drawPath(cmd, pos);
                 cmd = new Vector.<int>();
                 pos = new Vector.<Number>();
             }
             else
             {
-                CanvasController.canvasDrawLayerChild.graphics.drawCircle(posX, posY, size / 2);
+                StrokeBuffer.canvasDrawLayerChild.graphics.drawCircle(posX, posY, size / 2);
             }
-            CanvasController.canvasDrawLayerChild.graphics.endFill();
+            StrokeBuffer.canvasDrawLayerChild.graphics.endFill();
         }
     }
 }

@@ -1,8 +1,8 @@
 package Modules.InputManager
 {
+    import Modules.DrawEngine.CanvasView;
     import Modules.MouseState;
     import Modules.ActivityWorkTimer;
-    import Modules.CanvasController;
     import Modules.ClipboardManager;
     import Modules.FileManager;
     import Modules.InputPriority;
@@ -62,12 +62,12 @@ package Modules.InputManager
                     break;
                 case "replayZoomInButton":
                     {
-                        CanvasController.zoomInCanvas(true, true);
+                        CanvasView.zoomInCanvas(true, true);
                     }
                     break;
                 case "replayZoomOutButton":
                     {
-                        CanvasController.zoomInCanvas(false, true);
+                        CanvasView.zoomInCanvas(false, true);
                     }
                     break;
                 case "replayFitToWindowButton":

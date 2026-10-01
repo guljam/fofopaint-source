@@ -1,5 +1,7 @@
 package Modules.ReplayEngine
 {
+    import Modules.DrawEngine.StrokeBuffer;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.Tools.PenTool;
     import flash.geom.Point;
     import Modules.Tools.LassoTool;
@@ -11,7 +13,6 @@ package Modules.ReplayEngine
     import flash.display.JointStyle;
     import flash.geom.Matrix;
     import flash.filters.BlurFilter;
-    import Modules.CanvasController;
     import Modules.Utils;
 
     public class ReplayDrawCommands
@@ -1153,7 +1154,7 @@ package Modules.ReplayEngine
                 const blurSize:Number = PenTool.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
                 ReplayDrawer.rCanvasDrawShape.filters = [new BlurFilter(blurSize, blurSize, 3)];
                 ReplayDrawer.rCanvasDrawLayerBitmapData.draw(ReplayDrawer.rCanvasDrawShape);
-                CanvasController.canvasDrawLayerChild.filters = [];
+                StrokeBuffer.canvasDrawLayerChild.filters = [];
             }
             else
             {
@@ -1386,7 +1387,7 @@ package Modules.ReplayEngine
                 var tmpbmpd:BitmapData = new BitmapData(ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT, true, 0);
                 tmpbmpd.draw(ReplayDrawer.rCanvasDrawLayerBitmap, null, canvasAlpha);
                 tmpbmpd.draw(ReplayDrawer.rCanvasLayer1Bitmap);
-                ReplayDrawer.rCanvasLayer1BitmapData = CanvasController.updateBitmapData(ReplayDrawer.rCanvasLayer1BitmapData, tmpbmpd, ReplayDrawer.rCanvasLayer1Bitmap);
+                ReplayDrawer.rCanvasLayer1BitmapData = DrawCanvas.updateBitmapData(ReplayDrawer.rCanvasLayer1BitmapData, tmpbmpd, ReplayDrawer.rCanvasLayer1Bitmap);
                 tmpbmpd.dispose();
                 tmpbmpd = null;
             }

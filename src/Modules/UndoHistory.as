@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.CanvasNavigator;
     import flash.display.BitmapData;
     import flash.filesystem.FileStream;
@@ -23,10 +24,10 @@ package Modules
         private static var undoBaseImage:Array = [
                 ReplayFileCache.rFirstImageLayer1BitmapData.clone(),
                 ReplayFileCache.rFirstImageLayer2BitmapData.clone(),
-                CanvasController.CANVAS_WIDTH,
-                CanvasController.CANVAS_HEIGHT,
-                CanvasController.CANVAS_BG_COLOR,
-                CanvasController.mirrorON
+                DrawCanvas.CANVAS_WIDTH,
+                DrawCanvas.CANVAS_HEIGHT,
+                DrawCanvas.CANVAS_BG_COLOR,
+                DrawCanvas.mirrorON
             ];
 
         public static function get undoDataIndex():int
@@ -59,12 +60,12 @@ package Modules
         public static function updateUndoBaseImageFromDrawMode():void
         {
             updateUndoBaseImage(
-                    CanvasController.canvasLayer1BitmapData.clone(),
-                    CanvasController.canvasLayer2BitmapData.clone(),
-                    CanvasController.canvasLayer1BitmapData.width,
-                    CanvasController.canvasLayer1BitmapData.height,
-                    CanvasController.CANVAS_BG_COLOR,
-                    CanvasController.mirrorON
+                    DrawCanvas.canvasLayer1BitmapData.clone(),
+                    DrawCanvas.canvasLayer2BitmapData.clone(),
+                    DrawCanvas.canvasLayer1BitmapData.width,
+                    DrawCanvas.canvasLayer1BitmapData.height,
+                    DrawCanvas.CANVAS_BG_COLOR,
+                    DrawCanvas.mirrorON
                 );
         }
 

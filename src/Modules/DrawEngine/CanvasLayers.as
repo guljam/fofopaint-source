@@ -1,6 +1,5 @@
 package Modules.DrawEngine
 {
-    import Modules.CanvasController;
     import Modules.ToolController;
     import Modules.UndoController;
     import Modules.UndoHistory;
@@ -31,7 +30,7 @@ package Modules.DrawEngine
 
         public static function isAllLayerInvisible():Boolean
         {
-            if (!CanvasController.canvasLayer1Bitmap.visible && !CanvasController.canvasLayer2Bitmap.visible)
+            if (!DrawCanvas.canvasLayer1Bitmap.visible && !DrawCanvas.canvasLayer2Bitmap.visible)
             {
                 HintController.showMouseHintTemp("All layer locked");
                 return true;
@@ -94,8 +93,8 @@ package Modules.DrawEngine
                 {
                     UndoController.applyDeepUndo();
                 }
-                CanvasController.canvasLayer2BitmapData.draw(CanvasController.canvasLayer1BitmapData);
-                CanvasController.canvasLayer1BitmapData.fillRect(new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT), 0);
+                DrawCanvas.canvasLayer2BitmapData.draw(DrawCanvas.canvasLayer1BitmapData);
+                DrawCanvas.canvasLayer1BitmapData.fillRect(new Rectangle(0, 0, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT), 0);
                 ReplayState.pushCommand(["merge"]);
                 UndoHistory.addNew();
             }
@@ -113,13 +112,13 @@ package Modules.DrawEngine
                 UndoController.applyDeepUndo();
             }
             isLayerSwapped = !isLayerSwapped;
-            var tempbmpd1:BitmapData = CanvasController.canvasLayer1BitmapData.clone();
-            var tempbmpd11:BitmapData = CanvasController.canvasLayer2BitmapData.clone();
-            const rect:Rectangle = new Rectangle(0, 0, CanvasController.canvasLayer1BitmapData.width, CanvasController.canvasLayer1BitmapData.height);
-            CanvasController.canvasLayer1BitmapData.fillRect(rect, 0);
-            CanvasController.canvasLayer2BitmapData.fillRect(rect, 0);
-            CanvasController.canvasLayer1BitmapData.draw(tempbmpd11);
-            CanvasController.canvasLayer2BitmapData.draw(tempbmpd1);
+            var tempbmpd1:BitmapData = DrawCanvas.canvasLayer1BitmapData.clone();
+            var tempbmpd11:BitmapData = DrawCanvas.canvasLayer2BitmapData.clone();
+            const rect:Rectangle = new Rectangle(0, 0, DrawCanvas.canvasLayer1BitmapData.width, DrawCanvas.canvasLayer1BitmapData.height);
+            DrawCanvas.canvasLayer1BitmapData.fillRect(rect, 0);
+            DrawCanvas.canvasLayer2BitmapData.fillRect(rect, 0);
+            DrawCanvas.canvasLayer1BitmapData.draw(tempbmpd11);
+            DrawCanvas.canvasLayer2BitmapData.draw(tempbmpd1);
             tempbmpd1.dispose();
             tempbmpd11.dispose();
             tempbmpd1 = null;
@@ -143,16 +142,16 @@ package Modules.DrawEngine
 
         public static function bringCanvasDrawLayerAboveLayer1():void
         {
-            if (CanvasController.canvasPanel.getChildIndex(CanvasController.canvasDrawLayer) < CanvasController.canvasPanel.getChildIndex(LassoTool.lassoLayer1))
+            if (CanvasView.canvasPanel.getChildIndex(StrokeBuffer.canvasDrawLayer) < CanvasView.canvasPanel.getChildIndex(LassoTool.lassoLayer1))
             {
-                CanvasController.canvasPanel.setChildIndex(CanvasController.canvasDrawLayer, CanvasController.canvasPanel.getChildIndex(LassoTool.lassoLayer1));
+                CanvasView.canvasPanel.setChildIndex(StrokeBuffer.canvasDrawLayer, CanvasView.canvasPanel.getChildIndex(LassoTool.lassoLayer1));
             }
         }
         public static function bringCanvasDrawLayerAboveLayer2():void
         {
-            if (CanvasController.canvasPanel.getChildIndex(CanvasController.canvasDrawLayer) > CanvasController.canvasPanel.getChildIndex(CanvasController.canvasLayer1Bitmap))
+            if (CanvasView.canvasPanel.getChildIndex(StrokeBuffer.canvasDrawLayer) > CanvasView.canvasPanel.getChildIndex(DrawCanvas.canvasLayer1Bitmap))
             {
-                CanvasController.canvasPanel.setChildIndex(CanvasController.canvasDrawLayer, CanvasController.canvasPanel.getChildIndex(CanvasController.canvasLayer1Bitmap));
+                CanvasView.canvasPanel.setChildIndex(StrokeBuffer.canvasDrawLayer, CanvasView.canvasPanel.getChildIndex(DrawCanvas.canvasLayer1Bitmap));
             }
         }
 
@@ -162,14 +161,14 @@ package Modules.DrawEngine
             ToolController.toolOptionsBox.setSelectLayerButtonActiveAlpha(1);
             if (onlyViewFlag)
             {
-                CanvasController.canvasLayer1Bitmap.visible = true;
-                CanvasController.canvasLayer2Bitmap.visible = false;
+                DrawCanvas.canvasLayer1Bitmap.visible = true;
+                DrawCanvas.canvasLayer2Bitmap.visible = false;
                 ToolController.toolOptionsBox.moveLayerInvisibleLineToLayer2();
             }
             else
             {
-                CanvasController.canvasLayer1Bitmap.visible = true;
-                CanvasController.canvasLayer2Bitmap.visible = true;
+                DrawCanvas.canvasLayer1Bitmap.visible = true;
+                DrawCanvas.canvasLayer2Bitmap.visible = true;
                 ToolController.toolOptionsBox.removeLayerInvisibleLine();
             }
             bringCanvasDrawLayerAboveLayer1();
@@ -180,14 +179,14 @@ package Modules.DrawEngine
             ToolController.toolOptionsBox.setSelectLayerButtonActiveAlpha(2);
             if (onlyViewFlag)
             {
-                CanvasController.canvasLayer1Bitmap.visible = false;
-                CanvasController.canvasLayer2Bitmap.visible = true;
+                DrawCanvas.canvasLayer1Bitmap.visible = false;
+                DrawCanvas.canvasLayer2Bitmap.visible = true;
                 ToolController.toolOptionsBox.moveLayerInvisibleLineToLayer1();
             }
             else
             {
-                CanvasController.canvasLayer1Bitmap.visible = true;
-                CanvasController.canvasLayer2Bitmap.visible = true;
+                DrawCanvas.canvasLayer1Bitmap.visible = true;
+                DrawCanvas.canvasLayer2Bitmap.visible = true;
                 ToolController.toolOptionsBox.removeLayerInvisibleLine();
             }
             bringCanvasDrawLayerAboveLayer2();

@@ -1,5 +1,8 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.StrokeBuffer;
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
@@ -8,7 +11,6 @@ package Modules.Tools
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.CanvasController;
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
     import Modules.ImageViewWindow;
@@ -118,7 +120,7 @@ package Modules.Tools
                 return;
 
             // 라소 이미지 리사이즈 배율까지 반영해야 화면에서 늘 1px / 5px 로 보임
-            DottedLineTool.setLineScale(CanvasController.canvasZoomMultipler * Math.abs(lassoLayer1.scaleY));
+            DottedLineTool.setLineScale(CanvasView.canvasZoomMultiplier * Math.abs(lassoLayer1.scaleY));
 
             lassoDraw.graphics.clear(); // lassoDraw.x/y 보정값은 그대로 두므로 위치는 유지됨
             DottedLineTool.moveTo(lassoDraw.graphics, pts[0][0], pts[0][1]);
@@ -194,12 +196,12 @@ package Modules.Tools
                 const point2:Array = lassoTransformData[1].concat();
                 var l1:Boolean = true;
                 var l2:Boolean = true;
-                if (CanvasLayers.checkedLayer === 1 || (CanvasController.canvasLayer1Bitmap.visible && !CanvasController.canvasLayer2Bitmap.visible))
+                if (CanvasLayers.checkedLayer === 1 || (DrawCanvas.canvasLayer1Bitmap.visible && !DrawCanvas.canvasLayer2Bitmap.visible))
                 {
                     l1 = true;
                     l2 = false;
                 }
-                else if (CanvasLayers.checkedLayer === 2 || (!CanvasController.canvasLayer1Bitmap.visible && CanvasController.canvasLayer2Bitmap.visible))
+                else if (CanvasLayers.checkedLayer === 2 || (!DrawCanvas.canvasLayer1Bitmap.visible && DrawCanvas.canvasLayer2Bitmap.visible))
                 {
                     l1 = false;
                     l2 = true;
@@ -432,7 +434,7 @@ package Modules.Tools
 
         private static function startLassoImageMove():void
         {
-            var getMovedPos:Function = Utils.updateImagePosMouseDrag(lassoLayer1, CanvasController.canvasAnchorPoint.rotation);
+            var getMovedPos:Function = Utils.updateImagePosMouseDrag(lassoLayer1, CanvasView.canvasAnchorPoint.rotation);
             function onMouseUp():void
             {
                 getMovedPos = null;
@@ -514,18 +516,18 @@ package Modules.Tools
             }
             else
             {
-                canvasDrawLayerFilterBackUp = CanvasController.canvasDrawLayerChild.filters.concat();
-                CanvasController.canvasDrawLayerChild.filters = [];
-                xCanvasDrawLayer = CanvasController.canvasDrawLayerChild;
+                canvasDrawLayerFilterBackUp = StrokeBuffer.canvasDrawLayerChild.filters.concat();
+                StrokeBuffer.canvasDrawLayerChild.filters = [];
+                xCanvasDrawLayer = StrokeBuffer.canvasDrawLayerChild;
                 if (layer1)
                 {
-                    canvasBitmapData = CanvasController.canvasLayer1BitmapData;
-                    canvasBitmap = CanvasController.canvasLayer1Bitmap;
+                    canvasBitmapData = DrawCanvas.canvasLayer1BitmapData;
+                    canvasBitmap = DrawCanvas.canvasLayer1Bitmap;
                 }
                 if (layer2)
                 {
-                    canvasBitmapDataSub = CanvasController.canvasLayer2BitmapData;
-                    canvasBitmapSub = CanvasController.canvasLayer2Bitmap;
+                    canvasBitmapDataSub = DrawCanvas.canvasLayer2BitmapData;
+                    canvasBitmapSub = DrawCanvas.canvasLayer2Bitmap;
                 }
             }
             const newRectangle:Rectangle = new Rectangle(rectLeft, rectTop, rectWidth, rectHeight);
@@ -543,7 +545,7 @@ package Modules.Tools
             if (!copyFlag)
             {
                 xCanvasDrawLayer.graphics.clear();
-                xCanvasDrawLayer.graphics.beginFill(CanvasController.CANVAS_BG_COLOR);
+                xCanvasDrawLayer.graphics.beginFill(DrawCanvas.CANVAS_BG_COLOR);
                 xCanvasDrawLayer.graphics.moveTo(points[0][0], points[0][1]);
                 // rectLeft를 빼줘서 canvasdraw2의 0,0영역에 그려줌
                 for (i = 1;i < lassoPointsLen;i++)
@@ -611,7 +613,7 @@ package Modules.Tools
             }
             else
             {
-                CanvasController.canvasDrawLayerChild.filters = canvasDrawLayerFilterBackUp.concat();
+                StrokeBuffer.canvasDrawLayerChild.filters = canvasDrawLayerFilterBackUp.concat();
             }
             return true;
         }
@@ -647,8 +649,8 @@ package Modules.Tools
             if (_isStarted === true || CanvasLayers.isAllLayerInvisible())
                 return;
 
-            const clickX:Number = CanvasController.canvasDrawLayerChild.mouseX;
-            const clickY:Number = CanvasController.canvasDrawLayerChild.mouseY;
+            const clickX:Number = StrokeBuffer.canvasDrawLayerChild.mouseX;
+            const clickY:Number = StrokeBuffer.canvasDrawLayerChild.mouseY;
 
             lassoPreviewDrawnCount = 0;
             _lassoMenuBox.hint("Lasso tool");
@@ -657,27 +659,27 @@ package Modules.Tools
             lassoSelectRect = new <Number>[clickX, clickY, clickX, clickY];
             lassoSelectPoints = [[clickX, clickY]];
             lassoTransformData = [];
-            CanvasController.canvasDrawLayer.alpha = 1.0; // 알파값이 조정되어 있을 수도 있기 때문에 해줌
+            StrokeBuffer.canvasDrawLayer.alpha = 1.0; // 알파값이 조정되어 있을 수도 있기 때문에 해줌
             lassoDraw.graphics.clear();
             lassoDrawCloseLine.graphics.clear();
             lassoLayer1.visible = true;
-            DottedLineTool.setLineScale(CanvasController.canvasZoomMultipler);
+            DottedLineTool.setLineScale(CanvasView.canvasZoomMultiplier);
 
-            const needLayer1:Boolean = CanvasController.canvasLayer1Bitmap.visible && CanvasLayers.checkedLayer !== 2;
-            const needLayer2:Boolean = CanvasController.canvasLayer2Bitmap.visible && CanvasLayers.checkedLayer !== 1;
+            const needLayer1:Boolean = DrawCanvas.canvasLayer1Bitmap.visible && CanvasLayers.checkedLayer !== 2;
+            const needLayer2:Boolean = DrawCanvas.canvasLayer2Bitmap.visible && CanvasLayers.checkedLayer !== 1;
             if (needLayer1)
             {
                 if (lassoLayer1LastBitmapdata != null)
                     lassoLayer1LastBitmapdata.dispose();
 
-                lassoLayer1LastBitmapdata = CanvasController.canvasLayer1BitmapData.clone();
+                lassoLayer1LastBitmapdata = DrawCanvas.canvasLayer1BitmapData.clone();
             }
             if (needLayer2)
             {
                 if (lassoLayer2LastBitmapdata != null)
                     lassoLayer2LastBitmapdata.dispose();
 
-                lassoLayer2LastBitmapdata = CanvasController.canvasLayer2BitmapData.clone();
+                lassoLayer2LastBitmapdata = DrawCanvas.canvasLayer2BitmapData.clone();
             }
 
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLassoSelection);
@@ -740,13 +742,13 @@ package Modules.Tools
             const lassoW:Number = (lassoMenu.width > main.stage.stageWidth)
                 ? main.stage.stageWidth : lassoMenu.width;
             lassoMenu.x = Math.floor(g.x - lassoW / 2);
-            lassoMenu.y = Math.floor(g.y + (((lassoLayer1.height) / 2) * CanvasController.canvasZoomMultipler + 20));
+            lassoMenu.y = Math.floor(g.y + (((lassoLayer1.height) / 2) * CanvasView.canvasZoomMultiplier + 20));
         }
 
         private static function onMouseMoveLassoSelection(e:MouseEvent):void
         {
-            const mx:Number = CanvasController.canvasDrawLayerChild.mouseX;
-            const my:Number = CanvasController.canvasDrawLayerChild.mouseY;
+            const mx:Number = StrokeBuffer.canvasDrawLayerChild.mouseX;
+            const my:Number = StrokeBuffer.canvasDrawLayerChild.mouseY;
             const rect:Vector.<Number> = lassoSelectRect;
 
             lassoSelectPoints.push([mx, my]);
@@ -794,16 +796,16 @@ package Modules.Tools
                 rect[0] = 0;
             if (rect[1] < 0)
                 rect[1] = 0;
-            if (rect[2] > CanvasController.CANVAS_WIDTH)
-                rect[2] = CanvasController.CANVAS_WIDTH;
-            if (rect[3] > CanvasController.CANVAS_HEIGHT)
-                rect[3] = CanvasController.CANVAS_HEIGHT;
+            if (rect[2] > DrawCanvas.CANVAS_WIDTH)
+                rect[2] = DrawCanvas.CANVAS_WIDTH;
+            if (rect[3] > DrawCanvas.CANVAS_HEIGHT)
+                rect[3] = DrawCanvas.CANVAS_HEIGHT;
 
             lassoTransformData.push(rect);
             lassoTransformData.push(lassoSelectPoints);
 
-            var checklayer1:Boolean = CanvasController.canvasLayer1Bitmap.visible;
-            var checklayer2:Boolean = CanvasController.canvasLayer2Bitmap.visible;
+            var checklayer1:Boolean = DrawCanvas.canvasLayer1Bitmap.visible;
+            var checklayer2:Boolean = DrawCanvas.canvasLayer2Bitmap.visible;
             if (CanvasLayers.checkedLayer === 1)
             {
                 checklayer1 = true;
@@ -856,7 +858,7 @@ package Modules.Tools
             const lassoBMPScaleY:Number = lassoLayer1.scaleY;
             var lassoBMPWidth:Number = lassoLayer1Bitmap.width * lassoBMPScaleX;
             var lassoBMPHeight:Number = lassoLayer1Bitmap.height * lassoBMPScaleY;
-            if (CanvasLayers.checkedLayer === 2 || CanvasController.canvasLayer1Bitmap.visible === false)
+            if (CanvasLayers.checkedLayer === 2 || DrawCanvas.canvasLayer1Bitmap.visible === false)
             {
                 lassoBMPWidth = lassoLayer2Bitmap.width * lassoBMPScaleX;
                 lassoBMPHeight = lassoLayer2Bitmap.height * lassoBMPScaleY;
@@ -873,23 +875,23 @@ package Modules.Tools
             lassoLayer2Bitmap.smoothing = true;
             if (isTransferRefLayer === false)
             {
-                if (CanvasController.canvasLayer1Bitmap.visible)
-                    CanvasController.canvasLayer1BitmapData.draw(lassoLayer1Bitmap, posMatrix);
-                if (CanvasController.canvasLayer2Bitmap.visible)
-                    CanvasController.canvasLayer2BitmapData.draw(lassoLayer2Bitmap, posMatrix);
+                if (DrawCanvas.canvasLayer1Bitmap.visible)
+                    DrawCanvas.canvasLayer1BitmapData.draw(lassoLayer1Bitmap, posMatrix);
+                if (DrawCanvas.canvasLayer2Bitmap.visible)
+                    DrawCanvas.canvasLayer2BitmapData.draw(lassoLayer2Bitmap, posMatrix);
             }
             else
             {
                 var layer1Bmpd:BitmapData;
                 var layer2Bmpd:BitmapData;
-                if (CanvasController.canvasLayer1Bitmap.visible)
+                if (DrawCanvas.canvasLayer1Bitmap.visible)
                 {
-                    layer1Bmpd = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
+                    layer1Bmpd = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
                     layer1Bmpd.draw(lassoLayer1Bitmap, posMatrix);
                 }
-                if (CanvasController.canvasLayer2Bitmap.visible)
+                if (DrawCanvas.canvasLayer2Bitmap.visible)
                 {
-                    layer2Bmpd = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
+                    layer2Bmpd = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
                     layer2Bmpd.draw(lassoLayer2Bitmap, posMatrix);
                 }
                 ReferenceLayerController.mergeImageToRefLayer(layer1Bmpd, layer2Bmpd);
@@ -938,8 +940,8 @@ package Modules.Tools
                     {
                         command = lassoLayerCommandData.concat();
                     }
-                    var checklayer1:Boolean = CanvasController.canvasLayer1Bitmap.visible;
-                    var checklayer2:Boolean = CanvasController.canvasLayer2Bitmap.visible;
+                    var checklayer1:Boolean = DrawCanvas.canvasLayer1Bitmap.visible;
+                    var checklayer2:Boolean = DrawCanvas.canvasLayer2Bitmap.visible;
                     if (CanvasLayers.checkedLayer === 1)
                     {
                         checklayer1 = true;
@@ -989,11 +991,11 @@ package Modules.Tools
 
             if (lassoLayer1LastBitmapdata)
             {
-                CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData, lassoLayer1LastBitmapdata);
+                DrawCanvas.copyPixels(DrawCanvas.canvasLayer1BitmapData, lassoLayer1LastBitmapdata);
             }
             if (lassoLayer2LastBitmapdata)
             {
-                CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData, lassoLayer2LastBitmapdata);
+                DrawCanvas.copyPixels(DrawCanvas.canvasLayer2BitmapData, lassoLayer2LastBitmapdata);
             }
             CanvasNavigator.box.updateImage();
             if (ImageViewWindow.isCanvasWindowON)
@@ -1111,7 +1113,7 @@ package Modules.Tools
             else if (command === LASSO_1PX_MOVE_RIGHT)
                 posX = 1;
 
-            const rotatedPoint:Point = Utils.rotatePoint(posX, posY, CanvasController.canvasAnchorPoint.rotation);
+            const rotatedPoint:Point = Utils.rotatePoint(posX, posY, CanvasView.canvasAnchorPoint.rotation);
             lassoLayer1.x += rotatedPoint.x;
             lassoLayer1.y += rotatedPoint.y;
             lassoLayer2.x = lassoLayer1.x;
@@ -1187,7 +1189,7 @@ package Modules.Tools
                         lassoLayer1.scaleX = -lassoLayer1.scaleX;
                         lassoLayer2.scaleX = lassoLayer1.scaleX;
                         // 캔버스가 회전한각도도 있어서 항상 세로축을 중심으로 대칭되게 regpoint각도를 보정값으로 넣어줌
-                        lassoLayer1.rotation = -lassoLayer1.rotation - (CanvasController.canvasAnchorPoint.rotation * 2);
+                        lassoLayer1.rotation = -lassoLayer1.rotation - (CanvasView.canvasAnchorPoint.rotation * 2);
                         lassoLayer2.rotation = lassoLayer1.rotation;
                     }
                     break;
@@ -1279,12 +1281,12 @@ package Modules.Tools
                         break;
                     case "toolZoomIn":
                         {
-                            CanvasController.zoomInCanvas(true, false);
+                            CanvasView.zoomInCanvas(true, false);
                         }
                         break;
                     case "toolZoomOut":
                         {
-                            CanvasController.zoomInCanvas(false, false);
+                            CanvasView.zoomInCanvas(false, false);
                         }
                         break;
                     case "toolRotate":
@@ -1433,17 +1435,17 @@ package Modules.Tools
                     || targetName === "toolZoomIn"
                     || targetName === "toolZoomOut")
             {
-                if (CanvasController.canvasZoomMultipler !== 1.0)
+                if (CanvasView.canvasZoomMultiplier !== 1.0)
                 {
-                    CanvasController.resetZoomDrawMode();
+                    CanvasView.resetZoomDrawMode();
                     CanvasNavigator.updateCursor();
                 }
             }
             else if (targetName === "toolRotate")
             {
-                if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                if (CanvasView.canvasAnchorPoint.rotation !== 0.0)
                 {
-                    CanvasController.resetRotationDrawMode();
+                    CanvasView.resetRotationDrawMode();
                     CanvasNavigator.updateCursor();
                 }
             }
@@ -1510,18 +1512,18 @@ package Modules.Tools
             {
                 case InputManager.KEY.s:
                 case InputManager.KEY.k:
-                    if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                    if (CanvasView.canvasAnchorPoint.rotation !== 0.0)
                     {
-                        CanvasController.resetRotationDrawMode();
+                        CanvasView.resetRotationDrawMode();
                         CanvasNavigator.updateCursor();
                     }
                     return;
 
                 case InputManager.KEY.w:
                 case InputManager.KEY.i:
-                    if (CanvasController.canvasZoomMultipler !== 1.0)
+                    if (CanvasView.canvasZoomMultiplier !== 1.0)
                     {
-                        CanvasController.resetZoomDrawMode();
+                        CanvasView.resetZoomDrawMode();
                         CanvasNavigator.updateCursor();
                     }
                     return;

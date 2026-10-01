@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.CaptureEngine.CaptureController;
     import flash.display.Sprite;
     import flash.display.BitmapData;
@@ -236,8 +238,8 @@ package Modules
         public static function applyTransparentCanvasBackground(replayMode:Boolean):void
         {
             var xPanel:Sprite;
-            var w:Number = CanvasController.CANVAS_WIDTH;
-            var h:Number = CanvasController.CANVAS_HEIGHT;
+            var w:Number = DrawCanvas.CANVAS_WIDTH;
+            var h:Number = DrawCanvas.CANVAS_HEIGHT;
 
             if (replayMode)
             {
@@ -247,9 +249,9 @@ package Modules
             }
             else
             {
-                xPanel = CanvasController.canvasPanel;
-                w = CanvasController.CANVAS_WIDTH;
-                h = CanvasController.CANVAS_HEIGHT;
+                xPanel = CanvasView.canvasPanel;
+                w = DrawCanvas.CANVAS_WIDTH;
+                h = DrawCanvas.CANVAS_HEIGHT;
             }
 
             xPanel.graphics.clear();

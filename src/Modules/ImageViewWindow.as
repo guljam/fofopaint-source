@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.InputManager.InputManager;
     import Modules.UIEngine.UIController;
@@ -65,11 +66,11 @@ package Modules
 
         public static function updateCanvasWindowBitmapSize():void
         {
-            const bounds:Rectangle = CanvasNavigator.box.setFitBitmapforBox(CanvasController.canvasLayer1BitmapData.width,
-                    CanvasController.canvasLayer1BitmapData.height,
+            const bounds:Rectangle = CanvasNavigator.box.setFitBitmapforBox(DrawCanvas.canvasLayer1BitmapData.width,
+                    DrawCanvas.canvasLayer1BitmapData.height,
                     canvasWindow.stage.stageWidth,
                     canvasWindow.stage.stageHeight);
-            updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, CanvasController.canvasLayer1BitmapData);
+            updateCanvasWindowBGColor(DrawCanvas.CANVAS_BG_COLOR, DrawCanvas.canvasLayer1BitmapData);
             canvasWindowCanvasPanel.x = bounds.x;
             canvasWindowCanvasPanel.y = bounds.y;
             canvasWindowCanvasPanel.width = bounds.width;

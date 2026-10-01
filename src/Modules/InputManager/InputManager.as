@@ -1,7 +1,7 @@
 package Modules.InputManager
 {
+    import Modules.DrawEngine.CanvasView;
     import Modules.AboutBoxController;
-    import Modules.CanvasController;
     import Modules.ClipboardManager;
     import Modules.ColorPickerController;
     import Modules.FileManager;
@@ -412,13 +412,13 @@ package Modules.InputManager
                         {
                             if (e.delta > 0)
                             {
-                                CanvasController.zoomInCanvas(true, false);
-                                HintController.showMouseHintTemp(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
+                                CanvasView.zoomInCanvas(true, false);
+                                HintController.showMouseHintTemp(Math.floor(CanvasView.canvasZoomMultiplier * 100) + "%");
                             }
                             else
                             {
-                                CanvasController.zoomInCanvas(false, false);
-                                HintController.showMouseHintTemp(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
+                                CanvasView.zoomInCanvas(false, false);
+                                HintController.showMouseHintTemp(Math.floor(CanvasView.canvasZoomMultiplier * 100) + "%");
                             }
                         }
                     });

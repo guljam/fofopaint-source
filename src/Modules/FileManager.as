@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
@@ -366,20 +368,20 @@ package Modules
             ReferenceLayerController.refLayerRawTransformData = null;
             finalizeLoadFile(width, height, layer1Image, layer2Image, true, 0xFFFFFF);
             ReplayFileCache.initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소
-            ReplayFileCache.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
+            ReplayFileCache.createFirstImageCache(DrawCanvas.canvasLayer1BitmapData, DrawCanvas.canvasLayer2BitmapData, DrawCanvas.CANVAS_BG_COLOR);
         }
 
         public static function resetDrawAndReplayCanvasState(canvasWidth:Number, canvasHeight:Number):void
         {
-            CanvasController.canvasAnchorPoint.rotation = 0;
+            CanvasView.canvasAnchorPoint.rotation = 0;
             ReplayDrawer.setRcursorRotation(0);
-            CanvasController.canvasZoomIndex = 3;
-            CanvasController.updateCanvasScale(1.0);
-            CanvasController.setCavnvasSizeDrawMode(canvasWidth, canvasHeight, 0, 0, false);
-            CanvasController.updateCanvasPanelColorAndSize();
+            CanvasView.canvasZoomIndex = 3;
+            CanvasView.updateCanvasScale(1.0);
+            DrawCanvas.setCanvasSizeDrawMode(canvasWidth, canvasHeight, 0, 0, false);
+            CanvasView.updateCanvasPanelColorAndSize();
             ReplayDrawer.setReplayCanvasBmpdFromDrawMode();
             ReplayController.setReplayCanvasStateFromDrawMode();
-            CanvasController.centerCanvas("draw");
+            CanvasView.centerCanvas("draw");
         }
 
         public static function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawable, imageData1:IBitmapDrawable, imageOnlyFlag:Boolean, bgColor:uint):void
@@ -397,19 +399,19 @@ package Modules
 
             if (bgColor > 0)
             {
-                CanvasController.setCanvasBGColorDrawMode(bgColor);
+                DrawCanvas.setCanvasBGColorDrawMode(bgColor);
                 ReplayDrawer.updateCanvasBGColorReplayMode(bgColor);
             }
 
             if (ImageViewWindow.isCanvasWindowON)
             {
-                ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
+                ImageViewWindow.updateCanvasWindowBGColor(DrawCanvas.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
             }
 
             // updateLastFilePathByRandomFileName();
             isContinueSaveON = false; // 연속 세이브 플래그 취소
             ReplayState.rMirrorON = false;
-            CanvasController.mirrorON = false;
+            DrawCanvas.mirrorON = false;
             ReplayState.mirrorCommandReady = false;
             UIController.canvasInfoBox.setMirror(false);
             CanvasGridOverlay.updateGridMirror(false);
@@ -427,7 +429,7 @@ package Modules
             if (width > 0 && height > 0 && (imageData || imageData1))
             {
                 var maxLength:Number = (width > height) ? width : height;
-                var scaleLimitMultiplier:Number = (maxLength > CanvasController.CANVAS_MAX_SIZE) ? CanvasController.CANVAS_MAX_SIZE / maxLength : 1.0;
+                var scaleLimitMultiplier:Number = (maxLength > DrawCanvas.CANVAS_MAX_SIZE) ? DrawCanvas.CANVAS_MAX_SIZE / maxLength : 1.0;
                 // CANVAS_MAX_SIZE 값을 넘으면 리사이즈 해줌 최소길이는 1ㅎ
                 const limitedImageWidth:int = Math.max(1, Math.floor(width * scaleLimitMultiplier));
                 const limitedImageHeight:int = Math.max(1, Math.floor(height * scaleLimitMultiplier));
@@ -439,7 +441,7 @@ package Modules
                 if (imageData !== null)
                 {
                     tmpbmpd.draw(imageData, scaleMat, null, null, null, true);
-                    CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData, tmpbmpd, CanvasController.canvasLayer1Bitmap);
+                    DrawCanvas.canvasLayer1BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer1BitmapData, tmpbmpd, DrawCanvas.canvasLayer1Bitmap);
 
                     if (imageOnlyFlag)
                     {
@@ -453,7 +455,7 @@ package Modules
                 {
                     tmpbmpd.fillRect(new Rectangle(0, 0, limitedImageWidth, limitedImageHeight), 0);
                     tmpbmpd.draw(imageData1, scaleMat, null, null, null, true);
-                    CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData, tmpbmpd, CanvasController.canvasLayer2Bitmap);
+                    DrawCanvas.canvasLayer2BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer2BitmapData, tmpbmpd, DrawCanvas.canvasLayer2Bitmap);
                     if (imageOnlyFlag)
                     {
                         ReplayFileCache.rFirstImageLayer2BitmapData = tmpbmpd.clone();
@@ -461,8 +463,8 @@ package Modules
                 }
                 else
                 {
-                    CanvasController.canvasLayer2BitmapData = new BitmapData(CanvasController.canvasLayer1BitmapData.width, CanvasController.canvasLayer1BitmapData.height, true, 0);
-                    CanvasController.canvasLayer2Bitmap.bitmapData = CanvasController.canvasLayer2BitmapData;
+                    DrawCanvas.canvasLayer2BitmapData = new BitmapData(DrawCanvas.canvasLayer1BitmapData.width, DrawCanvas.canvasLayer1BitmapData.height, true, 0);
+                    DrawCanvas.canvasLayer2Bitmap.bitmapData = DrawCanvas.canvasLayer2BitmapData;
                 }
 
                 tmpbmpd.dispose();
@@ -512,10 +514,10 @@ package Modules
             {
                 CanvasLayers.toggleLayer2Check();
             }
-            CanvasResizer.updateButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+            CanvasResizer.updateButtonPos(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
             InputManager.removeKeyRepeatEvents(null);
-            CanvasController.canvasLayer1Bitmap.visible = true;
-            CanvasController.canvasLayer2Bitmap.visible = true;
+            DrawCanvas.canvasLayer1Bitmap.visible = true;
+            DrawCanvas.canvasLayer2Bitmap.visible = true;
             UIController.topBar.captureButton.alpha = 1.0;
             setNewFileAvailable(true);
             ReferenceLayerController.refLayerMenuBox.refTransferCanvasImageButton.alpha = 1.0;
@@ -546,7 +548,7 @@ package Modules
         {
             if (loadMenuBox.visible === false)
             {
-                const bmpd:BitmapData = CanvasController.getMergedBitmapdtata(false, true, true, null);
+                const bmpd:BitmapData = DrawCanvas.getMergedBitmapData(false, true, true, null);
                 loadMenuBox.setPreviewImage(bmpd);
 
                 // 줄인 복사본을 배경으로 썼으면 합성 이미지는 필요 없음
@@ -854,7 +856,29 @@ package Modules
             {
                 return;
             }
-            InputManager.startPressHoldKey((!fromShortcut) ? UIController.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, CanvasController.resetAllCanvasAndReplayData, null, isReplayDataLocked);
+            InputManager.startPressHoldKey((!fromShortcut) ? UIController.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, resetAllCanvasAndReplayData, null, isReplayDataLocked);
+        }
+
+        private static function resetAllCanvasAndReplayData():void
+        {
+            // 길게 누르는 동안 worker가 시작되었을 수 있음
+            if (FileManager.isReplayDataLocked())
+            {
+                FileManager.showReplayDataLockedHint();
+                return;
+            }
+            DrawCanvas.clearCanvas();
+            CanvasView.centerCanvas("replay");
+            CanvasView.centerCanvas("draw");
+            CanvasView.resetZoomDrawMode();
+            CanvasView.resetRotationDrawMode();
+            ReplayController.resetCanvasAndReplayData();
+
+            // reset vars보다 뒤에 와야함
+            // addundo에서 활성화 해주고 있기 때문에
+            FileManager.setNewFileAvailable(false);
+            AppWindowState.markWindowTitleAsDirty();
+            CanvasNavigator.updateCursor();
         }
 
         // 통합 메뉴얼(manual/manual.html)을 기본 브라우저로 염
@@ -1314,9 +1338,9 @@ package Modules
                 ReplayFileCache.rFirstImageLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1FirstImageData);
                 ReplayFileCache.rFirstImageLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2FirstImageData);
                 // 현재 캔버스 이미지 레이어 1 2 저장
-                newRectangle = new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
-                CanvasController.canvasLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1CurrentImageData);
-                CanvasController.canvasLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2CurrentImageData);
+                newRectangle = new Rectangle(0, 0, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
+                DrawCanvas.canvasLayer1BitmapData.copyPixelsToByteArray(newRectangle, rLayer1CurrentImageData);
+                DrawCanvas.canvasLayer2BitmapData.copyPixelsToByteArray(newRectangle, rLayer2CurrentImageData);
                 // 참고 레이어 이미지 저장
                 if (ReferenceLayerController.canvasRefLayerBitmapData)
                 {
@@ -1653,7 +1677,7 @@ package Modules
                     disableFileOperationButtonsTopbar();
                     BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
                     // 병합 이미지는 Worker 전송 후 Worker 쪽에서 dispose함
-                    BackgroundWorkerCoordinator.startPngEncodingWorker(CanvasController.getMergedBitmapdtata(false, true, true, null), CanvasController.CANVAS_BG_COLOR, false, false);
+                    BackgroundWorkerCoordinator.startPngEncodingWorker(DrawCanvas.getMergedBitmapData(false, true, true, null), DrawCanvas.CANVAS_BG_COLOR, false, false);
                     saveFOFOFile();
                     AppWindowState.updateWindowTitle();
                     InputManager.clearKeyBuffer();
@@ -1678,7 +1702,7 @@ package Modules
                     : (isLoadPendingAfterSaving) ? "Save file before load file"
                     : (AppUpdater.isUpdatePendingAfterSaving) ? "Save file before update" : "Save file";
                 // 대화상자 연 시점의 이미지로 저장, 선택하면 Worker로 넘기고 취소하면 여기서 dispose
-                var mergedImage:BitmapData = CanvasController.getMergedBitmapdtata(false, true, true, null);
+                var mergedImage:BitmapData = DrawCanvas.getMergedBitmapData(false, true, true, null);
                 file.addEventListener(IOErrorEvent.IO_ERROR, onErrorEvent);
                 file.addEventListener(Event.CANCEL, onErrorEvent);
                 file.addEventListener(Event.SELECT, onSelectEvent);
@@ -1720,7 +1744,7 @@ package Modules
                     lastSaveFileName = getFileNameFromPath(lastSaveFilePath);
                     BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
                     // 소유권을 Worker로 넘김, Worker 쪽에서 dispose함
-                    BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage, CanvasController.CANVAS_BG_COLOR, false, false);
+                    BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage, DrawCanvas.CANVAS_BG_COLOR, false, false);
                     mergedImage = null;
                     saveFOFOFile();
                     AppWindowState.updateWindowTitle();
@@ -1822,7 +1846,7 @@ package Modules
             }
 
             ReplayState.rMirrorON = false;
-            CanvasController.mirrorON = false;
+            DrawCanvas.mirrorON = false;
             UIController.canvasInfoBox.setMirror(false);
 
             const fs:FileStream = new FileStream();

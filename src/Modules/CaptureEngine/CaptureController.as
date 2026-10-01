@@ -1,5 +1,7 @@
 package Modules.CaptureEngine
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
@@ -9,7 +11,6 @@ package Modules.CaptureEngine
     import Modules.PenSizePreviewCursor;
     import Modules.FileManager;
     import Modules.ColorPickerController;
-    import Modules.CanvasController;
     import Modules.CanvasGridOverlay;
     import Modules.InputManager.InputManager;
     import Modules.InputManager.DrawModeInput;
@@ -143,7 +144,7 @@ package Modules.CaptureEngine
             const replayMode:Boolean = ReplayState.isReplayModeON;
             var bitmap:Bitmap = replayMode
                 ? (layer == 1 ? ReplayDrawer.rCanvasLayer1Bitmap : ReplayDrawer.rCanvasLayer2Bitmap)
-                : (layer == 1 ? CanvasController.canvasLayer1Bitmap : CanvasController.canvasLayer2Bitmap);
+                : (layer == 1 ? DrawCanvas.canvasLayer1Bitmap : DrawCanvas.canvasLayer2Bitmap);
             var button:DisplayObject = (layer == 1)
                 ? UIController.topBar.capLayer1VisibleButton
                 : UIController.topBar.capLayer2VisibleButton;
@@ -190,7 +191,7 @@ package Modules.CaptureEngine
 
         public static function executeCaptureFlashEffect():void
         {
-            var xPanel:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasPanel : CanvasController.canvasPanel;
+            var xPanel:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasPanel : CanvasView.canvasPanel;
             var posX:Number;
             var posY:Number;
             var canvasWidth:Number;
@@ -207,8 +208,8 @@ package Modules.CaptureEngine
                 }
                 else
                 {
-                    canvasWidth = CanvasController.CANVAS_WIDTH;
-                    canvasHeight = CanvasController.CANVAS_HEIGHT;
+                    canvasWidth = DrawCanvas.CANVAS_WIDTH;
+                    canvasHeight = DrawCanvas.CANVAS_HEIGHT;
                 }
             }
             else
@@ -220,7 +221,7 @@ package Modules.CaptureEngine
                 canvasHeight = nowCaptureArea.height;
             }
 
-            CanvasController.applyCanvasFlashEffect(xPanel, posX, posY, canvasWidth, canvasHeight, function ():Boolean
+            CanvasView.applyCanvasFlashEffect(xPanel, posX, posY, canvasWidth, canvasHeight, function ():Boolean
                 {
                     return !_isCaptureModeON;
                 });
@@ -240,11 +241,11 @@ package Modules.CaptureEngine
             }
             else
             {
-                layer1 = CanvasController.canvasLayer1Bitmap.visible;
-                layer2 = CanvasController.canvasLayer2Bitmap.visible;
+                layer1 = DrawCanvas.canvasLayer1Bitmap.visible;
+                layer2 = DrawCanvas.canvasLayer2Bitmap.visible;
             }
 
-            const bmpd:BitmapData = CanvasController.getMergedBitmapdtata((_isCaptureModeON && _isCaptureTransparentBGShowing && !clipBoardCopyFlag) ? true : false, layer1, layer2, rect);
+            const bmpd:BitmapData = DrawCanvas.getMergedBitmapData((_isCaptureModeON && _isCaptureTransparentBGShowing && !clipBoardCopyFlag) ? true : false, layer1, layer2, rect);
             const mat:Matrix = new Matrix();
             const deg:Number = 90 * _captureCanvasRotationStep;
             var swapWH:Boolean = false;
@@ -310,8 +311,8 @@ package Modules.CaptureEngine
         public static function flipCaptureImage(flag:Boolean, initFlag:Boolean):void
         {
             _isCaptureCanvasFlipped = flag;
-            CanvasController.fitCanvasToViewportMargin();
-            const xAnc:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
+            CanvasView.fitCanvasToViewportMargin();
+            const xAnc:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasAnchorPoint : CanvasView.canvasAnchorPoint;
 
             if (_captureCanvasRotationStep === 1)
             {
@@ -339,10 +340,10 @@ package Modules.CaptureEngine
 
         public static function restoreCanvasBackgroundColorDrawMode():void
         {
-            var panel:Sprite = CanvasController.canvasPanel;
-            var w:Number = CanvasController.CANVAS_WIDTH;
-            var h:Number = CanvasController.CANVAS_HEIGHT;
-            var color:uint = CanvasController.CANVAS_BG_COLOR;
+            var panel:Sprite = CanvasView.canvasPanel;
+            var w:Number = DrawCanvas.CANVAS_WIDTH;
+            var h:Number = DrawCanvas.CANVAS_HEIGHT;
+            var color:uint = DrawCanvas.CANVAS_BG_COLOR;
 
             panel.graphics.clear();
             panel.graphics.beginFill(color);
@@ -392,7 +393,7 @@ package Modules.CaptureEngine
             }
             _captureCanvasRotationStep = rotateValue;
 
-            CanvasController.fitCanvasToViewportMargin();
+            CanvasView.fitCanvasToViewportMargin();
             UIController.topBar.capClipBoard.alpha = 1.0;
             if (!initFlag)
             {
@@ -447,13 +448,13 @@ package Modules.CaptureEngine
             }
             else
             {
-                xAnc = CanvasController.canvasAnchorPoint;
-                xPanel = CanvasController.canvasPanel;
-                xZoomed = CanvasController.canvasZoomMultipler;
-                CanvasController.canvasPanel.addChild(CaptureArea.captureDragAreaOverlay);
-                if (CanvasController.canvasLayer1Bitmap.visible)
+                xAnc = CanvasView.canvasAnchorPoint;
+                xPanel = CanvasView.canvasPanel;
+                xZoomed = CanvasView.canvasZoomMultiplier;
+                CanvasView.canvasPanel.addChild(CaptureArea.captureDragAreaOverlay);
+                if (DrawCanvas.canvasLayer1Bitmap.visible)
                     layer1 = true;
-                if (CanvasController.canvasLayer2Bitmap.visible)
+                if (DrawCanvas.canvasLayer2Bitmap.visible)
                     layer2 = true;
             }
 
@@ -461,12 +462,12 @@ package Modules.CaptureEngine
             CaptureArea.captureDragAreaOverlay.visible = true;
 
             _drawModeCanvasStateForSaveAppState = {
-                    "z": CanvasController.canvasZoomMultipler,
-                    "x": Math.floor(CanvasController.canvasAnchorPoint.x), // 뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
-                    "y": Math.floor(CanvasController.canvasAnchorPoint.y),
-                    "r": CanvasController.canvasAnchorPoint.rotation,
-                    "px": Math.floor(CanvasController.canvasPanel.x),
-                    "py": Math.floor(CanvasController.canvasPanel.y)
+                    "z": CanvasView.canvasZoomMultiplier,
+                    "x": Math.floor(CanvasView.canvasAnchorPoint.x), // 뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
+                    "y": Math.floor(CanvasView.canvasAnchorPoint.y),
+                    "r": CanvasView.canvasAnchorPoint.rotation,
+                    "px": Math.floor(CanvasView.canvasPanel.x),
+                    "py": Math.floor(CanvasView.canvasPanel.y)
                 };
 
             canvasStateBeforeCaptureMode = {
@@ -484,7 +485,7 @@ package Modules.CaptureEngine
             UIController.topBar.capClipBoard.alpha = 1.0;
             _captureCanvasRotationStep = 0;
             _isCaptureCanvasFlipped = false;
-            CanvasController.fitCanvasToViewportMargin();
+            CanvasView.fitCanvasToViewportMargin();
             applyTransparentCanvasBGCaptureMode(false);
             CaptureStamp.init();
 
@@ -582,10 +583,10 @@ package Modules.CaptureEngine
         {
             const replayMode:Boolean = ReplayState.isReplayModeON;
             const data:Object = canvasStateBeforeCaptureMode;
-            const xBitmap1:Bitmap = (replayMode) ? ReplayDrawer.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap;
-            const xBitmap11:Bitmap = (replayMode) ? ReplayDrawer.rCanvasLayer2Bitmap : CanvasController.canvasLayer2Bitmap;
-            const xAnc:Sprite = (replayMode) ? ReplayDrawer.rCanvasAnchorPoint : CanvasController.canvasAnchorPoint;
-            const xPanel:Sprite = (replayMode) ? ReplayDrawer.rCanvasPanel : CanvasController.canvasPanel;
+            const xBitmap1:Bitmap = (replayMode) ? ReplayDrawer.rCanvasLayer1Bitmap : DrawCanvas.canvasLayer1Bitmap;
+            const xBitmap11:Bitmap = (replayMode) ? ReplayDrawer.rCanvasLayer2Bitmap : DrawCanvas.canvasLayer2Bitmap;
+            const xAnc:Sprite = (replayMode) ? ReplayDrawer.rCanvasAnchorPoint : CanvasView.canvasAnchorPoint;
+            const xPanel:Sprite = (replayMode) ? ReplayDrawer.rCanvasPanel : CanvasView.canvasPanel;
 
             xBitmap1.smoothing = false;
             xBitmap11.smoothing = false;
@@ -612,13 +613,13 @@ package Modules.CaptureEngine
             }
             else
             {
-                CanvasController.canvasLayer1Bitmap.visible = data.layer1;
-                CanvasController.canvasLayer2Bitmap.visible = data.layer2;
+                DrawCanvas.canvasLayer1Bitmap.visible = data.layer1;
+                DrawCanvas.canvasLayer2Bitmap.visible = data.layer2;
             }
 
             if (!ReplayState.isReplayCanvasFitToWindow)
             {
-                CanvasController.updateCanvasScale(data.z, replayMode);
+                CanvasView.updateCanvasScale(data.z, replayMode);
             }
 
             HintController.resetLastBottomHintTargetRect();
@@ -640,7 +641,7 @@ package Modules.CaptureEngine
                 restoreCanvasBackgroundColorDrawMode();
             }
 
-            CanvasController.keepCanvasPanelInStage(replayMode);
+            CanvasView.keepCanvasPanelInStage(replayMode);
             canvasStateBeforeCaptureMode = {};
         }
     }

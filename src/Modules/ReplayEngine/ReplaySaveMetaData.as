@@ -1,6 +1,6 @@
 package Modules.ReplayEngine
 {
-    import Modules.CanvasController;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.ReferenceLayerController;
 
     public class ReplaySaveMetaData
@@ -27,9 +27,9 @@ package Modules.ReplayEngine
         {
             firstImageWidth = ReplayFileCache.rFirstImageLayer1BitmapData.width;
             firstImageHeight = ReplayFileCache.rFirstImageLayer1BitmapData.height;
-            finalImageWidth = CanvasController.canvasLayer1BitmapData.width;
-            finalImageHeight = CanvasController.canvasLayer1BitmapData.height;
-            finalImageBG = CanvasController.CANVAS_BG_COLOR;
+            finalImageWidth = DrawCanvas.canvasLayer1BitmapData.width;
+            finalImageHeight = DrawCanvas.canvasLayer1BitmapData.height;
+            finalImageBG = DrawCanvas.CANVAS_BG_COLOR;
             refImageWidth = ReferenceLayerController.canvasRefLayerBitmapData.width;
             refImageHeight = ReferenceLayerController.canvasRefLayerBitmapData.height;
             refImageBitmapX = ReferenceLayerController.canvasRefLayerBitmap.x;

@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
@@ -49,15 +51,15 @@ package Modules
         public static function saveAppState():void
         {
             const appStateObject:AppStateVars = new AppStateVars();
-            appStateObject.canvasZoomIndex = CanvasController.canvasZoomIndex;
-            appStateObject.canvasZoomedMultiplier = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.z : CanvasController.canvasZoomMultipler;
+            appStateObject.canvasZoomIndex = CanvasView.canvasZoomIndex;
+            appStateObject.canvasZoomedMultiplier = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.z : CanvasView.canvasZoomMultiplier;
 
-            appStateObject.canvasPanelX = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.px : CanvasController.canvasPanel.x;
-            appStateObject.canvasPanelY = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.py : CanvasController.canvasPanel.y;
+            appStateObject.canvasPanelX = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.px : CanvasView.canvasPanel.x;
+            appStateObject.canvasPanelY = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.py : CanvasView.canvasPanel.y;
 
-            appStateObject.canvasAnchorPointX = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.x : CanvasController.canvasAnchorPoint.x;
-            appStateObject.canvasAnchorPointY = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.y : CanvasController.canvasAnchorPoint.y;
-            appStateObject.canvasAnchorPointRotation = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.r : CanvasController.canvasAnchorPoint.rotation;
+            appStateObject.canvasAnchorPointX = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.x : CanvasView.canvasAnchorPoint.x;
+            appStateObject.canvasAnchorPointY = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.y : CanvasView.canvasAnchorPoint.y;
+            appStateObject.canvasAnchorPointRotation = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.r : CanvasView.canvasAnchorPoint.rotation;
 
             appStateObject.penSmoothValue = PenTool.penSmoothValue;
             appStateObject.penSmoothSlideValue = PenTool.penSmoothSlideValue;
@@ -98,7 +100,7 @@ package Modules
             appStateObject.refLayerMenuBox0 = ReferenceLayerController.refLayerMenuBox.x;
             appStateObject.refLayerMenuBox1 = ReferenceLayerController.refLayerMenuBox.y;
 
-            appStateObject.isCanvasMirrored = CanvasController.mirrorON;
+            appStateObject.isCanvasMirrored = DrawCanvas.mirrorON;
 
             appStateObject.gridValue = CanvasGridOverlay.gridGapMultiplier;
             appStateObject.hsvColorData0 = ColorPickerController.hsvColorData[0];
@@ -213,8 +215,8 @@ package Modules
                 ReplayFileCache.rFirstImageLayer1BitmapData.dispose();
                 ReplayFileCache.rFirstImageLayer2BitmapData.dispose();
 
-                ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-                ReplayFileCache.rFirstImageLayer2BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
+                ReplayFileCache.rFirstImageLayer1BitmapData = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
+                ReplayFileCache.rFirstImageLayer2BitmapData = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
             }
 
             if (ReferenceLayerController.refLayerImageFilePath.exists)
@@ -231,7 +233,7 @@ package Modules
                 PixelRestore.setPixels(tmpbmpd, newRectangle, arr[0]);
                 tmpbmpd.unlock();
 
-                ReferenceLayerController.canvasRefLayerBitmapData = CanvasController.updateBitmapData(ReferenceLayerController.canvasRefLayerBitmapData, tmpbmpd, ReferenceLayerController.canvasRefLayerBitmap);
+                ReferenceLayerController.canvasRefLayerBitmapData = DrawCanvas.updateBitmapData(ReferenceLayerController.canvasRefLayerBitmapData, tmpbmpd, ReferenceLayerController.canvasRefLayerBitmap);
                 ReferenceLayerController.canvasRefLayerBitmap.smoothing = true;
 
                 tmpbmpd.dispose();
@@ -297,18 +299,18 @@ package Modules
                         UIController.applyUIColorSet();
 
                         // Canvas Settings
-                        CanvasController.canvasZoomIndex = appStateObject.canvasZoomIndex;
-                        CanvasController.updateCanvasScale(appStateObject.canvasZoomedMultiplier);
+                        CanvasView.canvasZoomIndex = appStateObject.canvasZoomIndex;
+                        CanvasView.updateCanvasScale(appStateObject.canvasZoomedMultiplier);
 
-                        CanvasController.canvasPanel.x = appStateObject.canvasPanelX;
-                        CanvasController.canvasPanel.y = appStateObject.canvasPanelY;
+                        CanvasView.canvasPanel.x = appStateObject.canvasPanelX;
+                        CanvasView.canvasPanel.y = appStateObject.canvasPanelY;
 
-                        CanvasController.canvasAnchorPoint.x = appStateObject.canvasAnchorPointX;
-                        CanvasController.canvasAnchorPoint.y = appStateObject.canvasAnchorPointY;
-                        CanvasController.canvasAnchorPoint.rotation = appStateObject.canvasAnchorPointRotation;
+                        CanvasView.canvasAnchorPoint.x = appStateObject.canvasAnchorPointX;
+                        CanvasView.canvasAnchorPoint.y = appStateObject.canvasAnchorPointY;
+                        CanvasView.canvasAnchorPoint.rotation = appStateObject.canvasAnchorPointRotation;
 
                         ReplayDrawer.setRcursorRotation(appStateObject.canvasAnchorPointRotation);
-                        CanvasResizer.updateButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+                        CanvasResizer.updateButtonPos(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
                         UIController.canvasRotateCursor.rotateArrow.rotation = appStateObject.canvasAnchorPointRotation;
 
                         // Pen Tool Settings
@@ -394,8 +396,8 @@ package Modules
                                 appStateObject.canvasRefLayerScaleY
                             );
 
-                        if (CanvasController.mirrorON !== appStateObject.isCanvasMirrored)
-                            CanvasController.mirrorCanvas(true);
+                        if (DrawCanvas.mirrorON !== appStateObject.isCanvasMirrored)
+                            CanvasView.mirrorCanvas(true);
 
                         // Grid Overlay
                         CanvasGridOverlay.gridGapMultiplier = appStateObject.gridValue;
@@ -429,10 +431,10 @@ package Modules
                         ReplayState.rPrevFrame = ReplayState.getNowFrameUntilUndoIndex(UndoHistory.undoDataIndex - 1);
 
                         // 혹시 몰라서 위치 체크 해줌
-                        UIController.canvasInfoBox.setRotate(CanvasController.canvasAnchorPoint.rotation);
-                        CanvasController.centerCanvas("replay");
-                        CanvasController.keepCanvasPanelInStage();
-                        CanvasController.keepCanvasPanelInStage(true);
+                        UIController.canvasInfoBox.setRotate(CanvasView.canvasAnchorPoint.rotation);
+                        CanvasView.centerCanvas("replay");
+                        CanvasView.keepCanvasPanelInStage();
+                        CanvasView.keepCanvasPanelInStage(true);
 
                         // Palette Settings
                         PaletteController.myPaletteSaveColorBeforeOtherType[0] = PenTool.penColor;
@@ -525,8 +527,8 @@ package Modules
                 AppWindowState.lastAppWindowSize.width = 1000;
                 AppWindowState.lastAppWindowSize.height = 800;
 
-                CanvasController.applyCavnvasSizeDrawMode(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, 0, 0, false);
-                CanvasResizer.updateButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+                DrawCanvas.applyCanvasSizeDrawMode(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, 0, 0, false);
+                CanvasResizer.updateButtonPos(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
 
                 ColorPickerController.updatePickerCurrentColor(PenTool.penColor);
                 ColorPickerController.updateColorPickerCursorPosAndRGBInfo(PenTool.penColor);
@@ -534,7 +536,7 @@ package Modules
                 AboutBoxController.openAboutBox(true);
                 UIController.applyUIColorSet();
 
-                UIController.canvasInfoBox.init(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, Math.floor(CanvasController.canvasZoomMultipler * 100), CanvasController.canvasAnchorPoint.rotation, false);
+                UIController.canvasInfoBox.init(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, Math.floor(CanvasView.canvasZoomMultiplier * 100), CanvasView.canvasAnchorPoint.rotation, false);
                 CanvasLayers.selectLayer1(false);
 
                 PaletteController.initMyPaletteHistory();
@@ -543,7 +545,7 @@ package Modules
                     {
                         if (main.stage.nativeWindow.width === 1000 && main.stage.nativeWindow.height === 800)
                         {
-                            CanvasController.centerCanvas("draw");
+                            CanvasView.centerCanvas("draw");
                             CanvasNavigator.updateCursor();
 
                             // lastAppWindowSize를 미리 1000x800으로 채워뒀기 때문에 리사이즈 이벤트의 applyLayout은 dx/dy 0으로 지나간다.

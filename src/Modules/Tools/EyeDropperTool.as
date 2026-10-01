@@ -1,11 +1,12 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.MouseState;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.InputPriority;
-    import Modules.CanvasController;
     import Modules.CaptureEngine.CaptureController;
     import Modules.ColorPickerController;
     import Modules.FileManager;
@@ -49,25 +50,25 @@ package Modules.Tools
 
         private static function updateEyeDropperLensBitmap():void
         {
-            const mid:Number = magSize / (4 * CanvasController.canvasZoomMultipler); // 4는 기본 중앙값 magsize/2에서 zoomed나워주고 기본이 2배줌이니까 2로 나눠준값
-            const tx:Number = -CanvasController.canvasLayer1Bitmap.mouseX + mid;
-            const ty:Number = -CanvasController.canvasLayer1Bitmap.mouseY + mid;
+            const mid:Number = magSize / (4 * CanvasView.canvasZoomMultiplier); // 4는 기본 중앙값 magsize/2에서 zoomed나워주고 기본이 2배줌이니까 2로 나눠준값
+            const tx:Number = -DrawCanvas.canvasLayer1Bitmap.mouseX + mid;
+            const ty:Number = -DrawCanvas.canvasLayer1Bitmap.mouseY + mid;
 
             lensMat.identity();
             lensMat.translate(tx, ty);
-            lensMat.scale(2.0 * CanvasController.canvasZoomMultipler, 2.0 * CanvasController.canvasZoomMultipler);
+            lensMat.scale(2.0 * CanvasView.canvasZoomMultiplier, 2.0 * CanvasView.canvasZoomMultiplier);
 
             eyedropperLens.bitmap.bitmapData.fillRect(lensRect, UIController.STAGE_BG_COLOR);
             eyedropperLens.bitmap.bitmapData.draw(canvasBGShape, lensMat, null, null, lensRect);
 
-            if (CanvasController.canvasLayer2Bitmap.visible)
+            if (DrawCanvas.canvasLayer2Bitmap.visible)
             {
-                eyedropperLens.bitmap.bitmapData.draw(CanvasController.canvasLayer2Bitmap.bitmapData, lensMat, null, null, lensRect);
+                eyedropperLens.bitmap.bitmapData.draw(DrawCanvas.canvasLayer2Bitmap.bitmapData, lensMat, null, null, lensRect);
             }
 
-            if (CanvasController.canvasLayer1Bitmap.visible)
+            if (DrawCanvas.canvasLayer1Bitmap.visible)
             {
-                eyedropperLens.bitmap.bitmapData.draw(CanvasController.canvasLayer1Bitmap.bitmapData, lensMat, null, null, lensRect);
+                eyedropperLens.bitmap.bitmapData.draw(DrawCanvas.canvasLayer1Bitmap.bitmapData, lensMat, null, null, lensRect);
             }
         }
 
@@ -76,9 +77,9 @@ package Modules.Tools
             if (canShow)
             {
                 // 배경색
-                const r3:uint = (CanvasController.CANVAS_BG_COLOR & 0xFF0000) >> 16;
-                const g3:uint = (CanvasController.CANVAS_BG_COLOR & 0x00FF00) >> 8;
-                const b3:uint = (CanvasController.CANVAS_BG_COLOR & 0x0000FF);
+                const r3:uint = (DrawCanvas.CANVAS_BG_COLOR & 0xFF0000) >> 16;
+                const g3:uint = (DrawCanvas.CANVAS_BG_COLOR & 0x00FF00) >> 8;
+                const b3:uint = (DrawCanvas.CANVAS_BG_COLOR & 0x0000FF);
 
                 var aa:Number = 0;
                 var rr:uint = 0;
@@ -96,9 +97,9 @@ package Modules.Tools
                 var b2:uint = 0;
 
                 // 위 레이어
-                if (CanvasController.canvasLayer1Bitmap.visible)
+                if (DrawCanvas.canvasLayer1Bitmap.visible)
                 {
-                    const c1:uint = CanvasController.canvasLayer1BitmapData.getPixel32(CanvasController.canvasLayer1Bitmap.mouseX, CanvasController.canvasLayer1Bitmap.mouseY);
+                    const c1:uint = DrawCanvas.canvasLayer1BitmapData.getPixel32(DrawCanvas.canvasLayer1Bitmap.mouseX, DrawCanvas.canvasLayer1Bitmap.mouseY);
                     a1 = ((c1 & 0xFF000000) >>> 24) / 255;
                     r1 = (c1 & 0x00FF0000) >>> 16;
                     g1 = (c1 & 0x0000FF00) >>> 8;
@@ -106,9 +107,9 @@ package Modules.Tools
                 }
 
                 // 밑 레이어
-                if (CanvasController.canvasLayer2Bitmap.visible)
+                if (DrawCanvas.canvasLayer2Bitmap.visible)
                 {
-                    const c2:uint = CanvasController.canvasLayer2BitmapData.getPixel32(CanvasController.canvasLayer1Bitmap.mouseX, CanvasController.canvasLayer1Bitmap.mouseY);
+                    const c2:uint = DrawCanvas.canvasLayer2BitmapData.getPixel32(DrawCanvas.canvasLayer1Bitmap.mouseX, DrawCanvas.canvasLayer1Bitmap.mouseY);
                     a2 = ((c2 & 0xFF000000) >>> 24) / 255;
                     r2 = (c2 & 0x00FF0000) >>> 16;
                     g2 = (c2 & 0x0000FF00) >>> 8;
@@ -280,7 +281,7 @@ package Modules.Tools
             {
                 Utils.setColorTransform(eyedropperLens.nowColor, pickColor(canShow));
 
-                if (CanvasController.canvasZoomMultipler < 12.0)
+                if (CanvasView.canvasZoomMultiplier < 12.0)
                 {
                     updateEyeDropperLensBitmap();
                 }
@@ -313,7 +314,7 @@ package Modules.Tools
 
         private static function canShowEyedropperLens():Boolean
         {
-            return Utils.isCursorInDrawArea() && CanvasController.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true)
+            return Utils.isCursorInDrawArea() && DrawCanvas.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true)
                 && !(ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY));
         }
 
@@ -333,13 +334,13 @@ package Modules.Tools
             Utils.setColorTransform(eyedropperLens.oldColor, PenTool.penColor);
 
             ToolController.moveEraserButtonToOtherTool("toolEyedropper");
-            eyedropperLens.rotateBitmap(CanvasController.canvasAnchorPoint.rotation);
+            eyedropperLens.rotateBitmap(CanvasView.canvasAnchorPoint.rotation);
 
             ReferenceLayerController.setCanvasRefLayerInvisible();
 
             canvasBGShape.graphics.clear();
-            canvasBGShape.graphics.beginFill(CanvasController.CANVAS_BG_COLOR);
-            canvasBGShape.graphics.drawRect(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+            canvasBGShape.graphics.beginFill(DrawCanvas.CANVAS_BG_COLOR);
+            canvasBGShape.graphics.drawRect(0, 0, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
 
             const canShow:Boolean = canShowEyedropperLens();
             if (canShow)
@@ -350,7 +351,7 @@ package Modules.Tools
                 Utils.setColorTransform(eyedropperLens.nowColor, pickColor(canShow));
                 Utils.setAsTopChild(eyedropperLens);
 
-                if (CanvasController.canvasZoomMultipler < 12.0)
+                if (CanvasView.canvasZoomMultiplier < 12.0)
                 {
                     eyedropperLens.circleBox.visible = true;
                     updateEyeDropperLensBitmap();

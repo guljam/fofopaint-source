@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.InputManager.InputManager;
     import Modules.UIEngine.HintController;
@@ -102,7 +104,7 @@ package Modules
             if (_isDeepUndoEnabled)
             {
                 ReplayController.moveToNextStep();
-                CanvasController.applyReplayCanvasToDrawModeCanvas();
+                DrawCanvas.applyReplayCanvasToDrawModeCanvas();
                 Utils.showDisplayTargetAndFadeOut(ReplayDrawer.rReplayFOFOCursor, 1.0, 0.3);
 
                 if (ReplayState.rNowFrame >= ReplayState.getRFileDataTotalFrame())
@@ -156,7 +158,7 @@ package Modules
             ReplayDrawer.renderReplayFrame(ReplayState.getRFileDataTotalFrame() - 1, ReplayDrawer.JUMP_FRAME_MANUAL);
             // 실제 rPrevFrame으로 점프
             ReplayDrawer.renderReplayFrame(ReplayState.rPrevFrame, ReplayDrawer.JUMP_FRAME_MANUAL);
-            CanvasController.applyReplayCanvasToDrawModeCanvas();
+            DrawCanvas.applyReplayCanvasToDrawModeCanvas();
         }
 
         // addundo data에서 캔버스 비트맵 데이터가 변경되기 전, rdatabuffer 비어있을때 넣어줘야함
@@ -176,7 +178,7 @@ package Modules
             ReplayController.resetReplayTime();
             resetUndoState(true);
             ReplayDrawer.rReplayFOFOCursor.visible = true; // 대칭된 커서 위치를 갱신해주려고 임시로 켜줌
-            UIController.canvasInfoBox.setMirror(CanvasController.mirrorON);
+            UIController.canvasInfoBox.setMirror(DrawCanvas.mirrorON);
             ReplayDrawCommands.setFirstRCursorPosCurrent();
             ReplayDrawer.rReplayFOFOCursor.visible = false;
             CanvasNavigator.box.updateImage();
@@ -195,7 +197,7 @@ package Modules
                 if (ReplayState.rNowFrame > 0)
                 {
                     ReplayController.moveToPreviousStep();
-                    CanvasController.applyReplayCanvasToDrawModeCanvas();
+                    DrawCanvas.applyReplayCanvasToDrawModeCanvas();
                     Utils.showDisplayTargetAndFadeOut(ReplayDrawer.rReplayFOFOCursor, 1.0, 0.3);
                 }
             }
@@ -236,16 +238,16 @@ package Modules
             ReplayDrawer.updateReplayCanvasFromUndoRefData(undoRefData, undoIndexSave);
 
             //드로우 모드 캔버스 bmpd갱신하고 크기 정보 갱신
-            CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData,ReplayDrawer.rCanvasLayer1BitmapData,CanvasController.canvasLayer1Bitmap)
-            CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData,ReplayDrawer.rCanvasLayer2BitmapData,CanvasController.canvasLayer2Bitmap)
-            CanvasController.syncDrawModeCanvasSizeToReplayMode(CanvasController.canvasLayer1BitmapData.width,CanvasController.canvasLayer1BitmapData.height);
+            DrawCanvas.canvasLayer1BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer1BitmapData,ReplayDrawer.rCanvasLayer1BitmapData,DrawCanvas.canvasLayer1Bitmap)
+            DrawCanvas.canvasLayer2BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer2BitmapData,ReplayDrawer.rCanvasLayer2BitmapData,DrawCanvas.canvasLayer2Bitmap)
+            DrawCanvas.syncDrawModeCanvasSizeToReplayMode(DrawCanvas.canvasLayer1BitmapData.width,DrawCanvas.canvasLayer1BitmapData.height);
 
             // 앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌
             const movedRegPos:Point = getHowCanvasMoveAfterUndoOrRedo(undoIndexSave, redoFlag);
             if (movedRegPos)
             {
-                CanvasController.canvasAnchorPoint.x += movedRegPos.x * CanvasController.canvasZoomMultipler;
-                CanvasController.canvasAnchorPoint.y += movedRegPos.y * CanvasController.canvasZoomMultipler;
+                CanvasView.canvasAnchorPoint.x += movedRegPos.x * CanvasView.canvasZoomMultiplier;
+                CanvasView.canvasAnchorPoint.y += movedRegPos.y * CanvasView.canvasZoomMultiplier;
                 ReferenceLayerController.updateRefLayerBitmapPos(movedRegPos);
             }
 
@@ -254,8 +256,8 @@ package Modules
 
             ReplayController.preserveDrawMirrorStateAfterReplayCopy();
             CanvasNavigator.box.updateImage();
-            CanvasController.setCanvasBGColorDrawMode(ReplayState.RCANVAS_BG_COLOR);
-            CanvasController.updateCanvasPanelColorAndSize();
+            DrawCanvas.setCanvasBGColorDrawMode(ReplayState.RCANVAS_BG_COLOR);
+            CanvasView.updateCanvasPanelColorAndSize();
 
             // canvas window 상태 갱신
             if (ImageViewWindow.isCanvasWindowON)

@@ -1,9 +1,10 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.InputPriority;
     import Modules.MouseState;
-    import Modules.CanvasController;
     import flash.events.MouseEvent;
     import Modules.Utils;
     import flash.display.BitmapData;
@@ -29,10 +30,10 @@ package Modules.Tools
 
         private static function resetLayerBitmapPos():void
         {
-            CanvasController.canvasLayer1Bitmap.x = 0;
-            CanvasController.canvasLayer1Bitmap.y = 0;
-            CanvasController.canvasLayer2Bitmap.x = 0;
-            CanvasController.canvasLayer2Bitmap.y = 0;
+            DrawCanvas.canvasLayer1Bitmap.x = 0;
+            DrawCanvas.canvasLayer1Bitmap.y = 0;
+            DrawCanvas.canvasLayer2Bitmap.x = 0;
+            DrawCanvas.canvasLayer2Bitmap.y = 0;
         }
 
         private static const DRAG_OWNER:String = "moveTool";
@@ -54,16 +55,16 @@ package Modules.Tools
 
             getMovedPos = null;
 
-            const movex:Number = Math.floor(CanvasController.canvasLayer1Bitmap.x);
-            const movey:Number = Math.floor(CanvasController.canvasLayer1Bitmap.y);
-            const movex1:Number = Math.floor(CanvasController.canvasLayer2Bitmap.x);
-            const movey1:Number = Math.floor(CanvasController.canvasLayer2Bitmap.y);
+            const movex:Number = Math.floor(DrawCanvas.canvasLayer1Bitmap.x);
+            const movey:Number = Math.floor(DrawCanvas.canvasLayer1Bitmap.y);
+            const movex1:Number = Math.floor(DrawCanvas.canvasLayer2Bitmap.x);
+            const movey1:Number = Math.floor(DrawCanvas.canvasLayer2Bitmap.y);
 
             // onMouseMoveMovetool 과 같은 기준으로 "실제로 움직인 레이어"를 판단
             const checked:int = CanvasLayers.checkedLayer;
-            const layer1Moved:Boolean = (checked === 1 || (checked === 0 && CanvasController.canvasLayer1Bitmap.visible))
+            const layer1Moved:Boolean = (checked === 1 || (checked === 0 && DrawCanvas.canvasLayer1Bitmap.visible))
                 && (movex !== 0.0 || movey !== 0.0);
-            const layer2Moved:Boolean = (checked === 2 || (checked === 0 && CanvasController.canvasLayer2Bitmap.visible))
+            const layer2Moved:Boolean = (checked === 2 || (checked === 0 && DrawCanvas.canvasLayer2Bitmap.visible))
                 && (movex1 !== 0.0 || movey1 !== 0.0);
 
             if (!layer1Moved && !layer2Moved)
@@ -73,8 +74,8 @@ package Modules.Tools
                 return;
             }
 
-            var tmpbmpd:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-            const rect:Rectangle = new Rectangle(0, 0, CanvasController.canvasLayer1BitmapData.width, CanvasController.canvasLayer1BitmapData.height);
+            var tmpbmpd:BitmapData = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
+            const rect:Rectangle = new Rectangle(0, 0, DrawCanvas.canvasLayer1BitmapData.width, DrawCanvas.canvasLayer1BitmapData.height);
             var movedMat:Matrix = new Matrix();
 
             if (UndoController.isDeepUndoEnabled)
@@ -85,36 +86,36 @@ package Modules.Tools
             // 최종적으로 움직인 거리를 실제로 비트맵 데이터 조작
             if (CanvasLayers.checkedLayer === 0)
             {
-                if (CanvasController.canvasLayer1Bitmap.visible)
+                if (DrawCanvas.canvasLayer1Bitmap.visible)
                 {
                     movedMat.translate(movex, movey);
-                    tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, movedMat);
-                    CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData, tmpbmpd);
+                    tmpbmpd.draw(DrawCanvas.canvasLayer1BitmapData, movedMat);
+                    DrawCanvas.copyPixels(DrawCanvas.canvasLayer1BitmapData, tmpbmpd);
                 }
 
-                if (CanvasController.canvasLayer2Bitmap.visible)
+                if (DrawCanvas.canvasLayer2Bitmap.visible)
                 {
                     movedMat = new Matrix();
                     movedMat.translate(movex1, movey1);
                     tmpbmpd.fillRect(rect, 0);
-                    tmpbmpd.draw(CanvasController.canvasLayer2BitmapData, movedMat);
-                    CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData, tmpbmpd);
+                    tmpbmpd.draw(DrawCanvas.canvasLayer2BitmapData, movedMat);
+                    DrawCanvas.copyPixels(DrawCanvas.canvasLayer2BitmapData, tmpbmpd);
                 }
             }
             else if (CanvasLayers.checkedLayer === 1)
             {
                 movedMat.translate(movex, movey);
-                tmpbmpd.draw(CanvasController.canvasLayer1BitmapData, movedMat);
-                CanvasController.copyPixels(CanvasController.canvasLayer1BitmapData, tmpbmpd);
+                tmpbmpd.draw(DrawCanvas.canvasLayer1BitmapData, movedMat);
+                DrawCanvas.copyPixels(DrawCanvas.canvasLayer1BitmapData, tmpbmpd);
             }
             else if (CanvasLayers.checkedLayer === 2)
             {
 
                 movedMat = new Matrix();
                 movedMat.translate(movex1, movey1);
-                tmpbmpd.fillRect(new Rectangle(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT), 0);
-                tmpbmpd.draw(CanvasController.canvasLayer2BitmapData, movedMat);
-                CanvasController.copyPixels(CanvasController.canvasLayer2BitmapData, tmpbmpd);
+                tmpbmpd.fillRect(new Rectangle(0, 0, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT), 0);
+                tmpbmpd.draw(DrawCanvas.canvasLayer2BitmapData, movedMat);
+                DrawCanvas.copyPixels(DrawCanvas.canvasLayer2BitmapData, tmpbmpd);
             }
 
             tmpbmpd.dispose();
@@ -138,12 +139,12 @@ package Modules.Tools
                 }
                 else
                 {
-                    if (!CanvasController.canvasLayer2Bitmap.visible)
+                    if (!DrawCanvas.canvasLayer2Bitmap.visible)
                     {
                         command = "move1";
                         ReplayState.pushCommand([command, movex, movey]);
                     }
-                    else if (!CanvasController.canvasLayer1Bitmap.visible)
+                    else if (!DrawCanvas.canvasLayer1Bitmap.visible)
                     {
                         command = "move2";
                         ReplayState.pushCommand([command, movex1, movey1]);
@@ -164,27 +165,27 @@ package Modules.Tools
 
             if (CanvasLayers.checkedLayer === 0)
             {
-                if (CanvasController.canvasLayer1Bitmap.visible)
+                if (DrawCanvas.canvasLayer1Bitmap.visible)
                 {
-                    CanvasController.canvasLayer1Bitmap.x = pos.x;
-                    CanvasController.canvasLayer1Bitmap.y = pos.y;
+                    DrawCanvas.canvasLayer1Bitmap.x = pos.x;
+                    DrawCanvas.canvasLayer1Bitmap.y = pos.y;
                 }
 
-                if (CanvasController.canvasLayer2Bitmap.visible)
+                if (DrawCanvas.canvasLayer2Bitmap.visible)
                 {
-                    CanvasController.canvasLayer2Bitmap.x = pos.x;
-                    CanvasController.canvasLayer2Bitmap.y = pos.y;
+                    DrawCanvas.canvasLayer2Bitmap.x = pos.x;
+                    DrawCanvas.canvasLayer2Bitmap.y = pos.y;
                 }
             }
             else if (CanvasLayers.checkedLayer === 1)
             {
-                CanvasController.canvasLayer1Bitmap.x = pos.x;
-                CanvasController.canvasLayer1Bitmap.y = pos.y;
+                DrawCanvas.canvasLayer1Bitmap.x = pos.x;
+                DrawCanvas.canvasLayer1Bitmap.y = pos.y;
             }
             else if (CanvasLayers.checkedLayer === 2)
             {
-                CanvasController.canvasLayer2Bitmap.x = pos.x;
-                CanvasController.canvasLayer2Bitmap.y = pos.y;
+                DrawCanvas.canvasLayer2Bitmap.x = pos.x;
+                DrawCanvas.canvasLayer2Bitmap.y = pos.y;
             }
         }
 
@@ -195,7 +196,7 @@ package Modules.Tools
                 return;
             }
 
-            getMovedPos = Utils.updateImagePosMouseDrag(CanvasController.canvasLayer1Bitmap, CanvasController.canvasAnchorPoint.rotation);
+            getMovedPos = Utils.updateImagePosMouseDrag(DrawCanvas.canvasLayer1Bitmap, CanvasView.canvasAnchorPoint.rotation);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
 
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);

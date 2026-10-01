@@ -1,6 +1,7 @@
 ﻿package Symbols
 {
 
+	import Modules.DrawEngine.DrawCanvas;
 	import Modules.UIEngine.UIController;
 	import Modules.UIEngine.UITheme;
 	import Modules.SidebarController;
@@ -21,7 +22,6 @@
 	import Modules.Utils;
 	import Modules.CaptureEngine.CaptureController;
 	import Modules.Tools.LassoTool;
-	import Modules.CanvasController;
 	import Modules.AboutBoxController;
 	import Modules.PenSizePreviewCursor;
 	import Modules.CaptureEngine.CaptureStamp;
@@ -581,7 +581,7 @@
 				hideModeIcons("replay");
 				hideModeIcons("draw");
 
-				if (CanvasController.canvasLayer1Bitmap.visible)
+				if (DrawCanvas.canvasLayer1Bitmap.visible)
 				{
 					capLayer1VisibleButton.alpha = 1.0;
 				}
@@ -590,7 +590,7 @@
 					capLayer1VisibleButton.alpha = UITheme.OFFALPHA;
 				}
 
-				if (CanvasController.canvasLayer2Bitmap.visible)
+				if (DrawCanvas.canvasLayer2Bitmap.visible)
 				{
 					capLayer2VisibleButton.alpha = 1.0;
 				}

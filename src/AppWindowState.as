@@ -13,7 +13,6 @@ package
     import Modules.MouseState;
     import Modules.ClipboardManager;
     import Modules.AboutBoxController;
-    import Modules.CanvasController;
     import Modules.ToolController;
     import Modules.Tools.FillPenTool;
     import Modules.SidebarController;

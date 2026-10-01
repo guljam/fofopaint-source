@@ -1,7 +1,8 @@
 package Modules
 {
+    import Modules.DrawEngine.StrokeBuffer;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
-    import Modules.CanvasController;
     import Modules.ToolController;
     import Modules.Tools.PenTool;
     import Modules.UndoController;
@@ -20,7 +21,7 @@ package Modules
             if (UndoHistory.canAddUndoData === false)
             {
                 ReplayState.clearCommandBuffer();
-                CanvasController.canvasDrawLayerChild.graphics.clear();
+                StrokeBuffer.canvasDrawLayerChild.graphics.clear();
                 return;
             }
 
@@ -37,19 +38,19 @@ package Modules
             if (PenTool.airBrushSizeDrawMode > 0)
             {
                 const blurSize:Number = PenTool.getBlurSize(PenTool.airBrushSizeDrawMode, 1.0);
-                CanvasController.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
-                CanvasController.canvasDrawLayerBitmapData.draw(CanvasController.canvasDrawLayerChild);
-                CanvasController.canvasDrawLayerChild.filters = [];
+                StrokeBuffer.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
+                StrokeBuffer.canvasDrawLayerBitmapData.draw(StrokeBuffer.canvasDrawLayerChild);
+                StrokeBuffer.canvasDrawLayerChild.filters = [];
             }
             else
             {
-                CanvasController.canvasDrawLayerBitmapData.draw(CanvasController.canvasDrawLayerChild);
+                StrokeBuffer.canvasDrawLayerBitmapData.draw(StrokeBuffer.canvasDrawLayerChild);
             }
 
-            CanvasController.canvasDrawLayerBitmap.bitmapData = CanvasController.canvasDrawLayerBitmapData;
+            StrokeBuffer.canvasDrawLayerBitmap.bitmapData = StrokeBuffer.canvasDrawLayerBitmapData;
 
-            CanvasController.updateCanvasDrawLayerCliprect();
-            CanvasController.extandCanvasDrawLayerCliprect(); // 그린 영역을 100% 다 포함하지 않아서 약간 늘려줌
+            StrokeBuffer.updateCanvasDrawLayerClipRect();
+            StrokeBuffer.extendCanvasDrawLayerClipRect(); // 그린 영역을 100% 다 포함하지 않아서 약간 늘려줌
 
             if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
             {
@@ -57,11 +58,11 @@ package Modules
 
                 if (CanvasLayers.isLayer2Selected)
                 {
-                    CanvasController.canvasLayer2BitmapData.draw(CanvasController.canvasDrawLayerBitmap, null, drawLayerAlpha, (PenTool.isTransparentPenColor) ? "erase" : null, CanvasController.canvasDrawLayerClipRect);
+                    DrawCanvas.canvasLayer2BitmapData.draw(StrokeBuffer.canvasDrawLayerBitmap, null, drawLayerAlpha, (PenTool.isTransparentPenColor) ? "erase" : null, StrokeBuffer.canvasDrawLayerClipRect);
                 }
                 else
                 {
-                    CanvasController.canvasLayer1BitmapData.draw(CanvasController.canvasDrawLayerBitmap, null, drawLayerAlpha, (PenTool.isTransparentPenColor) ? "erase" : null, CanvasController.canvasDrawLayerClipRect);
+                    DrawCanvas.canvasLayer1BitmapData.draw(StrokeBuffer.canvasDrawLayerBitmap, null, drawLayerAlpha, (PenTool.isTransparentPenColor) ? "erase" : null, StrokeBuffer.canvasDrawLayerClipRect);
                 }
             }
             else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
@@ -70,11 +71,11 @@ package Modules
 
                 if (CanvasLayers.isLayer2Selected)
                 {
-                    CanvasController.canvasLayer2BitmapData.draw(CanvasController.canvasDrawLayerBitmap, null, drawLayerAlpha, "erase", CanvasController.canvasDrawLayerClipRect);
+                    DrawCanvas.canvasLayer2BitmapData.draw(StrokeBuffer.canvasDrawLayerBitmap, null, drawLayerAlpha, "erase", StrokeBuffer.canvasDrawLayerClipRect);
                 }
                 else
                 {
-                    CanvasController.canvasLayer1BitmapData.draw(CanvasController.canvasDrawLayerBitmap, null, drawLayerAlpha, "erase", CanvasController.canvasDrawLayerClipRect);
+                    DrawCanvas.canvasLayer1BitmapData.draw(StrokeBuffer.canvasDrawLayerBitmap, null, drawLayerAlpha, "erase", StrokeBuffer.canvasDrawLayerClipRect);
                 }
             }
 
@@ -82,15 +83,15 @@ package Modules
 
             if (CanvasLayers.isLayer2Selected)
             {
-                CanvasController.canvasLayer2Bitmap.bitmapData = CanvasController.canvasLayer2BitmapData;
+                DrawCanvas.canvasLayer2Bitmap.bitmapData = DrawCanvas.canvasLayer2BitmapData;
             }
             else
             {
-                CanvasController.canvasLayer1Bitmap.bitmapData = CanvasController.canvasLayer1BitmapData;
+                DrawCanvas.canvasLayer1Bitmap.bitmapData = DrawCanvas.canvasLayer1BitmapData;
             }
 
-            CanvasController.canvasDrawLayerBitmapData.fillRect(CanvasController.canvasDrawLayerClipRect, 0); // 그려준 영역만
-            CanvasController.canvasDrawLayerChild.graphics.clear();
+            StrokeBuffer.canvasDrawLayerBitmapData.fillRect(StrokeBuffer.canvasDrawLayerClipRect, 0); // 그려준 영역만
+            StrokeBuffer.canvasDrawLayerChild.graphics.clear();
 
             UndoHistory.addNew();
         }

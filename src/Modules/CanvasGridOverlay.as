@@ -1,5 +1,7 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.InputManager.InputManager;
     import Modules.InputManager.DrawModeInput;
     import Modules.UIEngine.HintController;
@@ -65,17 +67,17 @@ package Modules
             }
 
             var gridgap:Number = gridGapMultiplier * GRID_GAP;
-            if (gridgap * CanvasController.canvasZoomMultipler < gridgap)
+            if (gridgap * CanvasView.canvasZoomMultiplier < gridgap)
             {
-                gridgap = gridgap / CanvasController.canvasZoomMultipler;
+                gridgap = gridgap / CanvasView.canvasZoomMultiplier;
             }
 
             if (gridgap !== lastGridGapValue)
             {
                 lastGridGapValue = gridgap;
 
-                const gridWidth:Number = CanvasController.CANVAS_WIDTH;
-                const gridHeight:Number = CanvasController.CANVAS_HEIGHT;
+                const gridWidth:Number = DrawCanvas.CANVAS_WIDTH;
+                const gridHeight:Number = DrawCanvas.CANVAS_HEIGHT;
                 const offsetX:Number = gridDrawOffsetX;
                 const offsetY:Number = gridDrawOffsetY;
 
@@ -120,10 +122,10 @@ package Modules
             }
 
             canvasGrid.graphics.clear();
-            canvasGrid.graphics.lineStyle(1 / CanvasController.canvasZoomMultipler, GRID_NORMAL_COLOR, 0.5, false);
+            canvasGrid.graphics.lineStyle(1 / CanvasView.canvasZoomMultiplier, GRID_NORMAL_COLOR, 0.5, false);
             canvasGrid.graphics.drawPath(gridGraphicsCommands, gridGraphicsData);
 
-            updateGridMirror(CanvasController.mirrorON);
+            updateGridMirror(DrawCanvas.mirrorON);
             canvasGrid.cacheAsBitmap = true;
             canvasGrid.visible = true;
         }
@@ -215,7 +217,7 @@ package Modules
             {
                 InputManager.startKeyRepeat(true, function ():void
                     {
-                        gridDrawOffsetX += moveX * (CanvasController.mirrorON ? -1 : 1);
+                        gridDrawOffsetX += moveX * (DrawCanvas.mirrorON ? -1 : 1);
                         gridDrawOffsetY += moveY;
 
                         if (Math.abs(gridDrawOffsetX) >= gridGapMultiplier * GRID_GAP)
@@ -248,13 +250,13 @@ package Modules
                         var p:Point;
 
                         if (targetName === "gridMoveLeftButton")
-                            p = Utils.rotatePoint(-1, 0, CanvasController.canvasAnchorPoint.rotation);
+                            p = Utils.rotatePoint(-1, 0, CanvasView.canvasAnchorPoint.rotation);
                         else if (targetName === "gridMoveRightButton")
-                            p = Utils.rotatePoint(1, 0, CanvasController.canvasAnchorPoint.rotation);
+                            p = Utils.rotatePoint(1, 0, CanvasView.canvasAnchorPoint.rotation);
                         else if (targetName === "gridMoveUpButton")
-                            p = Utils.rotatePoint(0, -1, CanvasController.canvasAnchorPoint.rotation);
+                            p = Utils.rotatePoint(0, -1, CanvasView.canvasAnchorPoint.rotation);
                         else if (targetName === "gridMoveDownButton")
-                            p = Utils.rotatePoint(0, 1, CanvasController.canvasAnchorPoint.rotation);
+                            p = Utils.rotatePoint(0, 1, CanvasView.canvasAnchorPoint.rotation);
 
                         if (p !== null)
                             repeatGridMoveByValue(p.x, p.y);
@@ -387,7 +389,7 @@ package Modules
             if (mirrorflag)
             {
                 canvasGrid.scaleX = -1.0;
-                canvasGrid.x = CanvasController.CANVAS_WIDTH;
+                canvasGrid.x = DrawCanvas.CANVAS_WIDTH;
             }
             else
             {

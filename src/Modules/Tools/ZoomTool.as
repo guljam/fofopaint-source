@@ -1,10 +1,11 @@
 package Modules.Tools
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
-    import Modules.CanvasController;
     import flash.geom.Point;
     import Modules.ReferenceLayerController;
     import Modules.CanvasGridOverlay;
@@ -22,7 +23,7 @@ package Modules.Tools
             main = instance;
         }
 
-        private static const zoomMaxIndex:uint = CanvasController.canvasZoomMultiplerList.length - 1;
+        private static const zoomMaxIndex:uint = CanvasView.canvasZoomMultiplierList.length - 1;
         private static const clickPos:Point = new Point(0, 0);
         private static const lastMousePos:Point = new Point(0, 0);
         private static const mouseMoveStep:int = 26; // 이 픽셀이상움직일때만 zoomcanvas를 실행
@@ -57,9 +58,9 @@ package Modules.Tools
                 startZoomIndex = zoomMaxIndex;
             }
 
-            const zoomValue:Number = CanvasController.canvasZoomMultiplerList[startZoomIndex];
-            CanvasController.canvasZoomIndex = startZoomIndex;
-            CanvasController.updateCanvasScale(zoomValue, false);
+            const zoomValue:Number = CanvasView.canvasZoomMultiplierList[startZoomIndex];
+            CanvasView.canvasZoomIndex = startZoomIndex;
+            CanvasView.updateCanvasScale(zoomValue, false);
 
             HintController.showMouseHint(Math.floor(zoomValue * 100) + "%");
             fixMouseHintPos();
@@ -120,7 +121,7 @@ package Modules.Tools
 
             CanvasNavigator.updateCursor();
 
-            if (CanvasGridOverlay.gridGapMultiplier > 0 && lastZoom !== CanvasController.canvasZoomMultipler)
+            if (CanvasGridOverlay.gridGapMultiplier > 0 && lastZoom !== CanvasView.canvasZoomMultiplier)
             {
                 CanvasGridOverlay.drawGrid();
             }
@@ -158,7 +159,7 @@ package Modules.Tools
         {
             function onDragStart():void
             {
-                lastZoom = CanvasController.canvasZoomMultipler;
+                lastZoom = CanvasView.canvasZoomMultiplier;
                 dragDirection = 0;
 
                 // 클릭한 위치가 캔버스밖을 벗어날경우 줌 기준점을 캔버스 경계선에 닿도록 함
@@ -167,24 +168,24 @@ package Modules.Tools
                 if (LassoTool.isLassoMenuHiddenTemp === true)
                 {
                     gp = LassoTool.lassoLayer1.localToGlobal(new Point(0, 0));
-                    CanvasController.moveCanvasAnchorPoint(gp.x, gp.y, false);
+                    CanvasView.moveCanvasAnchorPoint(gp.x, gp.y, false);
                 }
                 else
                 {
-                    gp = CanvasController.canvasPanel.localToGlobal(new Point(0, 0));
-                    const panelLimitedPos:Point = getCanvasBoundLimitPoint(CanvasController.canvasPanel, CanvasController.canvasPanel.mouseX, CanvasController.canvasPanel.mouseY, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, CanvasController.canvasZoomMultipler, -CanvasController.canvasAnchorPoint.rotation);
+                    gp = CanvasView.canvasPanel.localToGlobal(new Point(0, 0));
+                    const panelLimitedPos:Point = getCanvasBoundLimitPoint(CanvasView.canvasPanel, CanvasView.canvasPanel.mouseX, CanvasView.canvasPanel.mouseY, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, CanvasView.canvasZoomMultiplier, -CanvasView.canvasAnchorPoint.rotation);
                     // 캔버스 0,0점이 글로벌좌표 기준으로 어느 위치에 있는지 더해줘야함
-                    CanvasController.moveCanvasAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y, false);
+                    CanvasView.moveCanvasAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y, false);
                 }
 
                 lastMousePos.setTo(main.stage.mouseX, main.stage.mouseY);
-                startZoomIndex = CanvasController.canvasZoomIndex;
+                startZoomIndex = CanvasView.canvasZoomIndex;
 
                 PenSizePreviewCursor.setCursorInVisibleFlag(true);
                 ReferenceLayerController.setRefLayerAndGridVisible(false);
 
                 clickPos.setTo(main.stage.mouseX, main.stage.mouseY);
-                HintController.showMouseHint(Math.floor(CanvasController.canvasZoomMultipler * 100) + "%");
+                HintController.showMouseHint(Math.floor(CanvasView.canvasZoomMultiplier * 100) + "%");
                 fixMouseHintPos();
             }
 

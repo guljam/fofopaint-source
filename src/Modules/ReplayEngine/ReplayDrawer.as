@@ -1,5 +1,7 @@
 package Modules.ReplayEngine
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display.CapsStyle;
@@ -15,7 +17,6 @@ package Modules.ReplayEngine
     import flash.geom.Rectangle;
     import Symbols.FOFOCursorSet;
     import Modules.CacheImageMetaData;
-    import Modules.CanvasController;
     import Modules.FileManager;
     import Modules.UndoHistory;
     import Modules.UndoController;
@@ -29,9 +30,9 @@ package Modules.ReplayEngine
         public static var rCanvasPanel:Sprite = new Sprite();
         public static var rCanvasDrawLayer:Sprite = new Sprite();
         public static var rCanvasDrawShape:Shape = new Shape();
-        public static var rCanvasLayer1BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-        public static var rCanvasLayer2BitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
-        public static var rCanvasDrawLayerBitmapData:BitmapData = new BitmapData(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT, true, 0);
+        public static var rCanvasLayer1BitmapData:BitmapData = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
+        public static var rCanvasLayer2BitmapData:BitmapData = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
+        public static var rCanvasDrawLayerBitmapData:BitmapData = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
         public static var rCanvasLayer1Bitmap:Bitmap = new Bitmap(rCanvasLayer1BitmapData, "auto", true);
         public static var rCanvasLayer2Bitmap:Bitmap = new Bitmap(rCanvasLayer2BitmapData, "auto", true);
         public static var rCanvasDrawLayerBitmap:Bitmap = new Bitmap(rCanvasDrawLayerBitmapData, "auto", true);
@@ -95,8 +96,8 @@ package Modules.ReplayEngine
             const undoBaseImage:Array = UndoHistory.getUndoBaseImage();
 
             // 레이어를 먼저 교체하고 크기 정보를 맞춰줌
-            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoBaseImage[0], rCanvasLayer1Bitmap);
-            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoBaseImage[1], rCanvasLayer2Bitmap);
+            rCanvasLayer1BitmapData = DrawCanvas.updateBitmapData(rCanvasLayer1BitmapData, undoBaseImage[0], rCanvasLayer1Bitmap);
+            rCanvasLayer2BitmapData = DrawCanvas.updateBitmapData(rCanvasLayer2BitmapData, undoBaseImage[1], rCanvasLayer2Bitmap);
 
             if (undoBaseImage[2] !== ReplayState.RCANVAS_WIDTH || undoBaseImage[3] !== ReplayState.RCANVAS_HEIGHT)
             {
@@ -129,8 +130,8 @@ package Modules.ReplayEngine
             const rect:Rectangle = new Rectangle(0, 0, undoRefData[2], undoRefData[3]);
 
             // 레이어를 먼저 교체하고 크기 정보를 맞춰줌
-            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoRefData[0], rCanvasLayer1Bitmap);
-            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, undoRefData[1], rCanvasLayer2Bitmap);
+            rCanvasLayer1BitmapData = DrawCanvas.updateBitmapData(rCanvasLayer1BitmapData, undoRefData[0], rCanvasLayer1Bitmap);
+            rCanvasLayer2BitmapData = DrawCanvas.updateBitmapData(rCanvasLayer2BitmapData, undoRefData[1], rCanvasLayer2Bitmap);
 
             if (undoRefData[2] !== ReplayState.RCANVAS_WIDTH || undoRefData[3] !== ReplayState.RCANVAS_HEIGHT)
             {
@@ -238,8 +239,8 @@ package Modules.ReplayEngine
                 if (loadCacheFlag === 2)
                 {
                     // 메모리 캐시는 계속 보관해야 하므로 clone해서 씀
-                    rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, layer1bmpd, rCanvasLayer1Bitmap);
-                    rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, layer2bmpd, rCanvasLayer2Bitmap);
+                    rCanvasLayer1BitmapData = DrawCanvas.updateBitmapData(rCanvasLayer1BitmapData, layer1bmpd, rCanvasLayer1Bitmap);
+                    rCanvasLayer2BitmapData = DrawCanvas.updateBitmapData(rCanvasLayer2BitmapData, layer2bmpd, rCanvasLayer2Bitmap);
                 }
                 else
                 {
@@ -355,7 +356,7 @@ package Modules.ReplayEngine
         public static function mirrorRCursorPos():void
         {
             const p:Point = ReplayDrawCommands.getRCursorPos();
-            const half:Number = CanvasController.CANVAS_WIDTH / 2;
+            const half:Number = DrawCanvas.CANVAS_WIDTH / 2;
             const curcorX:Number = rReplayFOFOCursor.x + (half - p.x) * 2;
             rReplayFOFOCursor.x = curcorX;
             ReplayDrawCommands.setRCursorPos(curcorX, p.y);
@@ -421,14 +422,14 @@ package Modules.ReplayEngine
             if (layer1)
             {
                 tmpbmpd.draw(rCanvasLayer1BitmapData, movedMat);
-                CanvasController.copyPixels(rCanvasLayer1BitmapData, tmpbmpd);
+                DrawCanvas.copyPixels(rCanvasLayer1BitmapData, tmpbmpd);
             }
 
             if (layer2)
             {
                 tmpbmpd.fillRect(new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height), 0);
                 tmpbmpd.draw(rCanvasLayer2BitmapData, movedMat);
-                CanvasController.copyPixels(rCanvasLayer2BitmapData, tmpbmpd);
+                DrawCanvas.copyPixels(rCanvasLayer2BitmapData, tmpbmpd);
             }
 
             tmpbmpd.dispose();
@@ -483,10 +484,10 @@ package Modules.ReplayEngine
             var flipMat:Matrix = new Matrix(-1, 0, 0, 1, rCanvasLayer1BitmapData.width);
             const rect:Rectangle = new Rectangle(0, 0, rCanvasLayer1BitmapData.width, rCanvasLayer1BitmapData.height);
             tmpbmpd.draw(rCanvasLayer1BitmapData, flipMat);
-            CanvasController.copyPixels(rCanvasLayer1BitmapData, tmpbmpd);
+            DrawCanvas.copyPixels(rCanvasLayer1BitmapData, tmpbmpd);
             tmpbmpd.fillRect(rect, 0);
             tmpbmpd.draw(rCanvasLayer2BitmapData, flipMat);
-            CanvasController.copyPixels(rCanvasLayer2BitmapData, tmpbmpd);
+            DrawCanvas.copyPixels(rCanvasLayer2BitmapData, tmpbmpd);
             tmpbmpd.dispose();
             tmpbmpd = null;
             ReplayState.rMirrorON = !ReplayState.rMirrorON;
@@ -576,7 +577,7 @@ package Modules.ReplayEngine
             ReplayState.RCANVAS_WIDTH = w;
             ReplayState.RCANVAS_HEIGHT = h;
             ReplayController.rFollowMouse.updateBounds();
-            CanvasController.keepCanvasPanelInStage(true);
+            CanvasView.keepCanvasPanelInStage(true);
 
             if (ReplayState.isReplayCanvasFitToWindow)
             {
@@ -596,10 +597,10 @@ package Modules.ReplayEngine
         public static function setReplayCanvasBmpdFromDrawMode():void
         {
             rCanvasDrawShape.graphics.clear();
-            rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, CanvasController.canvasLayer1BitmapData, rCanvasLayer1Bitmap);
-            rCanvasLayer2BitmapData = CanvasController.updateBitmapData(rCanvasLayer2BitmapData, CanvasController.canvasLayer2BitmapData, rCanvasLayer2Bitmap);
-            syncCanvasSizeReplayMode(CanvasController.canvasLayer1Bitmap.width, CanvasController.canvasLayer1Bitmap.height);
-            updateCanvasBGColorReplayMode(CanvasController.CANVAS_BG_COLOR);
+            rCanvasLayer1BitmapData = DrawCanvas.updateBitmapData(rCanvasLayer1BitmapData, DrawCanvas.canvasLayer1BitmapData, rCanvasLayer1Bitmap);
+            rCanvasLayer2BitmapData = DrawCanvas.updateBitmapData(rCanvasLayer2BitmapData, DrawCanvas.canvasLayer2BitmapData, rCanvasLayer2Bitmap);
+            syncCanvasSizeReplayMode(DrawCanvas.canvasLayer1Bitmap.width, DrawCanvas.canvasLayer1Bitmap.height);
+            updateCanvasBGColorReplayMode(DrawCanvas.CANVAS_BG_COLOR);
         }
 
         public static function makeMemoryCacheImage(completedStepStartFrame:Number):void

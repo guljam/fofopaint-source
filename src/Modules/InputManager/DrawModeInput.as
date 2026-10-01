@@ -1,5 +1,7 @@
 package Modules.InputManager
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
@@ -7,7 +9,6 @@ package Modules.InputManager
     import Modules.ActivityWorkTimer;
     import Modules.AppUpdater;
     import Modules.AboutBoxController;
-    import Modules.CanvasController;
     import Modules.CanvasGridOverlay;
     import Modules.ClipboardManager;
     import Modules.ColorPickerController;
@@ -461,9 +462,9 @@ package Modules.InputManager
                 case InputManager.KEY.s:
                 case InputManager.KEY.k:
                     {
-                        if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                        if (CanvasView.canvasAnchorPoint.rotation !== 0.0)
                         {
-                            CanvasController.resetRotationDrawMode();
+                            CanvasView.resetRotationDrawMode();
                             CanvasNavigator.updateCursor();
                         }
                     }
@@ -471,9 +472,9 @@ package Modules.InputManager
                 case InputManager.KEY.w:
                 case InputManager.KEY.i:
                     {
-                        if (CanvasController.canvasZoomMultipler !== 1.0)
+                        if (CanvasView.canvasZoomMultiplier !== 1.0)
                         {
-                            CanvasController.resetZoomDrawMode();
+                            CanvasView.resetZoomDrawMode();
                             CanvasNavigator.updateCursor();
                         }
                     }
@@ -530,7 +531,7 @@ package Modules.InputManager
                         }
                         else
                         {
-                            CanvasLayers.selectLayer1(CanvasController.canvasLayer2Bitmap.visible);
+                            CanvasLayers.selectLayer1(DrawCanvas.canvasLayer2Bitmap.visible);
                             HintController.showMouseHintLayerVisible();
                         }
                         if (ToolController.toolOptionsBox.layer2CheckedButton.visible)
@@ -549,7 +550,7 @@ package Modules.InputManager
                         }
                         else
                         {
-                            CanvasLayers.selectLayer2(CanvasController.canvasLayer1Bitmap.visible);
+                            CanvasLayers.selectLayer2(DrawCanvas.canvasLayer1Bitmap.visible);
                             HintController.showMouseHintLayerVisible();
                         }
                         if (ToolController.toolOptionsBox.layer1CheckedButton.visible)
@@ -890,9 +891,9 @@ package Modules.InputManager
                 case "toolZoomIn":
                 case "toolZoomOut":
                     {
-                        if (CanvasController.canvasZoomMultipler !== 1.0)
+                        if (CanvasView.canvasZoomMultiplier !== 1.0)
                         {
-                            CanvasController.resetZoomDrawMode();
+                            CanvasView.resetZoomDrawMode();
                             CanvasNavigator.updateCursor();
                         }
                     }
@@ -910,9 +911,9 @@ package Modules.InputManager
 
                 case "toolRotate":
                     {
-                        if (CanvasController.canvasAnchorPoint.rotation !== 0.0)
+                        if (CanvasView.canvasAnchorPoint.rotation !== 0.0)
                         {
-                            CanvasController.resetRotationDrawMode();
+                            CanvasView.resetRotationDrawMode();
                             CanvasNavigator.updateCursor();
                         }
                     }

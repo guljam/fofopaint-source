@@ -1,34 +1,34 @@
-package Modules
+package Modules.DrawEngine
 {
+    import Modules.CanvasGridOverlay;
+    import Modules.CaptureEngine.CaptureController;
+    import Modules.ColorPickerController;
+    import Modules.FileManager;
+    import Modules.ImageViewWindow;
+    import Modules.PenSizePreviewCursor;
+    import Modules.ReferenceLayerController;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayState;
+    import Modules.SidebarController;
+    import Modules.Tools.EyeDropperTool;
+    import Modules.Tools.LassoTool;
+    import Modules.Tools.ZoomTool;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
-    import Modules.CaptureEngine.CaptureController;
-    import flash.display.Shape;
-    import flash.display.Sprite;
-    import flash.display.BitmapData;
-    import flash.display.Bitmap;
-    import flash.geom.Rectangle;
-    import flash.display.DisplayObjectContainer;
-    import Modules.Tools.PenTool;
-    import flash.events.Event;
-    import flash.geom.Point;
-    import Modules.Tools.LassoTool;
-    import flash.geom.Matrix;
-    import flash.geom.ColorTransform;
-    import flash.display.Graphics;
-    import Modules.Tools.EyeDropperTool;
-    import flash.ui.MouseCursor;
-    import Modules.Tools.ZoomTool;
-    import flash.utils.getTimer;
-    import flash.trace.Trace;
-    import Modules.ReplayEngine.ReplayController;
-    import Modules.ReplayEngine.ReplayDrawCommands;
-    import Modules.ReplayEngine.ReplayDrawer;
-    import Modules.ReplayEngine.ReplayState;
+    import Modules.Utils;
 
-    public class CanvasController
+    import flash.display.Bitmap;
+    import flash.display.DisplayObjectContainer;
+    import flash.display.Graphics;
+    import flash.display.Sprite;
+    import flash.geom.Point;
+    import flash.geom.Rectangle;
+
+    // 드로우 모드 캔버스의 화면 배치: 앵커/패널 표시 트리, 이동, 줌, 회전/미러 화면 처리
+    public class CanvasView
     {
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
@@ -36,31 +36,12 @@ package Modules
             main = instance;
         }
 
-        // todo : 포멧팅 필요
-        public static const CANVAS_MAX_SIZE:Number = 2000;
-        public static var CANVAS_WIDTH:Number = 600;
-        public static var CANVAS_HEIGHT:Number = 390;
-        public static var CANVAS_BG_COLOR:uint = 0xFFFFFF;
         public static const canvasFlashEffect:Sprite = new Sprite();
-
         public static var canvasAnchorPoint:Sprite = new Sprite(); // 회전 스프라이트 부모
         public static var canvasPanel:Sprite = new Sprite(); // 회색 부분을 제외한 그리기 영역 추가
-        public static var canvasDrawLayer:Sprite = new Sprite(); // 캔버스 2번 임시로 그려주는 캔버스 버퍼?
-        public static var canvasDrawLayerChild:Shape = new Shape(); // 실제로 선을 긋는 요소
-        public static var canvasLayer1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
-        public static var canvasLayer2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
-        public static var canvasDrawLayerBitmapData:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
-        public static var canvasLayer1Bitmap:Bitmap = new Bitmap(canvasLayer1BitmapData, "auto", true);
-        public static var canvasLayer2Bitmap:Bitmap = new Bitmap(canvasLayer2BitmapData, "auto", true);
-        public static var canvasDrawLayerBitmap:Bitmap = new Bitmap(canvasDrawLayerBitmapData, "auto", true);
-
-        public static var canvasDrawLayerClipRect:Rectangle = new Rectangle(); // 그려준 영역 만큼만 캔버스bitmap1에 그려주는 사각형
-        public static var mirrorON:Boolean = false;
-        public static var canvasZoomMultiplerList:Array = [0.125, 0.25, 0.5, 0.75, 1.0, 1.50, 2.0, 3.0, 4.0, 6.0, 8.0];
-        public static var canvasZoomMultipler:Number = 1.0;
+        public static var canvasZoomMultiplierList:Array = [0.125, 0.25, 0.5, 0.75, 1.0, 1.50, 2.0, 3.0, 4.0, 6.0, 8.0];
+        public static var canvasZoomMultiplier:Number = 1.0;
         public static var canvasZoomIndex:int = 4;
-
-        private static const copyPixelRect:Rectangle = new Rectangle();
 
         public static function resetRotationDrawMode():void
         {
@@ -70,27 +51,6 @@ package Modules
             canvasAnchorPoint.rotation = 0;
             ReplayDrawer.setRcursorRotation(0);
             UIController.canvasInfoBox.setRotate(0);
-        }
-
-        public static function updateLayer1BitmapData(newbmpd:BitmapData):void
-        {
-            canvasLayer1BitmapData = newbmpd.clone();
-            canvasLayer1Bitmap.bitmapData = canvasLayer1BitmapData;
-        }
-
-        public static function updateBitmapData(targetbmpd:BitmapData, newbmpd:BitmapData, targetBitmap:Bitmap):BitmapData
-        {
-            if (targetbmpd !== null && targetbmpd === newbmpd)
-            {
-                return targetbmpd;
-            }
-            const clone:BitmapData = newbmpd.clone();
-            // currentbmpd distpos를 해주고 싶지만 뭔가 이미지 적용이 안되는 현상이 있어서 안해줌
-            if (targetBitmap !== null)
-            {
-                targetBitmap.bitmapData = clone;
-            }
-            return clone;
         }
 
         public static function applyCanvasFlashEffect(parent:DisplayObjectContainer, ox:Number, oy:Number, width:Number, height:Number, stopHandler:Function):void
@@ -123,28 +83,6 @@ package Modules
                 });
         }
 
-        public static function resetCanvasDrawLayerCliprect():void
-        {
-            canvasDrawLayerClipRect.x = 0;
-            canvasDrawLayerClipRect.y = 0;
-            canvasDrawLayerClipRect.width = 0;
-            canvasDrawLayerClipRect.height = 0;
-        }
-
-        public static function extandCanvasDrawLayerCliprect():void
-        {
-            var airBrushOffset:Number = (PenTool.airBrushSizeDrawMode > 0) ? PenTool.getClipRectOffsetAirBrush(PenTool.airBrushSizeDrawMode) : 1;
-            canvasDrawLayerClipRect.x -= airBrushOffset;
-            canvasDrawLayerClipRect.y -= airBrushOffset;
-            canvasDrawLayerClipRect.width += (airBrushOffset * 2);
-            canvasDrawLayerClipRect.height += (airBrushOffset * 2);
-        }
-
-        public static function updateCanvasDrawLayerCliprect():void
-        {
-            canvasDrawLayerClipRect = canvasDrawLayerClipRect.union(canvasDrawLayerChild.getBounds(canvasPanel));
-        }
-
         public static function updateCanvasPanelMask(w:Number, h:Number):void
         {
             canvasPanel.scrollRect = new Rectangle(0, 0, w, h);
@@ -152,14 +90,14 @@ package Modules
 
         public static function resetZoomDrawMode():void
         {
-            if (canvasZoomMultipler !== 1.0)
+            if (canvasZoomMultiplier !== 1.0)
             {
                 const center:Point = UIController.getStageCenterPos("draw");
                 const gcenter:Point = canvasPanel.globalToLocal(new Point(center.x, center.y));
                 const gp:Point = canvasPanel.localToGlobal(new Point(0, 0));
-                const panelLimitedPos:Point = ZoomTool.getCanvasBoundLimitPoint(canvasPanel, gcenter.x, gcenter.y, CANVAS_WIDTH, CANVAS_HEIGHT, canvasAnchorPoint.scaleY, -canvasAnchorPoint.rotation);
+                const panelLimitedPos:Point = ZoomTool.getCanvasBoundLimitPoint(canvasPanel, gcenter.x, gcenter.y, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, canvasAnchorPoint.scaleY, -canvasAnchorPoint.rotation);
                 moveCanvasAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y, false);
-                canvasZoomIndex = canvasZoomMultiplerList.indexOf(1.0);
+                canvasZoomIndex = canvasZoomMultiplierList.indexOf(1.0);
                 updateCanvasScale(1.0, false);
                 PenSizePreviewCursor.updateSizeAndShape();
                 CanvasGridOverlay.drawGrid();
@@ -169,7 +107,7 @@ package Modules
         public static function zoomInCanvas(zoomInFlag:Boolean, isReplayMode:Boolean):void
         {
             const xAnc:Sprite = (isReplayMode) ? ReplayDrawer.rCanvasAnchorPoint : canvasAnchorPoint;
-            const zoomMax:int = canvasZoomMultiplerList.length - 1;
+            const zoomMax:int = canvasZoomMultiplierList.length - 1;
             var center:Point;
             var newZoomIndex:int = (isReplayMode) ? ReplayState.rCanvasZoomIndex : canvasZoomIndex;
             if (zoomInFlag)
@@ -188,7 +126,7 @@ package Modules
                     newZoomIndex = 0;
                 }
             }
-            const newZoom:Number = canvasZoomMultiplerList[newZoomIndex];
+            const newZoom:Number = canvasZoomMultiplierList[newZoomIndex];
             if (isReplayMode)
             {
                 center = UIController.getStageCenterPos("replay");
@@ -205,7 +143,7 @@ package Modules
                 center = UIController.getStageCenterPos("draw");
                 const gcenter:Point = canvasPanel.globalToLocal(new Point(center.x, center.y));
                 const gp:Point = canvasPanel.localToGlobal(new Point(0, 0));
-                const panelLimitedPos:Point = ZoomTool.getCanvasBoundLimitPoint(canvasPanel, gcenter.x, gcenter.y, CANVAS_WIDTH, CANVAS_HEIGHT, xAnc.scaleY, -xAnc.rotation);
+                const panelLimitedPos:Point = ZoomTool.getCanvasBoundLimitPoint(canvasPanel, gcenter.x, gcenter.y, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, xAnc.scaleY, -xAnc.rotation);
                 canvasZoomIndex = newZoomIndex;
                 moveCanvasAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y, false);
                 updateCanvasScale(newZoom, isReplayMode);
@@ -218,90 +156,17 @@ package Modules
             }
         }
 
-        // maxOutputEdge > 0이면 긴 축이 그 값 이하가 되도록 처음부터 작게 합성함 (대표색 추출처럼 큰 이미지가 필요 없을때)
-        public static function getMergedBitmapdtata(transparentBG:Boolean, layer1merge:Boolean, layer2merge:Boolean, clipRect:Rectangle, maxOutputEdge:Number = 0):BitmapData
-        {
-            var xBitmapData1:BitmapData;
-            var xBitmapData11:BitmapData;
-            var xDrawLayer:Sprite;
-            var xBGCOLOR:uint;
-            var alpha:Number;
-            var mat:Matrix;
-            var bmpd:BitmapData;
-            if (ReplayState.isReplayModeON)
-            {
-                xBitmapData1 = ReplayDrawer.rCanvasLayer1BitmapData;
-                xBitmapData11 = ReplayDrawer.rCanvasLayer2BitmapData;
-                xDrawLayer = ReplayDrawer.rCanvasDrawLayer;
-                xBGCOLOR = ReplayState.RCANVAS_BG_COLOR;
-                alpha = ReplayDrawCommands.getLineStyleAlpha();
-            }
-            else
-            {
-                xBitmapData1 = canvasLayer1BitmapData;
-                xBitmapData11 = canvasLayer2BitmapData;
-                xDrawLayer = canvasDrawLayer;
-                xBGCOLOR = CANVAS_BG_COLOR;
-                alpha = 1.0;
-            }
-            const sourceWidth:Number = (clipRect !== null) ? clipRect.width : xBitmapData1.width;
-            const sourceHeight:Number = (clipRect !== null) ? clipRect.height : xBitmapData1.height;
-            const longEdge:Number = (sourceWidth > sourceHeight) ? sourceWidth : sourceHeight;
-            const scale:Number = (maxOutputEdge > 0 && longEdge > maxOutputEdge) ? maxOutputEdge / longEdge : 1.0;
-            if (scale !== 1.0)
-            {
-                // 축소할때 최소길이 1 유지
-                bmpd = new BitmapData(Math.max(1, Math.floor(sourceWidth * scale)), Math.max(1, Math.floor(sourceHeight * scale)), true, (transparentBG) ? 0 : 0xFF000000 | xBGCOLOR);
-                mat = new Matrix();
-                if (clipRect !== null)
-                {
-                    mat.translate(-clipRect.x, -clipRect.y);
-                }
-                mat.scale(scale, scale);
-            }
-            else if (clipRect !== null)
-            {
-                bmpd = new BitmapData(clipRect.width, clipRect.height, true, (transparentBG) ? 0 : 0xFF000000 | xBGCOLOR);
-                mat = new Matrix();
-                mat.translate(-clipRect.x, -clipRect.y);
-            }
-            else
-            {
-                bmpd = new BitmapData(xBitmapData1.width, xBitmapData1.height, true, (transparentBG) ? 0 : 0xFF000000 | xBGCOLOR);
-            }
-            if (layer2merge)
-            {
-                bmpd.draw(xBitmapData11, mat); // 레이어 쌓기
-            }
-            if (ReplayDrawer.isLayer2SelectedReplayMode()) // 레이어 2번을 그리고 있을때
-            {
-                if (layer2merge)
-                    bmpd.draw(xDrawLayer, mat, new ColorTransform(1, 1, 1, alpha));
-                if (layer1merge)
-                    bmpd.draw(xBitmapData1, mat);
-            }
-            else // 리플레이에서 레이어 1번그리고 있을때
-            {
-                if (layer1merge)
-                {
-                    bmpd.draw(xBitmapData1, mat);
-                    bmpd.draw(xDrawLayer, mat, new ColorTransform(1, 1, 1, alpha));
-                }
-            }
-            return bmpd;
-        }
-
         public static function getNearZoomIndex(nowZoom:Number):int
         {
-            var index:int = Utils.binarySearchIndex(canvasZoomMultiplerList, nowZoom, function (item:*):Number
+            var index:int = Utils.binarySearchIndex(canvasZoomMultiplierList, nowZoom, function (item:*):Number
                 {
                     return item;
                 });
             if (index <= 0)
                 return 0;
-            else if (index >= canvasZoomMultiplerList.length - 1)
-                return canvasZoomMultiplerList.length - 1;
-            else if (canvasZoomMultiplerList[index + 1] - nowZoom < nowZoom - canvasZoomMultiplerList[index - 1])
+            else if (index >= canvasZoomMultiplierList.length - 1)
+                return canvasZoomMultiplierList.length - 1;
+            else if (canvasZoomMultiplierList[index + 1] - nowZoom < nowZoom - canvasZoomMultiplierList[index - 1])
             {
                 return index + 1;
             }
@@ -311,7 +176,7 @@ package Modules
         // 캔버스의 중심좌표를 구함 컨트롤 박스 옵션 박스 포함
         public static function getCanvasPanelMidPos():Point
         {
-            const boundRect:Object = Utils.getBoundRect(canvasLayer1Bitmap);
+            const boundRect:Object = Utils.getBoundRect(DrawCanvas.canvasLayer1Bitmap);
             const left:Number = boundRect.left;
             const top:Number = boundRect.top;
             const right:Number = boundRect.right;
@@ -328,10 +193,10 @@ package Modules
         {
             // canvaspanel로 하면 중점이 안맞아서 canvas1로함
             const p:Point = getCanvasPanelMidPos();
-            mirrorON = !mirrorON;
+            DrawCanvas.mirrorON = !DrawCanvas.mirrorON;
             ReplayState.mirrorCommandReady = !ReplayState.mirrorCommandReady;
-            mirrorBmpdDrawmode();
-            UIController.canvasInfoBox.setMirror(mirrorON);
+            DrawCanvas.mirrorBmpdDrawmode();
+            UIController.canvasInfoBox.setMirror(DrawCanvas.mirrorON);
             // 회전각 부호를 바꿔야 제대로 mirror가됨
             moveCanvasAnchorPoint(p.x, p.y); // regpoint를 회전한 캔버스 중점으로 두고
             if (canvasOnly === false) // 보통 미러할때, canvasonly가 true일때는 appdata에서 바꿔줄때 밖에 없음
@@ -340,7 +205,7 @@ package Modules
                 ReplayDrawer.setRcursorRotation(canvasAnchorPoint.rotation);
                 ReferenceLayerController.mirrorRefLayerImage();
             }
-            CanvasGridOverlay.updateGridMirror(mirrorON);
+            CanvasGridOverlay.updateGridMirror(DrawCanvas.mirrorON);
             const halfCanvas:Number = (main.stage.stageWidth - SidebarController.sideBar.getWidth()) / 2;
             var stageHalf:Number = (SidebarController.sideBar.visible === false) ? main.stage.stageWidth / 2
                 : (SidebarController.isRightSidebar) ? halfCanvas
@@ -356,124 +221,6 @@ package Modules
             {
                 ImageViewWindow.updateCanvasWindowImage();
             }
-        }
-
-        public static function mirrorBmpdDrawmode():void
-        {
-            var tmpbmpd:BitmapData = new BitmapData(canvasLayer1BitmapData.width, canvasLayer1BitmapData.height, true, 0);
-            var flipMat:Matrix = new Matrix(-1, 0, 0, 1, canvasLayer1BitmapData.width);
-            tmpbmpd.draw(canvasLayer1BitmapData, flipMat);
-            copyPixels(canvasLayer1BitmapData, tmpbmpd);
-            tmpbmpd.fillRect(new Rectangle(0, 0, canvasLayer1BitmapData.width, canvasLayer1BitmapData.height), 0);
-            tmpbmpd.draw(canvasLayer2BitmapData, flipMat);
-            copyPixels(canvasLayer2BitmapData, tmpbmpd);
-            tmpbmpd.dispose();
-            tmpbmpd = null;
-        }
-
-        public static function applyCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
-        {
-            setCavnvasSizeDrawMode(w, h, moveX, moveY, centerMovedFlag);
-            updateCanvasPanelColorAndSize();
-        }
-
-        public static function syncDrawModeCanvasSizeToReplayMode(w:Number, h:Number):void
-        {
-            if (CANVAS_WIDTH === w && CANVAS_HEIGHT === h)
-            {
-                return;
-            }
-
-            updateCanvasPanelMask(w, h);
-
-            // 실제 레이어는 이미 리플레이 결과로 교체되었으므로
-            // 임시 그리기 버퍼만 새 크기로 준비.
-            const oldDrawBitmapData:BitmapData = canvasDrawLayerBitmapData;
-
-            canvasDrawLayerBitmapData = new BitmapData(w, h, true, 0);
-            canvasDrawLayerBitmap.bitmapData = canvasDrawLayerBitmapData;
-
-            if (oldDrawBitmapData !== null)
-            {
-                oldDrawBitmapData.dispose();
-            }
-
-            // 이 함수는 이전 CANVAS_WIDTH/HEIGHT와 새 크기의 차이를 사용.
-            // 따라서 크기 변수 갱신보다 먼저 호출해야 함.
-            ReferenceLayerController.updateRefLayerImagePos(w, h, false);
-
-            CANVAS_WIDTH = w;
-            CANVAS_HEIGHT = h;
-        }
-
-        public static function setCavnvasSizeDrawMode(w:Number, h:Number, moveX:Number = 0, moveY:Number = 0, centerMovedFlag:Boolean = false):void
-        {
-            if (CANVAS_WIDTH === w && CANVAS_HEIGHT === h)
-            {
-                return;
-            }
-
-            const maxSize:uint = CANVAS_MAX_SIZE;
-
-            if (w > maxSize)
-            {
-                w = maxSize;
-            }
-            else if (w < 1)
-            {
-                w = 1;
-            }
-
-            if (h > maxSize)
-            {
-                h = maxSize;
-            }
-            else if (h < 1)
-            {
-                h = 1;
-            }
-
-            updateCanvasPanelMask(w, h);
-            canvasLayer1BitmapData = new BitmapData(w, h, true, 0);
-            canvasLayer2BitmapData = new BitmapData(w, h, true, 0);
-            canvasDrawLayerBitmapData = new BitmapData(w, h, true, 0);
-            if (centerMovedFlag)
-            {
-                // movex y는 캔버스 사이즈 조절에서 원점이 움직였을경우 그만큼 bitmapdata를 움직여줘야
-                // 원래 이미지대로 나옴
-                var mat:Matrix = new Matrix();
-                const rp:Point = Utils.rotatePoint(moveX, moveY, -canvasAnchorPoint.rotation); // 캔버스가 회전되어있으면 회전된 방향으로 움직여줘야함
-                mat.translate(moveX, moveY);
-                canvasLayer1BitmapData.draw(canvasLayer1Bitmap, mat);
-                canvasLayer2BitmapData.draw(canvasLayer2Bitmap, mat);
-                canvasAnchorPoint.x -= Math.round(rp.x * canvasZoomMultipler);
-                canvasAnchorPoint.y -= Math.round(rp.y * canvasZoomMultipler);
-            }
-            else
-            {
-                canvasLayer1BitmapData.draw(canvasLayer1Bitmap);
-                canvasLayer2BitmapData.draw(canvasLayer2Bitmap);
-            }
-
-            if (canvasLayer1Bitmap.bitmapData)
-            {
-                canvasLayer1Bitmap.bitmapData.dispose();
-            }
-
-            canvasLayer1Bitmap.bitmapData = canvasLayer1BitmapData;
-
-            if (canvasLayer2Bitmap.bitmapData)
-            {
-                canvasLayer2Bitmap.bitmapData.dispose();
-            }
-
-            canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
-
-            // todo applyCanvasBGColorDrawMode로 옮겨야 할것 같은데 centerMovedFlag를 전역 상태로 처리해주어야하나? 함수끼리 통신해야하니까
-            // canvas width가 갱신되게 전에 업데이트 해야함
-            ReferenceLayerController.updateRefLayerImagePos(w, h, centerMovedFlag);
-            CANVAS_WIDTH = w;
-            CANVAS_HEIGHT = h;
         }
 
         public static function moveCanvasAnchorPoint(tx:Number, ty:Number, replayMode:Boolean = false):void
@@ -493,7 +240,7 @@ package Modules
             {
                 xAnc = canvasAnchorPoint;
                 xCanvas = canvasPanel;
-                xZoomed = canvasZoomMultipler;
+                xZoomed = canvasZoomMultiplier;
             }
             if (xAnc.x === tx && xAnc.y === ty)
             {
@@ -511,15 +258,15 @@ package Modules
             xCanvas.y += Math.round(rotateToolMoveEvent.y); // rotate값 포함해서 움직여야함
         }
 
-        public static function initializeCanvas():void
+        public static function init():void
         {
             var g:Graphics;
             canvasPanel.name = "canvasPanel";
             canvasAnchorPoint.name = "canvasAnchorPoint";
-            canvasLayer1Bitmap.name = "canvasLayer1Bitmap";
-            canvasLayer2Bitmap.name = "canvasLayer2Bitmap";
-            canvasDrawLayer.name = "canvasDrawLayer";
-            canvasDrawLayerChild.name = "canvasDrawShape";
+            DrawCanvas.canvasLayer1Bitmap.name = "canvasLayer1Bitmap";
+            DrawCanvas.canvasLayer2Bitmap.name = "canvasLayer2Bitmap";
+            StrokeBuffer.canvasDrawLayer.name = "canvasDrawLayer";
+            StrokeBuffer.canvasDrawLayerChild.name = "canvasDrawShape";
             UIController.stageBG.name = "stageBG";
             ReferenceLayerController.canvasRefLayer.name = "canvasRefLayer";
             CanvasGridOverlay.canvasGrid.name = "canvasGrid";
@@ -534,20 +281,20 @@ package Modules
             LassoTool.lassoLayer2.visible = false;
             // setCanvasBGColorDrawMode는 같은 색이면 바로 리턴하므로, 초기값(흰색)은 스크래치 패드에 전달되지 않아
             // 최초 실행시 패드 배경이 안 그려졌음. 초기 색은 직접 전달함
-            ColorPickerController.colorPickerBox.scratchPad.updateBGColor(CANVAS_BG_COLOR);
-            updateCanvasPanelMask(CANVAS_WIDTH, CANVAS_HEIGHT);
+            ColorPickerController.colorPickerBox.scratchPad.updateBGColor(DrawCanvas.CANVAS_BG_COLOR);
+            updateCanvasPanelMask(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
             ReferenceLayerController.canvasRefLayer.alpha = ReferenceLayerController.refLayerLastAlpha;
             ReferenceLayerController.canvasRefLayer.addChild(ReferenceLayerController.canvasRefLayerBitmap);
-            canvasDrawLayer.addChild(canvasDrawLayerBitmap);
-            canvasDrawLayer.addChild(canvasDrawLayerChild);
-            canvasDrawLayer.blendMode = "layer"; // 캔버스1이랑 알파 불투명도가 겹치지 않게 layer모드로 해줌
+            StrokeBuffer.canvasDrawLayer.addChild(StrokeBuffer.canvasDrawLayerBitmap);
+            StrokeBuffer.canvasDrawLayer.addChild(StrokeBuffer.canvasDrawLayerChild);
+            StrokeBuffer.canvasDrawLayer.blendMode = "layer"; // 캔버스1이랑 알파 불투명도가 겹치지 않게 layer모드로 해줌
             ReplayDrawer.rReplayFOFOCursor.visible = false;
             canvasPanel.addChild(ReferenceLayerController.canvasRefLayer);
-            canvasPanel.addChild(canvasLayer2Bitmap);
+            canvasPanel.addChild(DrawCanvas.canvasLayer2Bitmap);
             canvasPanel.addChild(LassoTool.lassoLayer2);
-            canvasPanel.addChild(canvasLayer1Bitmap);
+            canvasPanel.addChild(DrawCanvas.canvasLayer1Bitmap);
             canvasPanel.addChild(LassoTool.lassoLayer1);
-            canvasPanel.addChild(canvasDrawLayer);
+            canvasPanel.addChild(StrokeBuffer.canvasDrawLayer);
             canvasPanel.addChild(CanvasGridOverlay.canvasGrid);
             canvasPanel.addChild(ReplayDrawer.rReplayFOFOCursor);
             // canvasrotate가 중점으로 올수있게 위치를 절반으로세팅
@@ -573,7 +320,7 @@ package Modules
             if (!isReplayMode)
             {
                 xAnc = canvasAnchorPoint;
-                canvasZoomMultipler = zoomValue;
+                canvasZoomMultiplier = zoomValue;
                 if (!CaptureController.isCaptureModeON)
                 {
                     PenSizePreviewCursor.updateZoom(zoomValue);
@@ -618,7 +365,7 @@ package Modules
             else
             {
                 xAnc = canvasAnchorPoint;
-                xCanvas = canvasLayer1Bitmap;
+                xCanvas = DrawCanvas.canvasLayer1Bitmap;
             }
             const offset:int = 100; // 최소 100픽셀 은 보여야함
             const bounds:Object = Utils.getBoundRect(xCanvas);
@@ -662,24 +409,13 @@ package Modules
             {
                 xAnc = canvasAnchorPoint;
                 xCanvas = canvasPanel;
-                w = CANVAS_WIDTH;
-                h = CANVAS_HEIGHT;
+                w = DrawCanvas.CANVAS_WIDTH;
+                h = DrawCanvas.CANVAS_HEIGHT;
             }
             xAnc.x = Math.floor(center.x);
             xAnc.y = Math.floor(center.y);
             xCanvas.x = Math.floor(-w / 2);
             xCanvas.y = Math.floor(-h / 2);
-        }
-
-        public static function clearCanvas():void
-        {
-            const rect:Rectangle = new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            if (canvasLayer1BitmapData)
-                canvasLayer1BitmapData.fillRect(rect, 0);
-            if (canvasLayer2BitmapData)
-                canvasLayer2BitmapData.fillRect(rect, 0);
-            if (canvasDrawLayerBitmapData)
-                canvasDrawLayerBitmapData.fillRect(rect, 0);
         }
 
         public static function fitCanvasToViewportMargin(fitting:Boolean = false):void
@@ -719,11 +455,11 @@ package Modules
             }
             else
             {
-                xBitmap1 = canvasLayer1Bitmap;
-                xBitmap11 = canvasLayer2Bitmap;
+                xBitmap1 = DrawCanvas.canvasLayer1Bitmap;
+                xBitmap11 = DrawCanvas.canvasLayer2Bitmap;
                 xAnc = canvasAnchorPoint;
-                canvasWidth = CANVAS_WIDTH;
-                canvasHeight = CANVAS_HEIGHT;
+                canvasWidth = DrawCanvas.CANVAS_WIDTH;
+                canvasHeight = DrawCanvas.CANVAS_HEIGHT;
             }
             if (CaptureController.isCaptureModeON)
             {
@@ -769,94 +505,18 @@ package Modules
         public static function updateCanvasPanelColorAndSize():void
         {
             canvasPanel.graphics.clear();
-            canvasPanel.graphics.beginFill(CANVAS_BG_COLOR);
-            canvasPanel.graphics.drawRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            canvasPanel.graphics.beginFill(DrawCanvas.CANVAS_BG_COLOR);
+            canvasPanel.graphics.drawRect(0, 0, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
             canvasPanel.graphics.endFill();
 
             keepCanvasPanelInStage();
-            CanvasNavigator.box.changeprevBitmapBGColor(CANVAS_BG_COLOR);
-            UIController.canvasInfoBox.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
+            CanvasNavigator.box.changeprevBitmapBGColor(DrawCanvas.CANVAS_BG_COLOR);
+            UIController.canvasInfoBox.setSize(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
 
             if (CanvasGridOverlay.gridGapMultiplier > 0)
             {
                 CanvasGridOverlay.drawGrid();
             }
-        }
-
-        public static function applyCanvasBGColorDrawMode(color:uint):void
-        {
-            setCanvasBGColorDrawMode(color);
-            updateCanvasPanelColorAndSize();
-        }
-
-        public static function setCanvasBGColorDrawMode(color:uint):void
-        {
-            if (color === CANVAS_BG_COLOR)
-            {
-                return;
-            }
-
-            FileManager.isFileAlreadySaved = false;
-            CANVAS_BG_COLOR = color;
-
-            if (ColorPickerController.colorPickerBox.scratchPad)
-            {
-                ColorPickerController.colorPickerBox.scratchPad.updateBGColor(color);
-            }
-        }
-
-        public static function resetAllCanvasAndReplayData():void
-        {
-            // 길게 누르는 동안 worker가 시작되었을 수 있음
-            if (FileManager.isReplayDataLocked())
-            {
-                FileManager.showReplayDataLockedHint();
-                return;
-            }
-            clearCanvas();
-            centerCanvas("replay");
-            centerCanvas("draw");
-            resetZoomDrawMode();
-            resetRotationDrawMode();
-            ReplayController.resetCanvasAndReplayData();
-
-            // reset vars보다 뒤에 와야함
-            // addundo에서 활성화 해주고 있기 때문에
-            FileManager.setNewFileAvailable(false);
-            AppWindowState.markWindowTitleAsDirty();
-            CanvasNavigator.updateCursor();
-        }
-
-        // 드로우 모드 캔버스 상태를 리플레 캔버스 상태랑 똑같이 만들어줌
-        public static function applyReplayCanvasToDrawModeCanvas():void
-        {
-            canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, ReplayDrawer.rCanvasLayer1BitmapData, canvasLayer1Bitmap);
-            canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, canvasLayer2Bitmap);
-            syncDrawModeCanvasSizeToReplayMode(ReplayDrawer.rCanvasLayer1BitmapData.width, ReplayDrawer.rCanvasLayer1BitmapData.height);
-            setCanvasBGColorDrawMode(ReplayState.RCANVAS_BG_COLOR);
-            updateCanvasPanelColorAndSize();
-            FileManager.isFileAlreadySaved = false;
-            ReplayController.preserveDrawMirrorStateAfterReplayCopy();
-            CanvasNavigator.box.updateImage();
-            if (ImageViewWindow.isCanvasWindowON)
-            {
-                ImageViewWindow.updateCanvasWindowImage();
-                ImageViewWindow.updateCanvasWindowBitmapSize();
-            }
-        }
-
-        public static function copyPixels(target:BitmapData, source:BitmapData):void
-        {
-            if (target.width !== source.width || target.height !== source.height)
-            {
-                HintController.showMouseHintTemp("CanvasController.copyPixels() failed : Not same size", 10.0);
-                return;
-            }
-
-            copyPixelRect.setTo(0, 0, source.width, source.height);
-            target.lock();
-            target.copyPixels(source, copyPixelRect, Utils.ZERO_POINT, null, null, false);
-            target.unlock();
         }
     }
 }

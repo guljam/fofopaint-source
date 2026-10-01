@@ -1,5 +1,8 @@
 package Modules
 {
+    import Modules.DrawEngine.StrokeBuffer;
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.InputManager.InputManager;
@@ -678,7 +681,7 @@ package Modules
                         break;
                     case "toolMirror":
                         {
-                            CanvasController.mirrorCanvas();
+                            CanvasView.mirrorCanvas();
                         }
                         break;
                     case "toolMove":
@@ -688,12 +691,12 @@ package Modules
                         break;
                     case "toolZoomIn":
                         {
-                            CanvasController.zoomInCanvas(true, false);
+                            CanvasView.zoomInCanvas(true, false);
                         }
                         break;
                     case "toolZoomOut":
                         {
-                            CanvasController.zoomInCanvas(false, false);
+                            CanvasView.zoomInCanvas(false, false);
                         }
                         break;
                     case "toolRefLayer":
@@ -903,7 +906,7 @@ package Modules
                 case InputManager.KEY.a:
                 case InputManager.KEY.l:
                     {
-                        CanvasController.mirrorCanvas();
+                        CanvasView.mirrorCanvas();
                         showNowToolIconToCursorTemp(TOOL_MIRROR);
                     }
                     break;
@@ -1123,7 +1126,7 @@ package Modules
                     break;
                 case "toolMirror":
                     {
-                        CanvasController.mirrorCanvas();
+                        CanvasView.mirrorCanvas();
                         showNowToolIconToCursorTemp(TOOL_MIRROR);
                     }
                     break;
@@ -1330,7 +1333,7 @@ package Modules
                         }
                         else
                         {
-                            CanvasLayers.selectLayer1(CanvasController.canvasLayer2Bitmap.visible);
+                            CanvasLayers.selectLayer1(DrawCanvas.canvasLayer2Bitmap.visible);
                             HintController.showMouseHintLayerVisible();
                         }
 
@@ -1348,7 +1351,7 @@ package Modules
                         }
                         else
                         {
-                            CanvasLayers.selectLayer2(CanvasController.canvasLayer1Bitmap.visible);
+                            CanvasLayers.selectLayer2(DrawCanvas.canvasLayer1Bitmap.visible);
                             HintController.showMouseHintLayerVisible();
                         }
 
@@ -1463,7 +1466,7 @@ package Modules
             else if (PenTool.airBrushSizeDrawMode !== 0)
             {
                 PenTool.airBrushSizeDrawMode = 0;
-                CanvasController.canvasDrawLayerChild.filters = [];
+                StrokeBuffer.canvasDrawLayerChild.filters = [];
                 toolOptionsBox.blurShapeSetOFF();
             }
         }

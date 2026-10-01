@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.CanvasView;
     import Modules.UIEngine.UIController;
     import flash.display.DisplayObject;
     import flash.display.DisplayObjectContainer;
@@ -350,7 +351,7 @@ package Modules
             var oldY:Number = target.y;
             var mx:Number = main.stage.mouseX;
             var my:Number = main.stage.mouseY;
-            const zoom:Number = CanvasController.canvasZoomMultipler;
+            const zoom:Number = CanvasView.canvasZoomMultiplier;
             const angle:Number = targetAngle;
 
             return function ():Point

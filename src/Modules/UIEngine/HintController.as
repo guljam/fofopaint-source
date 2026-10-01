@@ -1,8 +1,9 @@
 package Modules.UIEngine
 {
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.MouseState;
     import Modules.AboutBoxController;
-    import Modules.CanvasController;
     import Modules.CaptureEngine.CaptureController;
     import Modules.ColorPickerController;
     import Modules.Tools.FillPenTool;
@@ -89,7 +90,7 @@ package Modules.UIEngine
 
         public static function showMouseHintLayerVisible():void
         {
-            showMouseHintTemp(HintStrings.getLayerVisibleHint(CanvasController.canvasLayer1Bitmap.visible, CanvasController.canvasLayer2Bitmap.visible));
+            showMouseHintTemp(HintStrings.getLayerVisibleHint(DrawCanvas.canvasLayer1Bitmap.visible, DrawCanvas.canvasLayer2Bitmap.visible));
         }
 
         private static function showBottomHintForTargetCaptureMode(target:DisplayObject):void
@@ -106,10 +107,10 @@ package Modules.UIEngine
                 FOFOTimer.remove("bottomHintOffDelay");
 
                 const targetName:String = target.name;
-                const xCanvasPanel:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasPanel : CanvasController.canvasPanel;
+                const xCanvasPanel:Sprite = (ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasPanel : CanvasView.canvasPanel;
                 if (CaptureController.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
                 {
-                    showHintHighlightBox((ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasLayer1Bitmap : CanvasController.canvasLayer1Bitmap);
+                    showHintHighlightBox((ReplayState.isReplayModeON) ? ReplayDrawer.rCanvasLayer1Bitmap : DrawCanvas.canvasLayer1Bitmap);
                     showBottomHint(hint);
                 }
                 else if (!(targetName === "rCanvasPanel"

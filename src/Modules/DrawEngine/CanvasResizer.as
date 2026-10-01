@@ -1,6 +1,5 @@
 package Modules.DrawEngine
 {
-    import Modules.CanvasController;
     import Modules.ImageViewWindow;
     import Modules.InputPriority;
     import Modules.MouseState;
@@ -90,17 +89,17 @@ package Modules.DrawEngine
             drawRect(resizeButtonL);
             drawRect(resizeButtonR);
 
-            CanvasController.canvasAnchorPoint.addChild(resizeButtonU);
-            CanvasController.canvasAnchorPoint.addChild(resizeButtonD);
-            CanvasController.canvasAnchorPoint.addChild(resizeButtonR);
-            CanvasController.canvasAnchorPoint.addChild(resizeButtonL);
+            CanvasView.canvasAnchorPoint.addChild(resizeButtonU);
+            CanvasView.canvasAnchorPoint.addChild(resizeButtonD);
+            CanvasView.canvasAnchorPoint.addChild(resizeButtonR);
+            CanvasView.canvasAnchorPoint.addChild(resizeButtonL);
         }
 
         public static function start(_targetName:String):void
         {
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             PenSizePreviewCursor.setVisible(false);
-            HintController.showMouseHint(CanvasController.CANVAS_WIDTH + " x " + CanvasController.CANVAS_HEIGHT);
+            HintController.showMouseHint(DrawCanvas.CANVAS_WIDTH + " x " + DrawCanvas.CANVAS_HEIGHT);
 
             // TODO:Drag인터렉션으로 변환
             if (started === false)
@@ -109,7 +108,7 @@ package Modules.DrawEngine
                 initVars();
             }
             targetName = _targetName;
-            resizeClickPos.setTo(CanvasController.canvasPanel.mouseX, CanvasController.canvasPanel.mouseY);
+            resizeClickPos.setTo(CanvasView.canvasPanel.mouseX, CanvasView.canvasPanel.mouseY);
             canvasSizeChanging = true;
             drawRatioSnapGuide(oldWidth, oldHeight, targetName);
             updateRatioSnapGuidePos();
@@ -163,8 +162,8 @@ package Modules.DrawEngine
                 canvasSizeChanging = false;
                 HintController.hideMouseHint();
                 updateButtonVisible((isMouseCursorInStage() && MouseState.isRightDown) || InputManager.isPressingControl());
-                CanvasController.canvasAnchorPoint.removeChild(resizePreviewRect);
-                CanvasController.canvasAnchorPoint.removeChild(resizePreviewRatioRect);
+                CanvasView.canvasAnchorPoint.removeChild(resizePreviewRect);
+                CanvasView.canvasAnchorPoint.removeChild(resizePreviewRatioRect);
                 resizePreviewRect.graphics.clear();
                 resizePreviewRatioRect.graphics.clear();
                 if (subX !== 0 || subY !== 0)
@@ -174,7 +173,7 @@ package Modules.DrawEngine
                     {
                         UndoController.applyDeepUndo();
                     }
-                    CanvasController.applyCavnvasSizeDrawMode(finalWidth, finalHeight, subX, subY, centerMovedFlag);
+                    DrawCanvas.applyCanvasSizeDrawMode(finalWidth, finalHeight, subX, subY, centerMovedFlag);
                     updateButtonPos(finalWidth, finalHeight);
                     ReplayState.pushCommand(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
                     UndoHistory.addNew();
@@ -218,11 +217,11 @@ package Modules.DrawEngine
                 target.height = (h === 0) ? buttonSize : h;
             }
 
-            const z:Number = 1 / CanvasController.canvasZoomMultipler;
+            const z:Number = 1 / CanvasView.canvasZoomMultiplier;
             const buttonSize:Number = 20 * z;
             const buttonSize2:Number = 40 * z;
-            const cpPosX:Number = CanvasController.canvasPanel.x;
-            const cpPosY:Number = CanvasController.canvasPanel.y;
+            const cpPosX:Number = CanvasView.canvasPanel.x;
+            const cpPosY:Number = CanvasView.canvasPanel.y;
             const top:Number = cpPosY - buttonSize;
             const bottom:Number = cpPosY + height;
             const left:Number = cpPosX - buttonSize;
@@ -243,7 +242,7 @@ package Modules.DrawEngine
 
             if (flag)
             {
-                updateButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+                updateButtonPos(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
                 showButtons();
             }
             else
@@ -256,7 +255,7 @@ package Modules.DrawEngine
         {
             if (flag)
             {
-                updateButtonPos(CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+                updateButtonPos(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
                 ToolController.toolBox2.startResizeButtonWaitPrograssBarAnimation();
                 FOFOTimer.addByName("resizeButtonVisibleDelayTimer", 0.9, false, function ():void
                     {
@@ -303,8 +302,8 @@ package Modules.DrawEngine
         // 리사이즈 버튼이 보일때 캔버스 뒤에 투명 배경 격자를 서서히 보여줌
         private static function fadeOutTransparentBG():void
         {
-            const canvasPanel:Sprite = CanvasController.canvasPanel;
-            const canvasFlashEffect:Sprite = CanvasController.canvasFlashEffect;
+            const canvasPanel:Sprite = CanvasView.canvasPanel;
+            const canvasFlashEffect:Sprite = CanvasView.canvasFlashEffect;
             if (!canvasPanel.getChildByName("canvasFlash"))
             {
                 return;
@@ -330,15 +329,15 @@ package Modules.DrawEngine
 
         private static function fadeInTransparentBG():void
         {
-            const canvasPanel:Sprite = CanvasController.canvasPanel;
-            const canvasFlashEffect:Sprite = CanvasController.canvasFlashEffect;
+            const canvasPanel:Sprite = CanvasView.canvasPanel;
+            const canvasFlashEffect:Sprite = CanvasView.canvasFlashEffect;
             if (!canvasPanel.getChildByName("canvasFlash"))
             {
                 canvasPanel.addChild(canvasFlashEffect);
                 canvasPanel.setChildIndex(canvasFlashEffect, 0);
                 canvasFlashEffect.visible = true;
                 canvasFlashEffect.graphics.beginBitmapFill(CaptureController.capTransparentBGBMPD);
-                canvasFlashEffect.graphics.drawRect(0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT);
+                canvasFlashEffect.graphics.drawRect(0, 0, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
                 canvasFlashEffect.graphics.endFill();
                 canvasFlashEffect.alpha = 0.0;
             }
@@ -361,23 +360,23 @@ package Modules.DrawEngine
 
         private static function initVars():void
         {
-            oldWidth = CanvasController.CANVAS_WIDTH;
-            oldHeight = CanvasController.CANVAS_HEIGHT;
+            oldWidth = DrawCanvas.CANVAS_WIDTH;
+            oldHeight = DrawCanvas.CANVAS_HEIGHT;
             finalWidth = oldWidth;
             finalHeight = oldHeight;
-            bgColor = CanvasController.CANVAS_BG_COLOR;
+            bgColor = DrawCanvas.CANVAS_BG_COLOR;
             stageColor = UIController.STAGE_BG_COLOR;
             subX = 0;
             subY = 0;
             canvasSizeChanging = false;
-            resizePreviewRect.x = CanvasController.canvasPanel.x;
-            resizePreviewRect.y = CanvasController.canvasPanel.y;
+            resizePreviewRect.x = CanvasView.canvasPanel.x;
+            resizePreviewRect.y = CanvasView.canvasPanel.y;
             resizePreviewRatioRect.x = resizePreviewRect.x;
             resizePreviewRatioRect.y = resizePreviewRect.y;
             ratioGuidePosBackUp.setTo(resizePreviewRatioRect.x, resizePreviewRatioRect.y);
-            guideLineWidth = 30 / CanvasController.canvasZoomMultipler;
-            CanvasController.canvasAnchorPoint.addChild(resizePreviewRect);
-            CanvasController.canvasAnchorPoint.addChild(resizePreviewRatioRect);
+            guideLineWidth = 30 / CanvasView.canvasZoomMultiplier;
+            CanvasView.canvasAnchorPoint.addChild(resizePreviewRect);
+            CanvasView.canvasAnchorPoint.addChild(resizePreviewRatioRect);
             Utils.setAsTopChild(resizePreviewRect);
             Utils.setAsTopChild(resizePreviewRatioRect);
         }
@@ -386,7 +385,7 @@ package Modules.DrawEngine
         {
             if (isResizingWidth)
             {
-                if (CanvasController.canvasPanel.mouseY > oldHeight / 2)
+                if (CanvasView.canvasPanel.mouseY > oldHeight / 2)
                 {
                     if (resizePreviewRatioRect.y === ratioGuidePosBackUp.y)
                     {
@@ -400,7 +399,7 @@ package Modules.DrawEngine
             }
             else
             {
-                if (CanvasController.canvasPanel.mouseX > oldWidth / 2)
+                if (CanvasView.canvasPanel.mouseX > oldWidth / 2)
                 {
                     if (resizePreviewRatioRect.x === ratioGuidePosBackUp.x)
                     {
@@ -426,7 +425,7 @@ package Modules.DrawEngine
         private static function drawRatioSnapGuide(w:Number, h:Number, target:String):void
         {
             const min:Number = CANVAS_MIN_SIZE;
-            const max:Number = CanvasController.CANVAS_MAX_SIZE;
+            const max:Number = DrawCanvas.CANVAS_MAX_SIZE;
             isResizingWidth = (target === "resizeButtonL" || target === "resizeButtonR") ? true : false;
             function _drawRatioLine(referenceSize:Number, offset:Number):void
             {
@@ -451,7 +450,7 @@ package Modules.DrawEngine
                     {
                         continue;
                     }
-                    resizePreviewRatioRect.graphics.lineStyle(3 / CanvasController.canvasZoomMultipler, color, 1.0, true, "normal", "none");
+                    resizePreviewRatioRect.graphics.lineStyle(3 / CanvasView.canvasZoomMultiplier, color, 1.0, true, "normal", "none");
                     if (flipFlag)
                     {
                         snapGuideStartPos = -snapGuideStartPos + offset;
@@ -518,9 +517,9 @@ package Modules.DrawEngine
         private static function updateHeight(flipFlag:Boolean):Number
         {
             const min:Number = CANVAS_MIN_SIZE;
-            const max:Number = CanvasController.CANVAS_MAX_SIZE;
-            subY = (flipFlag) ? resizeClickPos.y - CanvasController.canvasPanel.mouseY
-                : CanvasController.canvasPanel.mouseY - resizeClickPos.y;
+            const max:Number = DrawCanvas.CANVAS_MAX_SIZE;
+            subY = (flipFlag) ? resizeClickPos.y - CanvasView.canvasPanel.mouseY
+                : CanvasView.canvasPanel.mouseY - resizeClickPos.y;
             var height:Number = (oldHeight + subY < min) ? min :
                 (oldHeight + subY > max) ? max :
                 Math.floor(oldHeight + subY);
@@ -548,9 +547,9 @@ package Modules.DrawEngine
         private static function updateWidth(flipFlag:Boolean):Number
         {
             const min:Number = CANVAS_MIN_SIZE;
-            const max:Number = CanvasController.CANVAS_MAX_SIZE;
-            subX = (flipFlag) ? resizeClickPos.x - CanvasController.canvasPanel.mouseX
-                : CanvasController.canvasPanel.mouseX - resizeClickPos.x;
+            const max:Number = DrawCanvas.CANVAS_MAX_SIZE;
+            subX = (flipFlag) ? resizeClickPos.x - CanvasView.canvasPanel.mouseX
+                : CanvasView.canvasPanel.mouseX - resizeClickPos.x;
             var width:Number = (oldWidth + subX < min) ? min :
                 (oldWidth + subX > max) ? max :
                 Math.floor(oldWidth + subX);

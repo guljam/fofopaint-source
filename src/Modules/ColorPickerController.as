@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.InputManager.InputManager;
     import Modules.InputManager.DrawModeInput;
     import Modules.UIEngine.UITheme;
@@ -483,11 +484,11 @@ package Modules
 
         private static function applyBGColorCanvases(color:uint):void
         {
-            CanvasController.applyCanvasBGColorDrawMode(color);
+            DrawCanvas.applyCanvasBGColorDrawMode(color);
 
             if (ImageViewWindow.isCanvasWindowON)
             {
-                ImageViewWindow.updateCanvasWindowBGColor(CanvasController.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
+                ImageViewWindow.updateCanvasWindowBGColor(DrawCanvas.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
             }
 
             ReplayState.addUndoBGColorData(color);
@@ -586,7 +587,7 @@ package Modules
 
         private static function switchColorPickerModeBG():void
         {
-            const color:uint = CanvasController.CANVAS_BG_COLOR;
+            const color:uint = DrawCanvas.CANVAS_BG_COLOR;
 
             isColorPickerModeBG = true;
 
@@ -851,7 +852,7 @@ package Modules
             {
                 const bgColor:uint = PaletteController.myPaletteTegakiPreset[index + 10];
 
-                if (bgColor !== CanvasController.CANVAS_BG_COLOR)
+                if (bgColor !== DrawCanvas.CANVAS_BG_COLOR)
                 {
                     applyBGColorCanvases(bgColor);
                 }
