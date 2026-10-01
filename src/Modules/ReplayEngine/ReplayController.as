@@ -759,6 +759,9 @@ package Modules.ReplayEngine
                 }
 
                 InputManager.removeInputEventsDrawMode();
+                // 이전 문서의 메모리 undo 데이터가 남아있으면 다 만든 뒤 계산하는 전체 프레임에 섞여 들어감
+                // undo 기준 이미지는 다 만든 뒤 resetUndoState에서 갱신함
+                UndoManager.clearMemoryUndoData();
             }
 
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_PROCESSING;

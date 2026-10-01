@@ -76,10 +76,17 @@ package Modules
             }
         }
 
-        public static function resetUndoState(fromReplayMode:Boolean = false):void
+        // 메모리 undo 데이터만 비움, undo 기준 이미지는 그대로 둠
+        public static function clearMemoryUndoData():void
         {
             undoDataIndex = -1;
+            ReplayState.rMemoryData = [];
+            ReplayState.rMemoryDataFrame = [];
+            ReplayState.rMemoryDataBuffer = [];
+        }
 
+        public static function resetUndoState(fromReplayMode:Boolean = false):void
+        {
             if (fromReplayMode)
             {
                 UndoController.updateUndoBaseImageFromReplayMode();
@@ -89,10 +96,7 @@ package Modules
                 UndoController.updateUndoBaseImageFromDrawMode();
             }
 
-            ReplayState.rMemoryData = [];
-            ReplayState.rMemoryDataFrame = [];
-            ReplayState.rMemoryDataBuffer = [];
-
+            clearMemoryUndoData();
             canAddUndoData = false;
             isDeleteUndoDataPending = false;
             ReplayDrawer.rReplayFOFOCursor.visible = false;
