@@ -11,7 +11,7 @@ package
     import Modules.AboutBoxController;
     import Modules.CanvasController;
     import Modules.ToolController;
-    import Modules.FillPenTool;
+    import Modules.Tools.FillPenTool;
     import Modules.SidebarController;
     import flash.utils.getTimer;
     import Modules.BackgroundWorkerCoordinator;

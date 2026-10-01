@@ -8,6 +8,7 @@ package Modules
     import Modules.Tools.HandTool;
     import Modules.Tools.LassoTool;
     import Modules.Tools.LineTool;
+    import Modules.Tools.FillPenTool;
     import Modules.Tools.MoveTool;
     import Modules.Tools.PenTool;
     import Modules.Tools.RotateTool;

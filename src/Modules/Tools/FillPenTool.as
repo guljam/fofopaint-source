@@ -1,14 +1,22 @@
-package Modules
+package Modules.Tools
 {
+    import Modules.CanvasController;
+    import Modules.ColorPickerController;
+    import Modules.DrawingFinish;
+    import Modules.InputManager;
+    import Modules.PaletteController;
+    import Modules.ReferenceLayerController;
+    import Modules.SidebarController;
+    import Modules.ToolController;
+    import Modules.UndoHistory;
+    import Modules.Utils;
     import Modules.UIEngine.UITheme;
     import flash.geom.Point;
     import flash.display.SimpleButton;
-    import Modules.Tools.PenTool;
     import flash.events.MouseEvent;
     import flash.display.DisplayObject;
     import Symbols.FillPenMenuSet;
     import flash.geom.Rectangle;
-    import Modules.Tools.DottedLineTool;
     import Modules.ReplayEngine.ReplayState;
 
     public class FillPenTool

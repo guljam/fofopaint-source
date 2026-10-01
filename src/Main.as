@@ -17,7 +17,7 @@
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
     import Modules.FileManager;
-    import Modules.FillPenTool;
+    import Modules.Tools.FillPenTool;
     import Modules.ImageViewWindow;
     import Modules.InputManager;
     import Modules.PaletteController;

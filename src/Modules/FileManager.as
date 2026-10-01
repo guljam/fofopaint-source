@@ -34,6 +34,7 @@ package Modules
     import flash.display.IBitmapDrawable;
     import flash.geom.Matrix;
     import Modules.Tools.LineTool;
+    import Modules.Tools.FillPenTool;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawCommands;
     import Modules.ReplayEngine.ReplayDrawer;

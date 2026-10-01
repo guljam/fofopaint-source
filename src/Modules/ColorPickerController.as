@@ -12,6 +12,7 @@ package Modules
     import Symbols.FillPenMenuSet;
     import flash.utils.getTimer;
     import Modules.Tools.LineTool;
+    import Modules.Tools.FillPenTool;
     import Modules.ReplayEngine.ReplayState;
 
     public class ColorPickerController

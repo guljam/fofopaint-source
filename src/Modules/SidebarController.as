@@ -20,6 +20,7 @@ package Modules
     import flash.geom.Rectangle;
     import Modules.Tools.EyeDropperTool;
     import Modules.Tools.LineTool;
+    import Modules.Tools.FillPenTool;
     import Modules.ReplayEngine.ReplayState;
 
     public final class SidebarController
