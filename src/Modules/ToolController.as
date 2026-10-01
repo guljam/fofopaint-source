@@ -657,7 +657,7 @@ package Modules
                         {
                             if (!FOFOTimer.hasTimer("keyHoldRepeatTimer"))
                             {
-                                UndoManager.undo();
+                                UndoController.undo();
                             }
                         }
                         break;
@@ -665,7 +665,7 @@ package Modules
                         {
                             if (!FOFOTimer.hasTimer("keyHoldRepeatTimer"))
                             {
-                                UndoManager.redo();
+                                UndoController.redo();
                             }
                         }
                         break;
@@ -1104,13 +1104,13 @@ package Modules
                     break;
                 case "toolUndo":
                     {
-                        UndoManager.undo();
+                        UndoController.undo();
                         showNowToolIconToCursorTemp(TOOL_UNDO);
                     }
                     break;
                 case "toolRedo":
                     {
-                        UndoManager.redo();
+                        UndoController.redo();
                         showNowToolIconToCursorTemp(TOOL_REDO);
                     }
                     break;
@@ -1162,14 +1162,14 @@ package Modules
                     return true;
                 case "toolUndo":
                     {
-                        InputManager.startKeyRepeat(false, UndoManager.undo);
+                        InputManager.startKeyRepeat(false, UndoController.undo);
                         InputManager.startKeyRepeatStopTimerOnMouseLeave(target);
                         handleToolBoxClick(targetName);
                     }
                     return true;
                 case "toolRedo":
                     {
-                        InputManager.startKeyRepeat(false, UndoManager.redo);
+                        InputManager.startKeyRepeat(false, UndoController.redo);
                         InputManager.startKeyRepeatStopTimerOnMouseLeave(target);
                         handleToolBoxClick(targetName);
                     }

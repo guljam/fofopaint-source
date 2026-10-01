@@ -8,7 +8,7 @@ package Modules.Tools
 	import Modules.PaletteController;
 	import Modules.ReferenceLayerController;
 	import Modules.ToolController;
-	import Modules.UndoManager;
+	import Modules.UndoHistory;
 
 	import flash.display.CapsStyle;
 	import flash.display.JointStyle;
@@ -94,18 +94,18 @@ package Modules.Tools
 		{
 			if (CanvasController.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
 			{
-				UndoManager.canAddUndoData = true;
+				UndoHistory.canAddUndoData = true;
 			}
 			else if (PenSizePreviewCursor.isSqure())
 			{
 				if (canvasSizeRect.intersects(PenSizePreviewCursor.getCursorBoundsWithCanvasPanel()))
 				{
-					UndoManager.canAddUndoData = true;
+					UndoHistory.canAddUndoData = true;
 				}
 			}
 			else if (isCircleRectColliding(CanvasController.canvasPanel.mouseX, CanvasController.canvasPanel.mouseY, PenSizePreviewCursor.getSize(), 0, 0, CanvasController.CANVAS_WIDTH, CanvasController.CANVAS_HEIGHT))
 			{
-				UndoManager.canAddUndoData = true;
+				UndoHistory.canAddUndoData = true;
 			}
 		}
 
@@ -172,7 +172,7 @@ package Modules.Tools
 
 		private static function handleMouseMove(mx:Number, my:Number):void
 		{
-			if (UndoManager.canAddUndoData === false)
+			if (UndoHistory.canAddUndoData === false)
 			{
 				setCanUndoDataFlagON();
 			}
@@ -529,7 +529,7 @@ package Modules.Tools
 
 			lastMouseMoveDist = xSize / 5;
 
-			if (UndoManager.canAddUndoData === false)
+			if (UndoHistory.canAddUndoData === false)
 			{
 				setCanUndoDataFlagON();
 			}

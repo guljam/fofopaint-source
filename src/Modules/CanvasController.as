@@ -345,14 +345,14 @@ package Modules
             }
             else
             {
-                if (UndoManager.isDeepUndoEnabled)
+                if (UndoController.isDeepUndoEnabled)
                 {
-                    UndoManager.applyDeepUndo();
+                    UndoController.applyDeepUndo();
                 }
                 canvasLayer2BitmapData.draw(canvasLayer1BitmapData);
                 canvasLayer1BitmapData.fillRect(new Rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT), 0);
                 ReplayState.pushCommand(["merge"]);
-                UndoController.addNew();
+                UndoHistory.addNew();
             }
             ToolController.toolOptionsBox.layerMergeButton.alpha = Global.OFFALPHA;
         }
@@ -363,9 +363,9 @@ package Modules
             {
                 return;
             }
-            if (UndoManager.isDeepUndoEnabled)
+            if (UndoController.isDeepUndoEnabled)
             {
-                UndoManager.applyDeepUndo();
+                UndoController.applyDeepUndo();
             }
             isLayerSwapped = !isLayerSwapped;
             var tempbmpd1:BitmapData = canvasLayer1BitmapData.clone();
@@ -386,7 +386,7 @@ package Modules
             else
             {
                 ReplayState.pushCommand(["swap"]);
-                UndoController.addNew();
+                UndoHistory.addNew();
             }
             playLayerSwapEffect(ToolController.toolOptionsBox.layerSwapButton);
         }
@@ -759,7 +759,7 @@ package Modules
             // canvaspanel로 하면 중점이 안맞아서 canvas1로함
             const p:Point = getCanvasPanelMidPos();
             mirrorON = !mirrorON;
-            UndoManager.flipMirrorComandReadyFlag();
+            ReplayState.mirrorCommandReady = !ReplayState.mirrorCommandReady;
             mirrorBmpdDrawmode();
             canvasInfoBox.setMirror(mirrorON);
             // 회전각 부호를 바꿔야 제대로 mirror가됨
@@ -1069,14 +1069,14 @@ package Modules
                     if (subX !== 0 || subY !== 0)
                     {
                         const centerMovedFlag:Boolean = (targetName === "resizeButtonL" || targetName === "resizeButtonU") ? true : false;
-                        if (UndoManager.isDeepUndoEnabled)
+                        if (UndoController.isDeepUndoEnabled)
                         {
-                            UndoManager.applyDeepUndo();
+                            UndoController.applyDeepUndo();
                         }
                         applyCavnvasSizeDrawMode(finalWidth, finalHeight, subX, subY, centerMovedFlag);
                         MainUIController.updateResizeButtonPos(finalWidth, finalHeight);
                         ReplayState.pushCommand(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
-                        UndoController.addNew();
+                        UndoHistory.addNew();
                         if (ImageViewWindow.isCanvasWindowON)
                         {
                             ImageViewWindow.updateCanvasWindowBitmapSize();

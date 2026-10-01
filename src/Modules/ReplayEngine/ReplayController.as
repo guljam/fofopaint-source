@@ -37,8 +37,8 @@ package Modules.ReplayEngine
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
+    import Modules.UndoHistory;
     import Modules.UndoController;
-    import Modules.UndoManager;
     import Modules.Utils;
     import Symbols.SeekBarSet;
 
@@ -64,6 +64,7 @@ package Modules.ReplayEngine
         private static var rReplayRestartTimerCount:uint = 0; // 리스타트 타이머
         private static var rSeekbarTextUpdateTime:int = 0; // 프레임 바 딜레이
         private static var stopGeneratingCacheImageFunc:Function = null; // 캐시 이미지 만드는 중이면 멈추는 함수
+        private static var frameOnEnterReplayMode:Number = -1; // 리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼줄때 이 프레임으로 되돌림
         public static var lastReplayTimeBoxYPos:Number = 0; // 리플레이 재생해줄때 WorkspaceView.topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
         public static const seekBarBox:SeekBarSet = new SeekBarSet();
 
@@ -87,7 +88,7 @@ package Modules.ReplayEngine
             clearDataAndResetVars();
             syncDrawCanvasWithReplayCanvas();
             exitReplayMode();
-            UndoManager.exitDeepUndo();
+            UndoController.exitDeepUndo();
             resetReplayTime();
             ReferenceLayerController.resetRefLayerImageTransform();
         }
@@ -153,7 +154,7 @@ package Modules.ReplayEngine
             if (ReplayState.rMemoryDataReadON)
             {
                 // repfile 초기화
-                UndoController.updateUndoBaseImageFromReplayMode();
+                UndoHistory.updateUndoBaseImageFromReplayMode();
                 fs.open(FileManager.replayDataFilePath, FileMode.WRITE); // 파일 생성
                 fs.close();
                 FileManager.isFileAlreadySaved = false;
@@ -212,13 +213,8 @@ package Modules.ReplayEngine
                 resetReplaySpeedBar();
                 ReplayState.isReplayFinished = true;
 
-                if (UndoManager.undoDataIndex > ReplayState.rMemoryData.length - 1)
-                {
-                    UndoManager.undoDataIndex = ReplayState.rMemoryData.length - 1;
-                }
-
-                UndoManager.undoToIndex(UndoManager.undoDataIndex);
-                UndoManager.exitDeepUndo();
+                UndoController.undoToIndex(Math.min(UndoHistory.undoDataIndex, ReplayState.rMemoryData.length - 1));
+                UndoController.exitDeepUndo();
                 updateReplayPrograssBarAndText();
                 updateReplaySpeedSliderAlpha();
                 ReplayDrawCommands.setFirstRCursorPosCurrent();
@@ -241,7 +237,7 @@ package Modules.ReplayEngine
             {
                 // 위에서 setJumpOneFrame을 해줘서 rindex가 증가되었기 때문에
                 // 실제 undo해줘야할 인덱스는 -1해줘야하는거임
-                UndoManager.undoToIndex(ReplayState.rMemoryDataIndex);
+                UndoController.undoToIndex(ReplayState.rMemoryDataIndex);
                 ReplayState.rMemoryData.splice(ReplayState.rMemoryDataIndex + 1);
                 ReplayState.rMemoryDataFrame.splice(ReplayState.rMemoryDataIndex + 1);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
@@ -270,7 +266,7 @@ package Modules.ReplayEngine
                 CanvasController.updateCanvasPanelColorAndSize();
                 resetReplayTime();
                 syncDrawCanvasWithReplayCanvas();
-                UndoManager.resetUndoState();
+                UndoController.resetUndoState();
                 CanvasController.canvasNavigatorBox.updateImage();
 
                 if (ImageViewWindow.isCanvasWindowON)
@@ -284,7 +280,7 @@ package Modules.ReplayEngine
             updateReplaySpeedSliderAlpha();
             updateDeleteReplayDataButtonsState();
             resetReplaySpeedBar();
-            UndoManager.exitDeepUndo();
+            UndoController.exitDeepUndo();
             ReferenceLayerController.resetRefLayerImageTransform();
 
             if (SidebarController.isQuickSidebarActive)
@@ -338,7 +334,7 @@ package Modules.ReplayEngine
                     stopReplay();
 
                     // 예전에는 renderReplayFrame 안에서 정지된 뒤(슬라이드쇼 플래그 꺼진 상태로) 실행되던 검사라서 순서 유지를 위해 여기서 다시 해줌
-                    if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoManager.isDeepUndoEnabled)
+                    if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoController.isDeepUndoEnabled)
                     {
                         rFollowMouse.check(true);
                     }
@@ -601,13 +597,13 @@ package Modules.ReplayEngine
             resetReplayTime();
             updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
             ReplayState.rNowFrame = ReplayState.TOTAL_FRAME;
-            UndoManager.lastReplayFrameOnDeepUndoStart = ReplayState.TOTAL_FRAME;
+            frameOnEnterReplayMode = ReplayState.TOTAL_FRAME;
             ReplayState.rPrevFrame = _frameSumLast;
             ReplayState.isReplayFinished = true;
 
             CanvasController.mirrorON = ReplayState.rMirrorON;
-            UndoManager.mirrorCommandReady = false;
-            UndoController.updateUndoBaseImageMirrorFlag(ReplayState.rMirrorON);
+            ReplayState.mirrorCommandReady = false;
+            UndoHistory.updateUndoBaseImageMirrorFlag(ReplayState.rMirrorON);
             CanvasController.canvasInfoBox.setMirror(ReplayState.rMirrorON);
             CanvasGridOverlay.updateGridMirror(ReplayState.rMirrorON);
 
@@ -621,7 +617,7 @@ package Modules.ReplayEngine
                 ReplayFileCache.clearRFrameTempCache();
                 ReplayFileCache.rLastCacheImageIndex = -2;
                 ReplayFileCache.rTempCachedLastImageIndex = -2;
-                UndoManager.undoToIndex(ReplayState.rMemoryData.length - 1);
+                UndoController.undoToIndex(ReplayState.rMemoryData.length - 1);
                 CanvasController.centerCanvas("replay");
                 InputManager.addInputEventsReplayMode();
                 ReplayDrawer.rCanvasAnchorPoint.visible = true;
@@ -636,7 +632,7 @@ package Modules.ReplayEngine
                 CanvasController.canvasZoomIndex = 3;
                 CanvasController.updateCanvasScale(1.0);
                 CanvasController.centerCanvas("draw");
-                UndoManager.resetUndoState();
+                UndoController.resetUndoState();
                 InputManager.addInputEventsDrawMode();
             }
 
@@ -656,7 +652,7 @@ package Modules.ReplayEngine
             const fs:FileStream = new FileStream();
             const fs2:FileStream = new FileStream();
             const totalSize:Number = FileManager.replayDataFilePath.size;
-            const deepUndoFlag:Boolean = UndoManager.isDeepUndoEnabled;
+            const deepUndoFlag:Boolean = UndoController.isDeepUndoEnabled;
             var rect:Rectangle;
             var _frameSum:Number = 0;
             var _LastframeSum:Number = 0;
@@ -804,7 +800,7 @@ package Modules.ReplayEngine
                 InputManager.removeInputEventsDrawMode();
                 // 이전 문서의 메모리 undo 데이터가 남아있으면 다 만든 뒤 계산하는 전체 프레임에 섞여 들어감
                 // undo 기준 이미지는 다 만든 뒤 resetUndoState에서 갱신함
-                UndoManager.clearMemoryUndoData();
+                UndoHistory.clearMemoryUndoData();
             }
 
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_PROCESSING;
@@ -842,7 +838,7 @@ package Modules.ReplayEngine
                 customFrame = ReplayState.rNowFrame;
             }
 
-            const remainingTime:String = (UndoManager.isDeepUndoEnabled || finishFlag) ? "" : getRemainingTimeStringAt(customFrame);
+            const remainingTime:String = (UndoController.isDeepUndoEnabled || finishFlag) ? "" : getRemainingTimeStringAt(customFrame);
 
             ReplayController.seekBarBox.prograssInfo.text = customFrame + " / " + ReplayState.TOTAL_FRAME + remainingTime;
         }
@@ -885,7 +881,7 @@ package Modules.ReplayEngine
                         lastCursorUpdateTime = nowTime;
                         ReplayDrawCommands.updateRCursorPos();
 
-                        if (!ReplayState.isReplayCanvasFitToWindow && !CanvasController.isMouseLeftClicked && !UndoManager.isDeepUndoEnabled)
+                        if (!ReplayState.isReplayCanvasFitToWindow && !CanvasController.isMouseLeftClicked && !UndoController.isDeepUndoEnabled)
                         {
                             rFollowMouse.check(ReplayState.isReplaySlideShowMode);
                         }
@@ -1462,12 +1458,12 @@ package Modules.ReplayEngine
             MainUIController.updateTopbarIconsDrawMode();
             CanvasController.canvasInfoBox.setZoom(CanvasController.canvasZoomMultipler);
             ReplayDrawer.updateReplayCursorScale(CanvasController.canvasZoomMultipler);
-            UndoManager.isDeepUndoEnabled = UndoManager.lastDeepUndoEnabledFlag;
+            UndoController.resumeDeepUndo();
 
-            if (ReplayState.rNowFrame !== UndoManager.lastReplayFrameOnDeepUndoStart)
+            if (ReplayState.rNowFrame !== frameOnEnterReplayMode)
             {
                 // next로 해주는 이유는 캐쉬 안만들어줄라고 prev로 하면 캐쉬 만들어줌
-                ReplayDrawer.renderReplayFrame(UndoManager.lastReplayFrameOnDeepUndoStart, ReplayDrawer.JUMP_FRAME_NEXT);
+                ReplayDrawer.renderReplayFrame(frameOnEnterReplayMode, ReplayDrawer.JUMP_FRAME_NEXT);
             }
 
             ReplayFileCache.clearRFrameTempCache();
@@ -1514,9 +1510,8 @@ package Modules.ReplayEngine
             MainUIController.updateStageOffset();
             FOFOTimer.remove("rCursorOffAlphaAnimTimer");
             MainUI.hideBottomHint();
-            UndoManager.lastDeepUndoEnabledFlag = UndoManager.isDeepUndoEnabled;
-            UndoManager.isDeepUndoEnabled = false;
-            UndoManager.lastReplayFrameOnDeepUndoStart = ReplayState.rNowFrame;
+            UndoController.suspendDeepUndo();
+            frameOnEnterReplayMode = ReplayState.rNowFrame;
             updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame()); // 최대 속도 계산
             updateReplayPrograssBarAndText();
             updateReplaySpeedSliderAlpha();
@@ -1538,9 +1533,9 @@ package Modules.ReplayEngine
                 // 이거 안해주고 리플레이틀고 프레임 조작 안하고 재생하면 중간부터 되서 데이터가 꼬임
                 ReplayState.isReplayFinished = true;
 
-                if (UndoManager.undoDataIndex >= 0)
+                if (UndoHistory.undoDataIndex >= 0)
                 {
-                    ReplayState.rMemoryDataStartIndex = UndoManager.undoDataIndex + 1;
+                    ReplayState.rMemoryDataStartIndex = UndoHistory.undoDataIndex + 1;
                     ReplayState.rMemoryDataReadON = true;
                 }
                 else
@@ -1781,14 +1776,14 @@ package Modules.ReplayEngine
         {
             if (CanvasController.mirrorON !== ReplayState.rMirrorON)
             {
-                UndoManager.mirrorCommandReady = true;
+                ReplayState.mirrorCommandReady = true;
                 CanvasController.mirrorBmpdDrawmode();
                 CanvasGridOverlay.updateGridMirror(CanvasController.mirrorON);
                 ReplayDrawer.mirrorRCursorPos();
             }
-            else if (UndoManager.mirrorCommandReady)
+            else if (ReplayState.mirrorCommandReady)
             {
-                UndoManager.mirrorCommandReady = false;
+                ReplayState.mirrorCommandReady = false;
             }
         }
 
@@ -1857,7 +1852,7 @@ package Modules.ReplayEngine
             ReplayDrawer.renderReplayFrame(0, ReplayDrawer.JUMP_FRAME_MANUAL);
             ReplayDrawer.renderReplayFrame(rNowFrameBackup, ReplayDrawer.JUMP_FRAME_MANUAL);
             CanvasController.mirrorON = ReplayState.rMirrorON;
-            UndoManager.mirrorCommandReady = false;
+            ReplayState.mirrorCommandReady = false;
             CanvasController.canvasInfoBox.setMirror(ReplayState.rMirrorON);
         }
 
@@ -1934,7 +1929,7 @@ package Modules.ReplayEngine
 
         public static function syncMirrorReplayModeWithDrawMode():void
         {
-            if (UndoManager.mirrorCommandReady)
+            if (ReplayState.mirrorCommandReady)
             {
                 ReplayDrawer.mirrorCanvasReplayMode();
             }
@@ -2040,7 +2035,7 @@ package Modules.ReplayEngine
             ReplayState.rMirrorON = false;
             CanvasController.mirrorON = false;
             ReplayState.rMemoryDataReadON = false;
-            UndoManager.mirrorCommandReady = false;
+            ReplayState.mirrorCommandReady = false;
             ReplayState.setRFileDataTotalFrame(0);
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
@@ -2053,7 +2048,7 @@ package Modules.ReplayEngine
             ReplayFileCache.createFirstImageCache(CanvasController.canvasLayer1BitmapData, CanvasController.canvasLayer2BitmapData, CanvasController.CANVAS_BG_COLOR);
             resetReplaySpeedBar();
             resetReplayTime();
-            UndoManager.resetUndoState();
+            UndoController.resetUndoState();
             CaptureController.resetCaptureCanvasChangeValue();
             FileManager.updateLastFilePathByRandomFileName();
             CanvasController.canvasInfoBox.setMirror(false);

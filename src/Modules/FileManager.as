@@ -400,7 +400,7 @@ package Modules
             isContinueSaveON = false; // 연속 세이브 플래그 취소
             ReplayState.rMirrorON = false;
             CanvasController.mirrorON = false;
-            UndoManager.mirrorCommandReady = false;
+            ReplayState.mirrorCommandReady = false;
             CanvasController.canvasInfoBox.setMirror(false);
             CanvasGridOverlay.updateGridMirror(false);
             LassoTool.cancelIfActive();
@@ -458,7 +458,7 @@ package Modules
                 tmpbmpd.dispose();
                 tmpbmpd = null;
                 resetDrawAndReplayCanvasState(limitedImageWidth, limitedImageHeight);
-                UndoManager.resetUndoState();
+                UndoController.resetUndoState();
             }
 
             PenSizePreviewCursor.updateSizeAndShape();
@@ -1295,7 +1295,7 @@ package Modules
                 ReferenceLayerController.refLayerImageData.position = 0;
                 ReferenceLayerController.refLayerImageData = new ByteArray();
                 replayDataReadBytes = new ByteArray();
-                ReplayState.lastMirrorReadyFlag = UndoManager.mirrorCommandReady;
+                ReplayState.lastMirrorReadyFlag = ReplayState.mirrorCommandReady;
 
                 // 첫번째 이미지 레이어 1 2 저장
                 const rImgDataW:Number = ReplayFileCache.rFirstImageLayer1BitmapData.width;
@@ -1321,7 +1321,7 @@ package Modules
                 const fs:FileStream = new FileStream();
 
                 // 딥 언도일때는 읽은 바이트 까지만 읽어줌
-                if (UndoManager.isDeepUndoEnabled)
+                if (UndoController.isDeepUndoEnabled)
                 {
                     // 마지막 바이트가 0이상일때만 읽어주어야함
                     // ReplayController.rFileLastBytePosition = 0이면 안읽는것이 아니고 전체 바이트를 읽음그래서 0이면 안읽게 해주어야함
@@ -1342,7 +1342,7 @@ package Modules
                     fs.close();
 
                     replayDataReadBytes.position = replayDataReadBytes.length;
-                    for (var i:int = 0, len:int = UndoManager.undoDataIndex;i <= len;i++) // 리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
+                    for (var i:int = 0, len:int = UndoHistory.undoDataIndex;i <= len;i++) // 리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
                     {
                         if (ReplayState.rMemoryData[i] && ReplayState.rMemoryData[i].length === 0)
                         {
@@ -1834,7 +1834,7 @@ package Modules
             ReplayState.rMemoryDataFrame = (fs.readObject() as Array).concat();
             fs.close();
 
-            UndoManager.undoDataIndex = lastUndoIndex;
+            UndoHistory.setUndoDataIndex(lastUndoIndex);
 
             bmpd.lock();
             PixelRestore.setPixels(bmpd, bmpdRect, arr[0]);
@@ -1844,8 +1844,8 @@ package Modules
             PixelRestore.setPixels(bmpd1, bmpdRect, arr[1]);
             bmpd1.unlock();
 
-            UndoController.updateUndoBaseImage(bmpd.clone(), bmpd1.clone(), arr[2], arr[3], arr[4], arr[5]);
-            UndoManager.updateCanvasStateAfterUndo();
+            UndoHistory.updateUndoBaseImage(bmpd.clone(), bmpd1.clone(), arr[2], arr[3], arr[4], arr[5]);
+            UndoController.updateCanvasStateAfterUndo();
 
             ReplayDrawer.rReplayFOFOCursor.visible = false;
             MainUI.hideMouseHint();
@@ -1857,22 +1857,12 @@ package Modules
 
             arr.length = 0;
             arr = null;
-
-            // undo index가 arr의 가장 마지막 부분이 아니면 undo를 하던 중이니까 isDeleteUndoDataPending 켜줌
-            if (lastUndoIndex < ReplayState.rMemoryData.length - 1)
-            {
-                UndoManager.isDeleteUndoDataPending = true;
-            }
-            else
-            {
-                UndoManager.isDeleteUndoDataPending = false;
-            }
         }
 
         public static function saveUndoData():void
         {
             const fs:FileStream = new FileStream();
-            const arr:Array = UndoController.getUndoBaseImage();
+            const arr:Array = UndoHistory.getUndoBaseImage();
             const bmpd:BitmapData = arr[0];
             const bmpd1:BitmapData = arr[1];
 
@@ -1889,7 +1879,7 @@ package Modules
             var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayState.getRFileDataTotalFrame()];
 
             fs.open(undoDataFilePath, FileMode.WRITE);
-            fs.writeInt(UndoManager.undoDataIndex);
+            fs.writeInt(UndoHistory.undoDataIndex);
             fs.writeObject(newArr);
             fs.writeObject(ReplayState.rMemoryData);
             fs.writeObject(ReplayState.rMemoryDataFrame);

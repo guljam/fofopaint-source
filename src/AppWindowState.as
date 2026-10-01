@@ -17,7 +17,7 @@ package
     import Modules.FileManager;
     import Modules.AppUpdater;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.UndoManager;
+    import Modules.UndoController;
     import Modules.ColorPickerController;
     import Modules.MainUI;
     import Modules.ActivityWorkTimer;
@@ -102,7 +102,7 @@ package
                 FileManager.saveAllAppData();
             }
 
-            if (SidebarController.isQuickSidebarActive && !UndoManager.isDeepUndoEnabled)
+            if (SidebarController.isQuickSidebarActive && !UndoController.isDeepUndoEnabled)
             {
                 SidebarController.deactivateQuickSidebar();
             }

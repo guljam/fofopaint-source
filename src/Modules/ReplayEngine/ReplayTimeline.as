@@ -28,7 +28,7 @@ package Modules.ReplayEngine
             cachedGroup = null;
         }
 
-        // UndoController.addNew에서 가장 오래된 undo 뭉치가 파일 끝에 붙을때
+        // UndoHistory.addNew에서 가장 오래된 undo 뭉치가 파일 끝에 붙을때
         public static function appendFileGroup(group:Array, startFrame:Number, startByte:Number, endByte:Number):void
         {
             // 파일은 이미 바뀐 뒤라 isValid 대신 표가 기억하는 끝 위치와 비교함

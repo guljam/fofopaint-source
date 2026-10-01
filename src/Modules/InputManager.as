@@ -2185,14 +2185,14 @@ package Modules
                 case KEY.x:
                 case KEY.comma:
                     {
-                        startKeyRepeat(true, UndoManager.redo);
+                        startKeyRepeat(true, UndoController.redo);
                         ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_REDO);
                     }
                     return true;
                 case KEY.z:
                 case KEY.dot:
                     {
-                        startKeyRepeat(true, UndoManager.undo);
+                        startKeyRepeat(true, UndoController.undo);
                         ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_UNDO);
                     }
                     return true;
@@ -2517,7 +2517,7 @@ package Modules
                     {
                         if (Utils.isCursorInDrawArea())
                         {
-                            if (ToolController.isToolBox2Showing && !UndoManager.isDeepUndoEnabled)
+                            if (ToolController.isToolBox2Showing && !UndoController.isDeepUndoEnabled)
                             {
                                 ToolController.closeToolBox2();
                             }

@@ -1,7 +1,7 @@
 package Modules.ReplayEngine
 {
+    import Modules.UndoHistory;
     import Modules.UndoController;
-    import Modules.UndoManager;
     import flash.utils.getTimer;
 
     public class ReplayState
@@ -36,6 +36,7 @@ package Modules.ReplayEngine
         public static var rMemoryDataBuffer:Array = []; // draw layer에서 그려준 데이터를 이쪽으로 다모아줌
         public static var rMemoryData:Array = []; // rDataBuffer가 이쪽으로 이동되고 undo image data갯수에 똑같이맞추어줌
         public static var rMemoryDataFrame:Array = []; // rdata안에 몇프레임이 들어있는지 저장
+        public static var mirrorCommandReady:Boolean = false; // 다음 버퍼 앞에 mirror 커맨드를 넣어줄지 말지 결정
         public static var lastMirrorReadyFlag:Boolean = false; // 리플레이 저장해줄때 마지막 mirror플래그는 여기서 가져다 씀 저장중간에 기존 mirror ready플래그가 바뀔수도 있기 때문에
 
         public static var rNowFrame:Number = 0; // dodraw에서 현재까지 플레이된 프레임수 누적, jump frame이 가동됐을때 프레임 누적갯수를 세서 썸네일 이미지 만들어줌
@@ -196,23 +197,23 @@ package Modules.ReplayEngine
             {
                 rMemoryDataBuffer.push(["bgColor", color]);
                 updateLastRMemoryDataCommand("bgColor");
-                UndoController.addContinue();
+                UndoHistory.addContinue();
             }
             else
             {
-                if (UndoManager.isDeepUndoEnabled)
+                if (UndoController.isDeepUndoEnabled)
                 {
-                    UndoManager.applyDeepUndo();
+                    UndoController.applyDeepUndo();
                 }
 
                 pushCommand(["bgColor", color]);
-                UndoController.addNew();
+                UndoHistory.addNew();
             }
         }
 
        private static function updateLastRMemoryDataCommand(command:String):void
         {
-            const index:int = UndoManager.undoDataIndex;
+            const index:int = UndoHistory.undoDataIndex;
             if (index < 0 || index >= rMemoryData.length)
             {
                 return;
@@ -238,7 +239,7 @@ package Modules.ReplayEngine
                 return;
             }
 
-            const index:int = UndoManager.undoDataIndex;
+            const index:int = UndoHistory.undoDataIndex;
 
             // 앞에 붙은 wait는 세지 않음, 지울 명령만 남은 뭉치는 통째로 지움
             if (getCommandCountWithoutWait(rMemoryData[index]) === 1)
@@ -266,13 +267,12 @@ package Modules.ReplayEngine
             }
 
             updateLastRMemoryDataMirror();
-            UndoManager.isDeleteUndoDataPending = false;
-            UndoManager.undoDataIndex = rMemoryData.length - 1;
+            UndoHistory.setUndoDataIndex(rMemoryData.length - 1);
         }
 
         public static function hasLastRMemoryDataCommand(command:String):Boolean
         {
-            const index:int = UndoManager.undoDataIndex;
+            const index:int = UndoHistory.undoDataIndex;
 
             if (rMemoryData.length > 0 && index >= 0)
             {
@@ -299,19 +299,19 @@ package Modules.ReplayEngine
         // 그게 아니면 미러 커맨드 지워줌
         public static function updateLastRMemoryDataMirror():void
         {
-            if (UndoManager.mirrorCommandReady)
+            if (mirrorCommandReady)
             {
                 // 마지막 데이터에 1개만의 미러 커맨드가 있으먼 미러를 무효로함 mirror mirror니까 원래대로임
                 if (rMemoryData.length > 0 && rMemoryData[rMemoryData.length - 1].length === 1 && rMemoryData[rMemoryData.length - 1][0][0] === "mirror")
                 {
-                    UndoManager.mirrorCommandReady = false;
+                    mirrorCommandReady = false;
                     rMemoryData.pop();
                     rMemoryDataFrame.pop();
                 }
                 // 그게 아니면 가장 앞에 미러커맨드를 넣어줌
                 else if (rMemoryDataBuffer.length > 0 && rMemoryDataBuffer[0][0] !== "mirror")
                 {
-                    UndoManager.mirrorCommandReady = false;
+                    mirrorCommandReady = false;
                     rMemoryDataBuffer.unshift(["mirror"]);
                 }
             }
@@ -323,7 +323,7 @@ package Modules.ReplayEngine
                 {
                     rMemoryData.pop();
                     rMemoryDataFrame.pop();
-                    UndoManager.mirrorCommandReady = true;
+                    mirrorCommandReady = true;
                 }
                 // 그게 아니면 그냥 지워줌
                 else if (rMemoryDataBuffer.length > 0 && rMemoryDataBuffer[0][0] === "mirror")

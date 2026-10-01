@@ -7,11 +7,11 @@ package Modules.Tools
     import Modules.Utils;
     import flash.display.BitmapData;
     import flash.geom.Matrix;
-    import Modules.UndoManager;
+    import Modules.UndoController;
     import flash.geom.Rectangle;
     import flash.geom.Point;
     import Modules.PenSizePreviewCursor;
-    import Modules.UndoController;
+    import Modules.UndoHistory;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayState;
 
@@ -76,9 +76,9 @@ package Modules.Tools
             const rect:Rectangle = new Rectangle(0, 0, CanvasController.canvasLayer1BitmapData.width, CanvasController.canvasLayer1BitmapData.height);
             var movedMat:Matrix = new Matrix();
 
-            if (UndoManager.isDeepUndoEnabled)
+            if (UndoController.isDeepUndoEnabled)
             {
-                UndoManager.applyDeepUndo();
+                UndoController.applyDeepUndo();
             }
 
             // 최종적으로 움직인 거리를 실제로 비트맵 데이터 조작
@@ -153,7 +153,7 @@ package Modules.Tools
                     }
                 }
 
-                UndoController.addNew();
+                UndoHistory.addNew();
             }
         }
 

@@ -9,7 +9,7 @@ package Modules.Tools
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.UndoManager;
+    import Modules.UndoHistory;
 
     import flash.display.CapsStyle;
     import flash.display.JointStyle;
@@ -252,7 +252,7 @@ package Modules.Tools
                 removeLastLineToData();
                 drawLine();
                 hasLineTouchedCanvas = false;
-                UndoManager.canAddUndoData = true;
+                UndoHistory.canAddUndoData = true;
                 ReplayState.pushCommand(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenTool.airBrushSizeDrawMode]);
             }
 

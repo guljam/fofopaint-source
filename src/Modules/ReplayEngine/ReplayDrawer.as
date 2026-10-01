@@ -17,8 +17,8 @@ package Modules.ReplayEngine
     import Modules.CacheImageMetaData;
     import Modules.CanvasController;
     import Modules.FileManager;
+    import Modules.UndoHistory;
     import Modules.UndoController;
-    import Modules.UndoManager;
 
     public class ReplayDrawer
     {
@@ -53,7 +53,7 @@ package Modules.ReplayEngine
 
         public static function updateReplayCanvasFromUndoBaseInfo():void
         {
-            const undoBaseImage:Array = UndoController.getUndoBaseImage();
+            const undoBaseImage:Array = UndoHistory.getUndoBaseImage();
 
             // 레이어를 먼저 교체하고 크기 정보를 맞춰줌
             rCanvasLayer1BitmapData = CanvasController.updateBitmapData(rCanvasLayer1BitmapData, undoBaseImage[0], rCanvasLayer1Bitmap);
@@ -74,22 +74,7 @@ package Modules.ReplayEngine
             ReplayDrawCommands.setData(ReplayState.rMemoryData[0]);
             ReplayDrawCommands.drawAll();
 
-            if (undoBaseImage[0] && undoBaseImage[0] !== rCanvasLayer1BitmapData)
-            {
-                undoBaseImage[0].dispose();
-            }
-
-            if (undoBaseImage[1] && undoBaseImage[1] !== rCanvasLayer2BitmapData)
-            {
-                undoBaseImage[1].dispose();
-            }
-
-            undoBaseImage[0] = rCanvasLayer1BitmapData.clone();
-            undoBaseImage[1] = rCanvasLayer2BitmapData.clone();
-            undoBaseImage[2] = ReplayState.RCANVAS_WIDTH;
-            undoBaseImage[3] = ReplayState.RCANVAS_HEIGHT;
-            undoBaseImage[4] = ReplayState.RCANVAS_BG_COLOR;
-            undoBaseImage[5] = ReplayState.rMirrorON;
+            UndoHistory.updateUndoBaseImage(rCanvasLayer1BitmapData.clone(), rCanvasLayer2BitmapData.clone(), ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT, ReplayState.RCANVAS_BG_COLOR, ReplayState.rMirrorON);
 
             ReplayDrawCommands.setFirstRCursorPosCurrent();
         }
@@ -308,7 +293,7 @@ package Modules.ReplayEngine
 
             ReplayDrawCommands.updateRCursorPos();
 
-            if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoManager.isDeepUndoEnabled)
+            if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoController.isDeepUndoEnabled)
             {
                 ReplayController.rFollowMouse.check(true);
             }

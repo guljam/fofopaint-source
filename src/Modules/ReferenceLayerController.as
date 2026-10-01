@@ -573,9 +573,9 @@ package Modules
 
         private static function mergeCanvasImageToRefLayer():void
         {
-            if (UndoManager.isDeepUndoEnabled)
+            if (UndoController.isDeepUndoEnabled)
             {
-                UndoManager.applyDeepUndo();
+                UndoController.applyDeepUndo();
             }
 
             var layer1Flag:Boolean = CanvasController.canvasLayer1Bitmap.visible;
@@ -618,13 +618,13 @@ package Modules
 
             if (ReplayState.hasLastRMemoryDataCommand(command))
             {
-                UndoController.addContinue();
+                UndoHistory.addContinue();
             }
             else
             {
                 ReplayState.clearCommandBuffer();
                 ReplayState.pushCommand([command]);
-                UndoController.addNew();
+                UndoHistory.addNew();
             }
 
             resetRefLayerImageTransform();

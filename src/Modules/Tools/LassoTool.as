@@ -12,7 +12,7 @@ package Modules.Tools
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
     import Modules.ToolController;
-    import Modules.UndoManager;
+    import Modules.UndoController;
     import Modules.Utils;
 
     import Symbols.LassoMenuSet;
@@ -30,7 +30,7 @@ package Modules.Tools
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Symbols.RotateCursorSet;
-    import Modules.UndoController;
+    import Modules.UndoHistory;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
@@ -180,9 +180,9 @@ package Modules.Tools
             }
             else
             {
-                if (UndoManager.isDeepUndoEnabled)
+                if (UndoController.isDeepUndoEnabled)
                 {
-                    UndoManager.applyDeepUndo();
+                    UndoController.applyDeepUndo();
                 }
                 const lassoInfo:Array = applyLassoBoxImageToCanvas(true);
                 const point1:Vector.<Number> = lassoTransformData[0].concat();
@@ -200,7 +200,7 @@ package Modules.Tools
                     l2 = true;
                 }
                 ReplayState.pushCommand(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
-                UndoController.addNew();
+                UndoHistory.addNew();
                 disposeAllLayerBitmapData();
                 resetLassoBox();
             }
@@ -921,9 +921,9 @@ package Modules.Tools
             {
                 if (hasLassoImageChanges() === true) // 사용후에 ok하면 처리해줌
                 {
-                    if (UndoManager.isDeepUndoEnabled)
+                    if (UndoController.isDeepUndoEnabled)
                     {
-                        UndoManager.applyDeepUndo();
+                        UndoController.applyDeepUndo();
                     }
                     const lassoInfo:Array = applyLassoBoxImageToCanvas(false);
                     const point1:Vector.<Number> = lassoTransformData[0].concat();
@@ -951,7 +951,7 @@ package Modules.Tools
                                 , checklayer1
                                 , checklayer2
                                 , command]);
-                    UndoController.addNew();
+                    UndoHistory.addNew();
                 }
                 else
                 {

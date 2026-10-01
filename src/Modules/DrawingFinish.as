@@ -3,7 +3,7 @@ package Modules
     import Modules.CanvasController;
     import Modules.ToolController;
     import Modules.Tools.PenTool;
-    import Modules.UndoManager;
+    import Modules.UndoController;
 
     import flash.filters.BlurFilter;
     import flash.geom.ColorTransform;
@@ -16,22 +16,22 @@ package Modules
 
         public static function run():void
         {
-            if (UndoManager.canAddUndoData === false)
+            if (UndoHistory.canAddUndoData === false)
             {
                 ReplayState.clearCommandBuffer();
                 CanvasController.canvasDrawLayerChild.graphics.clear();
                 return;
             }
 
-            if (UndoManager.isDeepUndoEnabled)
+            if (UndoController.isDeepUndoEnabled)
             {
                 var rDataBufferSave:Array = ReplayState.rMemoryDataBuffer.concat();
-                UndoManager.applyDeepUndo();
+                UndoController.applyDeepUndo();
                 ReplayState.rMemoryDataBuffer = rDataBufferSave;
                 rDataBufferSave = null;
             }
 
-            UndoManager.canAddUndoData = false;
+            UndoHistory.canAddUndoData = false;
 
             if (PenTool.airBrushSizeDrawMode > 0)
             {
@@ -91,7 +91,7 @@ package Modules
             CanvasController.canvasDrawLayerBitmapData.fillRect(CanvasController.canvasDrawLayerClipRect, 0); // 그려준 영역만
             CanvasController.canvasDrawLayerChild.graphics.clear();
 
-            UndoController.addNew();
+            UndoHistory.addNew();
         }
     }
 }

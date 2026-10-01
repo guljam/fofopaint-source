@@ -32,7 +32,6 @@
     import Modules.Tools.PenTool;
     import Modules.Tools.RotateTool;
     import Modules.Tools.ZoomTool;
-    import Modules.UndoManager;
     import Modules.Utils;
 
     // todo 힌트박스 컨트롤러 만들기, 지금 각툴에 힌트 관련 마우스 이벤트가 있음 이것을 전부 옮기기 mainui도아마 개편해야할듯싶음 힌트관련 메뉴가 많음
@@ -133,7 +132,6 @@
             SidebarController.setMainInstance(this);
             ToolController.setMainInstance(this);
             Utils.setMainInstance(this);
-            UndoManager.setMainInstance(this);
             ReplayController.setMainInstance(this);
             InputManager.setMainInstance(this);
         }

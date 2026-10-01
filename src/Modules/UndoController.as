@@ -1,204 +1,267 @@
 package Modules
 {
-    import flash.display.BitmapData;
-    import flash.filesystem.FileStream;
-    import flash.filesystem.File;
     import flash.filesystem.FileMode;
+    import flash.filesystem.FileStream;
+    import flash.geom.Point;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayDrawCommands;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
     import Modules.ReplayEngine.ReplayTimeline;
 
+    // undo / redo / 딥 언두로 위치를 옮기고 그 위치의 캔버스를 다시 그려줌
+    // 메모리 undo 데이터와 undo 위치 자체는 UndoHistory가 가지고 있음
     public class UndoController
     {
-        private static const NATIVE_UNDO_LIMIT_COUNT:int = 10;
+        // 딥언도 (Deep Undo)
+        private static var _isDeepUndoEnabled:Boolean = false;
+        private static var deepUndoBeforeSuspend:Boolean = false; // 리플레이 켜줄때 딥 플래그를 꺼줘서 여기다가 미리 저장해둠
 
-        // undo 할때 이 데이터를 기준점으로 rData그려줌 메모리 적게 하려고
-        private static var undoBaseImage:Array = [
-                ReplayFileCache.rFirstImageLayer1BitmapData.clone(),
-                ReplayFileCache.rFirstImageLayer2BitmapData.clone(),
-                CanvasController.CANVAS_WIDTH,
-                CanvasController.CANVAS_HEIGHT,
-                CanvasController.CANVAS_BG_COLOR,
-                CanvasController.mirrorON
-            ];
-
-        public static function updateUndoBaseImageMirrorFlag(flag:Boolean):void
+        public static function get isDeepUndoEnabled():Boolean
         {
-            undoBaseImage[5] = flag;
+            return _isDeepUndoEnabled;
         }
 
-        public static function updateUndoBaseImageFromReplayMode():void
+        // 리플레이 모드에 들어갈때 딥 언두를 잠시 꺼둠
+        public static function suspendDeepUndo():void
         {
-            updateUndoBaseImage(
-                    ReplayDrawer.rCanvasLayer1BitmapData.clone(),
-                    ReplayDrawer.rCanvasLayer2BitmapData.clone(),
-                    ReplayDrawer.rCanvasLayer1BitmapData.width,
-                    ReplayDrawer.rCanvasLayer1BitmapData.height,
-                    ReplayState.RCANVAS_BG_COLOR,
-                    ReplayState.rMirrorON
-                );
+            deepUndoBeforeSuspend = _isDeepUndoEnabled;
+            _isDeepUndoEnabled = false;
         }
 
-        public static function updateUndoBaseImageFromDrawMode():void
+        // 리플레이 모드에서 나올때 꺼두었던 딥 언두를 되돌림, 리플레이 모드에서 exitDeepUndo 했으면 꺼진 채로 둠
+        public static function resumeDeepUndo():void
         {
-            updateUndoBaseImage(
-                    CanvasController.canvasLayer1BitmapData.clone(),
-                    CanvasController.canvasLayer2BitmapData.clone(),
-                    CanvasController.canvasLayer1BitmapData.width,
-                    CanvasController.canvasLayer1BitmapData.height,
-                    CanvasController.CANVAS_BG_COLOR,
-                    CanvasController.mirrorON
-                );
+            _isDeepUndoEnabled = deepUndoBeforeSuspend;
         }
 
-        public static function getUndoBaseImage():Array
+        private static function showRCursorOnUndo(undoIndex:int):void
         {
-            return undoBaseImage;
-        }
-
-        public static function updateUndoBaseImage(bmpd1:BitmapData, bmpd2:BitmapData, width:Number, height:Number, bgColor:uint, mirrorFlag:Boolean):void
-        {
-            if (undoBaseImage[0] && bmpd1 !== undoBaseImage[0])
+            if (undoIndex < 0)
             {
-                undoBaseImage[0].dispose();
+                if (ReplayDrawCommands.hasRCursorFirstPos())
+                {
+                    const p:Point = ReplayDrawCommands.getFirstRCursorPos();
+                    ReplayDrawCommands.setRCursorPos(p.x, p.y); // 커서 위치도 업에이트 해줘야함 대칭해줄띠 getRcursor로 하기 때문에
+                    ReplayDrawCommands.updateRCursorPosToFirst();
+                }
+                else
+                {
+                    ReplayDrawer.rReplayFOFOCursor.visible = false;
+                    MainUI.hideMouseHint();
+                }
             }
-
-            if (undoBaseImage[1] && bmpd2 !== undoBaseImage[1])
+            else
             {
-                undoBaseImage[1].dispose();
+                ReplayDrawCommands.updateRCursorPos();
             }
-
-            undoBaseImage[0] = bmpd1;
-            undoBaseImage[1] = bmpd2;
-            undoBaseImage[2] = width;
-            undoBaseImage[3] = height;
-            undoBaseImage[4] = bgColor;
-            undoBaseImage[5] = mirrorFlag;
         }
 
-        // 끝 부분 중복처리 일때 넣어주는 거
-        public static function addContinue():void
+        public static function resetUndoState(fromReplayMode:Boolean = false):void
         {
-            if (ReplayState.rMemoryData.length === 0)
-                return;
+            UndoHistory.reset(fromReplayMode);
+            ReplayDrawer.rReplayFOFOCursor.visible = false;
+            _isDeepUndoEnabled = false;
+        }
 
-            if (UndoManager.isDeleteUndoDataPending)
-            {
-                UndoManager.isDeleteUndoDataPending = false;
-                ReplayState.rMemoryData.splice(UndoManager.undoDataIndex + 1);
-                ReplayState.rMemoryDataFrame.splice(UndoManager.undoDataIndex + 1);
-            }
+        private static function getHowCanvasMoveAfterUndoOrRedo(index:int, redoFlag:Boolean):Point
+        {
+            const prevData:Array = (redoFlag) ? ReplayState.rMemoryData[index] : ReplayState.rMemoryData[index + 1];
 
-            ReplayState.updateLastRMemoryDataMirror();
+            if (!prevData)
+                return null;
 
-            // 버퍼에mirror가 있을수도 있기 때문에 요소를 하나씩 push해주어야함
-            const len:uint = ReplayState.rMemoryDataBuffer.length;
+            var len:uint = prevData.length;
+            var xSum:Number = 0;
+            var ySum:Number = 0;
 
             for (var i:uint = 0;i < len;i++)
             {
-                ReplayState.rMemoryData[ReplayState.rMemoryData.length - 1].push(ReplayState.rMemoryDataBuffer[i]); // 배열안에 배열이 들어있음
+                if (prevData[i][0] === "canvasSize" && prevData[i][5] === true)
+                {
+                    xSum += prevData[i][3];
+                    ySum += prevData[i][4];
+                }
             }
 
-            ReplayState.rMemoryDataFrame[ReplayState.rMemoryDataFrame.length - 1] = ReplayState.rMemoryData[ReplayState.rMemoryData.length - 1].length;
-            ReplayState.rMemoryDataBuffer = [];
-            ReplayState.syncRNowFrameWithTotalFrame();
+            if (xSum === 0 && ySum === 0)
+                return null;
 
-            CanvasController.canvasNavigatorBox.updateImage();
+            const movedXY:Point = (redoFlag) ? new Point(-xSum, -ySum) : new Point(xSum, ySum);
 
-            if (ImageViewWindow.isCanvasWindowON)
+            return movedXY;
+        }
+
+        public static function redo():void
+        {
+            if (_isDeepUndoEnabled)
             {
-                ImageViewWindow.updateCanvasWindowImage();
+                ReplayController.moveToNextStep();
+                CanvasController.applyReplayCanvasToDrawModeCanvas();
+                Utils.showDisplayTargetAndFadeOut(ReplayDrawer.rReplayFOFOCursor, 1.0, 0.3);
+
+                if (ReplayState.rNowFrame >= ReplayState.getRFileDataTotalFrame())
+                {
+                    exitDeepUndo();
+                    UndoHistory.setUndoDataIndex(-1);
+                }
+            }
+            else
+            {
+                const lastIndex:int = ReplayState.rMemoryData.length - 1;
+
+                if (UndoHistory.undoDataIndex + 1 > lastIndex)
+                {
+                    FileManager.isFileAlreadySaved = false;
+                    UndoHistory.setUndoDataIndex(lastIndex);
+                }
+                else
+                {
+                    UndoHistory.setUndoDataIndex(UndoHistory.undoDataIndex + 1);
+                    FileManager.isFileAlreadySaved = false;
+                    updateCanvasState(true);
+                    Utils.showDisplayTargetAndFadeOut(ReplayDrawer.rReplayFOFOCursor, 1.0, 0.3);
+                }
             }
         }
 
-        public static function addNew():void
+        public static function undoToIndex(index:int):void
         {
-            if (UndoManager.isDeleteUndoDataPending === true)
+            UndoHistory.setUndoDataIndex(index);
+            FileManager.isFileAlreadySaved = false;
+            FileManager.enableNewFileButton();
+            updateCanvasStateAfterUndo();
+        }
+
+        public static function exitDeepUndo():void
+        {
+            _isDeepUndoEnabled = false;
+            deepUndoBeforeSuspend = false;
+            ReplayState.rMemoryDataReadON = true;
+            showRCursorOnUndo(-1);
+            ReplayFileCache.clearRFrameTempCache();
+        }
+
+        private static function enterDeepUndo():void
+        {
+            _isDeepUndoEnabled = true;
+            ReplayState.rMemoryDataReadON = false;
+            ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
+            // 이미지 캐시 해주고 rPrevFrame 갱신해주고
+            ReplayDrawer.renderReplayFrame(ReplayState.getRFileDataTotalFrame() - 1, ReplayDrawer.JUMP_FRAME_MANUAL);
+            // 실제 rPrevFrame으로 점프
+            ReplayDrawer.renderReplayFrame(ReplayState.rPrevFrame, ReplayDrawer.JUMP_FRAME_MANUAL);
+            CanvasController.applyReplayCanvasToDrawModeCanvas();
+        }
+
+        // addundo data에서 캔버스 비트맵 데이터가 변경되기 전, rdatabuffer 비어있을때 넣어줘야함
+        public static function applyDeepUndo():void
+        {
+            const fs:FileStream = new FileStream();
+            fs.open(FileManager.replayDataFilePath, FileMode.UPDATE);
+            fs.position = ReplayState.rFileLastBytePosition;
+            fs.truncate(); // 데이터 위에 짤라주고
+            fs.close();
+            ReplayTimeline.truncateFile(ReplayState.rFileLastBytePosition, ReplayState.rNowFrame);
+            // 썸네일 이미지도 날려줌
+            const rNowFrameSave:Number = ReplayState.rNowFrame;
+            ReplayFileCache.truncateCacheImagesAfterFrame(rNowFrameSave);
+            ReplayState.setRFileDataTotalFrame(rNowFrameSave);
+            ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
+            ReplayController.resetReplayTime();
+            resetUndoState(true);
+            ReplayDrawer.rReplayFOFOCursor.visible = true; // 대칭된 커서 위치를 갱신해주려고 임시로 켜줌
+            CanvasController.canvasInfoBox.setMirror(CanvasController.mirrorON);
+            ReplayDrawCommands.setFirstRCursorPosCurrent();
+            ReplayDrawer.rReplayFOFOCursor.visible = false;
+            CanvasController.canvasNavigatorBox.updateImage();
+            exitDeepUndo();
+        }
+
+        public static function undo():void
+        {
+            if (ReplayState.isGeneratingCacheImages())
             {
-                UndoManager.isDeleteUndoDataPending = false;
-                ReplayState.rMemoryData.splice(UndoManager.undoDataIndex + 1);
-                ReplayState.rMemoryDataFrame.splice(UndoManager.undoDataIndex + 1);
+                InputManager.removeKeyRepeatEvents(null);
+                return;
             }
-
-            
-            
-
-            if (ReplayState.rMemoryData.length >= NATIVE_UNDO_LIMIT_COUNT) // 첫번째 이미지는 빼야하니깐 -1로 계산해야함
+            if (_isDeepUndoEnabled)
             {
-                var oldData:Array = ReplayState.rMemoryData[0];
-
-                if (oldData.length > 0)
+                if (ReplayState.rNowFrame > 0)
                 {
-                    const fs:FileStream = new FileStream();
-                    const firstElementFrameCount:uint = ReplayState.rMemoryDataFrame[0];
-                    const rf:File = FileManager.replayDataFilePath;
-                    const lastRDataTotalFrame:Number = ReplayState.getRFileDataTotalFrame();
+                    ReplayController.moveToPreviousStep();
+                    CanvasController.applyReplayCanvasToDrawModeCanvas();
+                    Utils.showDisplayTargetAndFadeOut(ReplayDrawer.rReplayFOFOCursor, 1.0, 0.3);
+                }
+            }
+            else
+            {
+                if (UndoHistory.undoDataIndex - 1 < -1)
+                {
+                    FileManager.isFileAlreadySaved = false;
+                    UndoHistory.setUndoDataIndex(-1);
+                    enterDeepUndo();
+                    Utils.showDisplayTargetAndFadeOut(ReplayDrawer.rReplayFOFOCursor, 1.0, 0.3);
+                }
+                else
+                {
+                    UndoHistory.setUndoDataIndex(UndoHistory.undoDataIndex - 1);
 
-                    const startByte:Number = rf.exists ? rf.size : 0;
-                    fs.open(rf, FileMode.APPEND);
-                    fs.writeObject(oldData);
-                    fs.close();
-                    ReplayTimeline.appendFileGroup(oldData, lastRDataTotalFrame, startByte, rf.size);
-
-                    oldData = null;
-                    ReplayState.increaseRFileDataTotalFrame(firstElementFrameCount);
-
-                    ReplayDrawer.updateReplayCanvasFromUndoBaseInfo();
-
-                    if (ReplayState.rReplayImageCacheState === ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE)
+                    if (ReplayState.rMemoryData.length > 0)
                     {
-                        // 따로 카운트를 누적하지 않고 마지막 캐시 이미지 프레임과 비교해서
-                        // 딥 언두, 파일 불러오기, 리플레이 캐시 생성 이후에도 간격이 맞게 해줌
-                        if (ReplayState.getRFileDataTotalFrame() - BackgroundWorkerCoordinator.getLastCacheImageFrame() > ReplayFileCache.REPLAY_DISK_CACHE_FRAME_INTERVAL)
-                        {
-                            const data:Array = undoBaseImage;
-
-                            BackgroundWorkerCoordinator.startCacheImageWorker(
-                                    data[0],
-                                    data[1],
-                                    new CacheImageMetaData(
-                                        data[2],
-                                        data[3],
-                                        data[4],
-                                        rf.size,
-                                        lastRDataTotalFrame,
-                                        ReplayState.getRFileDataTotalFrame(),
-                                        data[5]));
-                        }
+                        FileManager.isFileAlreadySaved = false;
+                        updateCanvasStateAfterUndo();
+                        Utils.showDisplayTargetAndFadeOut(ReplayDrawer.rReplayFOFOCursor, 1.0, 0.3);
                     }
                 }
-
-                ReplayState.rMemoryData[0].length = 0;
-                ReplayState.rMemoryData[0] = null;
-                ReplayState.rMemoryData.shift();
-                ReplayState.rMemoryDataFrame[0] = null;
-                ReplayState.rMemoryDataFrame.shift();
             }
+        }
 
-            ReplayState.updateLastRMemoryDataMirror();
+        public static function updateCanvasStateAfterUndo():void
+        {
+            updateCanvasState(false);
+        }
 
-            if (ReplayState.rMemoryDataBuffer.length > 0)
+        private static function updateCanvasState(redoFlag:Boolean):void
+        {
+            const undoRefData:Array = UndoHistory.getUndoBaseImage();
+            const undoIndexSave:int = UndoHistory.undoDataIndex;
+
+            // 리플레이 캔버스 먼저 갱신
+            ReplayDrawer.updateReplayCanvasFromUndoRefData(undoRefData, undoIndexSave);
+
+            //드로우 모드 캔버스 bmpd갱신하고 크기 정보 갱신
+            CanvasController.canvasLayer1BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer1BitmapData,ReplayDrawer.rCanvasLayer1BitmapData,CanvasController.canvasLayer1Bitmap)
+            CanvasController.canvasLayer2BitmapData = CanvasController.updateBitmapData(CanvasController.canvasLayer2BitmapData,ReplayDrawer.rCanvasLayer2BitmapData,CanvasController.canvasLayer2Bitmap)
+            CanvasController.syncDrawModeCanvasSizeToReplayMode(CanvasController.canvasLayer1BitmapData.width,CanvasController.canvasLayer1BitmapData.height);
+
+            // 앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌
+            const movedRegPos:Point = getHowCanvasMoveAfterUndoOrRedo(undoIndexSave, redoFlag);
+            if (movedRegPos)
             {
-                ReplayState.rMemoryData.push(ReplayState.rMemoryDataBuffer);
-                ReplayState.rMemoryDataFrame.push(ReplayState.rMemoryDataBuffer.length);
-                ReplayState.rMemoryDataBuffer = [];
-                FileManager.isFileAlreadySaved = false;
-                ReplayState.rMemoryDataReadON = true;
+                CanvasController.canvasAnchorPoint.x += movedRegPos.x * CanvasController.canvasZoomMultipler;
+                CanvasController.canvasAnchorPoint.y += movedRegPos.y * CanvasController.canvasZoomMultipler;
+                ReferenceLayerController.updateRefLayerBitmapPos(movedRegPos);
             }
 
-            UndoManager.undoDataIndex = ReplayState.rMemoryData.length - 1;
+            // updateMirrorStateDrawModeNotSameRreplayMirrorState 이 함수 직전에 해줘야 나중에 제대로 대칭된 좌표가 됨
+            showRCursorOnUndo(undoIndexSave);
 
+            ReplayController.preserveDrawMirrorStateAfterReplayCopy();
             CanvasController.canvasNavigatorBox.updateImage();
+            CanvasController.setCanvasBGColorDrawMode(ReplayState.RCANVAS_BG_COLOR);
+            CanvasController.updateCanvasPanelColorAndSize();
 
+            // canvas window 상태 갱신
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.updateCanvasWindowImage();
+                ImageViewWindow.updateCanvasWindowBitmapSize();
             }
 
-            ReplayState.syncRNowFrameWithTotalFrame();
-
+            MainUIController.updateCanvasNaigatorCursor();
             FileManager.enableNewFileButton();
-        };
+        }
     }
 }

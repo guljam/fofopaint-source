@@ -376,7 +376,7 @@ package Modules
         {
             if (checkFillPenUndoReady() === true && command.length > 2)
             {
-                UndoManager.canAddUndoData = true;
+                UndoHistory.canAddUndoData = true;
 
                 command.push(2);
                 data.push(data[0]);
