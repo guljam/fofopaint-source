@@ -126,8 +126,6 @@ package Modules
         public static var pressHoldCountDownTime:Number = 0.0;
         public static var pressHoldFrameCount:int = 0;
 
-        // todo 이거 쓰나?
-        public static var isLayerCheckKeyPressed:Boolean = false;
         public static var isDrawModeInputEventsAdded:Boolean = false;
         public static var isCaptureModeInputEventsAdded:Boolean = false; // 이벤트 세트가 켜지거나 꺼지는거 보관 중복 이벤트 추가 피하려고
         public static var isReplayModeInputEventsAdded:Boolean = false; // 리플레이 이벤트 추가되면 올려줌
@@ -205,7 +203,9 @@ package Modules
             }
         }
 
-        public static function updateLastKey(key:int):void
+        // 인자로 받은 키가 아니라 keyBuffer의 마지막 키를 저장함 (기존 동작 유지)
+        // 지금 누르고 있는 키 중 마지막 키를 저장함 (반복되는 keydown에서 한 번만 처리하려고)
+        public static function updateLastKey():void
         {
             lastPressedKey = getLastPressedKey();
         }
@@ -694,9 +694,7 @@ package Modules
 
         public static function onMouseUpStage(e:MouseEvent):void
         {
-            InputManager.checkInvalidKey();
-            const mx:Number = main.stage.mouseX;
-            const my:Number = main.stage.mouseY;
+            checkInvalidKey();
             MouseState.onLeftUp();
         }
 
@@ -708,9 +706,7 @@ package Modules
 
         public static function onRightMouseUpStage(e:MouseEvent):void
         {
-            InputManager.checkInvalidKey();
-            const mx:Number = main.stage.mouseX;
-            const my:Number = main.stage.mouseY;
+            checkInvalidKey();
             MouseState.onRightUp();
         }
 
@@ -1300,7 +1296,7 @@ package Modules
 
             if (SidebarController.isPressingQuickSidebarShortcut(pressedKey, secondKey) || pressedKey === KEY.n6)
             {
-                updateLastKey(pressedKey);
+                updateLastKey();
 
                 if (SidebarController.isQuickSidebarActive === false)
                 {
@@ -1314,7 +1310,7 @@ package Modules
             }
             else if (pressedKey === KEY.g || pressedKey === KEY.b)
             {
-                updateLastKey(pressedKey);
+                updateLastKey();
                 startKeyRepeat(true, function (increase:Boolean):void
                     {
                         FillPenTool.setPreviewOFFTimerCount();
@@ -1490,7 +1486,6 @@ package Modules
                 }
                 else
                 {
-                    isLayerCheckKeyPressed = false;
                     if (ToolController.lastTool > ToolController.TOOL_NONE)
                     {
                         ToolController.selectLastUsedTool();
@@ -1525,7 +1520,7 @@ package Modules
             const subKey:uint = getLastPressedKey();
             if (updateFlag)
             {
-                updateLastKey(subKey);
+                updateLastKey();
             }
             if (callback !== null)
             {
@@ -1632,7 +1627,7 @@ package Modules
             {
                 return;
             }
-            updateLastKey(firstKey);
+            updateLastKey();
             if (handleKeyDownPenOpacitySize(firstKey))
             {
                 return;
@@ -1656,7 +1651,7 @@ package Modules
         {
             if (getPressedKeyCount() === 1 && getFirstPressedKey() === KEY.space)
             {
-                updateLastKey(KEY.space);
+                updateLastKey();
                 LassoTool.isLassoMenuHiddenTemp = true;
                 ToolController.setSelectedTool(ToolController.TOOL_HAND);
                 ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
@@ -1808,7 +1803,7 @@ package Modules
                     return;
                 }
 
-                updateLastKey(keyCode);
+                updateLastKey();
                 LassoTool.isLassoMenuHiddenTemp = true;
                 ToolController.setSelectedTool(ToolController.TOOL_HAND);
                 ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
@@ -1826,7 +1821,7 @@ package Modules
                 return;
             }
 
-            updateLastKey(keyCode);
+            updateLastKey();
 
             switch (keyCode)
             {
@@ -1845,7 +1840,7 @@ package Modules
                 case KEY.w:
                 case KEY.i:
                     LassoTool.isLassoMenuHiddenTemp = true;
-                    updateLastKey(keyCode);
+                    updateLastKey();
                     ToolController.setSelectedTool(ToolController.TOOL_ZOOM);
                     ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ZOOM);
                     break;
@@ -1853,7 +1848,7 @@ package Modules
                 case KEY.s:
                 case KEY.k:
                     LassoTool.isLassoMenuHiddenTemp = true;
-                    updateLastKey(keyCode);
+                    updateLastKey();
                     ToolController.setSelectedTool(ToolController.TOOL_ROTATE);
                     ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ROTATE);
                     break;
@@ -2010,7 +2005,7 @@ package Modules
         }
         private static function handleControlSubKeyReplayMode(input:int):void
         {
-            if (input === KEY.c || input === KEY.m)
+            if (input === KEY.c || input === KEY.comma)
             {
                 CaptureController.enterCaptureMode();
             }
@@ -2184,7 +2179,6 @@ package Modules
                     {
                         SidebarController.activeQuickSideBar(true);
                     }
-                    break;
                     return true;
                 case KEY.x:
                 case KEY.comma:
@@ -2568,7 +2562,7 @@ package Modules
                 {
                     return;
                 }
-                updateLastKey(secondKey);
+                updateLastKey();
 
                 if (secondKey === KEY.s || secondKey === KEY.semicolon)
                 {
@@ -2597,7 +2591,7 @@ package Modules
                 return;
             }
 
-            updateLastKey(firstKey);
+            updateLastKey();
 
             switch (firstKey)
             {
@@ -2637,7 +2631,7 @@ package Modules
 
         private static function onKeyUpCaptureMode(e:KeyboardEvent):void
         {
-            updateLastKey(getLastPressedKey());
+            updateLastKey();
             checkGeneralKeyUp(e.keyCode);
         }
 
@@ -2744,7 +2738,7 @@ package Modules
                     case KEY.enter:
                     case KEY.space:
                         {
-                            updateLastKey(firstKey);
+                            updateLastKey();
                             FOFOTimer.remove("prograssBarUpdateTimer");
                             ReplayController.handleReplayStopButton();
                         }
@@ -2761,7 +2755,7 @@ package Modules
                     case KEY.enter:
                     case KEY.space:
                         {
-                            updateLastKey(firstKey);
+                            updateLastKey();
                             ReplayController.cancelReplayRestartTimer();
                         }
                         break;
@@ -2778,7 +2772,7 @@ package Modules
                 checkSubKey(2, true, handleControlSubKeyReplayMode);
                 return;
             }
-            updateLastKey(firstKey);
+            updateLastKey();
             switch (firstKey)
             {
                 case KEY.left:
@@ -2924,7 +2918,6 @@ package Modules
 
         public static function onMouseDownReplayMode(e:MouseEvent):void // repdown1
         {
-            var Handtool:Object;
             const target:DisplayObject = e.target as DisplayObject;
             if (!target || FileManager.loadMenuBox.visible)
             {
