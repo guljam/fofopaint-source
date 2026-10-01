@@ -1,6 +1,8 @@
 package Modules
 {
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.ReplayModeInput;
+    import Modules.InputManager.CaptureModeInput;
     import Modules.UIEngine.HintController;
     import Symbols.AboutWindowSet;
 
@@ -130,8 +132,8 @@ package Modules
         {
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown);
 
-            InputManager.removeInputEventCaptrueMode();
-            InputManager.removeInputEventsReplayMode();
+            CaptureModeInput.removeEvents();
+            ReplayModeInput.removeEvents();
             InputManager.addInputEventsDrawMode();
 
             isAboutBoxOpened = false;

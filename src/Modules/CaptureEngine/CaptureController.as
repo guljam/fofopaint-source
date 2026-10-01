@@ -11,6 +11,8 @@ package Modules.CaptureEngine
     import Modules.CanvasController;
     import Modules.CanvasGridOverlay;
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.ReplayModeInput;
+    import Modules.InputManager.CaptureModeInput;
     import Modules.ReferenceLayerController;
     import Modules.BackgroundWorkerCoordinator;
     import flash.desktop.Clipboard;
@@ -502,7 +504,7 @@ package Modules.CaptureEngine
                 ReplayController.showTopbarOnReplayEnd();
                 ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
                 ReplayController.seekBarBox.visible = false;
-                InputManager.removeInputEventsReplayMode();
+                ReplayModeInput.removeEvents();
             }
             else
             {
@@ -532,20 +534,20 @@ package Modules.CaptureEngine
                 HintController.hideMouseHint();
             }
 
-            InputManager.addInputEventsCaptrueMode();
+            CaptureModeInput.addEvents();
             UIController.updateStageOffset();
         }
 
         private static function deactivateCaptureUI():void
         {
             const replayMode:Boolean = ReplayState.isReplayModeON;
-            InputManager.removeInputEventCaptrueMode();
+            CaptureModeInput.removeEvents();
             ReferenceLayerController.canvasRefLayer.visible = true;
 
             if (replayMode)
             {
                 UIController.updateTopbarIconsReplayMode();
-                InputManager.addInputEventsReplayMode();
+                ReplayModeInput.addEvents();
                 ReplayController.seekBarBox.visible = true;
             }
             else

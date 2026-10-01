@@ -5,6 +5,8 @@ package
     import flash.events.Event;
     import Modules.AppStateManager;
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.ReplayModeInput;
+    import Modules.InputManager.CaptureModeInput;
     import Modules.ImeController;
     import Modules.MouseState;
     import Modules.ClipboardManager;
@@ -128,9 +130,9 @@ package
             isAppClosing = true;
             e.preventDefault();
             main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, AppWindowState.onWindowDeactivate);
-            InputManager.removeInputEventCaptrueMode();
+            CaptureModeInput.removeEvents();
             InputManager.removeInputEventsDrawMode();
-            InputManager.removeInputEventsReplayMode();
+            ReplayModeInput.removeEvents();
             ActivityWorkTimer.stop();
 
             if (ImageViewWindow.canvasWindow !== null)

@@ -35,6 +35,7 @@ package Modules.ReplayEngine
     import Modules.FileManager;
     import Modules.ImageViewWindow;
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.ReplayModeInput;
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
@@ -619,7 +620,7 @@ package Modules.ReplayEngine
                 ReplayFileCache.rTempCachedLastImageIndex = -2;
                 UndoController.undoToIndex(ReplayState.rMemoryData.length - 1);
                 CanvasController.centerCanvas("replay");
-                InputManager.addInputEventsReplayMode();
+                ReplayModeInput.addEvents();
                 ReplayDrawer.rCanvasAnchorPoint.visible = true;
             }
             else
@@ -1423,7 +1424,7 @@ package Modules.ReplayEngine
                 stopReplay();
             }
 
-            InputManager.removeInputEventsReplayMode();
+            ReplayModeInput.removeEvents();
             cancelReplayRestartTimer();
             ReplayState.isReplayModeON = false;
             ReplayDrawer.rCanvasAnchorPoint.visible = false;
@@ -1562,7 +1563,7 @@ package Modules.ReplayEngine
                 CanvasController.keepCanvasPanelInStage(true);
                 SidebarController.hideSidebarTemporary();
                 UIController.updateTopbarIconsReplayMode();
-                InputManager.addInputEventsReplayMode();
+                ReplayModeInput.addEvents();
 
                 if (ReplayState.isReplayCanvasFitToWindow)
                 {
@@ -2034,7 +2035,7 @@ package Modules.ReplayEngine
         {
             if (ReplayState.isReplayModeON)
             {
-                InputManager.addInputEventsReplayMode();
+                ReplayModeInput.addEvents();
             }
             else
             {

@@ -20,6 +20,8 @@
     import Modules.Tools.FillPenTool;
     import Modules.ImageViewWindow;
     import Modules.InputManager.InputManager;
+    import Modules.InputManager.CaptureModeInput;
+    import Modules.InputManager.ReplayModeInput;
     import Modules.PaletteController;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
@@ -134,6 +136,8 @@
             Utils.setMainInstance(this);
             ReplayController.setMainInstance(this);
             InputManager.setMainInstance(this);
+            CaptureModeInput.setMainInstance(this);
+            ReplayModeInput.setMainInstance(this);
         }
 
         public function initializeTools():void
