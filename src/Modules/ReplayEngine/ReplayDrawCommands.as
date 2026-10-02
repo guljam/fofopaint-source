@@ -152,8 +152,8 @@ package Modules.ReplayEngine
         {
             var sum:Number = -1;
 
-            // wait와 lasso2 사이에 들어가는 lassoanim은 건너뛰고 그 앞의 wait를 찾음
-            for (var i:int = index - 1;data && i >= 0 && i < data.length && (ReplayState.isWaitCommand(data[i]) || ReplayState.isLassoAnimCommand(data[i]));i--)
+            // wait와 lasso2, move 사이에 들어가는 lassoanim, moveanim은 건너뛰고 그 앞의 wait를 찾음
+            for (var i:int = index - 1;data && i >= 0 && i < data.length && (ReplayState.isWaitCommand(data[i]) || ReplayState.isLassoAnimCommand(data[i]) || ReplayState.isMoveAnimCommand(data[i]));i--)
             {
                 if (ReplayState.isWaitCommand(data[i]))
                 {
@@ -1646,6 +1646,9 @@ package Modules.ReplayEngine
                     nonDrawReadCount++;
                     break;
                 case "lassoanim": // 실시간 재생 루프가 읽고 다음 lasso2를 준비시킴 (lasso2에서 시작)
+                    nonDrawReadCount++;
+                    break;
+                case "moveanim": // 실시간 재생 루프가 이 칸을 읽은 뒤 바로 다음 이동 명령 앞에서 애니메이션을 시작함
                     nonDrawReadCount++;
                     break;
                 default:

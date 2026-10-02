@@ -178,10 +178,27 @@ package Modules.ReplayEngine
             return command !== null && (command[0] === FILL_ANIM_COMMAND || command[0] === LASSO_ANIM_COMMAND);
         }
 
-        // 그리는게 없는 명령 (wait, fillanim, lassoanim), 1프레임 이동에서 건너뛰고 캐시 이미지 간격에도 세지 않음
+        // 이동 애니메이션: move, move1, move2 바로 앞에 ["moveanim"]을 넣음 (wait 뒤, 이동 명령 앞)
+        // 실시간 재생에서 이 칸을 읽으면 바로 다음 칸의 이동 거리로 이동 전 이미지를 새 레이어에서 움직여 보여주고, 끝나면 그 이동 명령을 실제로 실행함
+        // 이동 거리는 이 칸에 담지 않고 다음 칸에서 읽음, 시간은 거리로 정하고 fillanim과 같은 규칙 (재생 속도와 상관없음)
+        public static const MOVE_ANIM_COMMAND:String = "moveanim";
+        public static var MOVE_ANIM_MIN_DISTANCE:Number = 8; // 이보다 가까운 이동은 기록할때 moveanim을 넣지 않음 (바로 이동)
+        public static var MOVE_ANIM_FULL_DISTANCE:Number = 600; // 이 거리 이상은 최대 시간, 그 아래는 거리에 비례
+
+        public static function isMoveAnimCommand(command:Array):Boolean
+        {
+            return command !== null && command[0] === MOVE_ANIM_COMMAND;
+        }
+
+        public static function isMoveCommand(command:Array):Boolean
+        {
+            return command !== null && (command[0] === "move" || command[0] === "move1" || command[0] === "move2");
+        }
+
+        // 그리는게 없는 명령 (wait, fillanim, lassoanim, moveanim), 1프레임 이동에서 건너뛰고 캐시 이미지 간격에도 세지 않음
         public static function isNonDrawCommand(command:Array):Boolean
         {
-            return command !== null && (command[0] === WAIT_COMMAND || isScanAnimCommand(command));
+            return command !== null && (command[0] === WAIT_COMMAND || isScanAnimCommand(command) || isMoveAnimCommand(command));
         }
 
         // 영역 높이로 정한 애니메이션 시간(ms), 재생 속도와 상관없음
@@ -191,13 +208,39 @@ package Modules.ReplayEngine
             return FILL_ANIM_MIN_MS + (FILL_ANIM_MAX_MS - FILL_ANIM_MIN_MS) * t;
         }
 
+        // 이동 거리(px)로 정한 이동 애니메이션 시간(ms), 재생 속도와 상관없음
+        public static function getMoveAnimMs(dx:Number, dy:Number):Number
+        {
+            const t:Number = Math.max(0, Math.min(1, Math.sqrt(dx * dx + dy * dy) / MOVE_ANIM_FULL_DISTANCE));
+            return FILL_ANIM_MIN_MS + (FILL_ANIM_MAX_MS - FILL_ANIM_MIN_MS) * t;
+        }
+
+        // group[i] 칸이 시간이 있는 애니메이션 칸이면 그 시간(ms), 아니면 0
+        // moveanim은 시간을 다음 칸의 이동 거리에서 구함, 다음 칸이 이동 명령이 아니면 애니메이션 없이 지나가서 0
+        public static function getAnimMsAt(group:Array, i:int):Number
+        {
+            const c:Array = group[i];
+
+            if (isScanAnimCommand(c))
+            {
+                return getFillAnimMs(c[1]);
+            }
+
+            if (isMoveAnimCommand(c) && i + 1 < group.length && isMoveCommand(group[i + 1]))
+            {
+                return getMoveAnimMs(group[i + 1][1], group[i + 1][2]);
+            }
+
+            return 0;
+        }
+
         // pushCommand와 달리 wait를 앞에 붙이지 않고 시간도 기록하지 않음 (drawDone5 바로 뒤에 붙어야 하기 때문)
         public static function pushFillAnim(height:Number):void
         {
             rMemoryDataBuffer.push([FILL_ANIM_COMMAND, height]);
         }
 
-        // 그리기 명령 수 (wait, fillanim, lassoanim 제외)
+        // 그리기 명령 수 (wait, fillanim, lassoanim, moveanim 제외)
         public static function getDrawCommandCount(commands:Array):int
         {
             var count:int = 0;

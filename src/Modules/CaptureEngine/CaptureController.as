@@ -414,6 +414,8 @@ package Modules.CaptureEngine
                 ReplayController.stopReplay();
             }
 
+            // 이동 애니메이션이 숨겨둔 실제 레이어가 캡처에 빠지지 않게 확실히 복구 (stopReplay가 이미 하지만 안전장치)
+            ReplayDrawer.moveAnim.clear();
             _isCaptureModeON = true;
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
 

@@ -194,7 +194,7 @@ package Modules.ReplayEngine
             return count;
         }
 
-        // frame 위치 뒤(그 칸 포함)에 있는 fillanim 애니메이션 시간(ms)의 합
+        // frame 위치 뒤(그 칸 포함)에 있는 fillanim, lassoanim, moveanim 애니메이션 시간(ms)의 합
         // 재생 속도와 상관없는 실제 시간이라 틱 합(getTickAtFrame)과 따로 셈, 남은 시간에서 더해줌
         public static function getFillAnimMsFrom(frame:Number):Number
         {
@@ -241,10 +241,7 @@ package Modules.ReplayEngine
                 {
                     for (var j:int = Math.max(0, frame - start);j < data.length;j++)
                     {
-                        if (ReplayState.isScanAnimCommand(data[j]))
-                        {
-                            sum += ReplayState.getFillAnimMs(data[j][1]);
-                        }
+                        sum += ReplayState.getAnimMsAt(data, j);
                     }
                 }
 
@@ -361,8 +358,8 @@ package Modules.ReplayEngine
                     continue;
                 }
 
-                // fillanim, lassoanim은 그리지 않고 지연에도 영향이 없음 (애니메이션 시간은 getFillAnimMsFrom에서 따로 셈)
-                if (ReplayState.isScanAnimCommand(c))
+                // fillanim, lassoanim, moveanim은 그리지 않고 지연에도 영향이 없음 (애니메이션 시간은 getFillAnimMsFrom에서 따로 셈)
+                if (ReplayState.isNonDrawCommand(c))
                 {
                     continue;
                 }
@@ -397,10 +394,12 @@ package Modules.ReplayEngine
 
             for (var i:int = 0;i < group.length;i++)
             {
-                if (ReplayState.isScanAnimCommand(group[i]))
+                const animMs:Number = ReplayState.getAnimMsAt(group, i);
+
+                if (animMs > 0)
                 {
                     fillFrames.push(fileFrames + i);
-                    fillMsSums.push((fillMsSums.length > 0 ? fillMsSums[fillMsSums.length - 1] : 0) + ReplayState.getFillAnimMs(group[i][1]));
+                    fillMsSums.push((fillMsSums.length > 0 ? fillMsSums[fillMsSums.length - 1] : 0) + animMs);
                 }
             }
 

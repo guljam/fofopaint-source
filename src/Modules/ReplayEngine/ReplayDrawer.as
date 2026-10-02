@@ -32,6 +32,7 @@ package Modules.ReplayEngine
         public static const viewport:ReplayViewport = new ReplayViewport(); // 리플레이 캔버스 화면 배치 (getter로 위 필드를 읽음)
         public static const cursorFollow:ReplayCursorFollow = new ReplayCursorFollow(); // 리플레이 커서 따라 캔버스 이동
         public static const fillAnim:ReplayFillAnim = new ReplayFillAnim(); // 채우기 펜 스캔라인 애니메이션
+        public static const moveAnim:ReplayMoveAnim = new ReplayMoveAnim(); // 이동 명령 앞 moveanim 이동 애니메이션
         public static var rCanvasDrawLayer:Sprite = new Sprite();
         public static var rCanvasDrawShape:Shape = new Shape();
         public static var rCanvasLayer1BitmapData:BitmapData = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
@@ -130,6 +131,7 @@ package Modules.ReplayEngine
         public static function updateReplayCanvasFromUndoRefData(undoRefData:Array, undoIndexSave:int):void
         {
             fillAnim.clear();
+            moveAnim.clear();
             ReplayState.rMemoryDataReadON = true;
             ReplayState.rMemoryDataIndex = undoIndexSave;
             ReplayState.rPrevFrame = ReplayState.rNowFrame;
@@ -317,6 +319,7 @@ package Modules.ReplayEngine
             ReplayController.invalidateRealtimeClock();
             stopReplayFOFOCursorSpin();
             fillAnim.clear();
+            moveAnim.clear();
             rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
             const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);
@@ -666,6 +669,7 @@ package Modules.ReplayEngine
         {
             const rect:Rectangle = new Rectangle(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT);
             fillAnim.clear();
+            moveAnim.clear();
             rCanvasDrawShape.graphics.clear();
             rCanvasLayer1BitmapData.fillRect(rect, 0);
             rCanvasLayer2BitmapData.fillRect(rect, 0);

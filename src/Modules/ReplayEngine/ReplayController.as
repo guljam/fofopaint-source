@@ -833,6 +833,7 @@ package Modules.ReplayEngine
             ReplayDrawCommands.clearData();
             invalidateRealtimeClock();
             ReplayDrawer.fillAnim.clear();
+            ReplayDrawer.moveAnim.clear();
         }
 
         public static function updateReplayPrograssText(finishFlag:Boolean = false, customFrame:Number = NaN):void
@@ -1022,6 +1023,18 @@ package Modules.ReplayEngine
                 }
             }
 
+            // 이동 애니메이션도 같은 규칙, 끝난 뒤 이어서 실제 이동 명령을 읽음 (그 명령의 지연은 moveanim을 읽을때 이미 지나서 0)
+            if (ReplayDrawer.moveAnim.isActive)
+            {
+                elapsedMs = ReplayDrawer.moveAnim.advance(elapsedMs);
+                realtimeClockFrame = ReplayState.rNowFrame;
+
+                if (elapsedMs < 0)
+                {
+                    return false;
+                }
+            }
+
             realtimeTickClock += elapsedMs * ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
             var cursorSpinStopped:Boolean = false; // 이번 프레임에 돌던 커서를 멈췄는지
 
@@ -1106,6 +1119,21 @@ package Modules.ReplayEngine
                     cursorSpinStopped = true;
                 }
 
+                if (ReplayState.isMoveAnimCommand(next))
+                {
+                    // moveanim 칸은 그리는게 없음, 바로 다음 칸이 이동 명령이라 읽지 않은 채로 이동 전 이미지가 움직이는 애니메이션을 시작함
+                    // 앞의 wait 지연은 이미 지나서 이동 명령은 애니메이션이 끝나면 바로 실행함
+                    realtimePendingDelay = 0;
+
+                    if (ReplayDrawer.moveAnim.start())
+                    {
+                        realtimeClockFrame = ReplayState.rNowFrame;
+                        return false;
+                    }
+
+                    continue;
+                }
+
                 // lasso2가 애니메이션을 시작했으면 이 프레임은 여기서 끝, 준비만 해두고 다른 명령이 나왔으면 준비를 끔
                 if (ReplayDrawer.fillAnim.isActive)
                 {
@@ -1122,7 +1150,9 @@ package Modules.ReplayEngine
         // frame 위치에서 끝까지 실시간 재생으로 남은 틱, 그 위치에서 기다리던 중이면 기다린 시간을 빼줌
         public static function getRemainingTicks(frame:Number):Number
         {
-            var ticks:Number = ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) - ReplayTimeline.getTickAtFrame(frame);
+            // 이동 애니메이션 중에는 frame이 이동 명령 앞이지만 그 명령의 지연은 이미 지났으므로 그 명령을 읽은 것으로 계산함
+            const moveAnimating:Boolean = frame === realtimeClockFrame && ReplayDrawer.moveAnim.isActive;
+            var ticks:Number = ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) - ReplayTimeline.getTickAtFrame(moveAnimating ? frame + 1 : frame);
 
             // 채우기 애니메이션은 틱 합에 들어있지 않고 속도와 상관없는 실제 시간이라, 지금 속도의 틱으로 바꿔서 더함 (속도로 나누면 그 시간 그대로)
             const msToTicks:Number = ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
@@ -1131,7 +1161,7 @@ package Modules.ReplayEngine
             if (frame === realtimeClockFrame)
             {
                 ticks -= Math.min(realtimeTickClock, realtimePendingDelay);
-                ticks += ReplayDrawer.fillAnim.getRemainingMs() * msToTicks; // 진행중인 애니메이션의 남은 시간
+                ticks += (ReplayDrawer.fillAnim.getRemainingMs() + ReplayDrawer.moveAnim.getRemainingMs()) * msToTicks; // 진행중인 애니메이션의 남은 시간
             }
 
             return ticks > 0 ? ticks : 0;
@@ -1431,6 +1461,9 @@ package Modules.ReplayEngine
             // 쉬는 구간이라 커서가 돌던 중에 멈추면 원래 각도로 되돌림
             ReplayDrawer.stopReplayFOFOCursorSpin();
 
+            // 이동 애니메이션은 실제 레이어를 숨기고 있어서 멈추면 바로 복구함 (재개하면 그 이동은 애니메이션 없이 실행됨)
+            ReplayDrawer.moveAnim.clear();
+
             if (!ReplayState.isReplayFinished)
             {
                 ReplayController.seekBarBox.setPlayButtonVisible(true);
@@ -1504,6 +1537,7 @@ package Modules.ReplayEngine
             }
 
             ReplayDrawer.fillAnim.clear();
+            ReplayDrawer.moveAnim.clear();
             ReplayModeInput.removeEvents();
             cancelReplayRestartTimer();
             ReplayState.isReplayModeON = false;
