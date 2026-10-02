@@ -155,7 +155,7 @@ package Modules.ReplayEngine
         // 시간은 높이로 정하고 재생 속도와 상관없이 실제 시간(ms)으로 흐름, 틱 시계와 별개라서 타임라인 틱 합에 넣지 않고 따로 셈
         public static const FILL_ANIM_COMMAND:String = "fillanim";
         public static var FILL_ANIM_MIN_MS:Number = 200; // 높이 0일때 애니메이션 시간
-        public static var FILL_ANIM_MAX_MS:Number = 2000; // FILL_ANIM_FULL_HEIGHT 이상일때 애니메이션 시간
+        public static var FILL_ANIM_MAX_MS:Number = 1000; // FILL_ANIM_FULL_HEIGHT 이상일때 애니메이션 시간
         public static var FILL_ANIM_FULL_HEIGHT:Number = 600; // 이 높이 이상은 최대 시간, 그 아래는 높이에 비례
 
         public static function isFillAnimCommand(command:Array):Boolean
@@ -209,8 +209,14 @@ package Modules.ReplayEngine
         }
 
         // 이동 거리(px)로 정한 이동 애니메이션 시간(ms), 재생 속도와 상관없음
+        // 거리가 0이면 재생이 애니메이션 없이 지나가므로 시간도 0
         public static function getMoveAnimMs(dx:Number, dy:Number):Number
         {
+            if (dx === 0 && dy === 0)
+            {
+                return 0;
+            }
+
             const t:Number = Math.max(0, Math.min(1, Math.sqrt(dx * dx + dy * dy) / MOVE_ANIM_FULL_DISTANCE));
             return FILL_ANIM_MIN_MS + (FILL_ANIM_MAX_MS - FILL_ANIM_MIN_MS) * t;
         }

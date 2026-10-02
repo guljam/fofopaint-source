@@ -50,6 +50,7 @@ package Modules
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.ReplayEngine.ReplayTimeline;
     import Modules.ReplayEngine.ReplaySaveMetaData;
 
     public class FileManager
@@ -356,6 +357,7 @@ package Modules
 
             replayData.clear();
             replayData = null;
+            ReplayTimeline.invalidate(); // 리플레이 파일이 통째로 바뀜
             finalizeLoadFile(0, 0, null, null, false, 0);
             ReplayController.startGeneratingReplayCacheImage(true, null);
         }

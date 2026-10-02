@@ -59,6 +59,7 @@ package Modules.ReplayEngine
         public static var main:Main;
 
         private static const REPLAY_SLIDESHOW_ACTIVE_SPEED:Number = 60;
+        private static const REPLAY_MAX_SPEED_TARGET_SEC:Number = 10; // 최대 속도에서 전체를 재생하는 목표 시간
         private static const REPLAY_SLIDESHOW_FRAME_RATE:Number = 2; // 1/2초 = 0.5초마다 갱신
         private static const REPLAY_SLIDESHOW_UPDATE_TIME:Number = 1000 / REPLAY_SLIDESHOW_FRAME_RATE;
         private static var rCanvasCompleteAnchorPoint:Sprite = new Sprite(); // 리플레이에어 이미지가 재생되었을때 보여주는 객체 stage와 가로세로 중앙정렬
@@ -98,7 +99,11 @@ package Modules.ReplayEngine
         {
             ReplayState.TOTAL_FRAME = totalframe;
             // 슬라이드쇼 속도 아래에서는 wait를 포함한 실제 재생 시간, 그 위에서는 프레임 기준으로 10초에 끝나는 속도
-            const speedByTick:Number = Math.floor(ReplayTimeline.getTickAtFrame(totalframe) * ReplayState.WAIT_TICK_MS / 1000 / 10);
+            // 실시간 재생 시간은 틱 합 / 속도 + 애니메이션 시간 (애니메이션은 속도와 상관없음)이라, 10초에서 애니메이션 시간을 뺀 나머지를 틱 시간이 쓰도록 속도를 구함
+            // 애니메이션만으로 10초를 넘으면 실시간 재생으로는 10초에 못 끝내므로 슬라이드쇼 쪽 계산으로 넘김 (슬라이드쇼는 애니메이션을 재생하지 않음)
+            const tickSeconds:Number = ReplayTimeline.getTickAtFrame(totalframe) * ReplayState.WAIT_TICK_MS / 1000;
+            const tickBudget:Number = REPLAY_MAX_SPEED_TARGET_SEC - ReplayTimeline.getAnimMsBetween(0, totalframe) / 1000;
+            const speedByTick:Number = tickBudget > 0 ? Math.floor(tickSeconds / tickBudget) : Number.POSITIVE_INFINITY;
             var maxSpeed:Number = speedByTick <= REPLAY_SLIDESHOW_ACTIVE_SPEED ? speedByTick : Math.max(Math.floor(totalframe / 10 / main.stage.frameRate), REPLAY_SLIDESHOW_ACTIVE_SPEED);
 
             if (maxSpeed < 1.0)
@@ -1185,11 +1190,18 @@ package Modules.ReplayEngine
             return ReplayState.rReplaySpeedMultipler > REPLAY_SLIDESHOW_ACTIVE_SPEED;
         }
 
+        // 처음부터 끝까지 실시간 재생하는 총 시간(초), 틱 합은 속도로 나누고 애니메이션 시간은 속도와 상관없이 더함
+        public static function getTotalPlaySeconds(speed:Number):Number
+        {
+            return ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) * ReplayState.WAIT_TICK_MS / 1000 / speed
+                + ReplayTimeline.getAnimMsBetween(0, ReplayState.TOTAL_FRAME) / 1000;
+        }
+
         public static function showReplaySpeedMouseHint():void
         {
             const timeStr:String = shouldUseReplaySlideShowMode()
                 ? getReplayRemainingTimeString(ReplayState.rReplaySpeedMultipler, ReplayState.TOTAL_FRAME)
-                : formatReplayTime(ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) * ReplayState.WAIT_TICK_MS / 1000 / ReplayState.rReplaySpeedMultipler);
+                : formatReplayTime(getTotalPlaySeconds(ReplayState.rReplaySpeedMultipler));
             const finalStr:String = HintStrings.getReplaySpeedHintString(ReplayState.rReplaySpeedMultipler, timeStr);
             HintController.showMouseHintTemp(finalStr);
         }

@@ -194,20 +194,71 @@ package Modules.ReplayEngine
             return count;
         }
 
-        // frame 위치 뒤(그 칸 포함)에 있는 fillanim, lassoanim, moveanim 애니메이션 시간(ms)의 합
-        // 재생 속도와 상관없는 실제 시간이라 틱 합(getTickAtFrame)과 따로 셈, 남은 시간에서 더해줌
-        public static function getFillAnimMsFrom(frame:Number):Number
+        // [from, to) 프레임 칸에 있는 fillanim, lassoanim, moveanim 애니메이션 시간(ms)의 합
+        // 재생 속도와 상관없는 실제 시간이라 틱 합(getTickAtFrame)과 따로 셈, 틱 합과 같은 프레임 범위로 맞춰서 총 시간을 구함
+        // 파일 구간은 표를 이분탐색하고 메모리 undo 구간은 to까지만 훑음 (to 뒤의 뭉치 애니메이션은 세지 않음)
+        public static function getAnimMsBetween(from:Number, to:Number):Number
         {
+            if (!(to > from))
+            {
+                return 0;
+            }
+
             if (!isValid())
             {
                 rebuild();
             }
 
             var sum:Number = 0;
+            const low:int = lowerBoundFill(from);
+            const high:int = lowerBoundFill(to);
+
+            if (high > low)
+            {
+                sum = fillMsSums[high - 1] - (low > 0 ? fillMsSums[low - 1] : 0);
+            }
+
+            // 메모리 undo 구간
+            var start:Number = fileFrames;
+
+            for each (var data:Array in ReplayState.rMemoryData)
+            {
+                if (!data)
+                {
+                    continue;
+                }
+
+                if (start >= to)
+                {
+                    break;
+                }
+
+                if (start + data.length > from)
+                {
+                    for (var j:int = Math.max(0, from - start);j < data.length && start + j < to;j++)
+                    {
+                        sum += ReplayState.getAnimMsAt(data, j);
+                    }
+                }
+
+                start += data.length;
+            }
+
+            return sum;
+        }
+
+        // frame 위치 뒤(그 칸 포함)부터 전체 프레임(ReplayState.TOTAL_FRAME) 앞까지의 애니메이션 시간(ms)의 합
+        public static function getFillAnimMsFrom(frame:Number):Number
+        {
+            return getAnimMsBetween(frame, ReplayState.TOTAL_FRAME);
+        }
+
+        // fillFrames는 프레임 순서대로라서 frame 이상인 첫 위치를 이분탐색
+        private static function lowerBoundFill(frame:Number):int
+        {
             var low:int = 0;
             var high:int = fillFrames.length;
 
-            // fillFrames는 프레임 순서대로라서 frame 이상인 첫 위치를 이분탐색
             while (low < high)
             {
                 const mid:int = (low + high) >> 1;
@@ -222,33 +273,7 @@ package Modules.ReplayEngine
                 }
             }
 
-            if (low < fillFrames.length)
-            {
-                sum = fillMsSums[fillMsSums.length - 1] - (low > 0 ? fillMsSums[low - 1] : 0);
-            }
-
-            // 메모리 undo 구간
-            var start:Number = fileFrames;
-
-            for each (var data:Array in ReplayState.rMemoryData)
-            {
-                if (!data)
-                {
-                    continue;
-                }
-
-                if (start + data.length > frame)
-                {
-                    for (var j:int = Math.max(0, frame - start);j < data.length;j++)
-                    {
-                        sum += ReplayState.getAnimMsAt(data, j);
-                    }
-                }
-
-                start += data.length;
-            }
-
-            return sum;
+            return low;
         }
 
         // frame 위치의 명령 (그리지 않고 보기만 함), 범위 밖이면 null
