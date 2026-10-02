@@ -304,7 +304,7 @@
             const arr:Vector.<Number> = (ColorPickerController.isHSVInfoTextMode) ? Utils.HEXtoHSV(pickedColor, ColorPickerController.hsvColorData[0]) : Utils.HEXtoRGB(pickedColor);
             const mode:String = (ColorPickerController.isHSVInfoTextMode) ? "HSV" : "RGB";
 
-            return "Current color: " + mode + " " + arr[0] + "," + arr[1] + "," + arr[2];
+            return "Current color: " + mode + " " + arr[0] + "," + arr[1] + "," + arr[2] + " _ Drag to add to My Palette";
         }
 
         public static function getHintFromTargetNameRefLayer(targetName:String):String
@@ -491,7 +491,7 @@
                     return "Pen smoothing " + getPenSmoothingValueString();
 
                 case "rgbInfoText":
-                    return "Adjust values _ Click " + getRGBorHSVString() + " to change color model";
+                    return "Adjust values _ Click " + getRGBorHSVString() + " to change color model _ Drag to add to My Palette";
 
                 case "currentColor":
                     return getCurrentColorHintString();
