@@ -13,7 +13,7 @@ package
     import Modules.MouseState;
     import Modules.ClipboardManager;
     import Modules.AboutBoxController;
-    import Modules.ToolController;
+    import Modules.Tools.ToolController;
     import Modules.Tools.FillPenTool;
     import Modules.SidebarController;
     import flash.utils.getTimer;

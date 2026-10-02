@@ -4,7 +4,7 @@ package Modules.DrawEngine
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.PenSizePreviewCursor;
-    import Modules.ToolController;
+    import Modules.Tools.ToolController;
     import Modules.UndoController;
     import Modules.UndoHistory;
     import Modules.Utils;

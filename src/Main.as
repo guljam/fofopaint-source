@@ -30,7 +30,7 @@
     import Modules.PaletteController;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
-    import Modules.ToolController;
+    import Modules.Tools.ToolController;
     import Modules.Tools.EyeDropperTool;
     import Modules.Tools.HandTool;
     import Modules.Tools.LassoTool;

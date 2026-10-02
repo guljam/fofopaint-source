@@ -10,7 +10,7 @@ package Modules.InputManager
     import Modules.MouseState;
     import Modules.PenSizePreviewCursor;
     import Modules.SidebarController;
-    import Modules.ToolController;
+    import Modules.Tools.ToolController;
     import Modules.Utils;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;

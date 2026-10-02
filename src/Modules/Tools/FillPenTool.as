@@ -13,7 +13,6 @@ package Modules.Tools
     import Modules.PaletteController;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
-    import Modules.ToolController;
     import Modules.UndoHistory;
     import Modules.Utils;
     import Modules.UIEngine.UIController;

@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.Tools.ToolController;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.Tools.PenTool;

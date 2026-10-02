@@ -3,7 +3,7 @@ package Modules
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
-    import Modules.ToolController;
+    import Modules.Tools.ToolController;
     import Modules.Tools.PenTool;
     import Modules.UndoController;
 

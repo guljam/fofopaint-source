@@ -19,7 +19,7 @@ package Modules.InputManager
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
-    import Modules.ToolController;
+    import Modules.Tools.ToolController;
     import Modules.UndoController;
     import Modules.Utils;
     import Modules.CaptureEngine.CaptureController;

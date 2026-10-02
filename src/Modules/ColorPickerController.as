@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.Tools.ToolController;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.InputManager.InputManager;
     import Modules.InputManager.DrawModeInput;

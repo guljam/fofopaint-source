@@ -11,7 +11,6 @@ package Modules.Tools
     import flash.events.MouseEvent;
     import Modules.ReferenceLayerController;
     import Modules.InputManager.InputManager;
-    import Modules.ToolController;
     import Modules.PenSizePreviewCursor;
     import Modules.ReplayEngine.ReplayController;
 

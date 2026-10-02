@@ -10,7 +10,7 @@ package Modules.UIEngine
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayState;
     import Modules.SidebarController;
-    import Modules.ToolController;
+    import Modules.Tools.ToolController;
     import Modules.Tools.LassoTool;
     import Modules.Tools.LineTool;
     import Modules.Utils;

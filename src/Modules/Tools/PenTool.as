@@ -10,7 +10,6 @@ package Modules.Tools
 	import Modules.DrawingFinish;
 	import Modules.PaletteController;
 	import Modules.ReferenceLayerController;
-	import Modules.ToolController;
 	import Modules.UndoHistory;
 
 	import flash.display.CapsStyle;

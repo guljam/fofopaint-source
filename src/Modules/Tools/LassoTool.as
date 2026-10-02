@@ -18,7 +18,6 @@ package Modules.Tools
     import Modules.InputManager.DrawModeInput;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
-    import Modules.ToolController;
     import Modules.UndoController;
     import Modules.Utils;
 

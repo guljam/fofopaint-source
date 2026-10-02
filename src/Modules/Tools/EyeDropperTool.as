@@ -12,7 +12,6 @@ package Modules.Tools
     import Modules.FileManager;
     import Modules.InputManager.InputManager;
     import Modules.ReferenceLayerController;
-    import Modules.ToolController;
     import Modules.Utils;
 
     import Symbols.EyedropperLensSet;

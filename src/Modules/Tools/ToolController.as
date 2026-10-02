@@ -1,5 +1,14 @@
-package Modules
+package Modules.Tools
 {
+    import Modules.ColorPickerController;
+    import Modules.FileManager;
+    import Modules.InputPriority;
+    import Modules.MouseState;
+    import Modules.PenSizePreviewCursor;
+    import Modules.ReferenceLayerController;
+    import Modules.SidebarController;
+    import Modules.UndoController;
+    import Modules.Utils;
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
@@ -10,7 +19,6 @@ package Modules
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
-    import Modules.Tools.PenTool;
 
     import Symbols.ToolMenuSet;
     import Symbols.ToolMenuSet2;
@@ -24,8 +32,6 @@ package Modules
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.Tools.RotateTool;
-    import Modules.Tools.EyeDropperTool;
     import Modules.ReplayEngine.ReplayState;
 
     public class ToolController

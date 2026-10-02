@@ -11,7 +11,7 @@
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.PenTool;
     import Modules.Tools.LassoTool;
-    import Modules.ToolController;
+    import Modules.Tools.ToolController;
     import Modules.ActivityWorkTimer;
     import Modules.ReplayEngine.ReplayController;
 
