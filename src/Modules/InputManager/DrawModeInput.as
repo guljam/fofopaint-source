@@ -451,6 +451,10 @@ package Modules.InputManager
             {
                 return;
             }
+            if (handleNonToolKeyDown(firstKey))
+            {
+                return;
+            }
             ToolController.handleToolKeyDown(firstKey);
         }
 
@@ -508,6 +512,71 @@ package Modules.InputManager
                     ClipboardManager.tryLoadClipboardImage(false);
                 }
             }
+        }
+
+        // 도구 선택이 아닌 단축키: 참조 레이어 메뉴, 미러, 스크래치 패드 색 추출, 새 파일
+        // 처리했으면 true. C/M을 스크래치 패드 밖에서 누른 경우는 스포이드 도구라 false로 넘김
+        private static function handleNonToolKeyDown(keyCode:int):Boolean
+        {
+            if (ReferenceLayerController.isRefLayerMenuON)
+            {
+                if (keyCode === InputManager.KEY.esc || keyCode === InputManager.KEY.backspace)
+                {
+                    ReferenceLayerController.closeRefLayerMenu();
+                    return true;
+                }
+            }
+
+            switch (keyCode)
+            {
+                case InputManager.KEY.t:
+                    {
+                        if (ReferenceLayerController.isRefLayerMenuON)
+                        {
+                            ReferenceLayerController.closeRefLayerMenu();
+                        }
+                        else
+                        {
+                            ReferenceLayerController.openRefLayerMenu();
+                        }
+                    }
+                    break;
+                case InputManager.KEY.a:
+                case InputManager.KEY.l:
+                    {
+                        CanvasView.mirrorCanvas();
+                        ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_MIRROR);
+                    }
+                    break;
+                case InputManager.KEY.c:
+                case InputManager.KEY.m:
+                    {
+                        if (!ColorPickerController.colorPickerBox.scratchPad.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                        {
+                            return false;
+                        }
+                        if (ColorPickerController.colorPickerBox.scratchPad.visible)
+                        {
+                            ColorPickerController.showPickColorScratchPad();
+                        }
+                    }
+                    break;
+                case InputManager.KEY.esc:
+                case InputManager.KEY.del:
+                case InputManager.KEY.backspace:
+                    {
+                        if (FileManager.canCreateNewFile())
+                        {
+                            FileManager.createNewFile(true);
+                        }
+                    }
+                    break;
+                default:
+                    return false;
+            }
+
+            PenSizePreviewCursor.updatePosAndVisibility();
+            return true;
         }
 
         private static function handleExtraKeyDown(keyCode:int):Boolean

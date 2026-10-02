@@ -1,7 +1,5 @@
 package Modules.Tools
 {
-    import Modules.ColorPickerController;
-    import Modules.FileManager;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.PenSizePreviewCursor;
@@ -916,17 +914,9 @@ package Modules.Tools
             Utils.setAsTopChild(toolBox2.toolEraser);
         }
 
+        // 도구 선택 단축키 (도구와 무관한 단축키는 DrawModeInput.handleNonToolKeyDown이 먼저 처리함)
         public static function handleToolKeyDown(keyCode:int):void
         {
-            if (ReferenceLayerController.isRefLayerMenuON)
-            {
-                if (keyCode === InputManager.KEY.esc || keyCode === InputManager.KEY.backspace)
-                {
-                    ReferenceLayerController.closeRefLayerMenu();
-                    return;
-                }
-            }
-
             switch (keyCode)
             {
                 case InputManager.KEY.q:
@@ -937,36 +927,10 @@ package Modules.Tools
                         showNowToolIconToCursorTemp(TOOL_FILLPEN);
                     }
                     break;
-                case InputManager.KEY.t:
-                    {
-                        if (ReferenceLayerController.isRefLayerMenuON)
-                        {
-                            ReferenceLayerController.closeRefLayerMenu();
-                        }
-                        else
-                        {
-                            ReferenceLayerController.openRefLayerMenu();
-                        }
-                    }
-                    break;
-                case InputManager.KEY.a:
-                case InputManager.KEY.l:
-                    {
-                        CanvasView.mirrorCanvas();
-                        showNowToolIconToCursorTemp(TOOL_MIRROR);
-                    }
-                    break;
                 case InputManager.KEY.c:
                 case InputManager.KEY.m:
                     {
-                        if (ColorPickerController.colorPickerBox.scratchPad.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
-                        {
-                            if (ColorPickerController.colorPickerBox.scratchPad.visible)
-                            {
-                                ColorPickerController.showPickColorScratchPad();
-                            }
-                        }
-                        else if (!isSelectedTool(TOOL_EYEDROPPER))
+                        if (!isSelectedTool(TOOL_EYEDROPPER))
                         {
                             EyeDropperTool.start();
 
@@ -1050,16 +1014,6 @@ package Modules.Tools
                             updateLastTool();
                             selectLineTool();
                             PenSizePreviewCursor.updateSizeAndShape();
-                        }
-                    }
-                    break;
-                case InputManager.KEY.esc:
-                case InputManager.KEY.del:
-                case InputManager.KEY.backspace:
-                    {
-                        if (FileManager.canCreateNewFile())
-                        {
-                            FileManager.createNewFile(true);
                         }
                     }
                     break;
