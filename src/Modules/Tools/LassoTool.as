@@ -351,7 +351,7 @@ package Modules.Tools
             swapLassoImage();
             addLassoLayerMergeCommand(0);
             _lassoMenuBox.hint(HintStrings.getLassoMenuHintSwapLayer());
-            CanvasLayers.playLayerSwapEffect(_lassoMenuBox.lassoLayerSwap);
+            ToolController.playLayerSwapEffect(_lassoMenuBox.lassoLayerSwap);
         }
 
         private static function copyCanvasImageToLassoTool():void
@@ -1067,7 +1067,7 @@ package Modules.Tools
             }
             if (ReferenceLayerController.isRefLayerMenuON === true)
                 ReferenceLayerController.refLayerMenuBox.visible = true;
-            if (ToolController.toolOptionsBox.layer1CheckedButton.visible || ToolController.toolOptionsBox.layer2CheckedButton.visible)
+            if (CanvasLayers.checkedLayer !== 0)
             {
                 ToolController.toolBox.setToolButtonsForCheckedLayerON();
             }

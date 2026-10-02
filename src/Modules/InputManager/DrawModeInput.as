@@ -534,7 +534,7 @@ package Modules.InputManager
                             CanvasLayers.selectLayer1(DrawCanvas.canvasLayer2Bitmap.visible);
                             HintController.showMouseHintLayerVisible();
                         }
-                        if (ToolController.toolOptionsBox.layer2CheckedButton.visible)
+                        if (CanvasLayers.checkedLayer === 2)
                         {
                             CanvasLayers.toggleLayer2Check();
                         }
@@ -553,7 +553,7 @@ package Modules.InputManager
                             CanvasLayers.selectLayer2(DrawCanvas.canvasLayer1Bitmap.visible);
                             HintController.showMouseHintLayerVisible();
                         }
-                        if (ToolController.toolOptionsBox.layer1CheckedButton.visible)
+                        if (CanvasLayers.checkedLayer === 1)
                         {
                             CanvasLayers.toggleLayer1Check();
                         }

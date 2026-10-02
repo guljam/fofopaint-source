@@ -1248,6 +1248,69 @@ package Modules
                 });
         }
 
+        // 레이어 체크 버튼과 툴 버튼 활성 상태를 CanvasLayers.checkedLayer에 맞춤
+        public static function updateLayerCheckButtons():void
+        {
+            const checked:int = CanvasLayers.checkedLayer;
+            toolOptionsBox.layer1CheckedButton.visible = (checked === 1);
+            toolOptionsBox.layer1UncheckedButton.visible = (checked !== 1);
+            toolOptionsBox.layer2CheckedButton.visible = (checked === 2);
+            toolOptionsBox.layer2UncheckedButton.visible = (checked !== 2);
+            if (checked !== 0)
+            {
+                toolBox.setToolButtonsForCheckedLayerON();
+                toolBox2.setToolButtonsForCheckedLayerON();
+            }
+            else
+            {
+                toolBox.setToolButtonsForCheckedLayerOFF();
+                toolBox2.setToolButtonsForCheckedLayerOFF();
+            }
+        }
+
+        // 선택한 레이어 버튼 강조, onlyViewFlag면 숨겨진 다른 레이어 버튼에 빨간 줄 표시
+        public static function updateLayerSelectButtons(layer:int, onlyViewFlag:Boolean):void
+        {
+            toolOptionsBox.setSelectLayerButtonActiveAlpha(layer);
+            if (!onlyViewFlag)
+            {
+                toolOptionsBox.removeLayerInvisibleLine();
+            }
+            else if (layer === 1)
+            {
+                toolOptionsBox.moveLayerInvisibleLineToLayer2();
+            }
+            else
+            {
+                toolOptionsBox.moveLayerInvisibleLineToLayer1();
+            }
+        }
+
+        public static function setLayerMergeButtonEnabled(enabled:Boolean):void
+        {
+            toolOptionsBox.layerMergeButton.alpha = (enabled) ? 1.0 : UITheme.OFFALPHA;
+        }
+
+        // 스왑 버튼이 깜빡이는 동안(playLayerSwapEffect)은 스왑을 막음
+        public static function isLayerSwapButtonReady():Boolean
+        {
+            return toolOptionsBox.layerSwapButton.alpha >= 1.0;
+        }
+
+        public static function flickLayerSwapButton():void
+        {
+            playLayerSwapEffect(toolOptionsBox.layerSwapButton);
+        }
+
+        public static function playLayerSwapEffect(target:DisplayObject):void
+        {
+            target.alpha = UITheme.OFFALPHA;
+            FOFOTimer.addByName("layerSwapFlickEffect", 0.5, false, function ():void
+                {
+                    target.alpha = 1.0;
+                });
+        }
+
         public static function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean
         {
             if (isToolBox2Showing)
@@ -1337,7 +1400,7 @@ package Modules
                             HintController.showMouseHintLayerVisible();
                         }
 
-                        if (toolOptionsBox.layer2CheckedButton.visible)
+                        if (CanvasLayers.checkedLayer === 2)
                         {
                             CanvasLayers.toggleLayer2Check();
                         }
@@ -1355,7 +1418,7 @@ package Modules
                             HintController.showMouseHintLayerVisible();
                         }
 
-                        if (toolOptionsBox.layer1CheckedButton.visible)
+                        if (CanvasLayers.checkedLayer === 1)
                         {
                             CanvasLayers.toggleLayer1Check();
                         }

@@ -506,11 +506,11 @@ package Modules
             AppWindowState.updateWindowTitle();
             CanvasLayers.selectLayer1(false);
             ReplayDrawer.selectReplaySubLayer(false);
-            if (ToolController.toolOptionsBox.layer1CheckedButton.visible)
+            if (CanvasLayers.checkedLayer === 1)
             {
                 CanvasLayers.toggleLayer1Check();
             }
-            if (ToolController.toolOptionsBox.layer2CheckedButton.visible)
+            if (CanvasLayers.checkedLayer === 2)
             {
                 CanvasLayers.toggleLayer2Check();
             }
@@ -676,10 +676,7 @@ package Modules
         public static function enableNewFileButton():void
         {
             setNewFileAvailable(true);
-            if (ToolController.toolOptionsBox.layerMergeButton.alpha < 1.0)
-            {
-                ToolController.toolOptionsBox.layerMergeButton.alpha = 1.0;
-            }
+            ToolController.setLayerMergeButtonEnabled(true);
             AppWindowState.markWindowTitleAsDirty();
         }
 
