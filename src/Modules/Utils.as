@@ -234,18 +234,6 @@ package Modules
                 });
         }
 
-        // 진행중인 fadeOut을 멈추고 알파를 1로 돌림 (visible은 건드리지 않음)
-        public static function stopFadeOut(target:DisplayObject):void
-        {
-            FOFOTimer.remove(getFadeOutTimerName(target));
-            target.alpha = 1.0;
-        }
-
-        public static function isFadingOut(target:DisplayObject):Boolean
-        {
-            return FOFOTimer.hasTimer(getFadeOutTimerName(target));
-        }
-
         private static function getFadeOutTimerName(target:DisplayObject):String
         {
             return "alphaFadeOutTimer_" + target.name;

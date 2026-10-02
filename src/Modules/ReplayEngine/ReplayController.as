@@ -953,7 +953,7 @@ package Modules.ReplayEngine
         }
 
         // 실시간 재생 시계, 단위는 ReplayState.WAIT_TICK_MS
-        private static const CURSOR_HIDE_MIN_WAIT_MS:Number = 600; // 실제 남은 대기 시간이 이 이상이면 리플레이 커서를 천천히 숨김
+        private static const CURSOR_SPIN_MIN_WAIT_MS:Number = 600; // 실제 남은 대기 시간이 이 이상이면 리플레이 커서를 제자리에서 돌림
         private static const REALTIME_MAX_FRAME_MS:int = 100; // 창 전환 등으로 프레임이 멈췄다가 돌아올때 밀린 시간을 한번에 그리지 않게 함
         private static var realtimeTickClock:Number = 0; // 다음 그리기 명령을 기다리며 흐른 틱
         private static var realtimePendingDelay:Number = 0; // 다음 그리기 명령의 지연 (ReplayTimeline과 같은 규칙)
@@ -1011,7 +1011,7 @@ package Modules.ReplayEngine
             }
 
             realtimeTickClock += elapsed * ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
-            var cursorShown:Boolean = false; // 이번 프레임에 숨겼던 커서를 다시 보여줬는지
+            var cursorSpinStopped:Boolean = false; // 이번 프레임에 돌던 커서를 멈췄는지
 
             while (true)
             {
@@ -1040,16 +1040,16 @@ package Modules.ReplayEngine
                 {
                     realtimeClockFrame = ReplayState.rNowFrame;
 
-                    // 다시 보여준 커서는 이번 프레임에 그린 마지막 위치에 둠 (예전 자리에 보였다가 순간이동하지 않게)
-                    if (cursorShown)
+                    // 멈춘 커서는 이번 프레임에 그린 마지막 위치에 바로 둠 (진행바 타이머의 위치 갱신을 기다리지 않음)
+                    if (cursorSpinStopped)
                     {
                         ReplayDrawCommands.updateRCursorPos();
                     }
 
-                    // 오래 쉬는 구간이면 커서를 숨김, 남은 시간을 미리 알기 때문에 쉬는 구간마다 한번만 판단함
-                    if ((realtimePendingDelay - realtimeTickClock) * ReplayState.WAIT_TICK_MS / ReplayState.rReplaySpeedMultipler >= CURSOR_HIDE_MIN_WAIT_MS)
+                    // 오래 쉬는 구간이면 커서를 돌림, 남은 시간을 미리 알기 때문에 쉬는 구간마다 한번만 판단함
+                    if ((realtimePendingDelay - realtimeTickClock) * ReplayState.WAIT_TICK_MS / ReplayState.rReplaySpeedMultipler >= CURSOR_SPIN_MIN_WAIT_MS)
                     {
-                        ReplayDrawer.hideReplayFOFOCursor();
+                        ReplayDrawer.startReplayFOFOCursorSpin();
                     }
 
                     return false;
@@ -1066,9 +1066,9 @@ package Modules.ReplayEngine
                     return true;
                 }
 
-                if (ReplayDrawer.showReplayFOFOCursor())
+                if (ReplayDrawer.stopReplayFOFOCursorSpin())
                 {
-                    cursorShown = true;
+                    cursorSpinStopped = true;
                 }
             }
 
@@ -1379,12 +1379,8 @@ package Modules.ReplayEngine
         {
             FOFOTimer.remove("replayDrawTimer");
 
-            // 쉬는 구간이라 커서를 숨기던 중에 멈추면 멈춘 자리의 커서를 다시 보여줌
-            if (ReplayDrawer.cancelReplayFOFOCursorHide() && !ReplayState.isReplayFinished)
-            {
-                ReplayDrawCommands.updateRCursorPos();
-                ReplayDrawer.rReplayFOFOCursor.visible = true;
-            }
+            // 쉬는 구간이라 커서가 돌던 중에 멈추면 원래 각도로 되돌림
+            ReplayDrawer.stopReplayFOFOCursorSpin();
 
             if (!ReplayState.isReplayFinished)
             {
