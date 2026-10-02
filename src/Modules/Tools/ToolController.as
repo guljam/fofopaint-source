@@ -594,6 +594,46 @@ package Modules.Tools
             resetLastTool();
         }
 
+        // 캔버스 영역을 누르면 현재 도구를 시작함 (캔버스 영역 안인지는 입력쪽에서 판단)
+        public static function onCanvasMouseDown():void
+        {
+            switch (nowTool)
+            {
+                case TOOL_PEN:
+                    if (CanvasLayers.isToolEnabledByLayerUnChecked())
+                        PenTool.start();
+                    break;
+                case TOOL_FILLPEN:
+                    if (CanvasLayers.isToolEnabledByLayerUnChecked())
+                        FillPenTool.start();
+                    break;
+                case TOOL_ERASER:
+                    if (CanvasLayers.isToolEnabledByLayerUnChecked())
+                        PenTool.startWithEraserMode();
+                    break;
+                case TOOL_LINE:
+                    if (CanvasLayers.isToolEnabledByLayerUnChecked())
+                        LineTool.start();
+                    break;
+                case TOOL_LASSO:
+                    LassoTool.startLassoSelection();
+                    break;
+                case TOOL_MOVE:
+                    MoveTool.start();
+                    break;
+                    // 캔버스 조작
+                case TOOL_ZOOM:
+                    ZoomTool.start();
+                    break;
+                case TOOL_HAND:
+                    HandTool.startInDrawMode();
+                    break;
+                case TOOL_ROTATE:
+                    RotateTool.startInDrawMode();
+                    break;
+            }
+        }
+
         public static function handleToolBoxClick(targetName:String):void
         {
             function onMouseUpToolBox(e:MouseEvent):void

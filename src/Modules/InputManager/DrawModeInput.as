@@ -29,7 +29,6 @@ package Modules.InputManager
     import Modules.Tools.LassoTool;
     import Modules.Tools.LineTool;
     import Modules.Tools.MoveTool;
-    import Modules.Tools.PenTool;
     import Modules.Tools.RotateTool;
     import Modules.Tools.ZoomTool;
     import Modules.UIEngine.HintController;
@@ -820,41 +819,7 @@ package Modules.InputManager
             // 캔버스 영역 밖에서는 해주지 않음
             if (Utils.isCursorInDrawArea() && !MouseState.isClickBlocked)
             {
-                switch (ToolController.nowTool)
-                {
-                    case ToolController.TOOL_PEN:
-                        if (CanvasLayers.isToolEnabledByLayerUnChecked())
-                            PenTool.start();
-                        break;
-                    case ToolController.TOOL_FILLPEN:
-                        if (CanvasLayers.isToolEnabledByLayerUnChecked())
-                            FillPenTool.start();
-                        break;
-                    case ToolController.TOOL_ERASER:
-                        if (CanvasLayers.isToolEnabledByLayerUnChecked())
-                            PenTool.startWithEraserMode();
-                        break;
-                    case ToolController.TOOL_LINE:
-                        if (CanvasLayers.isToolEnabledByLayerUnChecked())
-                            LineTool.start();
-                        break;
-                    case ToolController.TOOL_LASSO:
-                        LassoTool.startLassoSelection();
-                        break;
-                    case ToolController.TOOL_MOVE:
-                        MoveTool.start();
-                        break;
-                        // 캔버스 조작
-                    case ToolController.TOOL_ZOOM:
-                        ZoomTool.start();
-                        break;
-                    case ToolController.TOOL_HAND:
-                        HandTool.startInDrawMode();
-                        break;
-                    case ToolController.TOOL_ROTATE:
-                        RotateTool.startInDrawMode();
-                        break;
-                }
+                ToolController.onCanvasMouseDown();
             }
         }
 
