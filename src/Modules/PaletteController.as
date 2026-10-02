@@ -591,8 +591,6 @@ package Modules
                     {
                         myPaletteDragStarted = true;
                         ColorPickerController.colorPickerBox.updateDragColor(myPaletteDragClickedColor, myPaletteColorWidth, myPaletteColorHeight);
-                        updateMyPaletteList(myPaletteDragClickedIndex);
-                        updateHistoryList(myPaletteDragClickedIndex);
                     }
 
                     ColorPickerController.colorPickerBox.updateDragColorPosToCursor();
@@ -609,20 +607,13 @@ package Modules
                 {
                     myPaletteDragStarted = false;
 
+                    // 히스토리는 그대로 두고 색만 복제해서 my palette에 놓음
                     if (ColorPickerController.colorPickerBox.myPaletteBox.hitTestPoint(main.mouseX, main.mouseY))
                     {
-                        const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
-                        const colorSave:* = myPalettePreset[putIndex];
-
-                        myPalettePreset[putIndex] = myPaletteDragClickedColor;
-                        myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null : colorSave;
-                        myPalettePreset.removeAt(myPaletteDragClickedIndex);
-
-                        updateMyPaletteList(myPaletteDragClickedIndex);
+                        putColorToMyPalette(myPaletteDragClickedColor, getMyPaletteIndexByMousePosLimitBound(), false);
                     }
                 }
 
-                updateHistoryList();
                 ColorPickerController.colorPickerBox.removeDragColor();
             }
 
@@ -676,7 +667,7 @@ package Modules
 
                     if (ColorPickerController.colorPickerBox.myPaletteBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                     {
-                        putColorToMyPalette(color, getMyPaletteIndexByMousePosLimitBound());
+                        putColorToMyPalette(color, getMyPaletteIndexByMousePosLimitBound(), true);
                     }
                 }
                 else if (clickArea.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
@@ -689,16 +680,27 @@ package Modules
         }
 
         // 선택한 칸의 색을 덮어씀 (addColorToMyPalette와 달리 같은 색이어도 지우지 않음)
-        private static function putColorToMyPalette(color:uint, index:int):void
+        private static function putColorToMyPalette(color:uint, index:int, addHistory:Boolean):void
         {
             if (index < 0)
             {
                 return;
             }
 
+            // 덮어쓰기 전 색을 저장해서 길게 클릭했을때 "새 색 - 이전 색 - 투명" 순환이 되게 함
+            if (!isSelctedColorEmpty(index) && myPalettePreset[index] !== color)
+            {
+                myPaletteColorBeforeAddColor[0] = index;
+                myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
+            }
+
             myPalettePreset[index] = color;
             updateMyPaletteList();
-            addColorMyPaletteHistory(color);
+
+            if (addHistory)
+            {
+                addColorMyPaletteHistory(color);
+            }
         }
 
         public static function startMyPaletteBoxDragging():void
