@@ -737,8 +737,10 @@ package Modules.ReplayEngine
                     ReplayDrawCommands.setData(data);
                     _LastframeSum = _frameSum;
                     _frameSum += data.length; // _rJumpImageCount 변수보다 먼저 와야함
-                    dataWriteCount += data.length;
+                    const waitReadCountBefore:uint = ReplayDrawCommands.waitReadCount;
                     ReplayDrawCommands.drawAll();
+                    // 캐시 간격은 그리기 명령 수로 셈, 그리면서 읽은 wait 수를 빼줌 (다시 훑지 않음)
+                    dataWriteCount += data.length - (ReplayDrawCommands.waitReadCount - waitReadCountBefore);
 
                     if (dataWriteCount > ReplayFileCache.REPLAY_DISK_CACHE_FRAME_INTERVAL)
                     {

@@ -25,6 +25,7 @@ package Modules.ReplayEngine
         // tempdone에서 쓰는 플래그임
         public static var index:uint = 0;
         public static var data:Array = []; // 데이터 뭉치
+        public static var waitReadCount:uint = 0; // drawNext에서 읽은 wait 수 누적, 쓰는 곳에서 전후 차이만 봄
         public static var cmd:Vector.<int> = new Vector.<int>();
         public static var pos:Vector.<Number> = new Vector.<Number>();
 
@@ -1604,6 +1605,7 @@ package Modules.ReplayEngine
                     mergeLayer();
                     break;
                 case "wait": // 실시간 재생 간격, 그리는 것은 없음
+                    waitReadCount++;
                     break;
                 default:
                     break;

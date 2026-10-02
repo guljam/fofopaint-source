@@ -204,7 +204,10 @@ package Modules
                 {
                     // 따로 카운트를 누적하지 않고 마지막 캐시 이미지 프레임과 비교해서
                     // 딥 언두, 파일 불러오기, 리플레이 캐시 생성 이후에도 간격이 맞게 해줌
-                    if (ReplayState.getRFileDataTotalFrame() - BackgroundWorkerCoordinator.getLastCacheImageFrame() > ReplayFileCache.REPLAY_DISK_CACHE_FRAME_INTERVAL)
+                    // 간격은 그리기 명령 수로 셈, wait는 그리는 비용이 없어서 빼줌 (구버전 데이터는 프레임 수와 같음)
+                    const lastCacheCommand:Number = ReplayTimeline.getCommandCountAtFrame(BackgroundWorkerCoordinator.getLastCacheImageFrame());
+
+                    if (ReplayTimeline.getCommandCountAtFrame(ReplayState.getRFileDataTotalFrame()) - lastCacheCommand > ReplayFileCache.REPLAY_DISK_CACHE_FRAME_INTERVAL)
                     {
                         const data:Array = undoBaseImage;
 

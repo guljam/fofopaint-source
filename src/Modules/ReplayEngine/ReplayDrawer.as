@@ -742,7 +742,8 @@ package Modules.ReplayEngine
 
                     if (ReplayState.isReplayStarted === false && (jumpFlag === JUMP_FRAME_MANUAL || jumpFlag === JUMP_FRAME_PREV))
                     {
-                        if (ReplayState.rNowFrame > ReplayFileCache.getRFrameTempCacheLastFrame() + ReplayFileCache.REPLAY_MEMORY_CACHE_FRAME_INTERVAL)
+                        // 간격은 그리기 명령 수로 셈 (디스크 캐시 간격과 같은 기준이라 한 구간에 쌓이는 임시 캐시 수가 그대로임)
+                        if (ReplayTimeline.getCommandCountAtFrame(ReplayState.rNowFrame) - ReplayTimeline.getCommandCountAtFrame(ReplayFileCache.getRFrameTempCacheLastFrame()) > ReplayFileCache.REPLAY_MEMORY_CACHE_FRAME_INTERVAL)
                         {
                             makeMemoryCacheImage(completedStepStartFrame);
                         }

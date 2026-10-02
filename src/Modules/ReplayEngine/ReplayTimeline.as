@@ -5,17 +5,22 @@ package Modules.ReplayEngine
     import flash.filesystem.FileStream;
     import Modules.FileManager;
 
-    // 프레임(명령 순번) 위치를 실시간 재생 시간(틱)으로 바꿔줌. 남은 시간, 최대 속도 계산에만 씀
+    // 프레임(명령 순번) 위치를 실시간 재생 시간(틱)과 그리기 명령 수(wait 제외)로 바꿔줌
+    // 틱은 남은 시간, 최대 속도 계산에 쓰고 명령 수는 캐시 이미지 간격 계산에 씀
     // 그리기 명령의 지연: 바로 앞에 붙은 wait 값의 합, wait가 없으면 1틱, 데이터 맨 처음 그리기 명령은 0 (재생 시작때 기다리지 않음)
     // wait 자체는 시간이 없고 뒤의 그리기 명령에 붙음, wait는 같은 뭉치 안에서 명령 바로 앞에만 오기 때문에 뭉치마다 따로 계산할수 있음
-    // 리플레이 파일 구간은 뭉치마다 [시작 프레임, 시작 틱, 바이트 위치]를 저장하고 메모리 undo 구간은 그때그때 계산함
+    // 리플레이 파일 구간은 뭉치마다 [시작 프레임, 시작 틱, 시작 명령 수, 바이트 위치]를 저장하고 메모리 undo 구간은 그때그때 계산함
     public class ReplayTimeline
     {
         private static var groupFrames:Vector.<Number> = new Vector.<Number>();
         private static var groupTicks:Vector.<Number> = new Vector.<Number>();
         private static var groupBytes:Vector.<Number> = new Vector.<Number>();
+        private static var groupCommands:Vector.<Number> = new Vector.<Number>();
         private static var fileFrames:Number = 0; // 표가 만들어진 리플레이 파일의 프레임 수
         private static var fileTicks:Number = 0;
+        private static var fileCommands:Number = 0;
+        private static var measuredTicks:Number = 0; // measureGroup 결과
+        private static var measuredCommands:Number = 0;
         private static var fileBytes:Number = 0; // 표가 만들어진 리플레이 파일 크기
         private static var valid:Boolean = false;
         private static var cachedGroup:Array = null; // getCommandAt에서 마지막으로 읽은 파일 뭉치
@@ -38,11 +43,7 @@ package Modules.ReplayEngine
                 return;
             }
 
-            groupFrames.push(fileFrames);
-            groupTicks.push(fileTicks);
-            groupBytes.push(fileBytes);
-            fileTicks += getGroupTicks(group, group.length, groupFrames.length === 1);
-            fileFrames += group.length;
+            addGroup(group, fileBytes);
             fileBytes = endByte;
         }
 
@@ -73,9 +74,11 @@ package Modules.ReplayEngine
             if (end < groupBytes.length)
             {
                 fileTicks = groupTicks[end];
+                fileCommands = groupCommands[end];
                 groupFrames.length = end;
                 groupTicks.length = end;
                 groupBytes.length = end;
+                groupCommands.length = end;
                 cachedGroup = null;
             }
 
@@ -131,6 +134,59 @@ package Modules.ReplayEngine
             return tick;
         }
 
+        // frame 위치까지(그 앞 명령까지) 그린 그리기 명령 수, wait는 세지 않음
+        // 구버전 데이터는 wait가 없어서 frame과 같음
+        public static function getCommandCountAtFrame(frame:Number):Number
+        {
+            if (frame <= 0)
+            {
+                return 0;
+            }
+
+            if (!isValid())
+            {
+                rebuild();
+            }
+
+            if (frame < fileFrames)
+            {
+                const g:int = findFileGroup(frame);
+
+                // 캐시 이미지 위치는 뭉치 경계라서 보통 파일을 읽지 않음
+                if (frame === groupFrames[g])
+                {
+                    return groupCommands[g];
+                }
+
+                const group:Array = getFileGroup(g);
+                measureGroup(group, frame - groupFrames[g], false);
+                return groupCommands[g] + measuredCommands;
+            }
+
+            var count:Number = fileCommands;
+            var start:Number = fileFrames;
+
+            for each (var data:Array in ReplayState.rMemoryData)
+            {
+                if (!data)
+                {
+                    continue;
+                }
+
+                if (frame < start + data.length)
+                {
+                    measureGroup(data, frame - start, false);
+                    return count + measuredCommands;
+                }
+
+                measureGroup(data, data.length, false);
+                count += measuredCommands;
+                start += data.length;
+            }
+
+            return count;
+        }
+
         // frame 위치의 명령 (그리지 않고 보기만 함), 범위 밖이면 null
         public static function getCommandAt(frame:Number):Array
         {
@@ -147,14 +203,8 @@ package Modules.ReplayEngine
             if (frame < fileFrames)
             {
                 const g:int = findFileGroup(frame);
-
-                if (cachedGroup === null || cachedGroupStart !== groupFrames[g])
-                {
-                    cachedGroup = readFileGroup(groupBytes[g]);
-                    cachedGroupStart = groupFrames[g];
-                }
-
-                return cachedGroup ? cachedGroup[frame - cachedGroupStart] : null;
+                const group:Array = getFileGroup(g);
+                return group ? group[frame - groupFrames[g]] : null;
             }
 
             var start:Number = fileFrames;
@@ -220,7 +270,15 @@ package Modules.ReplayEngine
         // 뭉치 안 end 앞까지 그리기 명령들의 지연 합
         public static function getGroupTicks(group:Array, end:int, firstOfData:Boolean):Number
         {
+            measureGroup(group, end, firstOfData);
+            return measuredTicks;
+        }
+
+        // 뭉치 안 end 앞까지 그리기 명령들의 지연 합과 그리기 명령 수를 한번에 셈 (measuredTicks, measuredCommands)
+        private static function measureGroup(group:Array, end:int, firstOfData:Boolean):void
+        {
             var sum:Number = 0;
+            var commands:Number = 0;
             var waitSum:Number = 0;
             var hasWait:Boolean = false;
             var skipFirst:Boolean = firstOfData;
@@ -236,6 +294,8 @@ package Modules.ReplayEngine
                     continue;
                 }
 
+                commands++;
+
                 if (skipFirst)
                 {
                     skipFirst = false;
@@ -249,7 +309,33 @@ package Modules.ReplayEngine
                 hasWait = false;
             }
 
-            return sum;
+            measuredTicks = sum;
+            measuredCommands = commands;
+        }
+
+        // 파일 끝에 뭉치 하나를 표에 추가, 틱과 명령 수는 한번 훑어서 같이 셈
+        private static function addGroup(group:Array, startByte:Number):void
+        {
+            groupFrames.push(fileFrames);
+            groupTicks.push(fileTicks);
+            groupCommands.push(fileCommands);
+            groupBytes.push(startByte);
+            measureGroup(group, group.length, groupFrames.length === 1);
+            fileTicks += measuredTicks;
+            fileCommands += measuredCommands;
+            fileFrames += group.length;
+        }
+
+        // 파일 구간 g번째 뭉치, 연속으로 같은 뭉치를 볼때 다시 읽지 않게 마지막 뭉치를 기억함
+        private static function getFileGroup(g:int):Array
+        {
+            if (cachedGroup === null || cachedGroupStart !== groupFrames[g])
+            {
+                cachedGroup = readFileGroup(groupBytes[g]);
+                cachedGroupStart = groupFrames[g];
+            }
+
+            return cachedGroup;
         }
 
         private static function isValid():Boolean
@@ -269,8 +355,10 @@ package Modules.ReplayEngine
             cachedGroup = null;
             groupTicks.length = 0;
             groupBytes.length = 0;
+            groupCommands.length = 0;
             fileFrames = 0;
             fileTicks = 0;
+            fileCommands = 0;
             fileBytes = 0;
             const f:File = FileManager.replayDataFilePath;
 
@@ -289,11 +377,7 @@ package Modules.ReplayEngine
                         continue;
                     }
 
-                    groupFrames.push(fileFrames);
-                    groupTicks.push(fileTicks);
-                    groupBytes.push(start);
-                    fileTicks += getGroupTicks(group, group.length, groupFrames.length === 1);
-                    fileFrames += group.length;
+                    addGroup(group, start);
                 }
 
                 fileBytes = fs.position;
