@@ -1155,9 +1155,10 @@ package Modules.ReplayEngine
         // frame 위치에서 끝까지 실시간 재생으로 남은 틱, 그 위치에서 기다리던 중이면 기다린 시간을 빼줌
         public static function getRemainingTicks(frame:Number):Number
         {
-            // 이동 애니메이션 중에는 frame이 이동 명령 앞이지만 그 명령의 지연은 이미 지났으므로 그 명령을 읽은 것으로 계산함
-            const moveAnimating:Boolean = frame === realtimeClockFrame && ReplayDrawer.moveAnim.isActive;
-            var ticks:Number = ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) - ReplayTimeline.getTickAtFrame(moveAnimating ? frame + 1 : frame);
+            // moveanim 칸을 읽은 뒤 이동 명령 앞에서는 (애니메이션 중이거나, 애니메이션 중에 일시정지해서 지워졌어도) 그 명령의 지연이 이미 지났으므로 그 명령을 읽은 것으로 계산함
+            // moveanim을 읽을때 realtimePendingDelay를 0으로 만들기 때문에 0이면 지연이 지난 상태임 (탐색으로 이 위치에 온 경우는 앞의 wait를 다시 기다리므로 0이 아님)
+            const moveDelayPassed:Boolean = frame === realtimeClockFrame && (ReplayDrawer.moveAnim.isActive || (realtimePendingDelay === 0 && ReplayState.isMoveAnimCommand(ReplayTimeline.getCommandAt(frame - 1))));
+            var ticks:Number = ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) - ReplayTimeline.getTickAtFrame(moveDelayPassed ? frame + 1 : frame);
 
             // 채우기 애니메이션은 틱 합에 들어있지 않고 속도와 상관없는 실제 시간이라, 지금 속도의 틱으로 바꿔서 더함 (속도로 나누면 그 시간 그대로)
             const msToTicks:Number = ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
