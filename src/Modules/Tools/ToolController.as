@@ -414,23 +414,13 @@ package Modules.Tools
             toggleAirBrushCheckBox(isPenAirBrushON, true);
             setDrawToolSize(PenTool.penSizeIndex);
             applyDrawingToolAlpha(PenTool.penAlpha);
-            ToolPanel.moveEraserButtonToOtherTool((lineFlag) ? "toolLine" : "toolPen");
-            ToolPanel.toolBox.moveToolCursor((lineFlag) ? "toolLine" : "toolPen");
-            ToolPanel.updateToolOptionsTextBySelectedTool();
-            ToolPanel.toolOptionsBox.updatePenShapeSet(PenTool.penIsSquare);
-
-            if (ToolPanel.toolOptionsBox.isSizeButtonsDisabled())
-            {
-                ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
-            }
-
-            ToolPanel.toolOptionsBox.enablePenSmoothingSlider();
+            ToolPanel.showPenToolSelected(lineFlag);
         }
 
         public static function selectLineTool():void
         {
             selectPenTool(true);
-            ToolPanel.toolOptionsBox.disablePenSmoothingSlider();
+            ToolPanel.setPenSmoothingSliderEnabled(false);
         }
 
         public static function selectEraserTool():void
@@ -439,94 +429,43 @@ package Modules.Tools
             toggleAirBrushCheckBox(PenTool.isEraserAirBrushON, false);
             setDrawToolSize(PenTool.eraserSizeIndex);
             applyDrawingToolAlpha(PenTool.eraserAlpha);
-
-            if (ToolPanel.lastEraserPosButton)
-            {
-                ToolPanel.lastEraserPosButton.visible = true;
-            }
-
-            ToolPanel.lastEraserPosButton = null;
-            ToolPanel.toolBox2.toolEraser.visible = false;
-            ToolPanel.toolBox.moveToolCursor("toolEraser");
-            ToolPanel.updateToolOptionsTextBySelectedTool();
-            ToolPanel.toolOptionsBox.updatePenShapeSet(PenTool.eraserIsSquare);
-
-            if (ToolPanel.toolOptionsBox.isSizeButtonsDisabled())
-            {
-                ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
-            }
-
-            ToolPanel.toolOptionsBox.disablePenSmoothingSlider();
+            ToolPanel.showEraserToolSelected();
         }
 
         public static function selectFillPenTool():void
         {
             setSelectedTool(TOOL_FILLPEN);
-            ToolPanel.toolBox.moveToolCursor("toolFillPen");
             PenSizePreviewCursor.setVisible(false);
-            ToolPanel.updateOpacityCursorPos(PenTool.penAlphaIndex);
             toggleAirBrushCheckBox(isPenAirBrushON, true);
-            ToolPanel.toolOptionsBox.movePenSizeCursor(1);
-            ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(UITheme.OFFALPHA);
-            ToolPanel.moveEraserButtonToOtherTool("toolFillPen");
-            ToolPanel.updateToolOptionsTextBySelectedTool();
+            ToolPanel.showFillPenToolSelected();
         }
 
         public static function selectMoveTool():void
         {
-            ToolPanel.updateToolOptionsTextBySelectedTool();
+            ToolPanel.updateToolOptionsTextBySelectedTool(); // 도구를 바꾸기 전에 갱신함 (기존 동작 유지)
             setSelectedTool(TOOL_MOVE);
-            ToolPanel.toolBox.moveToolCursor("toolMove");
-
-            if (ToolPanel.toolOptionsBox.isSizeButtonsDisabled())
-            {
-                ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
-            }
-
-            ToolPanel.toolOptionsBox.enablePenSmoothingSlider();
+            ToolPanel.showOtherToolSelected("toolMove");
         }
 
         public static function selectZoomTool():void
         {
-            ToolPanel.updateToolOptionsTextBySelectedTool();
+            ToolPanel.updateToolOptionsTextBySelectedTool(); // 도구를 바꾸기 전에 갱신함 (기존 동작 유지)
             setSelectedTool(TOOL_ZOOM);
-            ToolPanel.toolBox.moveToolCursor("toolZoomIn", UIController.canvasInfoBox);
-
-            if (ToolPanel.toolOptionsBox.isSizeButtonsDisabled())
-            {
-                ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
-            }
-
-            ToolPanel.toolOptionsBox.enablePenSmoothingSlider();
+            ToolPanel.showOtherToolSelected("toolZoomIn", UIController.canvasInfoBox);
         }
 
         public static function selectRotateTool():void
         {
-            ToolPanel.updateToolOptionsTextBySelectedTool();
+            ToolPanel.updateToolOptionsTextBySelectedTool(); // 도구를 바꾸기 전에 갱신함 (기존 동작 유지)
             setSelectedTool(TOOL_ROTATE);
-            ToolPanel.toolBox.moveToolCursor("toolRotate", UIController.canvasInfoBox);
-
-            if (ToolPanel.toolOptionsBox.isSizeButtonsDisabled())
-            {
-                ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
-            }
-
-            ToolPanel.toolOptionsBox.enablePenSmoothingSlider();
+            ToolPanel.showOtherToolSelected("toolRotate", UIController.canvasInfoBox);
         }
 
         public static function selectLassoTool():void
         {
-            ToolPanel.updateToolOptionsTextBySelectedTool();
+            ToolPanel.updateToolOptionsTextBySelectedTool(); // 도구를 바꾸기 전에 갱신함 (기존 동작 유지)
             setSelectedTool(TOOL_LASSO);
-            ToolPanel.toolBox.moveToolCursor("toolLasso");
-            ToolPanel.moveEraserButtonToOtherTool("toolLasso");
-
-            if (ToolPanel.toolOptionsBox.isSizeButtonsDisabled())
-            {
-                ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
-            }
-
-            ToolPanel.toolOptionsBox.enablePenSmoothingSlider();
+            ToolPanel.showOtherToolSelected("toolLasso", null, true);
         }
 
         // 도구 선택 단축키 (도구와 무관한 단축키는 DrawModeInput.handleNonToolKeyDown이 먼저 처리함)

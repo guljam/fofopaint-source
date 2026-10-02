@@ -21,6 +21,7 @@ package Modules.Tools
     import Symbols.ToolOptionsSet;
     import flash.display.Bitmap;
     import flash.display.DisplayObject;
+    import flash.display.DisplayObjectContainer;
     import flash.display.SimpleButton;
     import flash.display.Sprite;
     import flash.events.Event;
@@ -378,6 +379,78 @@ package Modules.Tools
             }
             // main.undo키 반복이 있어서 우선순위 1로 약간 높여줌
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox, false, InputPriority.STAGE_ROOT);
+        }
+
+        // ---- 도구가 선택됐을 때의 표시 (ToolController.select*Tool이 상태를 바꾼 뒤 호출) ----
+
+        public static function showPenToolSelected(lineFlag:Boolean):void
+        {
+            moveEraserButtonToOtherTool((lineFlag) ? "toolLine" : "toolPen");
+            toolBox.moveToolCursor((lineFlag) ? "toolLine" : "toolPen");
+            updateToolOptionsTextBySelectedTool();
+            toolOptionsBox.updatePenShapeSet(PenTool.penIsSquare);
+            enableSizeButtonsIfDisabled();
+            toolOptionsBox.enablePenSmoothingSlider();
+        }
+
+        public static function showEraserToolSelected():void
+        {
+            if (lastEraserPosButton)
+            {
+                lastEraserPosButton.visible = true;
+            }
+
+            lastEraserPosButton = null;
+            toolBox2.toolEraser.visible = false;
+            toolBox.moveToolCursor("toolEraser");
+            updateToolOptionsTextBySelectedTool();
+            toolOptionsBox.updatePenShapeSet(PenTool.eraserIsSquare);
+            enableSizeButtonsIfDisabled();
+            toolOptionsBox.disablePenSmoothingSlider();
+        }
+
+        // 채우기 펜은 크기 버튼을 쓰지 않으므로 크기 커서를 1에 두고 크기/모양 버튼을 흐리게 함
+        public static function showFillPenToolSelected():void
+        {
+            toolBox.moveToolCursor("toolFillPen");
+            updateOpacityCursorPos(PenTool.penAlphaIndex);
+            toolOptionsBox.movePenSizeCursor(1);
+            toolOptionsBox.setButtonsAlphaFillPenSelected(UITheme.OFFALPHA);
+            moveEraserButtonToOtherTool("toolFillPen");
+            updateToolOptionsTextBySelectedTool();
+        }
+
+        // 펜 옵션을 쓰지 않는 도구(이동, 줌, 회전, 올가미). cursorParent는 커서를 옮길 버튼이 있는 박스 (null이면 툴박스)
+        public static function showOtherToolSelected(buttonName:String, cursorParent:DisplayObjectContainer = null, moveEraserButton:Boolean = false):void
+        {
+            toolBox.moveToolCursor(buttonName, cursorParent);
+            if (moveEraserButton)
+            {
+                moveEraserButtonToOtherTool(buttonName);
+            }
+            enableSizeButtonsIfDisabled();
+            toolOptionsBox.enablePenSmoothingSlider();
+        }
+
+        public static function setPenSmoothingSliderEnabled(enabled:Boolean):void
+        {
+            if (enabled)
+            {
+                toolOptionsBox.enablePenSmoothingSlider();
+            }
+            else
+            {
+                toolOptionsBox.disablePenSmoothingSlider();
+            }
+        }
+
+        // 채우기 펜에서 흐리게 했던 크기/모양 버튼을 되돌림
+        private static function enableSizeButtonsIfDisabled():void
+        {
+            if (toolOptionsBox.isSizeButtonsDisabled())
+            {
+                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
+            }
         }
 
         public static function moveEraserButtonToOtherTool(toolName:String):void
