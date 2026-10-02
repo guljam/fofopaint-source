@@ -28,7 +28,6 @@ package Modules.ReplayEngine
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import flash.ui.Mouse;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import Modules.CacheImageMetaData;
@@ -59,7 +58,6 @@ package Modules.ReplayEngine
         // todo 그런데 컷 잘라주면 다시 0프레임부터 시작되는데 아까는 왜 중간부터 시작되었는지 모르겠음
         public static var main:Main;
 
-        private static var replayHideCursor:Object;
         private static const REPLAY_SLIDESHOW_ACTIVE_SPEED:Number = 60;
         private static const REPLAY_SLIDESHOW_FRAME_RATE:Number = 2; // 1/2초 = 0.5초마다 갱신
         private static const REPLAY_SLIDESHOW_UPDATE_TIME:Number = 1000 / REPLAY_SLIDESHOW_FRAME_RATE;
@@ -76,7 +74,6 @@ package Modules.ReplayEngine
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
-            replayHideCursor = cReplayHideCursor();
         }
 
         public static function createNewFileFromReplayCanvas():void
@@ -1437,7 +1434,7 @@ package Modules.ReplayEngine
             ReplayFileCache.clearRFrameTempCache();
             startReplayDrawTimer();
             startUpdatingPrograssBarTimer();
-            startCheckingHideMouseCursor();
+            ReplayMouseAutoHide.start();
         }
 
         public static function exitReplayMode():void
@@ -1598,94 +1595,6 @@ package Modules.ReplayEngine
                     fitReplayCanvasToViewport();
                 }
             }
-        }
-
-        private static function cReplayHideCursor():Object
-        {
-            var isMouseHided:Boolean = false;
-            var count:int = 0;
-            const pos:Point = new Point(0, 0);
-            const frameRate:Number = main.stage.frameRate;
-
-            function isMouseMoved():Boolean
-            {
-                return pos.x !== main.stage.mouseX || pos.y !== main.stage.mouseY || MouseState.isLeftDown || MouseState.isRightDown;
-            }
-
-            function updateMousePos():void
-            {
-                pos.setTo(main.stage.mouseX, main.stage.mouseY);
-            }
-
-            function show():void
-            {
-                Mouse.show();
-                isMouseHided = false;
-                count = 0;
-            }
-
-            function check():void
-            {
-                if (isMouseHided)
-                {
-                    if (isMouseMoved())
-                    {
-                        count = 0;
-                        show();
-                    }
-                }
-                else
-                {
-                    if (count > frameRate)
-                    {
-                        count = frameRate;
-
-                        if (!HintController.isHighlightBoxVisible())
-                        {
-                            Mouse.hide();
-                            HintController.hideBottomHint();
-                            isMouseHided = true;
-                            updateMousePos();
-                        }
-                    }
-                    else
-                    {
-                        count++;
-                    }
-
-                    if (isMouseMoved())
-                    {
-                        count = 0;
-                    }
-
-                    updateMousePos();
-                }
-            }
-
-            return {
-                    check: check,
-                    show: show
-                };
-        }
-
-        public static function startCheckingHideMouseCursor():void
-        {
-            if (FOFOTimer.hasTimer("replayHideCursorCheckTimer"))
-            {
-                return;
-            }
-
-            FOFOTimer.addByName("replayHideCursorCheckTimer", 0.0, true, function ():Boolean
-                {
-                    if (!ReplayState.isReplayModeON || UIController.topBar.visible)
-                    {
-                        replayHideCursor.show();
-                        return false;
-                    }
-
-                    replayHideCursor.check();
-                    return true;
-                });
         }
 
         // 드로우 모드와 리플레이 모드 캔버스 미러가 다를경우 undo적용 이후에 mirror되는 것을 방지하고 mirror준비를 넣어주도록 함
