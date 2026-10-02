@@ -15,7 +15,7 @@ package Modules.DrawEngine
         public static var canvasDrawLayer:Sprite = new Sprite(); // 캔버스 2번 임시로 그려주는 캔버스 버퍼?
         public static var canvasDrawLayerChild:Shape = new Shape(); // 실제로 선을 긋는 요소
         public static var canvasDrawLayerBitmapData:BitmapData = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
-        public static var canvasDrawLayerBitmap:Bitmap = new Bitmap(canvasDrawLayerBitmapData, "auto", true);
+        public static var canvasDrawLayerBitmap:Bitmap = new Bitmap(canvasDrawLayerBitmapData, "auto", false);
         public static var canvasDrawLayerClipRect:Rectangle = new Rectangle(); // 그려준 영역 만큼만 캔버스bitmap1에 그려주는 사각형
 
         public static function resetCanvasDrawLayerClipRect():void

@@ -29,8 +29,8 @@ package Modules.DrawEngine
         public static var CANVAS_BG_COLOR:uint = 0xFFFFFF;
         public static var canvasLayer1BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
         public static var canvasLayer2BitmapData:BitmapData = new BitmapData(CANVAS_WIDTH, CANVAS_HEIGHT, true, 0);
-        public static var canvasLayer1Bitmap:Bitmap = new Bitmap(canvasLayer1BitmapData, "auto", true);
-        public static var canvasLayer2Bitmap:Bitmap = new Bitmap(canvasLayer2BitmapData, "auto", true);
+        public static var canvasLayer1Bitmap:Bitmap = new Bitmap(canvasLayer1BitmapData, "auto", false);
+        public static var canvasLayer2Bitmap:Bitmap = new Bitmap(canvasLayer2BitmapData, "auto", false);
         public static var mirrorON:Boolean = false;
         private static const copyPixelRect:Rectangle = new Rectangle();
 
