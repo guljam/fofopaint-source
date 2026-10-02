@@ -16,6 +16,10 @@ package Modules.ReplayEngine
         private static var groupTicks:Vector.<Number> = new Vector.<Number>();
         private static var groupBytes:Vector.<Number> = new Vector.<Number>();
         private static var groupCommands:Vector.<Number> = new Vector.<Number>();
+        // 리플레이 파일 구간의 fillanim 셀 프레임과 높이, 재생 속도에 따라 시간에 넣을지 달라져서 틱 합과 따로 보관함
+        private static var fillFrames:Vector.<Number> = new Vector.<Number>();
+        private static var fillHeights:Vector.<Number> = new Vector.<Number>();
+        private static var groupFills:Vector.<int> = new Vector.<int>(); // 뭉치가 시작할때의 fillFrames 길이
         private static var fileFrames:Number = 0; // 표가 만들어진 리플레이 파일의 프레임 수
         private static var fileTicks:Number = 0;
         private static var fileCommands:Number = 0;
@@ -75,10 +79,13 @@ package Modules.ReplayEngine
             {
                 fileTicks = groupTicks[end];
                 fileCommands = groupCommands[end];
+                fillFrames.length = groupFills[end];
+                fillHeights.length = groupFills[end];
                 groupFrames.length = end;
                 groupTicks.length = end;
                 groupBytes.length = end;
                 groupCommands.length = end;
+                groupFills.length = end;
                 cachedGroup = null;
             }
 
@@ -187,6 +194,66 @@ package Modules.ReplayEngine
             return count;
         }
 
+        // frame 위치 뒤(그 칸 포함)에 있는 fillanim 중 그 재생 속도에서 애니메이션이 나오는 것들의 틱 합
+        // 틱 합(getTickAtFrame)과 따로 셈, 남은 시간에서 더해줌
+        public static function getFillAnimTicksFrom(frame:Number, speed:Number):Number
+        {
+            if (!isValid())
+            {
+                rebuild();
+            }
+
+            var sum:Number = 0;
+            var low:int = 0;
+            var high:int = fillFrames.length;
+
+            // fillFrames는 프레임 순서대로라서 frame 이상인 첫 위치를 이분탐색
+            while (low < high)
+            {
+                const mid:int = (low + high) >> 1;
+
+                if (fillFrames[mid] < frame)
+                {
+                    low = mid + 1;
+                }
+                else
+                {
+                    high = mid;
+                }
+            }
+
+            for (var i:int = low;i < fillFrames.length;i++)
+            {
+                sum += ReplayState.getFillAnimTicksAtSpeed(fillHeights[i], speed);
+            }
+
+            // 메모리 undo 구간
+            var start:Number = fileFrames;
+
+            for each (var data:Array in ReplayState.rMemoryData)
+            {
+                if (!data)
+                {
+                    continue;
+                }
+
+                if (start + data.length > frame)
+                {
+                    for (var j:int = Math.max(0, frame - start);j < data.length;j++)
+                    {
+                        if (ReplayState.isFillAnimCommand(data[j]))
+                        {
+                            sum += ReplayState.getFillAnimTicksAtSpeed(data[j][1], speed);
+                        }
+                    }
+                }
+
+                start += data.length;
+            }
+
+            return sum;
+        }
+
         // frame 위치의 명령 (그리지 않고 보기만 함), 범위 밖이면 null
         public static function getCommandAt(frame:Number):Array
         {
@@ -258,7 +325,7 @@ package Modules.ReplayEngine
 
             for (var i:int = 0;i < first.length && i < frame;i++)
             {
-                if (!ReplayState.isWaitCommand(first[i]))
+                if (!ReplayState.isNonDrawCommand(first[i]))
                 {
                     return false;
                 }
@@ -294,6 +361,12 @@ package Modules.ReplayEngine
                     continue;
                 }
 
+                // fillanim은 그리지 않고 지연에도 영향이 없음 (애니메이션 시간은 getFillAnimTicksFrom에서 따로 셈)
+                if (ReplayState.isFillAnimCommand(c))
+                {
+                    continue;
+                }
+
                 commands++;
 
                 if (skipFirst)
@@ -320,6 +393,17 @@ package Modules.ReplayEngine
             groupTicks.push(fileTicks);
             groupCommands.push(fileCommands);
             groupBytes.push(startByte);
+            groupFills.push(fillFrames.length);
+
+            for (var i:int = 0;i < group.length;i++)
+            {
+                if (ReplayState.isFillAnimCommand(group[i]))
+                {
+                    fillFrames.push(fileFrames + i);
+                    fillHeights.push(group[i][1]);
+                }
+            }
+
             measureGroup(group, group.length, groupFrames.length === 1);
             fileTicks += measuredTicks;
             fileCommands += measuredCommands;
@@ -358,6 +442,9 @@ package Modules.ReplayEngine
             groupTicks.length = 0;
             groupBytes.length = 0;
             groupCommands.length = 0;
+            groupFills.length = 0;
+            fillFrames.length = 0;
+            fillHeights.length = 0;
             fileFrames = 0;
             fileTicks = 0;
             fileCommands = 0;

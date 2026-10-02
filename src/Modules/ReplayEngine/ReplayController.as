@@ -431,17 +431,17 @@ package Modules.ReplayEngine
             }
         }
 
-        // 1프레임 이동은 그리기 명령 하나씩 움직임, wait 칸은 그려지는게 없어서 건너뜀
-        // 멈추는 위치는 항상 그리기 명령 바로 뒤 (그 명령 뒤에 붙은 wait는 읽지 않음)
-        private static function isWaitAt(frame:Number):Boolean
+        // 1프레임 이동은 그리기 명령 하나씩 움직임, wait와 fillanim 칸은 그려지는게 없어서 건너뜀
+        // 멈추는 위치는 항상 그리기 명령 바로 뒤 (그 명령 뒤에 붙은 wait, fillanim은 읽지 않음)
+        private static function isNonDrawAt(frame:Number):Boolean
         {
-            return ReplayState.isWaitCommand(ReplayTimeline.getCommandAt(frame));
+            return ReplayState.isNonDrawCommand(ReplayTimeline.getCommandAt(frame));
         }
 
         private static function getPreviousCommandFrame(frame:Number):Number
         {
             // 지금 위치 앞의 wait, 그리기 명령 하나, 그 명령 앞에 붙은 wait 순서로 되돌아감
-            while (frame > 0 && isWaitAt(frame - 1))
+            while (frame > 0 && isNonDrawAt(frame - 1))
             {
                 frame--;
             }
@@ -451,7 +451,7 @@ package Modules.ReplayEngine
                 frame--;
             }
 
-            while (frame > 0 && isWaitAt(frame - 1))
+            while (frame > 0 && isNonDrawAt(frame - 1))
             {
                 frame--;
             }
@@ -461,7 +461,7 @@ package Modules.ReplayEngine
 
         private static function getNextCommandFrame(frame:Number):Number
         {
-            while (frame < ReplayState.TOTAL_FRAME && isWaitAt(frame))
+            while (frame < ReplayState.TOTAL_FRAME && isNonDrawAt(frame))
             {
                 frame++;
             }
@@ -732,10 +732,10 @@ package Modules.ReplayEngine
                     ReplayDrawCommands.setData(data);
                     _LastframeSum = _frameSum;
                     _frameSum += data.length; // _rJumpImageCount 변수보다 먼저 와야함
-                    const waitReadCountBefore:uint = ReplayDrawCommands.waitReadCount;
+                    const nonDrawReadCountBefore:uint = ReplayDrawCommands.nonDrawReadCount;
                     ReplayDrawCommands.drawAll();
-                    // 캐시 간격은 그리기 명령 수로 셈, 그리면서 읽은 wait 수를 빼줌 (다시 훑지 않음)
-                    dataWriteCount += data.length - (ReplayDrawCommands.waitReadCount - waitReadCountBefore);
+                    // 캐시 간격은 그리기 명령 수로 셈, 그리면서 읽은 wait, fillanim 수를 빼줌 (다시 훑지 않음)
+                    dataWriteCount += data.length - (ReplayDrawCommands.nonDrawReadCount - nonDrawReadCountBefore);
 
                     if (dataWriteCount > ReplayFileCache.REPLAY_DISK_CACHE_FRAME_INTERVAL)
                     {
@@ -832,6 +832,7 @@ package Modules.ReplayEngine
             ReplayState.isReplaySlideShowMode = false;
             ReplayDrawCommands.clearData();
             invalidateRealtimeClock();
+            ReplayDrawer.fillAnim.clear();
         }
 
         public static function updateReplayPrograssText(finishFlag:Boolean = false, customFrame:Number = NaN):void
@@ -866,7 +867,8 @@ package Modules.ReplayEngine
                         return false;
                     }
 
-                    if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
+                    // 마지막 칸이 fillanim이면 칸을 읽은 뒤에도 애니메이션이 남아있어서 끝나기를 기다림
+                    if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME && !ReplayDrawer.fillAnim.isActive)
                     {
                         ReplayController.seekBarBox.setReplayPrograssBarMaxWidth();
                         updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
@@ -1005,7 +1007,22 @@ package Modules.ReplayEngine
                 elapsed = REALTIME_MAX_FRAME_MS;
             }
 
-            realtimeTickClock += elapsed * ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
+            var elapsedTicks:Number = elapsed * ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
+
+            // 채우기 애니메이션 중에는 그 애니메이션만 시간이 흐르고 다음 명령을 기다리는 시계는 멈춰있음
+            // 끝나면 남은 시간은 다음 명령 시계로 넘겨서 시간이 정확히 더해지게 함
+            if (ReplayDrawer.fillAnim.isActive)
+            {
+                elapsedTicks = ReplayDrawer.fillAnim.advance(elapsedTicks);
+                realtimeClockFrame = ReplayState.rNowFrame;
+
+                if (elapsedTicks < 0)
+                {
+                    return false;
+                }
+            }
+
+            realtimeTickClock += elapsedTicks;
             var cursorSpinStopped:Boolean = false; // 이번 프레임에 돌던 커서를 멈췄는지
 
             while (true)
@@ -1017,6 +1034,20 @@ package Modules.ReplayEngine
                 }
 
                 const next:Array = ReplayDrawCommands.peekNext();
+
+                if (ReplayState.isFillAnimCommand(next))
+                {
+                    // 그리는건 없고 칸만 넘어감, 이 속도에서 애니메이션이 나오면 같은 프레임에 덮개를 올리고 다음 프레임부터 지움
+                    ReplayDrawer.startDraw(1, ReplayDrawer.JUMP_FRAME_PLAY);
+
+                    if (ReplayDrawer.fillAnim.start(next[1], ReplayState.rReplaySpeedMultipler))
+                    {
+                        realtimeClockFrame = ReplayState.rNowFrame;
+                        return false;
+                    }
+
+                    continue;
+                }
 
                 if (ReplayState.isWaitCommand(next))
                 {
@@ -1075,9 +1106,13 @@ package Modules.ReplayEngine
         {
             var ticks:Number = ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) - ReplayTimeline.getTickAtFrame(frame);
 
+            // 채우기 애니메이션은 틱 합에 들어있지 않아서 재생 속도에서 나오는 것만 따로 더함
+            ticks += ReplayTimeline.getFillAnimTicksFrom(frame, ReplayState.rReplaySpeedMultipler);
+
             if (frame === realtimeClockFrame)
             {
                 ticks -= Math.min(realtimeTickClock, realtimePendingDelay);
+                ticks += ReplayDrawer.fillAnim.getRemainingTicks(); // 진행중인 애니메이션의 남은 시간
             }
 
             return ticks > 0 ? ticks : 0;
@@ -1449,6 +1484,7 @@ package Modules.ReplayEngine
                 stopReplay();
             }
 
+            ReplayDrawer.fillAnim.clear();
             ReplayModeInput.removeEvents();
             cancelReplayRestartTimer();
             ReplayState.isReplayModeON = false;

@@ -127,13 +127,50 @@ package Modules.ReplayEngine
             return command !== null && command[0] === WAIT_COMMAND;
         }
 
-        public static function getCommandCountWithoutWait(commands:Array):int
+        // 채우기 애니메이션: fill5, drawDone5 바로 뒤에 ["fillanim", 영역 높이(px)]를 넣음
+        // 실시간 재생에서만 그 영역을 배경색 덮개로 가렸다가 위에서부터 지워서 보여줌, 그 외(탐색, undo, 캐시 생성)에서는 아무것도 안 함
+        // 시간은 높이로 계산해서 틱 시계와 별개로 흐름 (재생 속도가 정해져야 쓸지 알수 있어서 타임라인 표에 합치지 않고 따로 셈)
+        public static const FILL_ANIM_COMMAND:String = "fillanim";
+        public static var FILL_ANIM_STEP_PX:Number = 2; // 1틱(1프레임)에 지우는 높이, 재생 속도가 곱해짐
+        public static var FILL_ANIM_MIN_MS:Number = 1000; // 재생 속도를 반영한 애니메이션 시간이 이 이하이면 애니메이션 없이 지나감
+
+        public static function isFillAnimCommand(command:Array):Boolean
+        {
+            return command !== null && command[0] === FILL_ANIM_COMMAND;
+        }
+
+        // 그리는게 없는 명령 (wait, fillanim), 1프레임 이동에서 건너뛰고 캐시 이미지 간격에도 세지 않음
+        public static function isNonDrawCommand(command:Array):Boolean
+        {
+            return command !== null && (command[0] === WAIT_COMMAND || command[0] === FILL_ANIM_COMMAND);
+        }
+
+        public static function getFillAnimTicks(height:Number):Number
+        {
+            return Math.ceil(height / FILL_ANIM_STEP_PX);
+        }
+
+        // 그 재생 속도에서 애니메이션이 나오면 틱 수, 나오지 않으면 0
+        public static function getFillAnimTicksAtSpeed(height:Number, speed:Number):Number
+        {
+            const ticks:Number = getFillAnimTicks(height);
+            return (ticks > 0 && ticks * WAIT_TICK_MS / speed > FILL_ANIM_MIN_MS) ? ticks : 0;
+        }
+
+        // pushCommand와 달리 wait를 앞에 붙이지 않고 시간도 기록하지 않음 (drawDone5 바로 뒤에 붙어야 하기 때문)
+        public static function pushFillAnim(height:Number):void
+        {
+            rMemoryDataBuffer.push([FILL_ANIM_COMMAND, height]);
+        }
+
+        // 그리기 명령 수 (wait, fillanim 제외)
+        public static function getDrawCommandCount(commands:Array):int
         {
             var count:int = 0;
 
             for (var i:int = 0;i < commands.length;i++)
             {
-                if (!isWaitCommand(commands[i]))
+                if (!isNonDrawCommand(commands[i]))
                 {
                     count++;
                 }
@@ -242,7 +279,7 @@ package Modules.ReplayEngine
             const index:int = UndoHistory.undoDataIndex;
 
             // 앞에 붙은 wait는 세지 않음, 지울 명령만 남은 뭉치는 통째로 지움
-            if (getCommandCountWithoutWait(rMemoryData[index]) === 1)
+            if (getDrawCommandCount(rMemoryData[index]) === 1)
             {
                 rMemoryData.splice(index);
                 rMemoryDataFrame.splice(index);

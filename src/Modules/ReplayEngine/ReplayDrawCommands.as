@@ -25,7 +25,7 @@ package Modules.ReplayEngine
         // tempdone에서 쓰는 플래그임
         public static var index:uint = 0;
         public static var data:Array = []; // 데이터 뭉치
-        public static var waitReadCount:uint = 0; // drawNext에서 읽은 wait 수 누적, 쓰는 곳에서 전후 차이만 봄
+        public static var nonDrawReadCount:uint = 0; // drawNext에서 읽은 wait, fillanim 수 누적, 쓰는 곳에서 전후 차이만 봄
         private static var firstCommandIndex:uint = 0; // 뭉치 앞쪽 wait를 건너뛴 첫 명령 위치, lineStyle이 새 획인지 판단할때 씀
         public static var cmd:Vector.<int> = new Vector.<int>();
         public static var pos:Vector.<Number> = new Vector.<Number>();
@@ -158,6 +158,20 @@ package Modules.ReplayEngine
             }
 
             return sum;
+        }
+
+        // 방금 읽은 fillanim 칸 앞에서 가장 가까운 fill5 명령, 없으면 null (같은 뭉치 안에 있음)
+        public static function findFillBefore():Array
+        {
+            for (var i:int = index - 1;data && i >= 0 && i < data.length;i--)
+            {
+                if (data[i][0] === "fill5")
+                {
+                    return data[i];
+                }
+            }
+
+            return null;
         }
 
         public static function getDataLength():uint
@@ -1615,7 +1629,10 @@ package Modules.ReplayEngine
                     mergeLayer();
                     break;
                 case "wait": // 실시간 재생 간격, 그리는 것은 없음
-                    waitReadCount++;
+                    nonDrawReadCount++;
+                    break;
+                case "fillanim": // 애니메이션은 실시간 재생 루프(ReplayController.drawReplayRealtime)에서만 시작함
+                    nonDrawReadCount++;
                     break;
                 default:
                     break;

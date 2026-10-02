@@ -360,8 +360,11 @@ package Modules.Tools
 
         private static function applyFillPen():void
         {
+            var isFillRecorded:Boolean = false;
+
             if (checkFillPenUndoReady() === true && command.length > 2)
             {
+                isFillRecorded = true;
                 UndoHistory.canAddUndoData = true;
 
                 command.push(2);
@@ -375,7 +378,7 @@ package Modules.Tools
             }
 
             StrokeBuffer.resetCanvasDrawLayerClipRect();
-            DrawingFinish.run();
+            DrawingFinish.run(isFillRecorded);
 
             exitFillPen();
         }
