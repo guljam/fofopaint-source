@@ -66,7 +66,7 @@ package Modules.ReplayEngine
             ReplayState.rCanvasZoomIndex = newZoomIndex;
             moveAnchorPoint(center.x, center.y);
             setScale(newZoom);
-            ReplayController.rFollowMouse.updateBounds();
+            ReplayDrawer.cursorFollow.updateBounds();
             HintController.showMouseHintTemp(String(Math.floor(newZoom * 100)) + "%");
         }
     }

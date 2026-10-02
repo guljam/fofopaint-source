@@ -13,6 +13,7 @@ package Modules.Tools
     import Modules.InputManager.InputManager;
     import Modules.PenSizePreviewCursor;
     import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayDrawer;
 
     public class HandTool
     {
@@ -70,7 +71,7 @@ package Modules.Tools
             }
             else
             {
-                ReplayController.rFollowMouse.updateBounds();
+                ReplayDrawer.cursorFollow.updateBounds();
             }
         }
 

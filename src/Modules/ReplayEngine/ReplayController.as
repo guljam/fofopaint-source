@@ -59,7 +59,6 @@ package Modules.ReplayEngine
         // todo 그런데 컷 잘라주면 다시 0프레임부터 시작되는데 아까는 왜 중간부터 시작되었는지 모르겠음
         public static var main:Main;
 
-        public static var rFollowMouse:Object;
         private static var replayHideCursor:Object;
         private static const REPLAY_SLIDESHOW_ACTIVE_SPEED:Number = 60;
         private static const REPLAY_SLIDESHOW_FRAME_RATE:Number = 2; // 1/2초 = 0.5초마다 갱신
@@ -77,7 +76,6 @@ package Modules.ReplayEngine
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
-            rFollowMouse = cReplayFollowMouse();
             replayHideCursor = cReplayHideCursor();
         }
 
@@ -342,7 +340,7 @@ package Modules.ReplayEngine
                     // 예전에는 renderReplayFrame 안에서 정지된 뒤(슬라이드쇼 플래그 꺼진 상태로) 실행되던 검사라서 순서 유지를 위해 여기서 다시 해줌
                     if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoController.isDeepUndoEnabled)
                     {
-                        rFollowMouse.check(true);
+                        ReplayDrawer.cursorFollow.check(true);
                     }
                 }
 
@@ -891,7 +889,7 @@ package Modules.ReplayEngine
 
                         if (!ReplayState.isReplayCanvasFitToWindow && !MouseState.isLeftDown && !UndoController.isDeepUndoEnabled)
                         {
-                            rFollowMouse.check(ReplayState.isReplaySlideShowMode);
+                            ReplayDrawer.cursorFollow.check(ReplayState.isReplaySlideShowMode);
                         }
                     }
 
@@ -1421,7 +1419,7 @@ package Modules.ReplayEngine
                 ReplayDrawer.drawFirstJumpImage();
                 ReplayState.rMemoryDataReadON = false;
                 ReplayState.isReplayFinished = false; // resetReplayTime함수 에서 이걸 true로 해주기 때문에 아래쪽에서 변경
-                rFollowMouse.updateBounds();
+                ReplayDrawer.cursorFollow.updateBounds();
                 ReplayDrawer.selectReplaySubLayer(false);
             }
 
@@ -1560,7 +1558,7 @@ package Modules.ReplayEngine
             updateReplayPrograssBarAndText();
             updateReplaySpeedSliderAlpha();
             ReplayController.seekBarBox.updatePos(main.stage.stageWidth);
-            rFollowMouse.updateBounds();
+            ReplayDrawer.cursorFollow.updateBounds();
             ReplayDrawer.updateReplayCursorScale(ReplayState.rCanvasZoomMultiplier);
 
             if (ReferenceLayerController.isRefLayerMenuON === true)
@@ -1670,131 +1668,6 @@ package Modules.ReplayEngine
                 };
         }
 
-        public static function cReplayFollowMouse():Object
-        {
-            const padding:Number = 20;
-            const cursorPos:Point = new Point(0, 0);
-            const windowCenterPos:Point = new Point(0, 0); // 캔버스 중점위치, 창 중점위치 사이 거리
-            var stw:Number;
-            var sth:Number; // 프레임 탐색막대 길이 빼줌]
-            var bounds:Object; // 바운드 저장하는 객체
-            var left:Number; // 바운드 상하좌우
-            var right:Number;
-            var top:Number;
-            var bottom:Number;
-            var globalChecked:Boolean;
-            var cp:Point; // 커서 좌표
-            var gp:Point; // 캔버스 글로벌 좌표
-            var rg:Point; // 캔버스 회전된 글로벌 좌표
-            var zoom:Number = 1.0;
-            var scale:Number = 1.0;
-            // rcanvas1 글로벌 좌표에 회전된 캔버스에서 커서 위치를 더해줌. 즉 윈도우 기준에서 커서 커서 위치를 구하는거임
-            var isCanvasWidthSmallerStage:Boolean; // 캔버스 가로 새로 길이가 스테이지 길이보다 클때 체크
-            var isCanvasHeightSmallerStage:Boolean;
-            var isNotCenterX:Boolean; // 캔버스 중점위치, 창 중점위치 사이 거리
-            var isNotCenterY:Boolean;
-            const leftLimit:Number = padding;
-            const topLimit:Number = padding + UIController.topBar.BARSIZE;
-            var rightLimit:Number;
-            var bottomLimit:Number;
-
-            function updateScale(newScale:Number):void
-            {
-                scale = newScale;
-            }
-
-            function updateBounds():void
-            {
-                bounds = Utils.getBoundRect(ReplayDrawer.rCanvasLayer1Bitmap);
-                left = bounds.left;
-                right = bounds.right;
-                top = bounds.top;
-                bottom = bounds.bottom;
-                stw = main.stage.stageWidth;
-                sth = main.stage.stageHeight - (UIController.topBar.BARSIZE) * scale;
-                zoom = ReplayState.rCanvasZoomMultiplier;
-                isCanvasWidthSmallerStage = right - left < stw;
-                isCanvasHeightSmallerStage = bottom - top < sth;
-                // 캔버스 중점위치, 창 중점위치 사이 거리
-                windowCenterPos.setTo(Math.floor(stw / 2 - (right + left) / 2), Math.floor((UIController.topBar.BARSIZE) * scale + sth / 2 - (bottom + top) / 2));
-                isNotCenterX = Math.abs(windowCenterPos.x) > 0; // 캔버스 중점위치, 창 중점위치 사이 거리
-                isNotCenterY = Math.abs(windowCenterPos.y) > 0;
-                rightLimit = stw - padding;
-                bottomLimit = sth + UIController.topBar.BARSIZE - padding;
-            }
-
-            function check(viewCenterFlag:Boolean):void
-            {
-                cp = ReplayDrawCommands.getRCursorPos();
-                globalChecked = false;
-                const div:Number = (viewCenterFlag) ? 1 : 3;
-
-                if (isCanvasWidthSmallerStage)
-                {
-                    if (isNotCenterX)
-                    {
-                        ReplayDrawer.rCanvasAnchorPoint.x += windowCenterPos.x;
-                        updateBounds();
-                    }
-                }
-                else
-                {
-                    globalChecked = true;
-                    gp = ReplayDrawer.rCanvasLayer1Bitmap.localToGlobal(new Point(0, 0));
-                    rg = Utils.rotatePoint(cp.x, cp.y, -ReplayDrawer.rCanvasAnchorPoint.rotation);
-                    cursorPos.x = gp.x + (rg.x * zoom);
-
-                    if (cursorPos.x < leftLimit)
-                    {
-                        ReplayDrawer.rCanvasAnchorPoint.x += Math.floor(Math.abs((cursorPos.x - stw / 2) / div));
-                        updateBounds();
-                    }
-                    else if (cursorPos.x > rightLimit)
-                    {
-                        ReplayDrawer.rCanvasAnchorPoint.x -= Math.floor(Math.abs((cursorPos.x - stw / 2) / div));
-                        updateBounds();
-                    }
-                }
-
-                if (isCanvasHeightSmallerStage)
-                {
-                    if (isNotCenterY)
-                    {
-                        ReplayDrawer.rCanvasAnchorPoint.y += windowCenterPos.y;
-                        updateBounds();
-                    }
-                }
-                else
-                {
-                    if (globalChecked === false)
-                    {
-                        globalChecked = true;
-                        gp = ReplayDrawer.rCanvasLayer1Bitmap.localToGlobal(new Point(0, 0));
-                        rg = Utils.rotatePoint(cp.x, cp.y, -ReplayDrawer.rCanvasAnchorPoint.rotation);
-                    }
-
-                    cursorPos.y = gp.y + (rg.y * zoom);
-
-                    if (cursorPos.y < topLimit)
-                    {
-                        ReplayDrawer.rCanvasAnchorPoint.y += Math.floor(Math.abs((cursorPos.y - sth / 2) / div));
-                        updateBounds();
-                    }
-                    else if (cursorPos.y > bottomLimit)
-                    {
-                        ReplayDrawer.rCanvasAnchorPoint.y -= Math.floor(Math.abs((cursorPos.y - sth / 2) / div));
-                        updateBounds();
-                    }
-                }
-            }
-
-            return {
-                    check: check,
-                    updateBounds: updateBounds,
-                    updateScale: updateScale
-                };
-        }
-
         public static function startCheckingHideMouseCursor():void
         {
             if (FOFOTimer.hasTimer("replayHideCursorCheckTimer"))
@@ -1839,7 +1712,7 @@ package Modules.ReplayEngine
             ReplayDrawer.viewport.moveAnchorPoint(center.x, center.y);
             ReplayDrawer.viewport.setScale(1.0);
             setFitReplayCanvasToViewportOFF();
-            rFollowMouse.updateBounds();
+            ReplayDrawer.cursorFollow.updateBounds();
         }
 
         private static function copyReplayCanvasDataToDrawCanvas():void

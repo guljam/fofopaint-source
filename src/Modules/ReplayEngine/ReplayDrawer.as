@@ -30,6 +30,7 @@ package Modules.ReplayEngine
         public static var rCanvasAnchorPoint:Sprite = new Sprite(); // 회전 스프라이트 부모
         public static var rCanvasPanel:Sprite = new Sprite();
         public static const viewport:ReplayViewport = new ReplayViewport(); // 리플레이 캔버스 화면 배치 (getter로 위 필드를 읽음)
+        public static const cursorFollow:ReplayCursorFollow = new ReplayCursorFollow(); // 리플레이 커서 따라 캔버스 이동
         public static var rCanvasDrawLayer:Sprite = new Sprite();
         public static var rCanvasDrawShape:Shape = new Shape();
         public static var rCanvasLayer1BitmapData:BitmapData = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
@@ -342,7 +343,7 @@ package Modules.ReplayEngine
 
             if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoController.isDeepUndoEnabled)
             {
-                ReplayController.rFollowMouse.check(true);
+                cursorFollow.check(true);
             }
 
             return shouldStop;
@@ -649,7 +650,7 @@ package Modules.ReplayEngine
 
             ReplayState.RCANVAS_WIDTH = w;
             ReplayState.RCANVAS_HEIGHT = h;
-            ReplayController.rFollowMouse.updateBounds();
+            cursorFollow.updateBounds();
             viewport.keepInStage();
 
             if (ReplayState.isReplayCanvasFitToWindow)

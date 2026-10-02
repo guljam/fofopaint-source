@@ -204,7 +204,6 @@ package Modules.UIEngine
             ReplayDrawer.rReplayFOFOCursor.setScale(scale);
             SidebarController.fofo.setScale(scale);
             SidebarController.checkFOFOPosition();
-            ReplayController.rFollowMouse.updateScale(scale);
 
             // 이거 위에서 뭔가 해주고 난후에 여기서 해줘야함
             SidebarController.sideBar.y = Math.round(STAGE_TOP_OFFSET);
@@ -311,7 +310,7 @@ package Modules.UIEngine
             if (ReplayState.isReplayModeON)
             {
                 ReplayController.seekBarBox.updatePos(main.stage.stageWidth);
-                ReplayController.rFollowMouse.updateBounds();
+                ReplayDrawer.cursorFollow.updateBounds();
 
                 if (ReplayState.isReplayCanvasFitToWindow)
                 {

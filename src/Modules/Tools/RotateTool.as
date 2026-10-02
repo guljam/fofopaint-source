@@ -62,7 +62,7 @@ package Modules.Tools
                 }
 
                 InputManager.resetLastKey();
-                ReplayController.rFollowMouse.updateBounds();
+                ReplayDrawer.cursorFollow.updateBounds();
             }
 
             UIController.hideCanvasRotateCursor();
