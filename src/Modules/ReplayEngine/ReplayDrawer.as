@@ -18,6 +18,7 @@ package Modules.ReplayEngine
     import Symbols.FOFOCursorSet;
     import Modules.CacheImageMetaData;
     import Modules.FileManager;
+    import Modules.Utils;
     import Modules.UndoHistory;
     import Modules.UndoController;
     import Modules.Tools.PenTool;
@@ -45,6 +46,7 @@ package Modules.ReplayEngine
         public static const JUMP_FRAME_PREV:int = (1 << 2); // 이전 프레임으로 이동 (프레임 감소)
         public static const JUMP_FRAME_NEXT:int = (1 << 3); // 이후 프레임으로 이동 (프레임 증가)
 
+        private static var isReplayCursorHiddenByWait:Boolean = false; // 실시간 재생에서 오래 쉬는 구간이라 커서를 숨겼는지
         private static var readCount:Number = 0;
         private static var rMemoryDataLen:uint;
 
@@ -307,6 +309,7 @@ package Modules.ReplayEngine
             }
 
             ReplayController.invalidateRealtimeClock();
+            cancelReplayFOFOCursorHide();
             rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
             const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);
@@ -340,6 +343,48 @@ package Modules.ReplayEngine
             }
 
             return shouldStop;
+        }
+
+        // 실시간 재생에서 오래 쉬는 구간에 들어갈때 커서를 천천히 숨김, 쉬는 구간마다 한번만 불림
+        public static function hideReplayFOFOCursor():void
+        {
+            if (isReplayCursorHiddenByWait || !rReplayFOFOCursor.visible)
+            {
+                return;
+            }
+
+            isReplayCursorHiddenByWait = true;
+            Utils.fadeOutDisplayTarget(rReplayFOFOCursor);
+        }
+
+        // 쉬는 구간이 끝나고 다시 그릴때, 숨긴 커서를 다시 보여줌
+        // 그리기 명령마다 불리지만 숨기지 않았으면 플래그만 보고 끝남
+        // 반환값: 다시 보여줬으면 true (부르는 쪽에서 그 프레임을 다 그린 뒤 커서 위치를 맞춰줌)
+        public static function showReplayFOFOCursor():Boolean
+        {
+            if (!isReplayCursorHiddenByWait)
+            {
+                return false;
+            }
+
+            isReplayCursorHiddenByWait = false;
+            Utils.stopFadeOut(rReplayFOFOCursor);
+            rReplayFOFOCursor.visible = true;
+            return true;
+        }
+
+        // 일시정지, 탐색할때 숨기던 커서를 원래대로 (보일지 말지는 부르는 쪽이 정함)
+        // 반환값: 쉬는 구간이라 숨기던 중이었으면 true
+        public static function cancelReplayFOFOCursorHide():Boolean
+        {
+            if (!isReplayCursorHiddenByWait)
+            {
+                return false;
+            }
+
+            isReplayCursorHiddenByWait = false;
+            Utils.stopFadeOut(rReplayFOFOCursor);
+            return true;
         }
 
         public static function updateReplayCursorScale(zoom:Number):void
