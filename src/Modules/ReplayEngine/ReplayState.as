@@ -53,6 +53,8 @@ package Modules.ReplayEngine
         // 1틱 = 앱의 스테이지 1프레임(24fps, 컴파일러 기본값). 구버전 데이터가 지금처럼 1프레임에 명령 1개로 재생되게 함
         // 저장 형식의 단위라서 나중에 스테이지 프레임레이트를 바꿔도 이 값은 바꾸면 안됨
         public static const WAIT_TICK_MS:Number = 1000 / 24;
+        // 리플레이 커서 위치(진행바 타이머)와 채우기 애니메이션 덮개를 갱신하는 주기(ms), 앱 프레임레이트 24의 2배
+        public static const REPLAY_VISUAL_UPDATE_MS:int = 48;
         public static const WAIT_MAX_TICK:int = 168; // 7초 이상 쉰 시간은 7초로 기록
         private static var lastCommandTime:int = -1; // 마지막으로 기록한 명령의 getTimer, -1이면 첫 명령 앞에 wait를 넣지 않음
         private static var bufferStartTime:int = -1; // 버퍼 첫 명령의 getTimer, 뭉치 안의 틱은 이 시간 기준으로 반올림
@@ -60,7 +62,8 @@ package Modules.ReplayEngine
         private static var bufferPrevCommandTime:int = -1; // 버퍼를 버릴때 lastCommandTime을 되돌릴 값
 
         // 그리기 명령은 이 함수로 버퍼에 넣어야 실시간 간격이 기록됨
-        public static function pushCommand(command:Array):void
+        // prefix는 그 명령 바로 앞에 붙일 시간 없는 명령(lassoanim), wait 뒤에 들어가서 wait는 prefix가 아니라 command의 지연으로 남음
+        public static function pushCommand(command:Array, prefix:Array = null):void
         {
             const now:int = getTimer();
 
@@ -82,6 +85,11 @@ package Modules.ReplayEngine
                 const tick:int = Math.round((now - bufferStartTime) / WAIT_TICK_MS);
                 pushWait(tick - bufferLastTick);
                 bufferLastTick = tick;
+            }
+
+            if (prefix !== null)
+            {
+                rMemoryDataBuffer.push(prefix);
             }
 
             rMemoryDataBuffer.push(command);
@@ -140,10 +148,25 @@ package Modules.ReplayEngine
             return command !== null && command[0] === FILL_ANIM_COMMAND;
         }
 
-        // 그리는게 없는 명령 (wait, fillanim), 1프레임 이동에서 건너뛰고 캐시 이미지 간격에도 세지 않음
+        // 올가미 이동 애니메이션: lasso2 바로 앞에 ["lassoanim", 도착한 영역 높이(px)]를 넣음 (lasso2는 drawDone이 없어서 뒤에서는 모양을 알 수 없음)
+        // 실시간 재생에서 이 칸을 읽으면 다음 lasso2에서 도착 모양을 배경색 덮개로 가렸다가 위에서부터 지움, 시간은 fillanim과 같은 규칙
+        public static const LASSO_ANIM_COMMAND:String = "lassoanim";
+
+        public static function isLassoAnimCommand(command:Array):Boolean
+        {
+            return command !== null && command[0] === LASSO_ANIM_COMMAND;
+        }
+
+        // 시간이 있는 스캔라인 애니메이션 칸 (fillanim, lassoanim), 틱 시계와 별개로 셈
+        public static function isScanAnimCommand(command:Array):Boolean
+        {
+            return command !== null && (command[0] === FILL_ANIM_COMMAND || command[0] === LASSO_ANIM_COMMAND);
+        }
+
+        // 그리는게 없는 명령 (wait, fillanim, lassoanim), 1프레임 이동에서 건너뛰고 캐시 이미지 간격에도 세지 않음
         public static function isNonDrawCommand(command:Array):Boolean
         {
-            return command !== null && (command[0] === WAIT_COMMAND || command[0] === FILL_ANIM_COMMAND);
+            return command !== null && (command[0] === WAIT_COMMAND || isScanAnimCommand(command));
         }
 
         // 영역 높이로 정한 애니메이션 시간(ms), 재생 속도와 상관없음
@@ -159,7 +182,7 @@ package Modules.ReplayEngine
             rMemoryDataBuffer.push([FILL_ANIM_COMMAND, height]);
         }
 
-        // 그리기 명령 수 (wait, fillanim 제외)
+        // 그리기 명령 수 (wait, fillanim, lassoanim 제외)
         public static function getDrawCommandCount(commands:Array):int
         {
             var count:int = 0;

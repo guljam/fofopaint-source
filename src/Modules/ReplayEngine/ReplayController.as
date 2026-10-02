@@ -856,7 +856,7 @@ package Modules.ReplayEngine
 
             var lastCursorUpdateTime:int = getTimer();
             var lastTextUpdateTime:int = getTimer();
-            const cursorUpdateTime:int = main.stage.frameRate * 2;
+            const cursorUpdateTime:int = ReplayState.REPLAY_VISUAL_UPDATE_MS;
             const textUpdateTime:int = 1000;
             updateReplayPrograssText();
             ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
@@ -1029,6 +1029,7 @@ package Modules.ReplayEngine
             {
                 if (!ReplayDrawer.prepareNextPlayData())
                 {
+                    ReplayDrawer.fillAnim.disarm(); // lasso2 없이 lassoanim으로 끝난 데이터
                     realtimeClockFrame = -1;
                     return true;
                 }
@@ -1046,6 +1047,14 @@ package Modules.ReplayEngine
                         return false;
                     }
 
+                    continue;
+                }
+
+                if (ReplayState.isLassoAnimCommand(next))
+                {
+                    // 그리는건 없고 칸만 넘어감, 바로 다음 lasso2가 실행될때 애니메이션을 시작하도록 준비만 해둠 (시작하는 곳은 ReplayDrawCommands.lasso2)
+                    ReplayDrawer.startDraw(1, ReplayDrawer.JUMP_FRAME_PLAY);
+                    ReplayDrawer.fillAnim.arm(ReplayDrawCommands.data, ReplayDrawCommands.index, next[1]);
                     continue;
                 }
 
@@ -1096,6 +1105,15 @@ package Modules.ReplayEngine
                 {
                     cursorSpinStopped = true;
                 }
+
+                // lasso2가 애니메이션을 시작했으면 이 프레임은 여기서 끝, 준비만 해두고 다른 명령이 나왔으면 준비를 끔
+                if (ReplayDrawer.fillAnim.isActive)
+                {
+                    realtimeClockFrame = ReplayState.rNowFrame;
+                    return false;
+                }
+
+                ReplayDrawer.fillAnim.disarm();
             }
 
             return false;

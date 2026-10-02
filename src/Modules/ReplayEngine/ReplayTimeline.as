@@ -241,7 +241,7 @@ package Modules.ReplayEngine
                 {
                     for (var j:int = Math.max(0, frame - start);j < data.length;j++)
                     {
-                        if (ReplayState.isFillAnimCommand(data[j]))
+                        if (ReplayState.isScanAnimCommand(data[j]))
                         {
                             sum += ReplayState.getFillAnimMs(data[j][1]);
                         }
@@ -361,8 +361,8 @@ package Modules.ReplayEngine
                     continue;
                 }
 
-                // fillanim은 그리지 않고 지연에도 영향이 없음 (애니메이션 시간은 getFillAnimMsFrom에서 따로 셈)
-                if (ReplayState.isFillAnimCommand(c))
+                // fillanim, lassoanim은 그리지 않고 지연에도 영향이 없음 (애니메이션 시간은 getFillAnimMsFrom에서 따로 셈)
+                if (ReplayState.isScanAnimCommand(c))
                 {
                     continue;
                 }
@@ -397,7 +397,7 @@ package Modules.ReplayEngine
 
             for (var i:int = 0;i < group.length;i++)
             {
-                if (ReplayState.isFillAnimCommand(group[i]))
+                if (ReplayState.isScanAnimCommand(group[i]))
                 {
                     fillFrames.push(fileFrames + i);
                     fillMsSums.push((fillMsSums.length > 0 ? fillMsSums[fillMsSums.length - 1] : 0) + ReplayState.getFillAnimMs(group[i][1]));

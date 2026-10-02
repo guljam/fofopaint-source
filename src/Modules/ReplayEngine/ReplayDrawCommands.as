@@ -152,9 +152,13 @@ package Modules.ReplayEngine
         {
             var sum:Number = -1;
 
-            for (var i:int = index - 1;data && i >= 0 && i < data.length && ReplayState.isWaitCommand(data[i]);i--)
+            // wait와 lasso2 사이에 들어가는 lassoanim은 건너뛰고 그 앞의 wait를 찾음
+            for (var i:int = index - 1;data && i >= 0 && i < data.length && (ReplayState.isWaitCommand(data[i]) || ReplayState.isLassoAnimCommand(data[i]));i--)
             {
-                sum = (sum < 0 ? 0 : sum) + data[i][1];
+                if (ReplayState.isWaitCommand(data[i]))
+                {
+                    sum = (sum < 0 ? 0 : sum) + data[i][1];
+                }
             }
 
             return sum;
@@ -1039,6 +1043,13 @@ package Modules.ReplayEngine
                     ReplayDrawer.rCanvasLayer2BitmapData.draw(LassoTool.lassoLayer2Bitmap, mat);
                     ReplayDrawer.rCanvasLayer2Bitmap.bitmapData = ReplayDrawer.rCanvasLayer2BitmapData;
                 }
+
+                // 바로 앞 lassoanim을 실시간 재생이 읽어 준비시킨 칸일때만, 올가미 비트맵이 지워지기 전에 같은 행렬로 덮개를 만들어 애니메이션 시작
+                // (파라미터 data가 명령이라서 묶음은 클래스 이름으로 가리킴)
+                if (ReplayDrawer.fillAnim.isArmedFor(ReplayDrawCommands.data, index))
+                {
+                    ReplayDrawer.fillAnim.startLasso(mat, (data[5] || !data[5] && !data[6]) ? LassoTool.lassoLayer1Bitmap : null, data[6] ? LassoTool.lassoLayer2Bitmap : null);
+                }
             }
 
             resetLassoVars();
@@ -1632,6 +1643,9 @@ package Modules.ReplayEngine
                     nonDrawReadCount++;
                     break;
                 case "fillanim": // 애니메이션은 실시간 재생 루프(ReplayController.drawReplayRealtime)에서만 시작함
+                    nonDrawReadCount++;
+                    break;
+                case "lassoanim": // 실시간 재생 루프가 읽고 다음 lasso2를 준비시킴 (lasso2에서 시작)
                     nonDrawReadCount++;
                     break;
                 default:
