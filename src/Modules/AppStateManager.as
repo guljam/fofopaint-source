@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.Tools.PenSettings;
     import Modules.Tools.ToolPanel;
     import Modules.Tools.ToolController;
     import Modules.DrawEngine.CanvasView;
@@ -63,20 +64,20 @@ package Modules
             appStateObject.canvasAnchorPointY = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.y : CanvasView.canvasAnchorPoint.y;
             appStateObject.canvasAnchorPointRotation = (CaptureController.isCaptureModeON) ? CaptureController.drawModeCanvasStateForSaveAppState.r : CanvasView.canvasAnchorPoint.rotation;
 
-            appStateObject.penSmoothValue = PenTool.penSmoothValue;
-            appStateObject.penSmoothSlideValue = PenTool.penSmoothSlideValue;
+            appStateObject.penSmoothValue = PenSettings.penSmoothValue;
+            appStateObject.penSmoothSlideValue = PenSettings.penSmoothSlideValue;
             appStateObject.penSmoothButtonX = ToolPanel.toolOptionsBox.penSmoothSliderCursor.x;
 
-            appStateObject.penSize = PenTool.penSize;
-            appStateObject.penSizeIndex = PenTool.penSizeIndex;
+            appStateObject.penSize = PenSettings.penSize;
+            appStateObject.penSizeIndex = PenSettings.penSizeIndex;
             appStateObject.penColor = PenTool.penColor;
-            appStateObject.penAlpha = PenTool.penAlpha;
-            appStateObject.penIsSquare = PenTool.penIsSquare;
+            appStateObject.penAlpha = PenSettings.penAlpha;
+            appStateObject.penIsSquare = PenSettings.penIsSquare;
 
-            appStateObject.eraseSize = PenTool.eraserSize;
-            appStateObject.eraseSizeIndex = PenTool.eraserSizeIndex;
-            appStateObject.eraserIsSquare = PenTool.eraserIsSquare;
-            appStateObject.eraseAlpha = PenTool.eraserAlpha;
+            appStateObject.eraseSize = PenSettings.eraserSize;
+            appStateObject.eraseSizeIndex = PenSettings.eraserSizeIndex;
+            appStateObject.eraserIsSquare = PenSettings.eraserIsSquare;
+            appStateObject.eraseAlpha = PenSettings.eraserAlpha;
 
             const windowBounds:Rectangle = main.stage.nativeWindow.bounds;
             appStateObject.stageNativeWindowX = windowBounds.x;
@@ -316,11 +317,11 @@ package Modules
                         UIController.canvasRotateCursor.rotateArrow.rotation = appStateObject.canvasAnchorPointRotation;
 
                         // Pen Tool Settings
-                        PenTool.penSmoothValue = appStateObject.penSmoothValue;
-                        PenTool.penSmoothSlideValue = appStateObject.penSmoothSlideValue;
+                        PenSettings.penSmoothValue = appStateObject.penSmoothValue;
+                        PenSettings.penSmoothSlideValue = appStateObject.penSmoothSlideValue;
                         ToolPanel.toolOptionsBox.penSmoothSliderCursor.x = appStateObject.penSmoothButtonX;
 
-                        PenTool.penSize = appStateObject.penSize;
+                        PenSettings.penSize = appStateObject.penSize;
                         PenTool.penColor = appStateObject.penColor;
 
                         // Color Picker
@@ -332,21 +333,21 @@ package Modules
                         ColorPickerController.colorPickerBox.hueCursor.x = appStateObject.hueCursorX;
 
                         // Draw Tool Alpha & Shape
-                        PenTool.penAlpha = appStateObject.penAlpha;
-                        PenTool.penAlphaIndex = PenTool.penAlphaList.indexOf(appStateObject.penAlpha);
-                        ToolController.applyDrawingToolAlpha(appStateObject.penAlpha);
+                        PenSettings.penAlpha = appStateObject.penAlpha;
+                        PenSettings.penAlphaIndex = PenSettings.penAlphaList.indexOf(appStateObject.penAlpha);
+                        PenSettings.applyDrawingToolAlpha(appStateObject.penAlpha);
 
-                        PenTool.penIsSquare = appStateObject.penIsSquare;
-                        PenTool.penListShapeIsSqare = appStateObject.penIsSquare;
+                        PenSettings.penIsSquare = appStateObject.penIsSquare;
+                        PenSettings.penListShapeIsSqare = appStateObject.penIsSquare;
                         ToolPanel.toolOptionsBox.updatePenShapeSet(appStateObject.penIsSquare);
 
                         // Eraser Settings
-                        PenTool.eraserSize = appStateObject.eraseSize;
-                        PenTool.eraserIsSquare = appStateObject.eraserIsSquare;
-                        PenTool.eraserAlpha = appStateObject.eraseAlpha;
-                        PenTool.eraserAlphaIndex = PenTool.penAlphaList.indexOf(appStateObject.eraseAlpha);
-                        PenTool.eraserSizeIndex = appStateObject.eraseSizeIndex;
-                        ToolController.setDrawToolSize(appStateObject.penSizeIndex);
+                        PenSettings.eraserSize = appStateObject.eraseSize;
+                        PenSettings.eraserIsSquare = appStateObject.eraserIsSquare;
+                        PenSettings.eraserAlpha = appStateObject.eraseAlpha;
+                        PenSettings.eraserAlphaIndex = PenSettings.penAlphaList.indexOf(appStateObject.eraseAlpha);
+                        PenSettings.eraserSizeIndex = appStateObject.eraseSizeIndex;
+                        PenSettings.setDrawToolSize(appStateObject.penSizeIndex);
 
                         // File Path Settings
                         FileManager.lastSaveFilePath = appStateObject.saveFilePath;

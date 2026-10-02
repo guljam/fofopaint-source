@@ -58,37 +58,19 @@ package Modules.Tools
 		private static var dotflag:Boolean; // 펜스무딩이 강하게 들어갔을때 아주 작은 위치만 그려주면 표현이 제대로 안되기 때문에 너무 작게 선이 그려졌을때 올려주는 플래그
 		private static var sq1pxCursor:Boolean = false; // 1픽셀 사각형 커서인경우 올려주고 커서 미리보기 회전적용되게 함
 
-		public static var penAlpha:Number = 1.0;
 		public static var penColor:uint = 0x000000;
-		public static var penSize:uint = 3;
-		public static var penIsSquare:Boolean = false;
 		public static var isTransparentPenColor:Boolean = false; // 펜 컬러 투명 켜졌을때 올려줌
-		public static var penSizeList:Array = [0, 1, 2, 3, 4, 5, 7, 10, 13, 18, 30, 45, 80];
-		public static var penAlphaList:Array = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
-		public static var penSizeIndex:uint = 3;
-		public static var penAlphaIndex:uint = 9;
-		public static var penSmoothValue:Number = 0; // 펜 손떨방 플래그
-		public static var penSmoothSlideValue:int = 0; // 펜 손떨방 플래그
-		public static var penSmoothSlideTotal:Number = 20; // 손떨방 총 단계
-		public static var penListShapeIsSqare:Boolean = false; // 펜 리스트에서 펜 모양 버튼 눌러줄때 툴이랑 상관없이 바꿔줌, 펜 미리보기 할때 필요
 		public static var penLastSizeAndShape:Array = [null, null]; // updatePenSizeCursor 중복 사용 방지를 위해서 마지막 크기 저장해놓고 같으면 건너뜀
 
-		public static var eraserSize:uint = 12;
-		public static var eraserSizeIndex:uint = 8;
-		public static var eraserIsSquare:Boolean = false;
-		public static var eraserAlpha:Number = 1.0;
-		public static var eraserAlphaIndex:uint = 9;
-		public static var isEraserAirBrushON:Boolean = false;
 
-		public static var airBrushSizeDrawMode:int = 0;
 		public static var airBrushClipRectOffsetData:Array = [0, 4, 2, 2, 0, 0, 0, -2, -5, -5, -10, -16, -43];
 
 		public static function getClipRectOffsetAirBrush(size:int):Number
 		{
-			const len:uint = penSizeList.length;
+			const len:uint = PenSettings.penSizeList.length;
 			for (var i:uint = 1;i < len;i++)
 			{
-				if (penSizeList[i] === size)
+				if (PenSettings.penSizeList[i] === size)
 				{
 					return size + airBrushClipRectOffsetData[i];
 				}
@@ -110,12 +92,12 @@ package Modules.Tools
 		{
 			mx = Math.round(mx * 100) / 100;
 			my = Math.round(my * 100) / 100;
-			if (ToolController.isSharpLineON)
+			if (PenSettings.isSharpLineON)
 			{
 				my = Math.floor(my);
 				mx = Math.floor(mx);
 			}
-			else if (penSmoothSlideValue === 0 && (CanvasView.canvasAnchorPoint.rotation % 90 === 0))
+			else if (PenSettings.penSmoothSlideValue === 0 && (CanvasView.canvasAnchorPoint.rotation % 90 === 0))
 			{
 				my = Math.round(my);
 				mx = Math.round(mx);
@@ -170,8 +152,8 @@ package Modules.Tools
 			var ox:Number = smoothPos.x;
 			var oy:Number = smoothPos.y;
 
-			ox += (smoothLast.x - ox) * penSmoothValue;
-			oy += (smoothLast.y - oy) * penSmoothValue;
+			ox += (smoothLast.x - ox) * PenSettings.penSmoothValue;
+			oy += (smoothLast.y - oy) * PenSettings.penSmoothValue;
 
 			// 남은 거리가 서브픽셀이면 목표점으로 스냅하고 종료
 			if (Math.abs(smoothLast.x - ox) < 0.3 && Math.abs(smoothLast.y - oy) < 0.3)
@@ -256,14 +238,14 @@ package Modules.Tools
 
 					//todo extendedPos도 refinedpos해주어야함 찍어보니 원시 number값나옴
 
-					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode]);
+					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
 					penPoints.push(extendedPos.x);
 					penPoints.push(extendedPos.y);
 					StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(extendedPos.x, extendedPos.y);
 				}
 				else
 				{
-					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode]);
+					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
 					penPoints.push(smoothPos.x + offsetForSharpline);
 					penPoints.push(smoothPos.y + offsetForSharpline);
 					StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline);
@@ -290,9 +272,9 @@ package Modules.Tools
 				{
 					mouseMovedCount = 0;
 
-					if (airBrushSizeDrawMode > 0)
+					if (PenSettings.airBrushSizeDrawMode > 0)
 					{
-						const blurSize:Number = PenTool.getBlurSize(airBrushSizeDrawMode, 1.0);
+						const blurSize:Number = PenTool.getBlurSize(PenSettings.airBrushSizeDrawMode, 1.0);
 						StrokeBuffer.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
 						StrokeBuffer.canvasDrawLayerBitmapData.draw(StrokeBuffer.canvasDrawLayerChild, null, null, "layer");
 						StrokeBuffer.canvasDrawLayerChild.filters = [];
@@ -317,14 +299,14 @@ package Modules.Tools
 
 					if (xShape === true)
 					{
-						ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode]);
+						ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
 						penPoints.push(prevX);
 						penPoints.push(prevY);
 						StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(prevX, prevY);
 					}
 					else
 					{
-						ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode]);
+						ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
 						penPoints.push(mx);
 						penPoints.push(my);
 						StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(mx, my);
@@ -392,13 +374,13 @@ package Modules.Tools
 				return;
 			}
 
-			if (isPenTool && penSmoothSlideValue > 1)
+			if (isPenTool && PenSettings.penSmoothSlideValue > 1)
 			{
 				var ox:Number = smoothPos.x;
 				var oy:Number = smoothPos.y;
 
-				ox += (smoothLast.x - smoothPos.x) * penSmoothValue;
-				oy += (smoothLast.y - smoothPos.y) * penSmoothValue;
+				ox += (smoothLast.x - smoothPos.x) * PenSettings.penSmoothValue;
+				oy += (smoothLast.y - smoothPos.y) * PenSettings.penSmoothValue;
 
 				handleMouseMove(ox, oy);
 
@@ -435,7 +417,7 @@ package Modules.Tools
 				ReferenceLayerController.setCanvasRefLayerVisibleDelay();
 			}
 
-			if (penSmoothSlideValue > 1)
+			if (PenSettings.penSmoothSlideValue > 1)
 			{
 				FOFOTimer.remove("lineSmoothingTimer");
 				FOFOTimer.remove("lineSmoothingTimer1");
@@ -462,7 +444,7 @@ package Modules.Tools
 			if (isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag))
 			{
 				ReplayState.clearCommandBuffer();
-				ReplayState.pushCommand(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasLayers.isLayer2Selected, airBrushSizeDrawMode, CanvasView.canvasAnchorPoint.rotation]);
+				ReplayState.pushCommand(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode, CanvasView.canvasAnchorPoint.rotation]);
 
 				DotTool.start(xShape, xSize, xColor, clickPos.x, clickPos.y, CanvasView.canvasAnchorPoint.rotation);
 				StrokeBuffer.resetCanvasDrawLayerClipRect();
@@ -495,9 +477,9 @@ package Modules.Tools
 
 			if (isPenTool)
 			{
-				xSize = penSize;
-				xAlpha = penAlpha;
-				xShape = penIsSquare;
+				xSize = PenSettings.penSize;
+				xAlpha = PenSettings.penAlpha;
+				xShape = PenSettings.penIsSquare;
 				dotflag = true;
 
 				if (isTransparentPenColor)
@@ -519,10 +501,10 @@ package Modules.Tools
 			}
 			else
 			{
-				xSize = eraserSize;
+				xSize = PenSettings.eraserSize;
 				xColor = DrawCanvas.CANVAS_BG_COLOR;
-				xAlpha = eraserAlpha;
-				xShape = eraserIsSquare;
+				xAlpha = PenSettings.eraserAlpha;
+				xShape = PenSettings.eraserIsSquare;
 				xBlendMode = "erase";
 			}
 
@@ -541,7 +523,7 @@ package Modules.Tools
 				ReferenceLayerController.setCanvasRefLayerInvisible();
 			}
 
-			offsetForSharpline = ToolController.getSharpLinePosOffset(xSize);
+			offsetForSharpline = PenSettings.getSharpLinePosOffset(xSize);
 			mouseMovedCount = 0;
 			isMouseMoved = false;
 

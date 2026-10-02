@@ -1,5 +1,6 @@
 ﻿package
 {
+    import Modules.Tools.PenSettings;
     import Modules.Tools.ToolPanel;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.Utils;
@@ -180,18 +181,18 @@
                 return;
             }
 
-            var len:int = PenTool.penAlphaList.length;
+            var len:int = PenSettings.penAlphaList.length;
             var key:String = UITheme.ALPHA_BUTTON_PREFIX;
             for (var i:int = 1;i <= len;i++)
             {
-                hints[key + i] = "Opacity " + (PenTool.penAlphaList[i] * 100) + "% [g / b]";
+                hints[key + i] = "Opacity " + (PenSettings.penAlphaList[i] * 100) + "% [g / b]";
             }
 
-            len = PenTool.penSizeList.length;
+            len = PenSettings.penSizeList.length;
             key = UITheme.NSIZE_BUTTON_PREFIX;
             for (i = 1;i <= len;i++)
             {
-                hints[key + i] = "Size " + (PenTool.penSizeList[i]) + "px [f / v, h / n]";
+                hints[key + i] = "Size " + (PenSettings.penSizeList[i]) + "px [f / v, h / n]";
             }
         }
 
@@ -237,7 +238,7 @@
                 return "";
             }
 
-            return PenTool.penSmoothSlideValue + " / " + PenTool.penSmoothSlideTotal;
+            return PenSettings.penSmoothSlideValue + " / " + PenSettings.penSmoothSlideTotal;
         }
 
         static private function getRGBorHSVString():String

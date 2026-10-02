@@ -1,5 +1,6 @@
 package Modules.DrawEngine
 {
+    import Modules.Tools.PenSettings;
     import Modules.Tools.PenTool;
 
     import flash.display.Bitmap;
@@ -27,7 +28,7 @@ package Modules.DrawEngine
 
         public static function extendCanvasDrawLayerClipRect():void
         {
-            var airBrushOffset:Number = (PenTool.airBrushSizeDrawMode > 0) ? PenTool.getClipRectOffsetAirBrush(PenTool.airBrushSizeDrawMode) : 1;
+            var airBrushOffset:Number = (PenSettings.airBrushSizeDrawMode > 0) ? PenTool.getClipRectOffsetAirBrush(PenSettings.airBrushSizeDrawMode) : 1;
             canvasDrawLayerClipRect.x -= airBrushOffset;
             canvasDrawLayerClipRect.y -= airBrushOffset;
             canvasDrawLayerClipRect.width += (airBrushOffset * 2);

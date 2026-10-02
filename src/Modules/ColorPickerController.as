@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.Tools.PenSettings;
     import Modules.Tools.ToolPanel;
     import Modules.Tools.ToolController;
     import Modules.DrawEngine.DrawCanvas;
@@ -476,7 +477,7 @@ package Modules
             if (isPenColorMode())
             {
                 PenTool.penColor = color;
-                ToolPanel.updateOpacityCursorPos(PenTool.penAlphaIndex);
+                ToolPanel.updateOpacityCursorPos(PenSettings.penAlphaIndex);
             }
             else if (isBackgroundColorMode())
             {
@@ -561,7 +562,7 @@ package Modules
             else
             {
                 PenTool.penColor = hexColor;
-                ToolPanel.updateOpacityCursorPos(PenTool.penAlphaIndex);
+                ToolPanel.updateOpacityCursorPos(PenSettings.penAlphaIndex);
                 updateColorPickerCursorPosAndRGBInfo(hexColor);
             }
         }
@@ -633,7 +634,7 @@ package Modules
         private static function updatePenColor(color:uint):void
         {
             PenTool.penColor = color;
-            ToolPanel.updateOpacityCursorPos(PenTool.penAlphaIndex);
+            ToolPanel.updateOpacityCursorPos(PenSettings.penAlphaIndex);
         }
 
         private static function isBackgroundColorMode():Boolean
@@ -800,7 +801,7 @@ package Modules
                 if (isPenColorMode())
                 {
                     PenTool.penColor = pickedColor;
-                    ToolPanel.updateOpacityCursorPos(PenTool.penAlphaIndex);
+                    ToolPanel.updateOpacityCursorPos(PenSettings.penAlphaIndex);
                 }
                 else if (isBackgroundColorMode())
                 {
@@ -1027,7 +1028,7 @@ package Modules
             switch (targetName)
             {
                 case "scratchPad":
-                    colorPickerBox.scratchPad.drawReady(PenTool.penSize, PenTool.penColor, PenTool.penAlpha, PenTool.penIsSquare, pickColor);
+                    colorPickerBox.scratchPad.drawReady(PenSettings.penSize, PenTool.penColor, PenSettings.penAlpha, PenSettings.penIsSquare, pickColor);
                     return true;
 
                 case "svBox":

@@ -163,7 +163,7 @@ package Modules.Tools
             FOFOTimer.addByName("fillColorUpdateTimer", 0.1, true, function ():Boolean
                 {
                     const newXcolor:uint = (PenTool.isTransparentPenColor) ? DrawCanvas.CANVAS_BG_COLOR : ColorPickerController.colorPickerBox.rgbInfoBGColor;
-                    const newXAlpha:Number = PenTool.penAlpha;
+                    const newXAlpha:Number = PenSettings.penAlpha;
                     const newXBlendMode:String = (PenTool.isTransparentPenColor) ? "erase" : null;
 
                     if (newXcolor !== xColor)
@@ -369,7 +369,7 @@ package Modules.Tools
                 data.push(data[1]); // 마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
 
                 StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
-                ReplayState.pushCommand(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), ToolController.isPenAirBrushON, PenTool.airBrushSizeDrawMode]);
+                ReplayState.pushCommand(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), PenSettings.isPenAirBrushON, PenSettings.airBrushSizeDrawMode]);
 
                 showFillColor();
             }
@@ -436,10 +436,10 @@ package Modules.Tools
 
             mouseMoveCount = 0;
             _afterKeyUpOK = false;
-            _pos05Offset = ToolController.getSharpLinePosOffset(1.0);
+            _pos05Offset = PenSettings.getSharpLinePosOffset(1.0);
 
             xColor = (PenTool.isTransparentPenColor) ? DrawCanvas.CANVAS_BG_COLOR : PenTool.penColor;
-            xAlpha = PenTool.penAlpha;
+            xAlpha = PenSettings.penAlpha;
             xBlendMode = (PenTool.isTransparentPenColor) ? "erase" : null;
 
             commandUndoIndexArr[0] = 0;
@@ -447,7 +447,7 @@ package Modules.Tools
 
             updateLastFillPenBoxButtonUsed(fillPenBox.fillPenOK as SimpleButton);
 
-            if (ToolController.isPenAirBrushON || PenTool.isEraserAirBrushON)
+            if (PenSettings.isPenAirBrushON || PenSettings.isEraserAirBrushON)
             {
                 StrokeBuffer.canvasDrawLayerChild.filters = [];
             }
@@ -839,7 +839,7 @@ package Modules.Tools
                 InputManager.startKeyRepeat(true, function (increase:Boolean):void
                     {
                         setPreviewOFFTimerCount();
-                        ToolController.adjustDrawToolAlphaByShortcut(increase);
+                        PenSettings.adjustDrawToolAlphaByShortcut(increase);
                     }, (pressedKey === InputManager.KEY.g) ? true : false);
 
                 if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))

@@ -173,17 +173,17 @@ package Modules.Tools
         {
             const minDist:Number = toolOptionsBox.penSmoothSlider.x + 1; // 펜 리스트에 흰색 선 시작과 끝 x좌표임
             const maxDist:Number = minDist + toolOptionsBox.penSmoothSlider.width - 1;
-            const step:Number = PenTool.penSmoothSlideTotal;
+            const step:Number = PenSettings.penSmoothSlideTotal;
             const div:Number = (maxDist - minDist) / step;
 
             const maxValue:Number = 0.85;
             const minValue:Number = 0.02;
             const stepValue:Number = (maxValue - minValue) / step;
 
-            const airBrushFlag:Boolean = ToolController.isSelectedToolPenOrLine() && ToolController.isPenAirBrushON;
-            const eraseAirBrushFlag:Boolean = ToolController.isSelectedTool(ToolController.TOOL_ERASER) && PenTool.isEraserAirBrushON;
+            const airBrushFlag:Boolean = ToolController.isSelectedToolPenOrLine() && PenSettings.isPenAirBrushON;
+            const eraseAirBrushFlag:Boolean = ToolController.isSelectedTool(ToolController.TOOL_ERASER) && PenSettings.isEraserAirBrushON;
 
-            var oldValue:int = PenTool.penSmoothSlideValue;
+            var oldValue:int = PenSettings.penSmoothSlideValue;
 
             function onMouseUpPenSmoothing(e:MouseEvent):void
             {
@@ -218,14 +218,14 @@ package Modules.Tools
 
                     if (value === 0)
                     {
-                        PenTool.penSmoothValue = 0;
+                        PenSettings.penSmoothValue = 0;
                     }
                     else
                     {
-                        PenTool.penSmoothValue = maxValue - (value * stepValue);
+                        PenSettings.penSmoothValue = maxValue - (value * stepValue);
                     }
 
-                    PenTool.penSmoothSlideValue = value;
+                    PenSettings.penSmoothSlideValue = value;
                     oldValue = value;
                     HintController.showBottomHint(HintStrings.getHintFromTargetName("penSmoothSliderWrapper"));
                 }
@@ -388,7 +388,7 @@ package Modules.Tools
             moveEraserButtonToOtherTool((lineFlag) ? "toolLine" : "toolPen");
             toolBox.moveToolCursor((lineFlag) ? "toolLine" : "toolPen");
             updateToolOptionsTextBySelectedTool();
-            toolOptionsBox.updatePenShapeSet(PenTool.penIsSquare);
+            toolOptionsBox.updatePenShapeSet(PenSettings.penIsSquare);
             enableSizeButtonsIfDisabled();
             toolOptionsBox.enablePenSmoothingSlider();
         }
@@ -404,7 +404,7 @@ package Modules.Tools
             toolBox2.toolEraser.visible = false;
             toolBox.moveToolCursor("toolEraser");
             updateToolOptionsTextBySelectedTool();
-            toolOptionsBox.updatePenShapeSet(PenTool.eraserIsSquare);
+            toolOptionsBox.updatePenShapeSet(PenSettings.eraserIsSquare);
             enableSizeButtonsIfDisabled();
             toolOptionsBox.disablePenSmoothingSlider();
         }
@@ -413,7 +413,7 @@ package Modules.Tools
         public static function showFillPenToolSelected():void
         {
             toolBox.moveToolCursor("toolFillPen");
-            updateOpacityCursorPos(PenTool.penAlphaIndex);
+            updateOpacityCursorPos(PenSettings.penAlphaIndex);
             toolOptionsBox.movePenSizeCursor(1);
             toolOptionsBox.setButtonsAlphaFillPenSelected(UITheme.OFFALPHA);
             moveEraserButtonToOtherTool("toolFillPen");
@@ -450,6 +450,43 @@ package Modules.Tools
             if (toolOptionsBox.isSizeButtonsDisabled())
             {
                 toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
+            }
+        }
+
+        // ---- 펜 설정 표시 (PenSettings가 값을 바꾼 뒤 호출) ----
+
+        public static function movePenSizeCursor(index:uint):void
+        {
+            toolOptionsBox.movePenSizeCursor(index);
+        }
+
+        public static function updatePenShapeSet(isSquare:Boolean):void
+        {
+            toolOptionsBox.updatePenShapeSet(isSquare);
+        }
+
+        public static function updateSharpLineButtons(flag:Boolean):void
+        {
+            toolOptionsBox.sharpLineOFFButton.visible = flag;
+            toolOptionsBox.sharpLineONButton.visible = !flag;
+        }
+
+        public static function updateAirBrushButtons(flag:Boolean):void
+        {
+            toolOptionsBox.airBrushOFFButton.visible = flag;
+            toolOptionsBox.airBrushONButton.visible = !flag;
+        }
+
+        // 에어브러시가 켜지면 크기 버튼 모양을 흐리게 보여줌
+        public static function setBlurShapeSet(on:Boolean):void
+        {
+            if (on)
+            {
+                toolOptionsBox.blurShapeSetON();
+            }
+            else
+            {
+                toolOptionsBox.blurShapeSetOFF();
             }
         }
 
@@ -816,7 +853,7 @@ package Modules.Tools
                         if (!ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
                         {
                             ToolController.selectPenToolIfNotDrawingTool(true);
-                            ToolController.selectPenShapeButton(true);
+                            PenSettings.selectPenShapeButton(true);
                         }
                     }
                     return true;
@@ -825,7 +862,7 @@ package Modules.Tools
                         if (!ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
                         {
                             ToolController.selectPenToolIfNotDrawingTool(true);
-                            ToolController.selectPenShapeButton(false);
+                            PenSettings.selectPenShapeButton(false);
                         }
                     }
                     return true;
@@ -898,7 +935,7 @@ package Modules.Tools
                         if (toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
                         {
                             ToolController.selectPenToolIfNotDrawingTool(true);
-                            ToolController.toggleSharpLine(!ToolController.isSharpLineON);
+                            PenSettings.toggleSharpLine(!PenSettings.isSharpLineON);
                         }
                     }
                     return true;
@@ -913,11 +950,11 @@ package Modules.Tools
 
                             if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
                             {
-                                ToolController.togglePenAirBrushButton(!ToolController.isPenAirBrushON);
+                                PenSettings.togglePenAirBrushButton(!PenSettings.isPenAirBrushON);
                             }
                             else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
                             {
-                                ToolController.toggleEraseAirBrushButton(!PenTool.isEraserAirBrushON);
+                                PenSettings.toggleEraseAirBrushButton(!PenSettings.isEraserAirBrushON);
                             }
                         }
                     }
@@ -930,15 +967,15 @@ package Modules.Tools
         // opabox 버튼을 눌렀을때 즉시 적용하고, 누른채 다른 버튼 위로 끌면 따라서 선택함
         public static function onOpacityButtonDown(targetName:String):void
         {
-            ToolController.setDrawingToolOpacity(targetName);
-            startOptionButtonDrag(toolOptionsBox.opaBox, UITheme.ALPHA_BUTTON_PREFIX, targetName, ToolController.setDrawingToolOpacity);
+            PenSettings.setDrawingToolOpacity(targetName);
+            startOptionButtonDrag(toolOptionsBox.opaBox, UITheme.ALPHA_BUTTON_PREFIX, targetName, PenSettings.setDrawingToolOpacity);
         }
 
         // 펜 크기 버튼을 눌렀을때 즉시 적용하고, 누른채 다른 버튼 위로 끌면 따라서 선택함
         public static function onPenSizeButtonDown(targetName:String):void
         {
-            ToolController.selectPenSizeButton(targetName);
-            startOptionButtonDrag(toolOptionsBox.penSizeBox, UITheme.NSIZE_BUTTON_PREFIX, targetName, ToolController.selectPenSizeButton);
+            PenSettings.selectPenSizeButton(targetName);
+            startOptionButtonDrag(toolOptionsBox.penSizeBox, UITheme.NSIZE_BUTTON_PREFIX, targetName, PenSettings.selectPenSizeButton);
         }
 
         private static var isOptionButtonDragging:Boolean = false;

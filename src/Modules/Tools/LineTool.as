@@ -255,7 +255,7 @@ package Modules.Tools
                 drawLine();
                 hasLineTouchedCanvas = false;
                 UndoHistory.canAddUndoData = true;
-                ReplayState.pushCommand(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenTool.airBrushSizeDrawMode]);
+                ReplayState.pushCommand(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenSettings.airBrushSizeDrawMode]);
             }
 
             StrokeBuffer.resetCanvasDrawLayerClipRect();
@@ -320,9 +320,9 @@ package Modules.Tools
 
                 canvasWidth = DrawCanvas.CANVAS_WIDTH;
                 canvasHeight = DrawCanvas.CANVAS_HEIGHT;
-                xSize = PenTool.penSize;
-                xAlpha = PenTool.penAlpha;
-                xShape = PenTool.penIsSquare;
+                xSize = PenSettings.penSize;
+                xAlpha = PenSettings.penAlpha;
+                xShape = PenSettings.penIsSquare;
 
                 if (PenTool.isTransparentPenColor)
                 {

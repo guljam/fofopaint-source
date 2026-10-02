@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.Tools.PenSettings;
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
@@ -35,9 +36,9 @@ package Modules
 
             UndoHistory.canAddUndoData = false;
 
-            if (PenTool.airBrushSizeDrawMode > 0)
+            if (PenSettings.airBrushSizeDrawMode > 0)
             {
-                const blurSize:Number = PenTool.getBlurSize(PenTool.airBrushSizeDrawMode, 1.0);
+                const blurSize:Number = PenTool.getBlurSize(PenSettings.airBrushSizeDrawMode, 1.0);
                 StrokeBuffer.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
                 StrokeBuffer.canvasDrawLayerBitmapData.draw(StrokeBuffer.canvasDrawLayerChild);
                 StrokeBuffer.canvasDrawLayerChild.filters = [];
@@ -54,7 +55,7 @@ package Modules
 
             if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
             {
-                drawLayerAlpha.alphaMultiplier = PenTool.penAlpha;
+                drawLayerAlpha.alphaMultiplier = PenSettings.penAlpha;
 
                 if (CanvasLayers.isLayer2Selected)
                 {
@@ -67,7 +68,7 @@ package Modules
             }
             else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
             {
-                drawLayerAlpha.alphaMultiplier = PenTool.eraserAlpha;
+                drawLayerAlpha.alphaMultiplier = PenSettings.eraserAlpha;
 
                 if (CanvasLayers.isLayer2Selected)
                 {

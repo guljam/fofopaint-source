@@ -1,5 +1,6 @@
 package Modules.InputManager
 {
+    import Modules.Tools.PenSettings;
     import Modules.Tools.ToolPanel;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
@@ -633,7 +634,7 @@ package Modules.InputManager
                     {
                         if (ToolPanel.toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
                         {
-                            ToolController.toggleSharpLineByShortcut();
+                            PenSettings.toggleSharpLineByShortcut();
                         }
                     }
                     return true;
@@ -642,11 +643,11 @@ package Modules.InputManager
                     {
                         if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
                         {
-                            ToolController.togglePenAirBrushButtonShortCut();
+                            PenSettings.togglePenAirBrushButtonShortCut();
                         }
                         else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
                         {
-                            ToolController.toggleEraseAirBrushButtonShortCut();
+                            PenSettings.toggleEraseAirBrushButtonShortCut();
                         }
                     }
                     return true;
@@ -985,7 +986,7 @@ package Modules.InputManager
             {
                 if (ToolPanel.toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
                 {
-                    ToolController.toggleSharpLineByShortcut();
+                    PenSettings.toggleSharpLineByShortcut();
                 }
                 return true;
             }
@@ -993,12 +994,12 @@ package Modules.InputManager
             {
                 if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
                 {
-                    ToolController.togglePenAirBrushButtonShortCut();
+                    PenSettings.togglePenAirBrushButtonShortCut();
                     return true;
                 }
                 else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
                 {
-                    ToolController.toggleEraseAirBrushButtonShortCut();
+                    PenSettings.toggleEraseAirBrushButtonShortCut();
                     return true;
                 }
             }
@@ -1011,17 +1012,17 @@ package Modules.InputManager
             {
                 case InputManager.KEY.f:
                 case InputManager.KEY.h:
-                    InputManager.startKeyRepeat(true, ToolController.adjustDrawToolSizeByShortcut, true);
+                    InputManager.startKeyRepeat(true, PenSettings.adjustDrawToolSizeByShortcut, true);
                     return true;
                 case InputManager.KEY.v:
                 case InputManager.KEY.n:
-                    InputManager.startKeyRepeat(true, ToolController.adjustDrawToolSizeByShortcut, false);
+                    InputManager.startKeyRepeat(true, PenSettings.adjustDrawToolSizeByShortcut, false);
                     return true;
                 case InputManager.KEY.g:
-                    InputManager.startKeyRepeat(true, ToolController.adjustDrawToolAlphaByShortcut, true);
+                    InputManager.startKeyRepeat(true, PenSettings.adjustDrawToolAlphaByShortcut, true);
                     return true;
                 case InputManager.KEY.b:
-                    InputManager.startKeyRepeat(true, ToolController.adjustDrawToolAlphaByShortcut, false);
+                    InputManager.startKeyRepeat(true, PenSettings.adjustDrawToolAlphaByShortcut, false);
                     return true;
             }
             return false;

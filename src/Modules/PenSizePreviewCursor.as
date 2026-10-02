@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.Tools.PenSettings;
     import Modules.Tools.ToolController;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.CanvasResizer;
@@ -19,8 +20,8 @@ package Modules
         }
 
         private static const _cursor:Shape = new Shape(); // 펜사이즈 미리 보기
-        private static var _cursorSize:Number = PenTool.penSize;
-        private static var _cursorShape:Boolean = PenTool.penIsSquare;
+        private static var _cursorSize:Number = PenSettings.penSize;
+        private static var _cursorShape:Boolean = PenSettings.penIsSquare;
         private static var cursorSize:Number = 3.0;
         private static var isPenSizeCursorInvisible:Boolean = false; // 펜 커서가 보이지 않게 설정
 
@@ -88,11 +89,11 @@ package Modules
         {
             if (ToolController.isSelectedToolPenOrLine())
             {
-                cursorSize = PenTool.penSize * CanvasView.canvasZoomMultiplier;
+                cursorSize = PenSettings.penSize * CanvasView.canvasZoomMultiplier;
             }
             else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
             {
-                cursorSize = PenTool.eraserSize * CanvasView.canvasZoomMultiplier;
+                cursorSize = PenSettings.eraserSize * CanvasView.canvasZoomMultiplier;
             }
             else
             {
@@ -136,13 +137,13 @@ package Modules
             }
             if (isPenTool)
             {
-                _cursorSize = PenTool.penSize;
-                _cursorShape = PenTool.penIsSquare;
+                _cursorSize = PenSettings.penSize;
+                _cursorShape = PenSettings.penIsSquare;
             }
             else
             {
-                _cursorSize = PenTool.eraserSize;
-                _cursorShape = PenTool.eraserIsSquare;
+                _cursorSize = PenSettings.eraserSize;
+                _cursorShape = PenSettings.eraserIsSquare;
             }
             const z:Number = CanvasView.canvasZoomMultiplier;
             if (_cursorSize * z === PenTool.penLastSizeAndShape[0] && _cursorShape === PenTool.penLastSizeAndShape[1])
