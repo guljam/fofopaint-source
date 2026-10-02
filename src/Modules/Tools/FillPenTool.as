@@ -24,6 +24,7 @@ package Modules.Tools
     import flash.display.DisplayObject;
     import Symbols.FillPenMenuSet;
     import flash.geom.Rectangle;
+    import flash.filters.BlurFilter;
     import Modules.ReplayEngine.ReplayState;
 
     public class FillPenTool
@@ -51,6 +52,8 @@ package Modules.Tools
         private static var xColor:uint;
         private static var xAlpha:Number;
         private static var xBlendMode:String;
+        private static var xAirBrushSize:int; // 미리보기에 적용된 블러 크기와 줌 배율
+        private static var xZoom:Number;
 
         private static var mouseMoveCount:int;
         private static var _afterKeyUpOK:Boolean = false; // 단축키를 떼고 나서 마우스 키를 땠을때 적용해주는 플래그
@@ -189,6 +192,14 @@ package Modules.Tools
                         showFillColor();
                     }
 
+                    // 에어브러시 켜기/끄기와 크기 변경은 색상 변경처럼 채운 미리보기를 보여줌
+                    // 줌은 블러가 걸린 미리보기가 보이는 중일때만 다시 맞춤
+                    if (PenSettings.airBrushSizeDrawMode !== xAirBrushSize
+                            || (CanvasView.canvasZoomMultiplier !== xZoom && StrokeBuffer.canvasDrawLayerChild.filters.length > 0))
+                    {
+                        showFillColor();
+                    }
+
                     if (!SidebarController.sideBar.visible)
                     {
                         showDottedLine();
@@ -281,11 +292,31 @@ package Modules.Tools
             StrokeBuffer.canvasDrawLayerChild.graphics.lineTo(data[0], data[1]);
 
             StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
+            showBlurPreview();
+        }
+
+        // 에어브러시가 켜져 있으면 채운 미리보기에도 OK할 때와 같은 블러를 보여줌 (점선 미리보기에는 적용하지 않음)
+        // 필터는 줌 배율에 따라 커지지 않으므로 화면 기준 크기로 맞춰줌, OK할 때는 DrawingFinish가 1배율로 다시 적용함
+        private static function showBlurPreview():void
+        {
+            xAirBrushSize = PenSettings.airBrushSizeDrawMode;
+            xZoom = CanvasView.canvasZoomMultiplier;
+
+            if (xAirBrushSize > 0)
+            {
+                const blurSize:Number = PenTool.getBlurSize(xAirBrushSize, xZoom);
+                StrokeBuffer.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
+            }
+            else
+            {
+                StrokeBuffer.canvasDrawLayerChild.filters = [];
+            }
         }
 
         private static function showDottedLine():void
         {
             StrokeBuffer.canvasDrawLayerChild.graphics.clear();
+            StrokeBuffer.canvasDrawLayerChild.filters = [];
 
             const len:uint = data.length;
 
@@ -325,6 +356,7 @@ package Modules.Tools
             commandUndoIndexArr = [];
 
             StrokeBuffer.canvasDrawLayerChild.graphics.clear();
+            StrokeBuffer.canvasDrawLayerChild.filters = [];
 
             if (ReferenceLayerController.isRefLayerMenuON)
             {
@@ -346,7 +378,7 @@ package Modules.Tools
             }
 
             ToolPanel.toolBox.setFillPenModeOFF();
-            ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(UITheme.OFFALPHA);
+            ToolPanel.updateFillPenOptions();
             ToolPanel.toolOptionsBox.restoreDisabledButtons();
 
             ColorPickerController.colorPickerBox.activePaperColorButton(false);
@@ -444,6 +476,8 @@ package Modules.Tools
             xColor = (PenTool.isTransparentPenColor) ? DrawCanvas.CANVAS_BG_COLOR : PenTool.penColor;
             xAlpha = PenSettings.penAlpha;
             xBlendMode = (PenTool.isTransparentPenColor) ? "erase" : null;
+            xAirBrushSize = PenSettings.airBrushSizeDrawMode;
+            xZoom = CanvasView.canvasZoomMultiplier;
 
             commandUndoIndexArr[0] = 0;
             clickedButtonName = null;
@@ -487,6 +521,7 @@ package Modules.Tools
 
             ToolPanel.toolBox.setFillPenModeON();
             ToolPanel.toolOptionsBox.disableButtonFillPenStarted();
+            ToolPanel.updateFillPenOptions(); // 진행 중에는 크기 버튼도 흐리게 함
             ColorPickerController.colorPickerBox.setFillPenModeON();
 
             addEventsFillPen();
@@ -574,6 +609,16 @@ package Modules.Tools
                     return;
                 }
 
+                // 에어브러시가 켜져 있을때만 크기(번짐 정도)를 바꿈. 블러는 OK할 때 적용함
+                if (targetName.indexOf(UITheme.NSIZE_BUTTON_PREFIX) == 0)
+                {
+                    if (PenSettings.isFillPenSizeChangeable())
+                    {
+                        ToolPanel.onPenSizeButtonDown(targetName);
+                    }
+                    return;
+                }
+
                 switch (targetName)
                 {
                     case "toolRotate":
@@ -600,6 +645,16 @@ package Modules.Tools
                     case "toolZoomOut":
                         {
                             ToolPanel.handleToolBoxClick(targetName);
+                        }
+                        return;
+
+                    // 블러는 OK할 때 적용하므로 진행 중에도 켜고 끌 수 있음 (크기 버튼은 진행 중에 바꾸지 않음)
+                    case "airBrushButtonWrapper":
+                    case "airBrushOFFButton":
+                    case "airBrushONButton":
+                    case "airBrushText":
+                        {
+                            PenSettings.togglePenAirBrushButton(!PenSettings.isPenAirBrushON);
                         }
                         return;
 
@@ -834,6 +889,33 @@ package Modules.Tools
                     {
                         startFillColorUpdateTimer();
                     }
+                }
+            }
+            else if (pressedKey === InputManager.KEY.n4 || pressedKey === InputManager.KEY.n7)
+            {
+                InputManager.updateLastKey();
+                setPreviewOFFTimerCount();
+                PenSettings.togglePenAirBrushButtonShortCut();
+
+                if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))
+                {
+                    startFillColorUpdateTimer();
+                }
+            }
+            else if ((pressedKey === InputManager.KEY.f || pressedKey === InputManager.KEY.h
+                    || pressedKey === InputManager.KEY.v || pressedKey === InputManager.KEY.n)
+                    && PenSettings.isFillPenSizeChangeable())
+            {
+                InputManager.updateLastKey();
+                InputManager.startKeyRepeat(true, function (increase:Boolean):void
+                    {
+                        setPreviewOFFTimerCount();
+                        PenSettings.adjustDrawToolSizeByShortcut(increase);
+                    }, (pressedKey === InputManager.KEY.f || pressedKey === InputManager.KEY.h));
+
+                if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))
+                {
+                    startFillColorUpdateTimer();
                 }
             }
             else if (pressedKey === InputManager.KEY.g || pressedKey === InputManager.KEY.b)

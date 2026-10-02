@@ -48,6 +48,7 @@ package Modules.Tools
         public static var isToolBox2Showing:Boolean = false; // 툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
         public static var selectedToolViewBitmap:Bitmap = new Bitmap();
         public static var lastEraserPosButton:SimpleButton = null; // 지우개 툴이 이동한 버튼 저장; 복원용
+        private static var isFillPenOptionsShown:Boolean = false; // 채우기 펜 선택으로 크기/모양 버튼을 흐리게 한 상태, 다른 도구를 고르면 되돌림
 
         public static function addHintEventToolBox2():void
         {
@@ -409,15 +410,35 @@ package Modules.Tools
             toolOptionsBox.disablePenSmoothingSlider();
         }
 
-        // 채우기 펜은 크기 버튼을 쓰지 않으므로 크기 커서를 1에 두고 크기/모양 버튼을 흐리게 함
         public static function showFillPenToolSelected():void
         {
             toolBox.moveToolCursor("toolFillPen");
             updateOpacityCursorPos(PenSettings.penAlphaIndex);
-            toolOptionsBox.movePenSizeCursor(1);
-            toolOptionsBox.setButtonsAlphaFillPenSelected(UITheme.OFFALPHA);
+            updateFillPenOptions();
             moveEraserButtonToOtherTool("toolFillPen");
             updateToolOptionsTextBySelectedTool();
+        }
+
+        // 채우기 펜이 선택돼 있는 동안 크기/모양 버튼 표시를 맞춤
+        // 에어브러시가 켜져 있으면 크기 가이드/아이콘/커서를 켬 (에어브러시 번짐 크기), 나머지는 항상 흐리게 함
+        // 에어브러시를 끄면 크기 커서를 1에 둠
+        public static function updateFillPenOptions():void
+        {
+            if (!ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+            {
+                return;
+            }
+
+            isFillPenOptionsShown = true;
+
+            toolOptionsBox.setButtonsAlphaFillPenSelected(UITheme.OFFALPHA);
+
+            if (PenSettings.isPenAirBrushON)
+            {
+                toolOptionsBox.setSizeButtonsAlpha(1.0);
+            }
+
+            toolOptionsBox.movePenSizeCursor((PenSettings.isPenAirBrushON) ? PenSettings.fillPenSizeIndex : 1);
         }
 
         // 펜 옵션을 쓰지 않는 도구(이동, 줌, 회전, 올가미). cursorParent는 커서를 옮길 버튼이 있는 박스 (null이면 툴박스)
@@ -427,6 +448,11 @@ package Modules.Tools
             if (moveEraserButton)
             {
                 moveEraserButtonToOtherTool(buttonName);
+            }
+            if (isFillPenOptionsShown)
+            {
+                // 채우기 펜 크기 표시를 남기지 않고 원래 펜 크기로 되돌림
+                toolOptionsBox.movePenSizeCursor(PenSettings.penSizeIndex);
             }
             enableSizeButtonsIfDisabled();
             toolOptionsBox.enablePenSmoothingSlider();
@@ -447,8 +473,9 @@ package Modules.Tools
         // 채우기 펜에서 흐리게 했던 크기/모양 버튼을 되돌림
         private static function enableSizeButtonsIfDisabled():void
         {
-            if (toolOptionsBox.isSizeButtonsDisabled())
+            if (isFillPenOptionsShown)
             {
+                isFillPenOptionsShown = false;
                 toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
         }
@@ -475,6 +502,7 @@ package Modules.Tools
         {
             toolOptionsBox.airBrushOFFButton.visible = flag;
             toolOptionsBox.airBrushONButton.visible = !flag;
+            updateFillPenOptions(); // 채우기 펜이면 에어브러시 여부에 따라 크기 버튼을 켜고 끔
         }
 
         // 에어브러시가 켜지면 크기 버튼 모양을 흐리게 보여줌
@@ -826,7 +854,14 @@ package Modules.Tools
 
             if (targetName.indexOf(UITheme.NSIZE_BUTTON_PREFIX) == 0)
             {
-                if (!ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+                if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+                {
+                    if (PenSettings.isFillPenSizeChangeable())
+                    {
+                        onPenSizeButtonDown(targetName);
+                    }
+                }
+                else
                 {
                     ToolController.selectPenToolIfNotDrawingTool(true);
                     onPenSizeButtonDown(targetName);

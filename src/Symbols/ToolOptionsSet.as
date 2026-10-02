@@ -116,14 +116,14 @@
 			layerInvisibledLine.visible = true;
 		}
 
-		public function isSizeButtonsDisabled():Boolean
-		{
-			return penSizeGuide.alpha < 1.0;
-		}
-
 		public function restoreDisabledButtons():void
 		{
 			etcOptionWrapper.alpha = 1.0;
+			infoFillPenOptions.alpha = 1.0;
+			layerButtonWrapper.alpha = 1.0;
+			sharpLineButtonWrapper.alpha = 1.0;
+			penShapeAndSmoothingWarpper.alpha = 1.0;
+			etcOptionBorder.alpha = 1.0;
 		}
 
 		public function enablePenSmoothingSlider():void
@@ -138,17 +138,28 @@
 
 		public function disableButtonFillPenStarted():void
 		{
+			// 에어브러시 버튼은 진행 중에도 상태를 볼 수 있게 etcOptionWrapper 전체가 아니라 나머지만 흐리게 함
 			const offAlpha:Number = UITheme.OFFALPHA;
-			etcOptionWrapper.alpha = offAlpha;
+			infoFillPenOptions.alpha = offAlpha;
+			layerButtonWrapper.alpha = offAlpha;
+			sharpLineButtonWrapper.alpha = offAlpha;
+			penShapeAndSmoothingWarpper.alpha = offAlpha;
+			etcOptionBorder.alpha = offAlpha;
 		}
 
-		public function setButtonsAlphaFillPenSelected(alpha:Number):void
+		// 크기 가이드(격자틀), 크기 모양 아이콘, 선택 커서
+		public function setSizeButtonsAlpha(alpha:Number):void
 		{
 			penSizeGuide.alpha = alpha;
 			penSizeBox.alpha = alpha;
 			penSizeSelectCursor.alpha = alpha;
 			rectSizeSet.alpha = alpha;
 			circleSizeSet.alpha = alpha;
+		}
+
+		public function setButtonsAlphaFillPenSelected(alpha:Number):void
+		{
+			setSizeButtonsAlpha(alpha);
 			shapeRect.alpha = alpha;
 			shapeCircle.alpha = alpha;
 			penSmoothSliderWrapper.alpha = alpha;

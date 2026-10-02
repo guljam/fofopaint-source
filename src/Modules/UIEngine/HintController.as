@@ -8,6 +8,7 @@ package Modules.UIEngine
     import Modules.CaptureEngine.CaptureController;
     import Modules.ColorPickerController;
     import Modules.Tools.FillPenTool;
+    import Modules.Tools.PenSettings;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayState;
     import Modules.SidebarController;
@@ -142,7 +143,9 @@ package Modules.UIEngine
                             || UIController.canvasInfoBox.contains(target)
                             || ColorPickerController.colorPickerBox.contains(target))
                         || target === SidebarController.sideBarScrollBar
-                        || (targetName && targetName.indexOf(UITheme.ALPHA_BUTTON_PREFIX) !== -1))
+                        || (targetName && targetName.indexOf(UITheme.ALPHA_BUTTON_PREFIX) !== -1)
+                        || (FillPenTool.isStarted && PenSettings.isFillPenSizeChangeable() && targetName && targetName.indexOf(UITheme.NSIZE_BUTTON_PREFIX) !== -1)
+                        || (FillPenTool.isStarted && target === ToolPanel.toolOptionsBox.airBrushButtonWrapper))
                 {
                     return true;
                 }
@@ -153,7 +156,7 @@ package Modules.UIEngine
             }
             else if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
             {
-                if ((targetName && targetName.indexOf(UITheme.NSIZE_BUTTON_PREFIX) !== -1) || target.alpha < 0.5)
+                if ((targetName && targetName.indexOf(UITheme.NSIZE_BUTTON_PREFIX) !== -1 && !PenSettings.isFillPenSizeChangeable()) || target.alpha < 0.5)
                 {
                     return false;
                 }
