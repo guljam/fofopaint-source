@@ -349,6 +349,8 @@ package Modules.ReplayEngine
             return f.exists ? f.size : 0;
         }
 
+        //todo 아마 디버그할때 제대로 저장안하고 바로 컴파일해서 앱켜서 그런것같은데 런타임에서는 이런밀이 없을거임 하지만 이 함수가 실행될때 무한히 멈추는 버그가 있어서
+        //한테 물어봐야함
         private static function rebuild():void
         {
             groupFrames.length = 0;
