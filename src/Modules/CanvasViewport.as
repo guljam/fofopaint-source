@@ -5,10 +5,12 @@ package Modules
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
     import Modules.UIEngine.UIController;
+    import Modules.UIEngine.UITheme;
 
     import flash.display.Bitmap;
     import flash.display.Sprite;
     import flash.geom.Point;
+    import flash.geom.Rectangle;
 
     // 캔버스 하나(드로우 또는 리플레이)의 화면 배치: 앵커 이동, 배율, 가운데 정렬, 화면 안으로 끌어오기
     // 드로우는 DrawViewport(CanvasView.viewport), 리플레이는 ReplayViewport(ReplayDrawer.viewport)가 모드별 값과 동작을 재정의함
@@ -175,6 +177,69 @@ package Modules
                 xAnc.y += topLimit - bottom;
             else if (top > bottomLimit)
                 xAnc.y -= top - bottomLimit;
+        }
+
+        // 리플레이/캡처 모드에서 캔버스를 창 여백 안에 맞춤 (fitting이면 1배보다 크게도 맞춤). 현재 보이는 캔버스의 viewport에 호출
+        public function fitToViewportMargin(fitting:Boolean = false):void
+        {
+            if (!ReplayState.isReplayModeON && !CaptureController.isCaptureModeON)
+            {
+                return;
+            }
+            const uiscale:Number = UITheme.getUIScale();
+            const offsetX:Number = 44 + UIController.STAGE_LEFT_OFFSET + UIController.STAGE_RIGHT_OFFSET;
+            const offsetY:Number = (CaptureController.isCaptureModeON) ? (UIController.topBar.BARSIZE) * uiscale + 42 * uiscale : (UIController.topBar.BARSIZE) * uiscale + 42 * uiscale;
+            const stw:int = main.stage.stageWidth - offsetX;
+            const sth:int = main.stage.stageHeight - offsetY - UIController.STAGE_BOTTOM_OFFSET;
+            var fitWidth:Number = canvasWidth;
+            var fitHeight:Number = canvasHeight;
+            if (ReplayState.isReplayModeON && fitting)
+            {
+                anchor.scaleX = 1.0;
+                anchor.scaleY = 1.0; // 크기를 원래대로 해놓고 해야 길이 측정이 됨
+                const b:Rectangle = layer1Bitmap.getBounds(main.stage);
+                fitWidth = b.right - b.left;
+                fitHeight = b.bottom - b.top;
+            }
+            if (CaptureController.isCaptureModeON)
+            {
+                if (CaptureController.captureCanvasRotationStep === 1 || CaptureController.captureCanvasRotationStep === 3)
+                {
+                    const widthSave:Number = fitWidth;
+                    fitWidth = fitHeight;
+                    fitHeight = widthSave;
+                }
+            }
+            const scaleW:Number = stw / fitWidth;
+            const scaleH:Number = sth / fitHeight;
+            var scale:Number = Math.min(scaleW, scaleH);
+            if (!fitting && scale > 1.0)
+            {
+                scale = 1.0;
+            }
+            if (CaptureController.isCaptureModeON)
+            {
+                anchor.rotation = 90 * CaptureController.captureCanvasRotationStep;
+            }
+            if (ReplayState.isReplayModeON && !ReplayState.isReplayCanvasFitToWindow)
+            {
+                ReplayState.isReplayFinishedWithFiwWindow = true;
+            }
+            if (CaptureController.isCaptureModeON)
+            {
+                setScale(scale);
+                centerIn("capture");
+            }
+            else if (ReplayState.isReplayModeON)
+            {
+                setScale(scale);
+                centerIn("replay");
+            }
+            if (!fitting || ReplayState.isReplayFinished)
+            {
+                layer1Bitmap.smoothing = true;
+                layer2Bitmap.smoothing = true;
+            }
         }
 
         // 캔버스 정 가운데로. mode("draw"/"replay"/"capture")는 화면 중심 좌표를 구하는 기준

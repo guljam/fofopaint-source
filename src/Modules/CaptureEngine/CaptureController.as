@@ -312,7 +312,7 @@ package Modules.CaptureEngine
         public static function flipCaptureImage(flag:Boolean, initFlag:Boolean):void
         {
             _isCaptureCanvasFlipped = flag;
-            CanvasView.fitCanvasToViewportMargin();
+            CanvasViewport.current().fitToViewportMargin();
             const xAnc:Sprite = CanvasViewport.current().anchor;
 
             if (_captureCanvasRotationStep === 1)
@@ -394,7 +394,7 @@ package Modules.CaptureEngine
             }
             _captureCanvasRotationStep = rotateValue;
 
-            CanvasView.fitCanvasToViewportMargin();
+            CanvasViewport.current().fitToViewportMargin();
             UIController.topBar.capClipBoard.alpha = 1.0;
             if (!initFlag)
             {
@@ -486,7 +486,7 @@ package Modules.CaptureEngine
             UIController.topBar.capClipBoard.alpha = 1.0;
             _captureCanvasRotationStep = 0;
             _isCaptureCanvasFlipped = false;
-            CanvasView.fitCanvasToViewportMargin();
+            CanvasViewport.current().fitToViewportMargin();
             applyTransparentCanvasBGCaptureMode(false);
             CaptureStamp.init();
 

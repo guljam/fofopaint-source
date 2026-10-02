@@ -1,5 +1,6 @@
 package Modules.ReplayEngine
 {
+    import Modules.CanvasViewport;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
@@ -2029,7 +2030,7 @@ package Modules.ReplayEngine
         {
             FOFOTimer.addByName("rFitZoomedDelayTimer", 0.15, false, function ():void
                 {
-                    CanvasView.fitCanvasToViewportMargin(true);
+                    CanvasViewport.current().fitToViewportMargin(true);
                     ReplayState.rCanvasZoomIndex = CanvasView.getNearZoomIndex(ReplayState.rCanvasZoomMultiplier);
                     ReplayState.rCanvasZoomMultiplier = CanvasView.canvasZoomMultiplierList[ReplayState.rCanvasZoomIndex];
                 });
@@ -2076,7 +2077,7 @@ package Modules.ReplayEngine
 
         private static function replayCompleteEffect():void
         {
-            CanvasView.fitCanvasToViewportMargin(ReplayState.isReplayCanvasFitToWindow);
+            CanvasViewport.current().fitToViewportMargin(ReplayState.isReplayCanvasFitToWindow);
             CanvasView.applyCanvasFlashEffect(ReplayDrawer.rCanvasPanel, 0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT, function ():Boolean
                 {
                     return UIController.topBar.visible;

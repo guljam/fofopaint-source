@@ -1,5 +1,6 @@
 package Modules.UIEngine
 {
+    import Modules.CanvasViewport;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.AboutBoxController;
@@ -256,7 +257,7 @@ package Modules.UIEngine
             if (CaptureController.isCaptureModeON)
             {
                 CaptureController.addCaptureWindowMove(dx, dy);
-                CanvasView.fitCanvasToViewportMargin();
+                CanvasViewport.current().fitToViewportMargin();
 
                 if (!CaptureController.isFullImageCapture())
                 {

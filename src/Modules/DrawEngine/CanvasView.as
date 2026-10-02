@@ -1,8 +1,6 @@
 package Modules.DrawEngine
 {
     import Modules.CanvasGridOverlay;
-    import Modules.CanvasViewport;
-    import Modules.CaptureEngine.CaptureController;
     import Modules.ColorPickerController;
     import Modules.FileManager;
     import Modules.ImageViewWindow;
@@ -16,7 +14,6 @@ package Modules.DrawEngine
     import Modules.Tools.ZoomTool;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.UIController;
-    import Modules.UIEngine.UITheme;
     import Modules.Utils;
 
     import flash.display.DisplayObjectContainer;
@@ -220,69 +217,6 @@ package Modules.DrawEngine
             main.stage.addChild(PenSizePreviewCursor.getCursorShape());
             main.stage.setChildIndex(canvasAnchorPoint, 0);
             main.stage.setChildIndex(UIController.stageBG, 0);
-        }
-
-        public static function fitCanvasToViewportMargin(fitting:Boolean = false):void
-        {
-            if (!ReplayState.isReplayModeON && !CaptureController.isCaptureModeON)
-            {
-                return;
-            }
-            const uiscale:Number = UITheme.getUIScale();
-            const offsetX:Number = 44 + UIController.STAGE_LEFT_OFFSET + UIController.STAGE_RIGHT_OFFSET;
-            const offsetY:Number = (CaptureController.isCaptureModeON) ? (UIController.topBar.BARSIZE) * uiscale + 42 * uiscale : (UIController.topBar.BARSIZE) * uiscale + 42 * uiscale;
-            const stw:int = main.stage.stageWidth - offsetX;
-            const sth:int = main.stage.stageHeight - offsetY - UIController.STAGE_BOTTOM_OFFSET;
-            const view:CanvasViewport = CanvasViewport.current();
-            var canvasWidth:Number = view.canvasWidth;
-            var canvasHeight:Number = view.canvasHeight;
-            if (ReplayState.isReplayModeON && fitting)
-            {
-                view.anchor.scaleX = 1.0;
-                view.anchor.scaleY = 1.0; // 크기를 원래대로 해놓고 해야 길이 측정이 됨
-                const b:Rectangle = view.layer1Bitmap.getBounds(main.stage);
-                canvasWidth = b.right - b.left;
-                canvasHeight = b.bottom - b.top;
-            }
-            if (CaptureController.isCaptureModeON)
-            {
-                if (CaptureController.captureCanvasRotationStep === 1 || CaptureController.captureCanvasRotationStep === 3)
-                {
-                    const widthSave:Number = canvasWidth;
-                    canvasWidth = canvasHeight;
-                    canvasHeight = widthSave;
-                }
-            }
-            const scaleW:Number = stw / canvasWidth;
-            const scaleH:Number = sth / canvasHeight;
-            var scale:Number = Math.min(scaleW, scaleH);
-            if (!fitting && scale > 1.0)
-            {
-                scale = 1.0;
-            }
-            if (CaptureController.isCaptureModeON)
-            {
-                view.anchor.rotation = 90 * CaptureController.captureCanvasRotationStep;
-            }
-            if (ReplayState.isReplayModeON && !ReplayState.isReplayCanvasFitToWindow)
-            {
-                ReplayState.isReplayFinishedWithFiwWindow = true;
-            }
-            if (CaptureController.isCaptureModeON)
-            {
-                view.setScale(scale);
-                view.centerIn("capture");
-            }
-            else if (ReplayState.isReplayModeON)
-            {
-                view.setScale(scale);
-                view.centerIn("replay");
-            }
-            if (!fitting || ReplayState.isReplayFinished)
-            {
-                view.layer1Bitmap.smoothing = true;
-                view.layer2Bitmap.smoothing = true;
-            }
         }
 
         public static function updateCanvasPanelColorAndSize():void
