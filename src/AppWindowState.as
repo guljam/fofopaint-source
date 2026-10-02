@@ -1,5 +1,6 @@
 package
 {
+    import Modules.Tools.ToolPanel;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
@@ -86,9 +87,9 @@ package
             InputManager.clearKeyBuffer();
             InputManager.removeKeyRepeatEvents(null);
             FOFOTimer.remove("pressholdtimer");
-            if (ToolController.isToolBox2Showing)
+            if (ToolPanel.isToolBox2Showing)
             {
-                ToolController.closeToolBox2();
+                ToolPanel.closeToolBox2();
             }
             if (!SidebarController.isSidebarVisible)
             {

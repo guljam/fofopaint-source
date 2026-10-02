@@ -1,5 +1,6 @@
 package Modules.DrawEngine
 {
+    import Modules.Tools.ToolPanel;
     import Modules.Tools.ToolController;
     import Modules.UndoController;
     import Modules.UndoHistory;
@@ -30,12 +31,12 @@ package Modules.DrawEngine
         public static function toggleLayer1Check():void
         {
             checkedLayer = (checkedLayer === 1) ? 0 : 1;
-            ToolController.updateLayerCheckButtons();
+            ToolPanel.updateLayerCheckButtons();
         }
         public static function toggleLayer2Check():void
         {
             checkedLayer = (checkedLayer === 2) ? 0 : 2;
-            ToolController.updateLayerCheckButtons();
+            ToolPanel.updateLayerCheckButtons();
         }
 
         public static function mergeImageIntoLayer2():void
@@ -55,12 +56,12 @@ package Modules.DrawEngine
                 ReplayState.pushCommand(["merge"]);
                 UndoHistory.addNew();
             }
-            ToolController.setLayerMergeButtonEnabled(false);
+            ToolPanel.setLayerMergeButtonEnabled(false);
         }
 
         public static function swapLayer():void
         {
-            if (!ToolController.isLayerSwapButtonReady())
+            if (!ToolPanel.isLayerSwapButtonReady())
             {
                 return;
             }
@@ -89,7 +90,7 @@ package Modules.DrawEngine
                 ReplayState.pushCommand(["swap"]);
                 UndoHistory.addNew();
             }
-            ToolController.flickLayerSwapButton();
+            ToolPanel.flickLayerSwapButton();
         }
 
         public static function isToolEnabledByLayerUnChecked():Boolean
@@ -125,7 +126,7 @@ package Modules.DrawEngine
                 DrawCanvas.canvasLayer1Bitmap.visible = true;
                 DrawCanvas.canvasLayer2Bitmap.visible = true;
             }
-            ToolController.updateLayerSelectButtons(1, onlyViewFlag);
+            ToolPanel.updateLayerSelectButtons(1, onlyViewFlag);
             bringCanvasDrawLayerAboveLayer1();
         }
         public static function selectLayer2(onlyViewFlag:Boolean):void
@@ -141,7 +142,7 @@ package Modules.DrawEngine
                 DrawCanvas.canvasLayer1Bitmap.visible = true;
                 DrawCanvas.canvasLayer2Bitmap.visible = true;
             }
-            ToolController.updateLayerSelectButtons(2, onlyViewFlag);
+            ToolPanel.updateLayerSelectButtons(2, onlyViewFlag);
             bringCanvasDrawLayerAboveLayer2();
         }
     }

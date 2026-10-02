@@ -1,5 +1,6 @@
 package Modules.DrawEngine
 {
+    import Modules.Tools.ToolPanel;
     import Modules.ImageViewWindow;
     import Modules.InputPriority;
     import Modules.MouseState;
@@ -113,9 +114,9 @@ package Modules.DrawEngine
             drawRatioSnapGuide(oldWidth, oldHeight, targetName);
             updateRatioSnapGuidePos();
 
-            if (ToolController.isToolBox2Showing)
+            if (ToolPanel.isToolBox2Showing)
             {
-                ToolController.closeToolBox2();
+                ToolPanel.closeToolBox2();
             }
 
             updateButtonVisible(false);
@@ -256,7 +257,7 @@ package Modules.DrawEngine
             if (flag)
             {
                 updateButtonPos(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
-                ToolController.toolBox2.startResizeButtonWaitPrograssBarAnimation();
+                ToolPanel.toolBox2.startResizeButtonWaitPrograssBarAnimation();
                 FOFOTimer.addByName("resizeButtonVisibleDelayTimer", 0.9, false, function ():void
                     {
                         showButtons();

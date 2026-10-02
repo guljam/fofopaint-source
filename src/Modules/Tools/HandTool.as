@@ -65,7 +65,7 @@ package Modules.Tools
                     ToolController.selectLastUsedTool();
                 }
 
-                ToolController.toolBox.setCursorVisible(true);
+                ToolPanel.toolBox.setCursorVisible(true);
                 CanvasNavigator.updateCursor();
             }
             else
@@ -120,7 +120,7 @@ package Modules.Tools
             
             if (isDrawMode)
             {
-                ToolController.toolBox.setCursorVisible(false);
+                ToolPanel.toolBox.setCursorVisible(false);
                 ReferenceLayerController.setRefLayerAndGridVisible(false);
             }
 

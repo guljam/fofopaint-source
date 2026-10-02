@@ -1,5 +1,6 @@
 package Modules.UIEngine
 {
+    import Modules.Tools.ToolPanel;
     import Modules.CanvasViewport;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.MouseState;
@@ -81,7 +82,7 @@ package Modules.UIEngine
 
         public static function isHintUnavailable():Boolean
         {
-            return MouseState.isLeftDown || MouseState.isRightDown || MouseState.isDragging || ToolController.isToolBox2Showing
+            return MouseState.isLeftDown || MouseState.isRightDown || MouseState.isDragging || ToolPanel.isToolBox2Showing
                 || ColorPickerController.numPadBox.visible || AboutBoxController.isAboutBoxOpened || ReplayState.isGeneratingCacheImages();
             // || isFillPenStarted
             // || isLassoToolStarted
@@ -137,7 +138,7 @@ package Modules.UIEngine
             {
                 if (target.alpha > 0.5
                         &&
-                        (ToolController.toolBox.contains(target)
+                        (ToolPanel.toolBox.contains(target)
                             || UIController.canvasInfoBox.contains(target)
                             || ColorPickerController.colorPickerBox.contains(target))
                         || target === SidebarController.sideBarScrollBar
@@ -172,7 +173,7 @@ package Modules.UIEngine
                 return;
             }
 
-            if (isSameWithLastBottomHintTargetRect(target) || ToolController.isToolBox2Showing)
+            if (isSameWithLastBottomHintTargetRect(target) || ToolPanel.isToolBox2Showing)
             {
                 return;
             }

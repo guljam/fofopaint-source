@@ -1,5 +1,6 @@
 ﻿package
 {
+    import Modules.Tools.ToolPanel;
     import Modules.CanvasViewport;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
@@ -139,6 +140,7 @@
             ReferenceLayerController.setMainInstance(this);
             SidebarController.setMainInstance(this);
             ToolController.setMainInstance(this);
+            ToolPanel.setMainInstance(this);
             Utils.setMainInstance(this);
             ReplayController.setMainInstance(this);
             InputManager.setMainInstance(this);
@@ -195,7 +197,7 @@
             HintStrings.setMainInstance(this);
             HintController.bottomHint.visible = true;
             ToolController.selectPenTool();
-            ToolController.addHintEventToolBox2();
+            ToolPanel.addHintEventToolBox2();
             ClipboardManager.checkCanUseClipBoardButton();
         }
         // function

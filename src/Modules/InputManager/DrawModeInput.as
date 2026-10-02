@@ -1,5 +1,6 @@
 package Modules.InputManager
 {
+    import Modules.Tools.ToolPanel;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
@@ -83,7 +84,7 @@ package Modules.InputManager
         {
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpToolBox2);
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownToolBox2);
-            ToolController.toolBox2.removeEventListener(MouseEvent.MOUSE_OVER, ToolController.onMouseOverToolBox2);
+            ToolPanel.toolBox2.removeEventListener(MouseEvent.MOUSE_OVER, ToolPanel.onMouseOverToolBox2);
             addEvents();
         }
 
@@ -100,7 +101,7 @@ package Modules.InputManager
 
             if (LassoTool.isStarted === true)
             {
-                ToolController.closeToolBox2();
+                ToolPanel.closeToolBox2();
                 return;
             }
 
@@ -108,11 +109,11 @@ package Modules.InputManager
 
             if (!target || target.alpha < 1.0 || !Utils.isCursorInDrawArea())
             {
-                ToolController.closeToolBox2();
+                ToolPanel.closeToolBox2();
                 return;
             }
 
-            ToolController.handleToolBox2Closing(target);
+            ToolPanel.handleToolBox2Closing(target);
         }
 
         private static function onMouseDownToolBox2(e:MouseEvent):void
@@ -130,22 +131,22 @@ package Modules.InputManager
             {
                 case "toolZoom":
                     {
-                        ToolController.updateToolBoxMousePos(target as SimpleButton);
-                        ToolController.closeToolBox2();
+                        ToolPanel.updateToolBoxMousePos(target as SimpleButton);
+                        ToolPanel.closeToolBox2();
                         ZoomTool.start();
                     }
                     break;
                 case "toolMove":
                     {
-                        ToolController.updateToolBoxMousePos(target as SimpleButton);
-                        ToolController.closeToolBox2();
+                        ToolPanel.updateToolBoxMousePos(target as SimpleButton);
+                        ToolPanel.closeToolBox2();
                         MoveTool.start();
                     }
                     break;
                 case "toolRotate2":
                     {
-                        ToolController.updateToolBoxMousePos(target as SimpleButton);
-                        ToolController.closeToolBox2();
+                        ToolPanel.updateToolBoxMousePos(target as SimpleButton);
+                        ToolPanel.closeToolBox2();
                         RotateTool.startInDrawMode();
                     }
                     break;
@@ -159,14 +160,14 @@ package Modules.InputManager
                     break;
                 default:
                     {
-                        if (ToolController.toolBox2.visible && ToolController.toolBox2.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                        if (ToolPanel.toolBox2.visible && ToolPanel.toolBox2.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                         {
-                            ToolController.updateToolBoxMousePos(ToolController.toolBox2.toolPen);
+                            ToolPanel.updateToolBoxMousePos(ToolPanel.toolBox2.toolPen);
                             ToolController.updateLastTool();
                             HandTool.startInDrawMode();
                         }
 
-                        ToolController.closeToolBox2();
+                        ToolPanel.closeToolBox2();
                     }
                     break;
             }
@@ -322,7 +323,7 @@ package Modules.InputManager
                     if (ToolController.lastTool > ToolController.TOOL_NONE)
                     {
                         ToolController.selectLastUsedTool();
-                        ToolController.showNowToolIconToCursorTemp(ToolController.nowTool);
+                        ToolPanel.showNowToolIconToCursorTemp(ToolController.nowTool);
                     }
                     PenSizePreviewCursor.updatePosAndVisibility();
                 }
@@ -545,7 +546,7 @@ package Modules.InputManager
                 case InputManager.KEY.l:
                     {
                         CanvasView.mirrorCanvas();
-                        ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_MIRROR);
+                        ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_MIRROR);
                     }
                     break;
                 case InputManager.KEY.c:
@@ -630,7 +631,7 @@ package Modules.InputManager
                 case InputManager.KEY.n3:
                 case InputManager.KEY.n8:
                     {
-                        if (ToolController.toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
+                        if (ToolPanel.toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
                         {
                             ToolController.toggleSharpLineByShortcut();
                         }
@@ -658,14 +659,14 @@ package Modules.InputManager
                 case InputManager.KEY.comma:
                     {
                         InputManager.startKeyRepeat(true, UndoController.redo);
-                        ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_REDO);
+                        ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_REDO);
                     }
                     return true;
                 case InputManager.KEY.z:
                 case InputManager.KEY.dot:
                     {
                         InputManager.startKeyRepeat(true, UndoController.undo);
-                        ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_UNDO);
+                        ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_UNDO);
                     }
                     return true;
                 case InputManager.KEY.tab:
@@ -744,7 +745,7 @@ package Modules.InputManager
                 case "clipBoardButton":
                 case "topBarColorButton":
                     {
-                        if (ToolController.isToolBox2Showing || InputManager.isKeyPressed() || e.target.alpha < 1.0)
+                        if (ToolPanel.isToolBox2Showing || InputManager.isKeyPressed() || e.target.alpha < 1.0)
                         {
                             return;
                         }
@@ -775,7 +776,7 @@ package Modules.InputManager
                 case "newWindowButton":
                 case "newWindowCloseButton":
                     {
-                        if (ToolController.isToolBox2Showing || InputManager.isKeyPressed() || e.target.alpha < 1.0)
+                        if (ToolPanel.isToolBox2Showing || InputManager.isKeyPressed() || e.target.alpha < 1.0)
                         {
                             return;
                         }
@@ -963,13 +964,13 @@ package Modules.InputManager
                     {
                         if (Utils.isCursorInDrawArea())
                         {
-                            if (ToolController.isToolBox2Showing && !UndoController.isDeepUndoEnabled)
+                            if (ToolPanel.isToolBox2Showing && !UndoController.isDeepUndoEnabled)
                             {
-                                ToolController.closeToolBox2();
+                                ToolPanel.closeToolBox2();
                             }
                             else
                             {
-                                ToolController.openToolBox2();
+                                ToolPanel.openToolBox2();
                             }
                         }
                     }
@@ -982,7 +983,7 @@ package Modules.InputManager
             const secondKey:int = InputManager.getSecondPressedKey();
             if (secondKey === InputManager.KEY.n3 || secondKey === InputManager.KEY.n8)
             {
-                if (ToolController.toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
+                if (ToolPanel.toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
                 {
                     ToolController.toggleSharpLineByShortcut();
                 }

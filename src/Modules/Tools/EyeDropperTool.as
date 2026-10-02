@@ -324,7 +324,7 @@ package Modules.Tools
                 return;
             }
 
-            ToolController.toolBox.moveToolCursor("toolEyedropper");
+            ToolPanel.toolBox.moveToolCursor("toolEyedropper");
             ToolController.setLastTool(ToolController.nowTool);
             // todo: 이것도 그냥 setLastToolPen, setSeletedToolPen이런식으로 메서드로 호출
             ToolController.setSelectedTool(ToolController.TOOL_EYEDROPPER);
@@ -332,7 +332,7 @@ package Modules.Tools
             penColorBackup = PenTool.penColor;
             Utils.setColorTransform(eyedropperLens.oldColor, PenTool.penColor);
 
-            ToolController.moveEraserButtonToOtherTool("toolEyedropper");
+            ToolPanel.moveEraserButtonToOtherTool("toolEyedropper");
             eyedropperLens.rotateBitmap(CanvasView.canvasAnchorPoint.rotation);
 
             ReferenceLayerController.setCanvasRefLayerInvisible();

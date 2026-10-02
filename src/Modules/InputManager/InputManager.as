@@ -1,5 +1,6 @@
 package Modules.InputManager
 {
+    import Modules.Tools.ToolPanel;
     import Modules.DrawEngine.CanvasView;
     import Modules.AboutBoxController;
     import Modules.ClipboardManager;
@@ -458,7 +459,7 @@ package Modules.InputManager
                 HandTool.startInDrawModeWithWheelClick();
             }
 
-            ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
+            ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
         }
 
         // 누르고 있는 키가 없으면 마지막 키 기록을 지움

@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.Tools.ToolPanel;
     import Modules.Tools.ToolController;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
@@ -677,7 +678,7 @@ package Modules
         public static function enableNewFileButton():void
         {
             setNewFileAvailable(true);
-            ToolController.setLayerMergeButtonEnabled(true);
+            ToolPanel.setLayerMergeButtonEnabled(true);
             AppWindowState.markWindowTitleAsDirty();
         }
 
@@ -954,7 +955,7 @@ package Modules
         public static function prepareOpenLoadBox(fromUpdate:Boolean, reflayermenu:Boolean, file:File, bmpd:BitmapData, filetype:String):void
         {
             InputManager.clearKeyBuffer();
-            ToolController.closeToolBox2();
+            ToolPanel.closeToolBox2();
             loadMenuBoxFileType = filetype;
             loadMenuBoxFile = file;
 

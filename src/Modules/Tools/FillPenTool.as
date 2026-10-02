@@ -345,9 +345,9 @@ package Modules.Tools
                 SidebarController.startDeactivteQuickSidebar();
             }
 
-            ToolController.toolBox.setFillPenModeOFF();
-            ToolController.toolOptionsBox.setButtonsAlphaFillPenSelected(UITheme.OFFALPHA);
-            ToolController.toolOptionsBox.restoreDisabledButtons();
+            ToolPanel.toolBox.setFillPenModeOFF();
+            ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(UITheme.OFFALPHA);
+            ToolPanel.toolOptionsBox.restoreDisabledButtons();
 
             ColorPickerController.colorPickerBox.activePaperColorButton(false);
 
@@ -482,8 +482,8 @@ package Modules.Tools
 
             StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
 
-            ToolController.toolBox.setFillPenModeON();
-            ToolController.toolOptionsBox.disableButtonFillPenStarted();
+            ToolPanel.toolBox.setFillPenModeON();
+            ToolPanel.toolOptionsBox.disableButtonFillPenStarted();
             ColorPickerController.colorPickerBox.setFillPenModeON();
 
             addEventsFillPen();
@@ -567,7 +567,7 @@ package Modules.Tools
 
                 if (targetName.indexOf(UITheme.ALPHA_BUTTON_PREFIX) == 0)
                 {
-                    ToolController.onOpacityButtonDown(targetName);
+                    ToolPanel.onOpacityButtonDown(targetName);
                     return;
                 }
 
@@ -596,7 +596,7 @@ package Modules.Tools
                     case "toolZoomIn":
                     case "toolZoomOut":
                         {
-                            ToolController.handleToolBoxClick(targetName);
+                            ToolPanel.handleToolBoxClick(targetName);
                         }
                         return;
 

@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.Tools.ToolPanel;
     import Modules.Tools.ToolController;
     import Modules.DrawEngine.CanvasView;
     import Modules.UIEngine.CanvasNavigator;
@@ -188,7 +189,7 @@ package Modules
 
             sideBar.resetBG();
 
-            if (ToolController.toolBox.getLastTool() === "toolEyedropper")
+            if (ToolPanel.toolBox.getLastTool() === "toolEyedropper")
             {
                 EyeDropperTool.start();
             }
@@ -347,9 +348,9 @@ package Modules
                 HintController.hideBottomHint();
             }
 
-            if (ToolController.selectedToolViewBitmap.visible)
+            if (ToolPanel.selectedToolViewBitmap.visible)
             {
-                ToolController.selectedToolViewBitmap.visible = false;
+                ToolPanel.selectedToolViewBitmap.visible = false;
             }
 
             sideBar.setTransparentBG();
@@ -482,7 +483,7 @@ package Modules
             return !sideBar.visible
                 && !ReplayState.isReplayModeON
                 && !CaptureController.isCaptureModeON
-                && !ToolController.isToolBox2Showing
+                && !ToolPanel.isToolBox2Showing
                 && !MouseState.isClickBlocked
                 && !CanvasResizer.isButtonVisible();
         }
@@ -557,9 +558,9 @@ package Modules
 
             checkFOFOPosition();
 
-            if (ToolController.selectedToolViewBitmap.visible)
+            if (ToolPanel.selectedToolViewBitmap.visible)
             {
-                ToolController.updateSelectedToolViewBoxPos();
+                ToolPanel.updateSelectedToolViewBoxPos();
             }
         }
 
@@ -656,18 +657,18 @@ package Modules
             UIController.canvasInfoBox.x = CanvasNavigator.box.x - 2;
             UIController.canvasInfoBox.y = Math.floor(CanvasNavigator.box.y + CanvasNavigator.box.BOX_HEIGHT + 6);
 
-            ToolController.toolOptionsBox.x = isRight ? 39 : 0;
-            ToolController.toolOptionsBox.y = Math.floor(UIController.canvasInfoBox.y + UIController.canvasInfoBox.height + 7);
+            ToolPanel.toolOptionsBox.x = isRight ? 39 : 0;
+            ToolPanel.toolOptionsBox.y = Math.floor(UIController.canvasInfoBox.y + UIController.canvasInfoBox.height + 7);
 
-            ColorPickerController.colorPickerBox.x = ToolController.toolOptionsBox.x;
-            ColorPickerController.colorPickerBox.y = Math.floor(ToolController.toolOptionsBox.y + ToolController.toolOptionsBox.height + 10);
+            ColorPickerController.colorPickerBox.x = ToolPanel.toolOptionsBox.x;
+            ColorPickerController.colorPickerBox.y = Math.floor(ToolPanel.toolOptionsBox.y + ToolPanel.toolOptionsBox.height + 10);
 
-            ToolController.toolBox.x = isRight ? -2 : 177;
-            ToolController.toolBox.y = Math.floor(ToolController.toolOptionsBox.y + 1);
+            ToolPanel.toolBox.x = isRight ? -2 : 177;
+            ToolPanel.toolBox.y = Math.floor(ToolPanel.toolOptionsBox.y + 1);
 
-            if (!isRight && ToolController.toolBox.getDeafultY() === 0)
+            if (!isRight && ToolPanel.toolBox.getDeafultY() === 0)
             {
-                ToolController.toolBox.setDeafultY(ToolController.toolBox.y);
+                ToolPanel.toolBox.setDeafultY(ToolPanel.toolBox.y);
             }
 
             resetScrollBarX();
@@ -862,11 +863,11 @@ package Modules
                 {
                     return true;
                 }
-                else if (ToolController.handlePenOptionsBoxMouseDown(target) && (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_ERASER)))
+                else if (ToolPanel.handlePenOptionsBoxMouseDown(target) && (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_ERASER)))
                 {
                     return true;
                 }
-                else if (ToolController.toolBox.alpha === 1.0 && target.alpha === 1.0 && ToolController.handleToolBoxMouseDown(target))
+                else if (ToolPanel.toolBox.alpha === 1.0 && target.alpha === 1.0 && ToolPanel.handleToolBoxMouseDown(target))
                 {
                     return true;
                 }

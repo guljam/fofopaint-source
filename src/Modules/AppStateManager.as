@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.Tools.ToolPanel;
     import Modules.Tools.ToolController;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
@@ -64,7 +65,7 @@ package Modules
 
             appStateObject.penSmoothValue = PenTool.penSmoothValue;
             appStateObject.penSmoothSlideValue = PenTool.penSmoothSlideValue;
-            appStateObject.penSmoothButtonX = ToolController.toolOptionsBox.penSmoothSliderCursor.x;
+            appStateObject.penSmoothButtonX = ToolPanel.toolOptionsBox.penSmoothSliderCursor.x;
 
             appStateObject.penSize = PenTool.penSize;
             appStateObject.penSizeIndex = PenTool.penSizeIndex;
@@ -317,7 +318,7 @@ package Modules
                         // Pen Tool Settings
                         PenTool.penSmoothValue = appStateObject.penSmoothValue;
                         PenTool.penSmoothSlideValue = appStateObject.penSmoothSlideValue;
-                        ToolController.toolOptionsBox.penSmoothSliderCursor.x = appStateObject.penSmoothButtonX;
+                        ToolPanel.toolOptionsBox.penSmoothSliderCursor.x = appStateObject.penSmoothButtonX;
 
                         PenTool.penSize = appStateObject.penSize;
                         PenTool.penColor = appStateObject.penColor;
@@ -337,7 +338,7 @@ package Modules
 
                         PenTool.penIsSquare = appStateObject.penIsSquare;
                         PenTool.penListShapeIsSqare = appStateObject.penIsSquare;
-                        ToolController.toolOptionsBox.updatePenShapeSet(appStateObject.penIsSquare);
+                        ToolPanel.toolOptionsBox.updatePenShapeSet(appStateObject.penIsSquare);
 
                         // Eraser Settings
                         PenTool.eraserSize = appStateObject.eraseSize;

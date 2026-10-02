@@ -350,7 +350,7 @@ package Modules.Tools
             swapLassoImage();
             addLassoLayerMergeCommand(0);
             _lassoMenuBox.hint(HintStrings.getLassoMenuHintSwapLayer());
-            ToolController.playLayerSwapEffect(_lassoMenuBox.lassoLayerSwap);
+            ToolPanel.playLayerSwapEffect(_lassoMenuBox.lassoLayerSwap);
         }
 
         private static function copyCanvasImageToLassoTool():void
@@ -469,9 +469,9 @@ package Modules.Tools
 
         public static function isHintAvailableWithLassoToolStarted(target:DisplayObject):Boolean
         {
-            if (target === ToolController.toolBox.toolZoomIn
-                    || target === ToolController.toolBox.toolZoomOut
-                    || target === ToolController.toolBox.toolRotate
+            if (target === ToolPanel.toolBox.toolZoomIn
+                    || target === ToolPanel.toolBox.toolZoomOut
+                    || target === ToolPanel.toolBox.toolRotate
                     || target === SidebarController.sideBarScrollBar)
             {
                 return true;
@@ -620,9 +620,9 @@ package Modules.Tools
         public static function setAlphaButtonsOnLassoTool(alpha:Number):void
         {
             ColorPickerController.colorPickerBox.alpha = alpha;
-            ToolController.toolBox.alpha = alpha;
-            ToolController.toolOptionsBox.alpha = alpha;
-            ToolController.toolBox.toolMirror.alpha = alpha;
+            ToolPanel.toolBox.alpha = alpha;
+            ToolPanel.toolOptionsBox.alpha = alpha;
+            ToolPanel.toolBox.toolMirror.alpha = alpha;
         }
 
         // ---------------------------------------------------------------------
@@ -1068,13 +1068,13 @@ package Modules.Tools
                 ReferenceLayerController.refLayerMenuBox.visible = true;
             if (CanvasLayers.checkedLayer !== 0)
             {
-                ToolController.toolBox.setToolButtonsForCheckedLayerON();
+                ToolPanel.toolBox.setToolButtonsForCheckedLayerON();
             }
-            ToolController.toolBox.setIconAlphaOnLassoToolON(1.0);
-            ToolController.toolOptionsBox.layerButtonWrapper.alpha = 1.0;
-            ToolController.toolOptionsBox.airBrushButtonWrapper.alpha = 1.0;
-            ToolController.toolOptionsBox.sharpLineButtonWrapper.alpha = 1.0;
-            ToolController.toolOptionsBox.opaSizeButtonWrapper.alpha = 1.0;
+            ToolPanel.toolBox.setIconAlphaOnLassoToolON(1.0);
+            ToolPanel.toolOptionsBox.layerButtonWrapper.alpha = 1.0;
+            ToolPanel.toolOptionsBox.airBrushButtonWrapper.alpha = 1.0;
+            ToolPanel.toolOptionsBox.sharpLineButtonWrapper.alpha = 1.0;
+            ToolPanel.toolOptionsBox.opaSizeButtonWrapper.alpha = 1.0;
             ToolController.selectLastUsedTool();
             setAlphaButtonsOnLassoTool(1.0);
         }
@@ -1202,7 +1202,7 @@ package Modules.Tools
                 InputManager.updateLastKey();
                 _isLassoMenuHiddenTemp = true;
                 ToolController.setSelectedTool(ToolController.TOOL_HAND);
-                ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
+                ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
             }
         }
 
@@ -1362,7 +1362,7 @@ package Modules.Tools
                 InputManager.updateLastKey();
                 _isLassoMenuHiddenTemp = true;
                 ToolController.setSelectedTool(ToolController.TOOL_HAND);
-                ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
+                ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
             }
             else if (InputManager.isPressingShift())
             {
@@ -1398,7 +1398,7 @@ package Modules.Tools
                     _isLassoMenuHiddenTemp = true;
                     InputManager.updateLastKey();
                     ToolController.setSelectedTool(ToolController.TOOL_ZOOM);
-                    ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ZOOM);
+                    ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_ZOOM);
                     break;
 
                 case InputManager.KEY.s:
@@ -1406,7 +1406,7 @@ package Modules.Tools
                     _isLassoMenuHiddenTemp = true;
                     InputManager.updateLastKey();
                     ToolController.setSelectedTool(ToolController.TOOL_ROTATE);
-                    ToolController.showNowToolIconToCursorTemp(ToolController.TOOL_ROTATE);
+                    ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_ROTATE);
                     break;
 
                 case InputManager.KEY.enter:

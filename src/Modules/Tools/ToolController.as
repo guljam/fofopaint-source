@@ -1,36 +1,13 @@
 package Modules.Tools
 {
-    import Modules.InputPriority;
-    import Modules.MouseState;
     import Modules.PenSizePreviewCursor;
-    import Modules.ReferenceLayerController;
-    import Modules.SidebarController;
-    import Modules.UndoController;
-    import Modules.Utils;
     import Modules.DrawEngine.StrokeBuffer;
-    import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
-    import Modules.DrawEngine.CanvasResizer;
     import Modules.InputManager.InputManager;
     import Modules.InputManager.DrawModeInput;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
-
-    import Symbols.ToolMenuSet;
-    import Symbols.ToolMenuSet2;
-    import Symbols.ToolOptionsSet;
-
-    import flash.display.Bitmap;
-    import flash.display.DisplayObject;
-    import flash.display.SimpleButton;
-    import flash.display.Sprite;
-    import flash.events.Event;
-    import flash.events.MouseEvent;
-    import flash.geom.Point;
-    import flash.geom.Rectangle;
-    import Modules.ReplayEngine.ReplayState;
 
     public class ToolController
     {
@@ -56,93 +33,14 @@ package Modules.Tools
         public static const TOOL_UNDO:int = (1 << 10);
         public static const TOOL_REDO:int = (1 << 11);
         public static const TOOL_MIRROR:int = (1 << 12);
-        private static const TOOL_BOX_ON_DELAY_TIME:Number = 0.12;
 
-        public static const toolBox:ToolMenuSet = new ToolMenuSet();
-        public static const toolBox2:ToolMenuSet2 = new ToolMenuSet2();
-        public static const toolOptionsBox:ToolOptionsSet = new ToolOptionsSet();
 
-        public static var isToolBox2Showing:Boolean = false; // 툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
         public static var nowTool:int = 1; // 현재 툴 번호
         public static var lastTool:int = TOOL_NONE; // 툴백업
 
-        public static var selectedToolViewBitmap:Bitmap = new Bitmap();
 
         public static var isSharpLineON:Boolean = false; // 0.5픽셀어긋나게 안하고 완전히 정확하게 할때씀
         public static var isPenAirBrushON:Boolean = false;
-        public static var lastEraserPosButton:SimpleButton = null; // 지우개 툴이 이동한 버튼 저장; 복원용
-
-        public static function addHintEventToolBox2():void
-        {
-            toolBox2.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverToolBox2Hint);
-        }
-
-        public static function get toolBox2ONDelayTime():Number
-        {
-            return TOOL_BOX_ON_DELAY_TIME;
-        }
-
-        public static function updateSelectedToolViewBoxPos():void
-        {
-            const viewportRect:Rectangle = UIController.getViewportRect();
-
-            selectedToolViewBitmap.x = viewportRect.x + viewportRect.width / 2 - selectedToolViewBitmap.width / 2;
-            selectedToolViewBitmap.y = viewportRect.y + 20 * UITheme.getUIScale();
-        }
-
-        public static function getToolButtonFromToolIndex(toolIndex:*):SimpleButton
-        {
-            switch (toolIndex)
-            {
-                case TOOL_PEN:
-                    return toolBox.toolPen;
-                case TOOL_FILLPEN:
-                    return toolBox.toolFillPen;
-                case TOOL_ERASER:
-                    return toolBox.toolEraser;
-                case TOOL_EYEDROPPER:
-                    return toolBox.toolEyedropper;
-                case TOOL_LASSO:
-                    return toolBox.toolLasso;
-                case TOOL_MOVE:
-                    return toolBox.toolMove;
-                case TOOL_LINE:
-                    return toolBox.toolLine;
-                case TOOL_ZOOM:
-                    return toolBox.toolZoomIn;
-                case TOOL_ROTATE:
-                    return toolBox.toolRotate;
-                case TOOL_HAND:
-                    return toolBox.toolHand;
-                case TOOL_UNDO:
-                    return toolBox.toolUndo;
-                case TOOL_REDO:
-                    return toolBox.toolRedo;
-                case TOOL_MIRROR:
-                    return toolBox.toolMirror;
-            }
-
-            return null;
-        }
-
-        public static function showNowToolIconToCursorTemp(toolIndex:int):void
-        {
-            if (SidebarController.isQuickSidebarActive)
-            {
-                return;
-            }
-
-            const toolButton:SimpleButton = getToolButtonFromToolIndex(toolIndex);
-
-            if (toolButton === null)
-            {
-                return;
-            }
-
-            selectedToolViewBitmap.bitmapData = toolBox.getToolSelectViewBmpd(toolIndex, toolButton);
-            updateSelectedToolViewBoxPos();
-            Utils.showDisplayTargetAndFadeOut(selectedToolViewBitmap, 1.0, 1.0);
-        }
 
         public static function isSelectedToolPenOrLine():Boolean
         {
@@ -193,35 +91,6 @@ package Modules.Tools
             }
         }
 
-        public static function onMouseOverToolBox2Hint(e:MouseEvent):void
-        {
-            const target:DisplayObject = e.target as DisplayObject;
-
-            if (!target || target.alpha < 1.0)
-            {
-                return;
-            }
-
-            const hintStr:String = HintStrings.getHintFromTargetName(target.name);
-
-            toolBox2.hint((hintStr === null) ? "Tools" : hintStr);
-        }
-
-        public static function updateToolOptionsTextBySelectedTool():void
-        {
-            var toolName:String = "Pen";
-            const nt:uint = nowTool;
-
-            if (isSelectedTool(TOOL_ERASER))
-                toolName = "Eraser";
-            else if (isSelectedTool(TOOL_LINE))
-                toolName = "Line";
-            else if (isSelectedTool(TOOL_FILLPEN))
-                toolName = "FillPen";
-
-            toolOptionsBox.hintText(toolName);
-        }
-
         public static function showDrawToolHintSizeOpacity():void
         {
             var tooltype:String = "";
@@ -256,30 +125,12 @@ package Modules.Tools
             HintController.showMouseHintTemp(tooltype + size + "px, " + alpha * 100 + "%");
         }
 
-        // opabox의 커서 위치와 색깔을 바꿈
-        public static function updateOpacityCursorPos(index:uint):void
-        {
-            if (index === 0)
-            {
-                return;
-            }
-
-            const curButton:Sprite = toolOptionsBox.opaBox.getChildByName("alphaButton" + index) as Sprite;
-
-            if (!curButton)
-            {
-                return;
-            }
-
-            toolOptionsBox.opaCursor.x = curButton.x;
-            toolOptionsBox.opaCursor.y = curButton.y;
-        }
         public static function applyDrawingToolAlpha(alpha:Number = 0.0):void
         {
             const index:int = PenTool.penAlphaList.indexOf(alpha);
             const eraseFlag:Boolean = isSelectedTool(TOOL_ERASER);
 
-            updateOpacityCursorPos(index);
+            ToolPanel.updateOpacityCursorPos(index);
 
             if (eraseFlag === false)
             {
@@ -424,81 +275,6 @@ package Modules.Tools
             }
         }
 
-        public static function startPenSmootingAdjustment():void
-        {
-            const minDist:Number = toolOptionsBox.penSmoothSlider.x + 1; // 펜 리스트에 흰색 선 시작과 끝 x좌표임
-            const maxDist:Number = minDist + toolOptionsBox.penSmoothSlider.width - 1;
-            const step:Number = PenTool.penSmoothSlideTotal;
-            const div:Number = (maxDist - minDist) / step;
-
-            const maxValue:Number = 0.85;
-            const minValue:Number = 0.02;
-            const stepValue:Number = (maxValue - minValue) / step;
-
-            const airBrushFlag:Boolean = isSelectedToolPenOrLine() && isPenAirBrushON;
-            const eraseAirBrushFlag:Boolean = isSelectedTool(TOOL_ERASER) && PenTool.isEraserAirBrushON;
-
-            var oldValue:int = PenTool.penSmoothSlideValue;
-
-            function onMouseUpPenSmoothing(e:MouseEvent):void
-            {
-                MouseState.endDrag("penSmoothing");
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing);
-                main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
-            }
-
-            function adjustPenSmoothingValue():void
-            {
-                var mx:Number = toolOptionsBox.penSmoothSliderWrapper.mouseX + toolOptionsBox.penSmoothSlider.x;
-
-                if (mx < minDist)
-                {
-                    mx = minDist;
-                }
-                else if (mx > maxDist)
-                {
-                    mx = maxDist;
-                }
-
-                // 버튼을 기준으로 중간값으로
-                const value:Number = Math.floor((mx - minDist) / div);
-
-                if (oldValue !== value)
-                {
-                    const xpos:Number = value * div + minDist;
-
-                    if (toolOptionsBox.penSmoothSliderCursor.x === xpos)
-                        return;
-                    toolOptionsBox.penSmoothSliderCursor.x = xpos;
-
-                    if (value === 0)
-                    {
-                        PenTool.penSmoothValue = 0;
-                    }
-                    else
-                    {
-                        PenTool.penSmoothValue = maxValue - (value * stepValue);
-                    }
-
-                    PenTool.penSmoothSlideValue = value;
-                    oldValue = value;
-                    HintController.showBottomHint(HintStrings.getHintFromTargetName("penSmoothSliderWrapper"));
-                }
-            }
-
-            function onMouseMovePenSmoothing(e:MouseEvent):void
-            {
-                adjustPenSmoothingValue();
-            }
-            adjustPenSmoothingValue();
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
-            MouseState.beginDrag("penSmoothing", function ():void
-                {
-                    onMouseUpPenSmoothing(null);
-                });
-        }
-
         public static function setDrawToolSize(index:uint):void
         {
             const size:uint = PenTool.penSizeList[index];
@@ -516,7 +292,7 @@ package Modules.Tools
                 PenSizePreviewCursor.updateCursorSize(PenTool.eraserSize);
             }
 
-            toolOptionsBox.movePenSizeCursor(index);
+            ToolPanel.toolOptionsBox.movePenSizeCursor(index);
         }
 
         public static function selectPenShapeButton(shapeFlag:Boolean):void
@@ -538,7 +314,7 @@ package Modules.Tools
                 }
             }
 
-            toolOptionsBox.updatePenShapeSet(shapeFlag);
+            ToolPanel.toolOptionsBox.updatePenShapeSet(shapeFlag);
             PenSizePreviewCursor.updateSizeAndShape();
         }
 
@@ -632,166 +408,29 @@ package Modules.Tools
             }
         }
 
-        public static function handleToolBoxClick(targetName:String):void
-        {
-            function onMouseUpToolBox(e:MouseEvent):void
-            {
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox);
-
-                if (ReplayState.isGeneratingCacheImages())
-                {
-                    return;
-                }
-
-                const upTargetName:String = e.target.name;
-
-                if (upTargetName !== targetName)
-                    return;
-
-                switch (upTargetName)
-                {
-                    case "toolPen":
-                        {
-                            if (!isSelectedTool(TOOL_PEN))
-                            {
-                                selectPenTool();
-                                PenSizePreviewCursor.updateSizeAndShape();
-                            }
-                        }
-                        break;
-                    case "toolFillPen":
-                        {
-                            if (!isSelectedTool(TOOL_FILLPEN))
-                            {
-                                selectFillPenTool();
-                                PenSizePreviewCursor.updateSizeAndShape();
-                            }
-                        }
-                        break;
-                    case "toolEraser":
-                        {
-                            if (!isSelectedTool(TOOL_ERASER))
-                            {
-                                selectEraserTool();
-                                PenSizePreviewCursor.updateSizeAndShape();
-                            }
-                        }
-                        break;
-                    case "toolLine":
-                        {
-                            if (!isSelectedTool(TOOL_LINE))
-                            {
-                                selectLineTool();
-                                PenSizePreviewCursor.updateSizeAndShape();
-                            }
-                        }
-                        break;
-                    case "toolLasso":
-                        {
-                            if (!isSelectedTool(TOOL_LASSO))
-                            {
-                                selectLassoTool();
-                            }
-                        }
-                        break;
-                    case "toolEyedropper":
-                        {
-                            if (SidebarController.isQuickSidebarActive)
-                            {
-                                resetLastTool();
-                                toolBox.moveToolCursor("toolEyedropper");
-                            }
-                            else if (!isSelectedTool(TOOL_EYEDROPPER))
-                            {
-                                EyeDropperTool.start();
-                            }
-                        }
-                        break;
-                    case "toolUndo":
-                        {
-                            if (!FOFOTimer.hasTimer("keyHoldRepeatTimer"))
-                            {
-                                UndoController.undo();
-                            }
-                        }
-                        break;
-                    case "toolRedo":
-                        {
-                            if (!FOFOTimer.hasTimer("keyHoldRepeatTimer"))
-                            {
-                                UndoController.redo();
-                            }
-                        }
-                        break;
-                    case "toolMirror":
-                        {
-                            CanvasView.mirrorCanvas();
-                        }
-                        break;
-                    case "toolMove":
-                        {
-                            selectMoveTool();
-                        }
-                        break;
-                    case "toolZoomIn":
-                        {
-                            CanvasView.viewport.zoomStep(true);
-                        }
-                        break;
-                    case "toolZoomOut":
-                        {
-                            CanvasView.viewport.zoomStep(false);
-                        }
-                        break;
-                    case "toolRefLayer":
-                        {
-                            if (SidebarController.isQuickSidebarActive)
-                            {
-                                SidebarController.deactivateQuickSidebar();
-                            }
-
-                            if (ReferenceLayerController.isRefLayerMenuON === false)
-                            {
-                                ReferenceLayerController.openRefLayerMenu();
-                                // mouseY에서 main.stage.mouseY로 바꾸었는데 동작 이상하면 체크해야함
-                                ReferenceLayerController.refLayerMenuBox.y = main.stage.mouseY - 60;
-                            }
-                            else
-                            {
-                                ReferenceLayerController.closeRefLayerMenu();
-                            }
-                        }
-                        break;
-                }
-                PenSizePreviewCursor.updatePosAndVisibility();
-            }
-            // main.undo키 반복이 있어서 우선순위 1로 약간 높여줌
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox, false, InputPriority.STAGE_ROOT);
-        }
-
         public static function selectPenTool(lineFlag:Boolean = false):void
         {
             setSelectedTool((lineFlag) ? TOOL_LINE : TOOL_PEN);
             toggleAirBrushCheckBox(isPenAirBrushON, true);
             setDrawToolSize(PenTool.penSizeIndex);
             applyDrawingToolAlpha(PenTool.penAlpha);
-            moveEraserButtonToOtherTool((lineFlag) ? "toolLine" : "toolPen");
-            toolBox.moveToolCursor((lineFlag) ? "toolLine" : "toolPen");
-            updateToolOptionsTextBySelectedTool();
-            toolOptionsBox.updatePenShapeSet(PenTool.penIsSquare);
+            ToolPanel.moveEraserButtonToOtherTool((lineFlag) ? "toolLine" : "toolPen");
+            ToolPanel.toolBox.moveToolCursor((lineFlag) ? "toolLine" : "toolPen");
+            ToolPanel.updateToolOptionsTextBySelectedTool();
+            ToolPanel.toolOptionsBox.updatePenShapeSet(PenTool.penIsSquare);
 
-            if (toolOptionsBox.isSizeButtonsDisabled())
+            if (ToolPanel.toolOptionsBox.isSizeButtonsDisabled())
             {
-                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
+                ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
 
-            toolOptionsBox.enablePenSmoothingSlider();
+            ToolPanel.toolOptionsBox.enablePenSmoothingSlider();
         }
 
         public static function selectLineTool():void
         {
             selectPenTool(true);
-            toolOptionsBox.disablePenSmoothingSlider();
+            ToolPanel.toolOptionsBox.disablePenSmoothingSlider();
         }
 
         public static function selectEraserTool():void
@@ -801,117 +440,93 @@ package Modules.Tools
             setDrawToolSize(PenTool.eraserSizeIndex);
             applyDrawingToolAlpha(PenTool.eraserAlpha);
 
-            if (ToolController.lastEraserPosButton)
+            if (ToolPanel.lastEraserPosButton)
             {
-                ToolController.lastEraserPosButton.visible = true;
+                ToolPanel.lastEraserPosButton.visible = true;
             }
 
-            ToolController.lastEraserPosButton = null;
-            toolBox2.toolEraser.visible = false;
-            toolBox.moveToolCursor("toolEraser");
-            updateToolOptionsTextBySelectedTool();
-            toolOptionsBox.updatePenShapeSet(PenTool.eraserIsSquare);
+            ToolPanel.lastEraserPosButton = null;
+            ToolPanel.toolBox2.toolEraser.visible = false;
+            ToolPanel.toolBox.moveToolCursor("toolEraser");
+            ToolPanel.updateToolOptionsTextBySelectedTool();
+            ToolPanel.toolOptionsBox.updatePenShapeSet(PenTool.eraserIsSquare);
 
-            if (toolOptionsBox.isSizeButtonsDisabled())
+            if (ToolPanel.toolOptionsBox.isSizeButtonsDisabled())
             {
-                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
+                ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
 
-            toolOptionsBox.disablePenSmoothingSlider();
+            ToolPanel.toolOptionsBox.disablePenSmoothingSlider();
         }
 
         public static function selectFillPenTool():void
         {
             setSelectedTool(TOOL_FILLPEN);
-            toolBox.moveToolCursor("toolFillPen");
+            ToolPanel.toolBox.moveToolCursor("toolFillPen");
             PenSizePreviewCursor.setVisible(false);
-            updateOpacityCursorPos(PenTool.penAlphaIndex);
+            ToolPanel.updateOpacityCursorPos(PenTool.penAlphaIndex);
             toggleAirBrushCheckBox(isPenAirBrushON, true);
-            toolOptionsBox.movePenSizeCursor(1);
-            toolOptionsBox.setButtonsAlphaFillPenSelected(UITheme.OFFALPHA);
-            moveEraserButtonToOtherTool("toolFillPen");
-            updateToolOptionsTextBySelectedTool();
+            ToolPanel.toolOptionsBox.movePenSizeCursor(1);
+            ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(UITheme.OFFALPHA);
+            ToolPanel.moveEraserButtonToOtherTool("toolFillPen");
+            ToolPanel.updateToolOptionsTextBySelectedTool();
         }
 
         public static function selectMoveTool():void
         {
-            updateToolOptionsTextBySelectedTool();
+            ToolPanel.updateToolOptionsTextBySelectedTool();
             setSelectedTool(TOOL_MOVE);
-            toolBox.moveToolCursor("toolMove");
+            ToolPanel.toolBox.moveToolCursor("toolMove");
 
-            if (toolOptionsBox.isSizeButtonsDisabled())
+            if (ToolPanel.toolOptionsBox.isSizeButtonsDisabled())
             {
-                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
+                ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
 
-            toolOptionsBox.enablePenSmoothingSlider();
+            ToolPanel.toolOptionsBox.enablePenSmoothingSlider();
         }
 
         public static function selectZoomTool():void
         {
-            updateToolOptionsTextBySelectedTool();
+            ToolPanel.updateToolOptionsTextBySelectedTool();
             setSelectedTool(TOOL_ZOOM);
-            toolBox.moveToolCursor("toolZoomIn", UIController.canvasInfoBox);
+            ToolPanel.toolBox.moveToolCursor("toolZoomIn", UIController.canvasInfoBox);
 
-            if (toolOptionsBox.isSizeButtonsDisabled())
+            if (ToolPanel.toolOptionsBox.isSizeButtonsDisabled())
             {
-                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
+                ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
 
-            toolOptionsBox.enablePenSmoothingSlider();
+            ToolPanel.toolOptionsBox.enablePenSmoothingSlider();
         }
 
         public static function selectRotateTool():void
         {
-            updateToolOptionsTextBySelectedTool();
+            ToolPanel.updateToolOptionsTextBySelectedTool();
             setSelectedTool(TOOL_ROTATE);
-            toolBox.moveToolCursor("toolRotate", UIController.canvasInfoBox);
+            ToolPanel.toolBox.moveToolCursor("toolRotate", UIController.canvasInfoBox);
 
-            if (toolOptionsBox.isSizeButtonsDisabled())
+            if (ToolPanel.toolOptionsBox.isSizeButtonsDisabled())
             {
-                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
+                ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
 
-            toolOptionsBox.enablePenSmoothingSlider();
+            ToolPanel.toolOptionsBox.enablePenSmoothingSlider();
         }
 
         public static function selectLassoTool():void
         {
-            updateToolOptionsTextBySelectedTool();
+            ToolPanel.updateToolOptionsTextBySelectedTool();
             setSelectedTool(TOOL_LASSO);
-            toolBox.moveToolCursor("toolLasso");
-            moveEraserButtonToOtherTool("toolLasso");
+            ToolPanel.toolBox.moveToolCursor("toolLasso");
+            ToolPanel.moveEraserButtonToOtherTool("toolLasso");
 
-            if (toolOptionsBox.isSizeButtonsDisabled())
+            if (ToolPanel.toolOptionsBox.isSizeButtonsDisabled())
             {
-                toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
+                ToolPanel.toolOptionsBox.setButtonsAlphaFillPenSelected(1.0);
             }
 
-            toolOptionsBox.enablePenSmoothingSlider();
-        }
-
-        public static function moveEraserButtonToOtherTool(toolName:String):void
-        {
-            const nowButton2:SimpleButton = toolBox2.getChildByName(toolName) as SimpleButton;
-
-            if (!nowButton2)
-                return;
-
-            if (lastEraserPosButton)
-            {
-                if (lastEraserPosButton.x !== nowButton2.x
-                        || lastEraserPosButton.y !== nowButton2.y) // 위치가 다를 때에만 보여줌
-                {
-                    lastEraserPosButton.visible = true;
-                }
-            }
-
-            lastEraserPosButton = nowButton2;
-            nowButton2.visible = false;
-            toolBox2.toolEraser.visible = true;
-            toolBox2.toolEraser.x = nowButton2.x;
-            toolBox2.toolEraser.y = nowButton2.y;
-            Utils.setAsTopChild(toolBox2.toolEraser);
+            ToolPanel.toolOptionsBox.enablePenSmoothingSlider();
         }
 
         // 도구 선택 단축키 (도구와 무관한 단축키는 DrawModeInput.handleNonToolKeyDown이 먼저 처리함)
@@ -924,7 +539,7 @@ package Modules.Tools
                     {
                         setLastTool(TOOL_PEN);
                         selectFillPenTool();
-                        showNowToolIconToCursorTemp(TOOL_FILLPEN);
+                        ToolPanel.showNowToolIconToCursorTemp(TOOL_FILLPEN);
                     }
                     break;
                 case InputManager.KEY.c:
@@ -936,7 +551,7 @@ package Modules.Tools
 
                             if (isSelectedTool(TOOL_EYEDROPPER))
                             {
-                                showNowToolIconToCursorTemp(TOOL_EYEDROPPER);
+                                ToolPanel.showNowToolIconToCursorTemp(TOOL_EYEDROPPER);
                             }
                         }
                     }
@@ -948,7 +563,7 @@ package Modules.Tools
                         {
                             updateLastTool();
                             selectLassoTool();
-                            showNowToolIconToCursorTemp(TOOL_LASSO);
+                            ToolPanel.showNowToolIconToCursorTemp(TOOL_LASSO);
                         }
                     }
                     break;
@@ -958,7 +573,7 @@ package Modules.Tools
                         {
                             updateLastTool();
                             setSelectedTool(TOOL_HAND);
-                            showNowToolIconToCursorTemp(TOOL_HAND);
+                            ToolPanel.showNowToolIconToCursorTemp(TOOL_HAND);
                         }
                     }
                     break;
@@ -970,7 +585,7 @@ package Modules.Tools
                             updateLastTool();
                             selectEraserTool();
                             PenSizePreviewCursor.updateSizeAndShape();
-                            showNowToolIconToCursorTemp(TOOL_ERASER);
+                            ToolPanel.showNowToolIconToCursorTemp(TOOL_ERASER);
                         }
                     }
                     break;
@@ -981,7 +596,7 @@ package Modules.Tools
                         {
                             updateLastTool();
                             selectRotateTool();
-                            showNowToolIconToCursorTemp(TOOL_ROTATE);
+                            ToolPanel.showNowToolIconToCursorTemp(TOOL_ROTATE);
                         }
                     }
                     break;
@@ -992,7 +607,7 @@ package Modules.Tools
                         {
                             updateLastTool();
                             selectMoveTool();
-                            showNowToolIconToCursorTemp(TOOL_MOVE);
+                            ToolPanel.showNowToolIconToCursorTemp(TOOL_MOVE);
                         }
                     }
                     break;
@@ -1003,7 +618,7 @@ package Modules.Tools
                         {
                             updateLastTool();
                             selectZoomTool();
-                            showNowToolIconToCursorTemp(TOOL_ZOOM);
+                            ToolPanel.showNowToolIconToCursorTemp(TOOL_ZOOM);
                         }
                     }
                     break;
@@ -1022,461 +637,11 @@ package Modules.Tools
             PenSizePreviewCursor.updatePosAndVisibility();
         }
 
-        public static function updateToolBoxMousePos(target:SimpleButton):void
-        {
-            // 아이콘 중앙으로 맞추어줌
-            if (!target)
-            {
-                return;
-            }
-
-            if (target.parent === toolBox2)
-            {
-                toolBox2.updateLastUsedToolPos(target.name);
-            }
-        }
-
-        public static function closeToolBox2(ignoreResizeButtonVisible:Boolean = false):void
-        {
-            if (!isToolBox2Showing)
-            {
-                return;
-            }
-
-            DrawModeInput.removeToolBox2Events();
-            isToolBox2Showing = false;
-            toolBox2.visible = false;
-
-            if (!ignoreResizeButtonVisible)
-            {
-                CanvasResizer.showButtonsWithDelay(false);
-            }
-        }
-
-        public static function handleToolBox2Closing(target:DisplayObject):void
-        {
-            const targetName:String = target.name;
-
-            if (targetName !== null && targetName.indexOf("tool") !== -1)
-            {
-                updateToolBoxMousePos(target as SimpleButton);
-            }
-
-            switch (targetName)
-            {
-                case "toolQuickSidebar":
-                    {
-                        SidebarController.activeQuickSideBar(false);
-                    }
-                    break;
-                case "toolPen":
-                    {
-                        selectPenTool();
-                        PenSizePreviewCursor.updateSizeAndShape();
-                        showNowToolIconToCursorTemp(TOOL_PEN);
-                    }
-                    break;
-                case "toolFillPen":
-                    {
-                        selectFillPenTool();
-                        PenSizePreviewCursor.updateSizeAndShape();
-                        showNowToolIconToCursorTemp(TOOL_FILLPEN);
-                    }
-                    break;
-                case "toolEraser":
-                    {
-                        selectEraserTool();
-                        PenSizePreviewCursor.updateSizeAndShape();
-                        showNowToolIconToCursorTemp(TOOL_ERASER);
-                    }
-                    break;
-                case "toolLine":
-                    {
-                        selectLineTool();
-                        PenSizePreviewCursor.updateSizeAndShape();
-                        showNowToolIconToCursorTemp(TOOL_LINE);
-                    }
-                    break;
-                case "toolLasso":
-                    {
-                        selectLassoTool();
-                        showNowToolIconToCursorTemp(TOOL_LASSO);
-                    }
-                    break;
-                case "toolEyedropper":
-                    {
-                        if (!isSelectedTool(TOOL_EYEDROPPER))
-                        {
-                            EyeDropperTool.start();
-                            showNowToolIconToCursorTemp(TOOL_EYEDROPPER);
-                        }
-                    }
-                    break;
-                case "toolUndo":
-                    {
-                        UndoController.undo();
-                        showNowToolIconToCursorTemp(TOOL_UNDO);
-                    }
-                    break;
-                case "toolRedo":
-                    {
-                        UndoController.redo();
-                        showNowToolIconToCursorTemp(TOOL_REDO);
-                    }
-                    break;
-                case "toolMirror":
-                    {
-                        CanvasView.mirrorCanvas();
-                        showNowToolIconToCursorTemp(TOOL_MIRROR);
-                    }
-                    break;
-                case "toolRefLayer":
-                    {
-                        ReferenceLayerController.openRefLayerMenu();
-                    }
-                    break;
-            }
-
-            closeToolBox2();
-        }
-
-        public static function onMouseOverToolBox2(e:MouseEvent):void
-        {
-            const target:DisplayObject = e.target as DisplayObject;
-
-            if (!target)
-            {
-                return;
-            }
-
-            const targetName:String = target.name;
-
-            if (targetName && targetName.indexOf("tool") !== -1)
-            {
-                toolBox2.setMouseOverTarget(target);
-            }
-        }
-
-        public static function handleToolBoxMouseDown(target:DisplayObject):Boolean
-        {
-            if (InputManager.isKeyPressed() && !SidebarController.isQuickSidebarActive || !target)
-                return true;
-            const targetName:String = target.name;
-
-            switch (targetName)
-            {
-                case "toolRotate":
-                    {
-                        RotateTool.startInDrawMode();
-                    }
-                    return true;
-                case "toolUndo":
-                    {
-                        InputManager.startKeyRepeat(false, UndoController.undo);
-                        InputManager.startKeyRepeatStopTimerOnMouseLeave(target);
-                        handleToolBoxClick(targetName);
-                    }
-                    return true;
-                case "toolRedo":
-                    {
-                        InputManager.startKeyRepeat(false, UndoController.redo);
-                        InputManager.startKeyRepeatStopTimerOnMouseLeave(target);
-                        handleToolBoxClick(targetName);
-                    }
-                    return true;
-                case "toolZoomIn":
-                case "toolZoomOut":
-                case "toolPen":
-                case "toolFillPen":
-                case "toolEraser":
-                case "toolLasso":
-                case "toolEyedropper":
-                case "toolUndo":
-                case "toolRedo":
-                case "toolMirror":
-                case "toolLine":
-                case "toolMove":
-                case "toolRotate":
-                case "toolRefLayer":
-                case "toolBoxBG":
-                case "toolMask":
-                    {
-                        // setTopChildIndex(toolBox);
-                        handleToolBoxClick(targetName);
-                    }
-                    return true;
-            }
-
-            return false;
-        }
-
-        public static function openToolBox2():void
-        {
-            PenSizePreviewCursor.setCursorInVisibleFlag(true);
-            PenSizePreviewCursor.setVisible(false);
-            var pos:Point = toolBox2.getLastUsedToolPos();
-            const scale:Number = UITheme.getUIScale();
-
-            toolBox2.x = Math.floor(main.stage.mouseX - pos.x * scale);
-            toolBox2.y = Math.floor(main.stage.mouseY - pos.y * scale);
-            toolBox2.alpha = 1.0;
-            toolBox2.visible = true;
-            isToolBox2Showing = true;
-            CanvasResizer.showButtonsWithDelay(true);
-            Utils.setAsTopChild(toolBox2);
-            DrawModeInput.addToolBox2Events();
-            FOFOTimer.addByName("toolBox2HideCheckTimer", 0.1, true, function ():Boolean
-                {
-                    if (!isToolBox2Showing)
-                    {
-                        return false;
-                    }
-
-                    if (CanvasResizer.isButtonVisible())
-                    {
-                        if (!toolBox2.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
-                        {
-                            toolBox2.alpha = 0.6;
-                        }
-                        else if (toolBox2.alpha < 1.0)
-                        {
-                            toolBox2.alpha = 1.0;
-                        }
-                    }
-
-                    return true;
-                });
-        }
-
-        // 레이어 체크 버튼과 툴 버튼 활성 상태를 CanvasLayers.checkedLayer에 맞춤
-        public static function updateLayerCheckButtons():void
-        {
-            const checked:int = CanvasLayers.checkedLayer;
-            toolOptionsBox.layer1CheckedButton.visible = (checked === 1);
-            toolOptionsBox.layer1UncheckedButton.visible = (checked !== 1);
-            toolOptionsBox.layer2CheckedButton.visible = (checked === 2);
-            toolOptionsBox.layer2UncheckedButton.visible = (checked !== 2);
-            if (checked !== 0)
-            {
-                toolBox.setToolButtonsForCheckedLayerON();
-                toolBox2.setToolButtonsForCheckedLayerON();
-            }
-            else
-            {
-                toolBox.setToolButtonsForCheckedLayerOFF();
-                toolBox2.setToolButtonsForCheckedLayerOFF();
-            }
-        }
-
-        // 선택한 레이어 버튼 강조, onlyViewFlag면 숨겨진 다른 레이어 버튼에 빨간 줄 표시
-        public static function updateLayerSelectButtons(layer:int, onlyViewFlag:Boolean):void
-        {
-            toolOptionsBox.setSelectLayerButtonActiveAlpha(layer);
-            if (!onlyViewFlag)
-            {
-                toolOptionsBox.removeLayerInvisibleLine();
-            }
-            else if (layer === 1)
-            {
-                toolOptionsBox.moveLayerInvisibleLineToLayer2();
-            }
-            else
-            {
-                toolOptionsBox.moveLayerInvisibleLineToLayer1();
-            }
-        }
-
-        public static function setLayerMergeButtonEnabled(enabled:Boolean):void
-        {
-            toolOptionsBox.layerMergeButton.alpha = (enabled) ? 1.0 : UITheme.OFFALPHA;
-        }
-
-        // 스왑 버튼이 깜빡이는 동안(playLayerSwapEffect)은 스왑을 막음
-        public static function isLayerSwapButtonReady():Boolean
-        {
-            return toolOptionsBox.layerSwapButton.alpha >= 1.0;
-        }
-
-        public static function flickLayerSwapButton():void
-        {
-            playLayerSwapEffect(toolOptionsBox.layerSwapButton);
-        }
-
-        public static function playLayerSwapEffect(target:DisplayObject):void
-        {
-            target.alpha = UITheme.OFFALPHA;
-            FOFOTimer.addByName("layerSwapFlickEffect", 0.5, false, function ():void
-                {
-                    target.alpha = 1.0;
-                });
-        }
-
-        public static function handlePenOptionsBoxMouseDown(target:DisplayObject):Boolean
-        {
-            if (isToolBox2Showing)
-            {
-                return true;
-            }
-
-            const targetName:String = target.name;
-
-            if (target.alpha === UITheme.OFFALPHA)
-            {
-                return true;
-            }
-
-            if (targetName.indexOf(UITheme.ALPHA_BUTTON_PREFIX) == 0)
-            {
-                ToolController.onOpacityButtonDown(targetName);
-                selectPenToolIfNotDrawingTool(true);
-                return true;
-            }
-
-            if (targetName.indexOf(UITheme.NSIZE_BUTTON_PREFIX) == 0)
-            {
-                if (!isSelectedTool(TOOL_FILLPEN))
-                {
-                    selectPenToolIfNotDrawingTool(true);
-                    onPenSizeButtonDown(targetName);
-                }
-                return true;
-            }
-
-            switch (targetName)
-            {
-                case "penSmoothSliderWrapper":
-                    {
-                        if (nowTool !== TOOL_PEN)
-                        {
-                            return true;
-                        }
-
-                        selectPenToolIfNotDrawingTool(true);
-                        startPenSmootingAdjustment();
-                    }
-                    return true;
-
-                case "shapeRect":
-                    {
-                        if (!isSelectedTool(TOOL_FILLPEN))
-                        {
-                            selectPenToolIfNotDrawingTool(true);
-                            selectPenShapeButton(true);
-                        }
-                    }
-                    return true;
-                case "shapeCircle":
-                    {
-                        if (!isSelectedTool(TOOL_FILLPEN))
-                        {
-                            selectPenToolIfNotDrawingTool(true);
-                            selectPenShapeButton(false);
-                        }
-                    }
-                    return true;
-                case "layer1CheckedButton":
-                case "layer1UncheckedButton":
-                    {
-                        CanvasLayers.selectLayer1(false);
-                        CanvasLayers.toggleLayer1Check();
-                    }
-                    return true;
-                case "layer2CheckedButton":
-                case "layer2UncheckedButton":
-                    {
-                        CanvasLayers.selectLayer2(false);
-                        CanvasLayers.toggleLayer2Check();
-                    }
-                    return true;
-                case "layer1SelectButton":
-                    {
-                        if (CanvasLayers.isLayer2Selected)
-                        {
-                            CanvasLayers.selectLayer1(false);
-                        }
-                        else
-                        {
-                            CanvasLayers.selectLayer1(DrawCanvas.canvasLayer2Bitmap.visible);
-                            HintController.showMouseHintLayerVisible();
-                        }
-
-                        if (CanvasLayers.checkedLayer === 2)
-                        {
-                            CanvasLayers.toggleLayer2Check();
-                        }
-                    }
-                    return true;
-                case "layer2SelectButton":
-                    {
-                        if (!CanvasLayers.isLayer2Selected)
-                        {
-                            CanvasLayers.selectLayer2(false);
-                        }
-                        else
-                        {
-                            CanvasLayers.selectLayer2(DrawCanvas.canvasLayer1Bitmap.visible);
-                            HintController.showMouseHintLayerVisible();
-                        }
-
-                        if (CanvasLayers.checkedLayer === 1)
-                        {
-                            CanvasLayers.toggleLayer1Check();
-                        }
-                    }
-                    return true;
-                case "layerMergeButton":
-                case "layerSwapButton":
-                    {
-                        if (isToolBox2Showing || target.alpha < 1.0)
-                        {
-                            return true;
-                        }
-
-                        InputManager.handleMouseClickStage(targetName, DrawModeInput.onClickDrawModeButton);
-                    }
-                    return true;
-                case "sharpLineButtonWrapper":
-                case "sharpLineOFFButton":
-                case "sharpLineONButton":
-                case "sharpLineText":
-                    {
-                        if (toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
-                        {
-                            selectPenToolIfNotDrawingTool(true);
-                            toggleSharpLine(!isSharpLineON);
-                        }
-                    }
-                    return true;
-                case "airBrushButtonWrapper":
-                case "airBrushOFFButton":
-                case "airBrushONButton":
-                case "airBrushText":
-                    {
-                        if (toolOptionsBox.airBrushButtonWrapper.alpha === 1.0)
-                        {
-                            selectPenToolIfNotDrawingTool(true);
-
-                            if (isSelectedToolPenOrLine() || isSelectedTool(TOOL_FILLPEN))
-                            {
-                                togglePenAirBrushButton(!isPenAirBrushON);
-                            }
-                            else if (isSelectedTool(TOOL_ERASER))
-                            {
-                                toggleEraseAirBrushButton(!PenTool.isEraserAirBrushON);
-                            }
-                        }
-                    }
-                    return true;
-            }
-
-            return false;
-        }
-
         public static function toggleSharpLine(flag:Boolean):void
         {
             isSharpLineON = flag;
-            toolOptionsBox.sharpLineOFFButton.visible = flag;
-            toolOptionsBox.sharpLineONButton.visible = !flag;
+            ToolPanel.toolOptionsBox.sharpLineOFFButton.visible = flag;
+            ToolPanel.toolOptionsBox.sharpLineONButton.visible = !flag;
             PenSizePreviewCursor.updateSizeAndShape();
         }
 
@@ -1518,19 +683,19 @@ package Modules.Tools
 
         public static function toggleAirBrushCheckBox(flag:Boolean, penFlag:Boolean):void
         {
-            toolOptionsBox.airBrushOFFButton.visible = flag;
-            toolOptionsBox.airBrushONButton.visible = !flag;
+            ToolPanel.toolOptionsBox.airBrushOFFButton.visible = flag;
+            ToolPanel.toolOptionsBox.airBrushONButton.visible = !flag;
 
             if (flag)
             {
                 PenTool.airBrushSizeDrawMode = (penFlag) ? PenTool.penSize : PenTool.eraserSize;
-                toolOptionsBox.blurShapeSetON();
+                ToolPanel.toolOptionsBox.blurShapeSetON();
             }
             else if (PenTool.airBrushSizeDrawMode !== 0)
             {
                 PenTool.airBrushSizeDrawMode = 0;
                 StrokeBuffer.canvasDrawLayerChild.filters = [];
-                toolOptionsBox.blurShapeSetOFF();
+                ToolPanel.toolOptionsBox.blurShapeSetOFF();
             }
         }
 
@@ -1555,85 +720,6 @@ package Modules.Tools
             const number:String = targetName.substr(UITheme.ALPHA_BUTTON_PREFIX.length);
             const index:int = parseInt(number);
             ToolController.applyDrawingToolAlpha(PenTool.penAlphaList[index]);
-        }
-
-        // opabox 버튼을 눌렀을때 즉시 적용하고, 누른채 다른 버튼 위로 끌면 따라서 선택함
-        public static function onOpacityButtonDown(targetName:String):void
-        {
-            setDrawingToolOpacity(targetName);
-            startOptionButtonDrag(toolOptionsBox.opaBox, UITheme.ALPHA_BUTTON_PREFIX, targetName, setDrawingToolOpacity);
-        }
-
-        // 펜 크기 버튼을 눌렀을때 즉시 적용하고, 누른채 다른 버튼 위로 끌면 따라서 선택함
-        public static function onPenSizeButtonDown(targetName:String):void
-        {
-            selectPenSizeButton(targetName);
-            startOptionButtonDrag(toolOptionsBox.penSizeBox, UITheme.NSIZE_BUTTON_PREFIX, targetName, selectPenSizeButton);
-        }
-
-        private static var isOptionButtonDragging:Boolean = false;
-        private static var optionDragBox:Sprite = null;
-        private static var optionDragPrefix:String = "";
-        private static var optionDragApply:Function = null;
-        private static var lastDragOptionButton:String = "";
-
-        private static function startOptionButtonDrag(box:Sprite, prefix:String, startButtonName:String, apply:Function):void
-        {
-            if (isOptionButtonDragging)
-            {
-                return;
-            }
-
-            isOptionButtonDragging = true;
-            optionDragBox = box;
-            optionDragPrefix = prefix;
-            optionDragApply = apply;
-            lastDragOptionButton = startButtonName;
-
-            box.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverOptionButtonDrag);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, endOptionButtonDrag, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(Event.MOUSE_LEAVE, endOptionButtonDrag);
-            MouseState.beginDrag("optionButton", cancelOptionButtonDrag);
-        }
-
-        // 포커스를 잃으면(alt+tab 등) mouseUp이 안 오므로 MouseState.finishAllDrags가 호출함
-        private static function cancelOptionButtonDrag():void
-        {
-            if (isOptionButtonDragging)
-            {
-                endOptionButtonDrag(null);
-            }
-        }
-
-        private static function onMouseOverOptionButtonDrag(e:MouseEvent):void
-        {
-            if (!e.buttonDown)
-            {
-                endOptionButtonDrag(e);
-                return;
-            }
-
-            const target:DisplayObject = e.target as DisplayObject;
-
-            if (!target || target.name === lastDragOptionButton || target.name.indexOf(optionDragPrefix) !== 0)
-            {
-                return;
-            }
-
-            lastDragOptionButton = target.name;
-            optionDragApply(target.name);
-        }
-
-        private static function endOptionButtonDrag(e:Event):void
-        {
-            MouseState.endDrag("optionButton");
-            isOptionButtonDragging = false;
-
-            optionDragBox.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverOptionButtonDrag);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, endOptionButtonDrag);
-            main.stage.removeEventListener(Event.MOUSE_LEAVE, endOptionButtonDrag);
-            optionDragBox = null;
-            optionDragApply = null;
         }
     }
 }

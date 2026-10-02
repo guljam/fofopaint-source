@@ -1,5 +1,6 @@
 ﻿package
 {
+    import Modules.Tools.ToolPanel;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.Utils;
     import Modules.UIEngine.UITheme;
@@ -196,7 +197,7 @@
 
         static private function getRedoButtonHint():String
         {
-            if (main === null || ToolController.toolBox2.visible)
+            if (main === null || ToolPanel.toolBox2.visible)
             {
                 return "Redo [x / ,]";
             }
@@ -206,7 +207,7 @@
 
         static private function getUndoButtonHint():String
         {
-            if (main === null || ToolController.toolBox2.visible)
+            if (main === null || ToolPanel.toolBox2.visible)
             {
                 return "Undo [z / .]";
             }

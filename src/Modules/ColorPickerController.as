@@ -1,5 +1,6 @@
 package Modules
 {
+    import Modules.Tools.ToolPanel;
     import Modules.Tools.ToolController;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.InputManager.InputManager;
@@ -475,7 +476,7 @@ package Modules
             if (isPenColorMode())
             {
                 PenTool.penColor = color;
-                ToolController.updateOpacityCursorPos(PenTool.penAlphaIndex);
+                ToolPanel.updateOpacityCursorPos(PenTool.penAlphaIndex);
             }
             else if (isBackgroundColorMode())
             {
@@ -560,7 +561,7 @@ package Modules
             else
             {
                 PenTool.penColor = hexColor;
-                ToolController.updateOpacityCursorPos(PenTool.penAlphaIndex);
+                ToolPanel.updateOpacityCursorPos(PenTool.penAlphaIndex);
                 updateColorPickerCursorPosAndRGBInfo(hexColor);
             }
         }
@@ -632,7 +633,7 @@ package Modules
         private static function updatePenColor(color:uint):void
         {
             PenTool.penColor = color;
-            ToolController.updateOpacityCursorPos(PenTool.penAlphaIndex);
+            ToolPanel.updateOpacityCursorPos(PenTool.penAlphaIndex);
         }
 
         private static function isBackgroundColorMode():Boolean
@@ -799,7 +800,7 @@ package Modules
                 if (isPenColorMode())
                 {
                     PenTool.penColor = pickedColor;
-                    ToolController.updateOpacityCursorPos(PenTool.penAlphaIndex);
+                    ToolPanel.updateOpacityCursorPos(PenTool.penAlphaIndex);
                 }
                 else if (isBackgroundColorMode())
                 {
@@ -998,7 +999,7 @@ package Modules
 
         public static function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean
         {
-            if (ToolController.isToolBox2Showing || (InputManager.isKeyPressed()
+            if (ToolPanel.isToolBox2Showing || (InputManager.isKeyPressed()
                         && !ToolController.isSelectedToolPenOrLine()
                         && !ToolController.isSelectedTool(ToolController.TOOL_ERASER)
                         && !ToolController.isSelectedTool(ToolController.TOOL_FILLPEN)))

@@ -1,5 +1,6 @@
 package Modules.UIEngine
 {
+    import Modules.Tools.ToolPanel;
     import Modules.CanvasViewport;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.CanvasResizer;
@@ -65,9 +66,9 @@ package Modules.UIEngine
 
             SidebarController.sideBarScrollPanel.addChild(CanvasNavigator.box);
             SidebarController.sideBarScrollPanel.addChild(canvasInfoBox);
-            ToolController.toolBox.moveCanvasControlButtonsTo(canvasInfoBox);
-            SidebarController.sideBarScrollPanel.addChild(ToolController.toolBox);
-            SidebarController.sideBarScrollPanel.addChild(ToolController.toolOptionsBox);
+            ToolPanel.toolBox.moveCanvasControlButtonsTo(canvasInfoBox);
+            SidebarController.sideBarScrollPanel.addChild(ToolPanel.toolBox);
+            SidebarController.sideBarScrollPanel.addChild(ToolPanel.toolOptionsBox);
             SidebarController.sideBarScrollPanel.addChild(ColorPickerController.colorPickerBox);
 
             SidebarController.sideBar.addChild(SidebarController.sideBarScrollBar);
@@ -81,21 +82,21 @@ package Modules.UIEngine
             topBar.updateTimerPos(main.stage.stageWidth);
             topBar.replayFitToWindowButton.alpha = UITheme.OFFALPHA;
 
-            ToolController.selectedToolViewBitmap.name = "selectedToolViewBitmap";
-            ToolController.selectedToolViewBitmap.visible = false;
+            ToolPanel.selectedToolViewBitmap.name = "selectedToolViewBitmap";
+            ToolPanel.selectedToolViewBitmap.visible = false;
 
             main.stage.addChild(FileManager.loadMenuBox);
             main.stage.addChild(ReferenceLayerController.refLayerMenuBox);
             main.stage.addChild(AboutBoxController.aboutBox);
             main.stage.addChild(SidebarController.sideBar);
             main.stage.addChild(FillPenTool.fillPenBox);
-            main.stage.addChild(ToolController.toolBox2);
+            main.stage.addChild(ToolPanel.toolBox2);
             main.stage.addChild(canvasRotateCursor);
             main.stage.addChild(ColorPickerController.numPadBox);
             main.stage.addChild(CaptureStamp.captureStampFontListBox);
             main.stage.addChild(topBar);
             HintController.initialize();
-            main.stage.addChild(ToolController.selectedToolViewBitmap);
+            main.stage.addChild(ToolPanel.selectedToolViewBitmap);
         }
 
         public static function updateTopbarIconsDrawMode():void
@@ -194,7 +195,7 @@ package Modules.UIEngine
             LassoTool._lassoMenuBox.setScale(scale);
             ReferenceLayerController.refLayerMenuBox.setScale(scale);
             FillPenTool.fillPenBox.setScale(scale);
-            ToolController.toolBox2.setScale(scale);
+            ToolPanel.toolBox2.setScale(scale);
             AboutBoxController.setAboutBoxScale(scale);
             EyeDropperTool.eyedropperLens.setScale(scale);
             ColorPickerController.numPadBox.setScale(scale);
@@ -340,9 +341,9 @@ package Modules.UIEngine
                 FileManager.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
             }
 
-            if (ToolController.selectedToolViewBitmap.visible)
+            if (ToolPanel.selectedToolViewBitmap.visible)
             {
-                ToolController.updateSelectedToolViewBoxPos();
+                ToolPanel.updateSelectedToolViewBoxPos();
             }
 
             updateStageBGSize();
@@ -445,13 +446,13 @@ package Modules.UIEngine
             }
 
             SidebarController.sideBar.updateUIColor();
-            ToolController.toolOptionsBox.updateUIColor();
+            ToolPanel.toolOptionsBox.updateUIColor();
             ColorPickerController.colorPickerBox.updateUIColor();
             canvasInfoBox.updateUIColor();
             canvasRotateCursor.changeUIColor();
             SidebarController.fofo.updateColor();
-            ToolController.toolBox.changeUIColor();
-            ToolController.toolBox2.changeUIColor();
+            ToolPanel.toolBox.changeUIColor();
+            ToolPanel.toolBox2.changeUIColor();
             FillPenTool.fillPenBox.updateUIColor();
             LassoTool._lassoMenuBox.updateUIColor();
             ColorPickerController.numPadBox.updateUIColor();
