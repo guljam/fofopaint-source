@@ -32,7 +32,7 @@
 		public var tegakiPresetButton:SimpleButton;
 		public var myPaletteButton:SimpleButton;
 		public var swapPositionButton:SimpleButton;
-		public const rgbInfoBG:Shape = new Shape();
+		public const rgbInfoBG:Sprite = new Sprite(); // 클릭/드래그를 받아야해서 Sprite, 이름은 rgbInfoText와 같게 해서 힌트와 펜툴 제외 처리를 공유함
 		public var rgbInfoBGColor:uint = 0;
 		private var rgbInfoBGBorderColor:uint = 0;
 		private var rgbInfoPaletteTypeSave:int = 0;
@@ -48,7 +48,7 @@
 
 		public var offsetX:Number = 0; //customcolor 박스 떨어진 위치
 
-		private var currentColorBox:Sprite = new Sprite();
+		public const currentColorBox:Sprite = new Sprite();
 		public var currentColor:uint = 0;
 		private var currentColorBoxWidth:Number = 28;
 		public var hueCursor:SimpleButton;
@@ -492,6 +492,7 @@
 			rgbInfoText.x = 0;
 			rgbInfoText.y = 0.5;
 
+			rgbInfoBG.name = "rgbInfoText";
 			rgbInfoBG.x = 0;
 			rgbInfoBG.y = 0;
 

@@ -6,6 +6,7 @@ package Modules
     import Modules.SidebarController;
     import Modules.Tools.PenTool;
 
+    import flash.display.DisplayObject;
     import flash.display.Graphics;
     import flash.events.MouseEvent;
     import flash.filesystem.FileMode;
@@ -19,6 +20,8 @@ package Modules
         {
             main = instance;
         }
+
+        private static const COLOR_BOX_DRAG_DISTANCE:Number = 5; // 현재 색 박스를 이만큼(colorPickerBox 좌표 기준) 움직여야 드래그로 봄
 
         public static var isMyPaletteExpended:Boolean = false, // 전체로 보면 올려줌
             myPaletteColorBeforeAddColor:Array = [-1, 0], // index, hexcolor
@@ -627,6 +630,75 @@ package Modules
             {
                 DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
             }
+        }
+
+        // 현재 색 박스(rgbInfoBG, currentColor)용. 누른 위치에서 5px 넘게 움직이면 색 사각형이 생겨서 my palette에 놓을 수 있고,
+        // 그 전에 박스 위에서 떼면 onClick을 호출함. canDrag가 false면 드래그 없이 클릭만 받음
+        public static function startColorBoxClickOrDrag(clickArea:DisplayObject, color:uint, canDrag:Boolean, onClick:Function):void
+        {
+            const clickPos:Point = new Point();
+            var dragStarted:Boolean = false;
+
+            function onDragStart():void
+            {
+                clickPos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
+            }
+
+            function onMouseMove():void
+            {
+                if (canDrag === false)
+                {
+                    return;
+                }
+
+                if (dragStarted === false)
+                {
+                    const dx:Number = ColorPickerController.colorPickerBox.mouseX - clickPos.x;
+                    const dy:Number = ColorPickerController.colorPickerBox.mouseY - clickPos.y;
+
+                    if (dx * dx + dy * dy < COLOR_BOX_DRAG_DISTANCE * COLOR_BOX_DRAG_DISTANCE)
+                    {
+                        return;
+                    }
+
+                    dragStarted = true;
+                    ColorPickerController.colorPickerBox.updateDragColor(color, myPaletteColorWidth, myPaletteColorHeight);
+                }
+
+                ColorPickerController.colorPickerBox.updateDragColorPosToCursor();
+            }
+
+            function onMouseUp():void
+            {
+                if (dragStarted)
+                {
+                    ColorPickerController.colorPickerBox.removeDragColor();
+
+                    if (ColorPickerController.colorPickerBox.myPaletteBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                    {
+                        putColorToMyPalette(color, getMyPaletteIndexByMousePosLimitBound());
+                    }
+                }
+                else if (clickArea.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                {
+                    onClick();
+                }
+            }
+
+            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+        }
+
+        // 선택한 칸의 색을 덮어씀 (addColorToMyPalette와 달리 같은 색이어도 지우지 않음)
+        private static function putColorToMyPalette(color:uint, index:int):void
+        {
+            if (index < 0)
+            {
+                return;
+            }
+
+            myPalettePreset[index] = color;
+            updateMyPaletteList();
+            addColorMyPaletteHistory(color);
         }
 
         public static function startMyPaletteBoxDragging():void

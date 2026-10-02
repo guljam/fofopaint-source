@@ -553,7 +553,7 @@ package Modules.Tools
 
             if (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
             {
-                if (targetName === "penColorButton" || targetName === "paperColorButton" || targetName === "rgbInfoText")
+                if (targetName === "penColorButton" || targetName === "paperColorButton" || targetName === "rgbInfoText" || targetName === "currentColor")
                 {
                     return;
                 }

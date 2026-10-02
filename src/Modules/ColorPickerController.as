@@ -497,10 +497,50 @@ package Modules
             ReplayState.addUndoBGColorData(color);
         }
 
-        public static function onMouseDownRGBInfoText(e:MouseEvent):void
+        // rgbInfoText와 그 뒤의 rgbInfoBG 공용. 5px 이내로 떼면 클릭, 5px 넘게 움직이면 배경색을 my palette로 드래그
+        public static function onMouseDownRGBInfo(e:MouseEvent):void
         {
-            var clickedPos:int = getRgbInfoTextClickedPosIndex();
+            if (!colorPickerBox.rgbInfoText.visible) // 스크래치패드가 켜져있으면 글자가 숨겨지고 배경만 남음
+            {
+                return;
+            }
 
+            // 눌렀던 위치로 R G B 구간을 정함 (mouse up 때 읽으면 5px 움직인 만큼 옆 구간으로 밀릴 수 있음)
+            const clickedPos:int = getRgbInfoTextClickedPosIndex();
+
+            if (numPadBox.visible) // 숫자패드로 값을 고르는 중에는 드래그 없이 클릭만 받음
+            {
+                onClickRGBInfo(clickedPos);
+                return;
+            }
+
+            const canDrag:Boolean = PaletteController.myPalettePresetType === 0 && !PenTool.isTransparentPenColor;
+
+            PaletteController.startColorBoxClickOrDrag(colorPickerBox.rgbInfoBG, colorPickerBox.getRGBInfoBGColor(), canDrag, function ():void
+                {
+                    onClickRGBInfo(clickedPos);
+                });
+        }
+
+        public static function onMouseDownCurrentColor(e:MouseEvent):void
+        {
+            if (numPadBox.visible || LineTool.isStarted
+                    || (InputManager.isKeyPressed() && !ToolController.isSelectedToolPenOrLine()
+                    && !ToolController.isSelectedTool(ToolController.TOOL_ERASER)
+                    && !ToolController.isSelectedTool(ToolController.TOOL_FILLPEN)))
+            {
+                return;
+            }
+
+            PaletteController.startColorBoxClickOrDrag(colorPickerBox.currentColorBox, colorPickerBox.getCurrentColor(), PaletteController.myPalettePresetType === 0, function ():void
+                {
+                    ToolController.selectPenToolIfNotDrawingTool(false);
+                    selectCurrentColor(isColorPickerModeBG);
+                });
+        }
+
+        private static function onClickRGBInfo(clickedPos:int):void
+        {
             numpadInputBuffer = "";
             PenTool.isTransparentPenColor = false;
 
@@ -939,11 +979,6 @@ package Modules
                 {
                     switch (upTargetName)
                     {
-                        case "currentColor":
-                            ToolController.selectPenToolIfNotDrawingTool(false);
-                            selectCurrentColor(isColorPickerModeBG);
-                            break;
-
                         case "penColorButton":
                             if (isColorPickerModeBG)
                             {
@@ -1070,7 +1105,6 @@ package Modules
                 case "paperColorButton":
                 case "colorHistoryBox":
                 case "transColorButton":
-                case "currentColor":
                 case "swapPositionButton":
                     handleColorPickerBoxClick(targetName);
                     return true;

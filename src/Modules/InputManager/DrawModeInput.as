@@ -62,7 +62,9 @@ package Modules.InputManager
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownDrawMode);
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpDrawMode, false);
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownDrawMode);
-            ColorPickerController.colorPickerBox.rgbInfoText.removeEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfoText);
+            ColorPickerController.colorPickerBox.rgbInfoText.removeEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfo);
+            ColorPickerController.colorPickerBox.rgbInfoBG.removeEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfo);
+            ColorPickerController.colorPickerBox.currentColorBox.removeEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownCurrentColor);
             // main.stage.removeEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
         }
 
@@ -77,7 +79,9 @@ package Modules.InputManager
                 main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownDrawMode, false, InputPriority.MODE);
                 main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpDrawMode, false, InputPriority.MODE);
                 main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownDrawMode, false, InputPriority.MODE);
-                ColorPickerController.colorPickerBox.rgbInfoText.addEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfoText);
+                ColorPickerController.colorPickerBox.rgbInfoText.addEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfo);
+                ColorPickerController.colorPickerBox.rgbInfoBG.addEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfo);
+                ColorPickerController.colorPickerBox.currentColorBox.addEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownCurrentColor);
             }
         }
 
