@@ -1925,7 +1925,6 @@ package Modules.ReplayEngine
             ReferenceLayerController.resetRefLayerMenuOpacity();
             ReplayFileCache.initializeReplayDataFile(true);
             ReplayTimeline.invalidate();
-            ReplayState.resetCommandTime();
             ReplayFileCache.createFirstImageCache(DrawCanvas.canvasLayer1BitmapData, DrawCanvas.canvasLayer2BitmapData, DrawCanvas.CANVAS_BG_COLOR);
             resetReplaySpeedBar();
             resetReplayTime();

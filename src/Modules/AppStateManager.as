@@ -141,6 +141,7 @@ package Modules
 
             appStateObject.scrollSetMovedY = SidebarController.scrollSetMovedY;
             appStateObject.isRefLayerMemoryTrainingON = ReferenceLayerController.isRefLayerMemoryTrainingON;
+            appStateObject.lastCommandWallTime = ReplayState.getLastCommandWallTime();
 
             const fs:FileStream = new FileStream();
             fs.open(FileManager.appStateFilePath, FileMode.WRITE);
@@ -278,6 +279,8 @@ package Modules
                 fs.open(FileManager.appStateFilePath, FileMode.READ);
                 const appStateObject:AppStateVars = fs.readObject() as AppStateVars;
                 fs.close();
+                // 껐던 시간도 쉰 시간으로 기록되도록, 복원한 뒤 처음 그리는 명령 앞에 wait를 넣음
+                ReplayState.setRestoredLastCommandWallTime(appStateObject.lastCommandWallTime);
 
                 // loadUndoData함수에서 canvaspanel이 호출되는데 이전에 reflayer 이미지 정보값을 넣어두어야함
                 // 그냥 해주면 창크기 적용이 안되서 타이머 걸어줌

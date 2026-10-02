@@ -209,7 +209,6 @@ package Modules
             const rect:Rectangle = new Rectangle();
             ReplayFileCache.initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소\
             oldFile.copyTo(repFileTemp, true); // repdata.c3p를 복사 덮어씌우기
-            ReplayState.resetCommandTime(); // 불러온 데이터 뒤에 이어 그릴때 첫 명령 앞에는 wait를 넣지 않음
 
             if (ReferenceLayerController.refLayerRawTransformData)
             {

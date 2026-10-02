@@ -56,10 +56,14 @@ package Modules.ReplayEngine
         // 리플레이 커서 위치(진행바 타이머)와 채우기 애니메이션 덮개를 갱신하는 주기(ms), 앱 프레임레이트 24의 2배
         public static const REPLAY_VISUAL_UPDATE_MS:int = 48;
         public static const WAIT_MAX_TICK:int = 168; // 7초 이상 쉰 시간은 7초로 기록
-        private static var lastCommandTime:int = -1; // 마지막으로 기록한 명령의 getTimer, -1이면 첫 명령 앞에 wait를 넣지 않음
+        private static var lastCommandTime:int = -1; // 마지막으로 기록한 명령의 getTimer, -1이면 이 앱 실행에서 아직 기록한 명령이 없음 (복원한 시각이 있으면 그 시각 기준으로 wait를 넣음)
         private static var bufferStartTime:int = -1; // 버퍼 첫 명령의 getTimer, 뭉치 안의 틱은 이 시간 기준으로 반올림
         private static var bufferLastTick:int = 0; // 버퍼 안에서 마지막 명령의 틱 (bufferStartTime 기준)
         private static var bufferPrevCommandTime:int = -1; // 버퍼를 버릴때 lastCommandTime을 되돌릴 값
+        // getTimer는 앱을 켤때마다 0부터라서 앱을 껐다 켜면 직전 명령과의 간격을 알 수 없음, 그래서 마지막 명령의 실제 시각(ms)을 앱 상태에 저장해 두고 복원함
+        // 앱을 켠 실제 시각 (실제 시각 = 이 값 + getTimer)
+        private static const appStartWallTime:Number = new Date().getTime() - getTimer();
+        private static var restoredLastCommandWallTime:Number = -1; // 복원된 마지막 명령의 실제 시각, 이 앱 실행에서 명령을 기록하기 전까지만 씀, -1이면 모름
 
         // 그리기 명령은 이 함수로 버퍼에 넣어야 실시간 간격이 기록됨
         // prefix는 그 명령 바로 앞에 붙일 시간 없는 명령(lassoanim), wait 뒤에 들어가서 wait는 prefix가 아니라 command의 지연으로 남음
@@ -77,6 +81,11 @@ package Modules.ReplayEngine
                 if (lastCommandTime >= 0)
                 {
                     pushWait(Math.round((now - lastCommandTime) / WAIT_TICK_MS));
+                }
+                else if (restoredLastCommandWallTime >= 0)
+                {
+                    // 앱을 켜고 처음 그리는 명령, 껐던 시간도 쉰 시간이라 실제 시각 차이로 기록함 (오래 쉬었으면 최대치로 잘림)
+                    pushWait(Math.round(Math.min(WAIT_MAX_TICK, (appStartWallTime + now - restoredLastCommandWallTime) / WAIT_TICK_MS)));
                 }
             }
             else
@@ -124,10 +133,16 @@ package Modules.ReplayEngine
             rMemoryDataBuffer = [];
         }
 
-        // 새 파일, 파일 불러오기처럼 작업이 끊기는 곳에서 호출, 다음 첫 명령 앞에는 wait가 들어가지 않음
-        public static function resetCommandTime():void
+        // 앱 상태를 저장할때 쓰는 마지막 명령의 실제 시각(ms), 이번 실행에서 명령이 없었으면 복원했던 값을 그대로 넘김, 모르면 -1
+        public static function getLastCommandWallTime():Number
         {
-            lastCommandTime = -1;
+            return lastCommandTime >= 0 ? appStartWallTime + lastCommandTime : restoredLastCommandWallTime;
+        }
+
+        // 앱 상태를 복원할때 불러서, 이 실행의 첫 명령 앞에 껐던 시간만큼 wait를 넣게 함 (0 이하이거나 숫자가 아니면 모름으로 취급)
+        public static function setRestoredLastCommandWallTime(wallTime:Number):void
+        {
+            restoredLastCommandWallTime = (wallTime > 0) ? wallTime : -1;
         }
 
         public static function isWaitCommand(command:Array):Boolean
