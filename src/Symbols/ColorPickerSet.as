@@ -36,6 +36,7 @@
 		public var rgbInfoBGColor:uint = 0;
 		private var rgbInfoBGBorderColor:uint = 0;
 		private var rgbInfoPaletteTypeSave:int = 0;
+		private var isPaperColorDisabled:Boolean = false; // tegaki 프리셋일때 올려줌, paperColorButton을 OFFALPHA로 유지함
 		public const myPaletteBox:Sprite = new Sprite();
 		public const colorHistoryBox:Sprite = new Sprite();
 		private const myPaletteDragColor:Shape = new Shape();
@@ -165,6 +166,8 @@
 
 		public function setActiveColorPreset(type:int):void
 		{
+			isPaperColorDisabled = (type === 2); // tegaki에서는 배경색 변경 불가
+
 			if(type === 0)
 			{
 				myPaletteButton.alpha = 1.0;
@@ -204,7 +207,7 @@
 			else
 			{
 				penColorButton.alpha = 1.0;
-				paperColorButton.alpha = 0.6;
+				paperColorButton.alpha = (isPaperColorDisabled) ? UITheme.OFFALPHA : 0.6;
 			}
 		}
 

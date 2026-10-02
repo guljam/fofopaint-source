@@ -159,6 +159,10 @@ package Modules
             {
                 switchColorPickerModePen();
             }
+            else if (!FillPenTool.isStarted) // 펜 모드에서 프리셋만 바뀌어도 paperColorButton 알파를 갱신함 (채우기펜 중에는 둘 다 꺼져있으므로 건드리지 않음)
+            {
+                colorPickerBox.activePaperColorButton(false);
+            }
 
             if (type === 1) // drawr
             {
@@ -987,7 +991,7 @@ package Modules
                             break;
 
                         case "paperColorButton":
-                            if (!isColorPickerModeBG)
+                            if (!isColorPickerModeBG && PaletteController.myPalettePresetType !== 2) // tegaki에서는 배경색 변경 불가
                             {
                                 switchColorPickerModeBG();
                             }
