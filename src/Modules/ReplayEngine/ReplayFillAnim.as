@@ -64,7 +64,7 @@ package Modules.ReplayEngine
             const height:Number = armedHeight;
             disarm();
             clear();
-            totalMs = ReplayState.getFillAnimMs(height);
+            totalMs = ReplayState.getHeightAnimMs(height);
 
             if (totalMs <= 0)
             {
@@ -156,7 +156,7 @@ package Modules.ReplayEngine
         public function start(height:Number):Boolean
         {
             clear();
-            totalMs = ReplayState.getFillAnimMs(height);
+            totalMs = ReplayState.getHeightAnimMs(height);
 
             if (totalMs <= 0)
             {
@@ -291,7 +291,7 @@ package Modules.ReplayEngine
                 return Math.max(0, totalMs - elapsedMs);
             }
 
-            return armedData !== null ? ReplayState.getFillAnimMs(armedHeight) : 0;
+            return armedData !== null ? ReplayState.getHeightAnimMs(armedHeight) : 0;
         }
 
         // 덮개를 치움 (탐색, 모드 탈출, 처음부터 다시 시작할때). 쉬고 있어도 불러도 됨

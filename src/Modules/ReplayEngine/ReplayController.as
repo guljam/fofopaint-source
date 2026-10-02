@@ -1161,7 +1161,7 @@ package Modules.ReplayEngine
 
             // 채우기 애니메이션은 틱 합에 들어있지 않고 속도와 상관없는 실제 시간이라, 지금 속도의 틱으로 바꿔서 더함 (속도로 나누면 그 시간 그대로)
             const msToTicks:Number = ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
-            ticks += ReplayTimeline.getFillAnimMsFrom(frame) * msToTicks;
+            ticks += ReplayTimeline.getAnimMsFrom(frame) * msToTicks;
 
             if (frame === realtimeClockFrame)
             {

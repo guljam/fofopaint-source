@@ -154,8 +154,8 @@ package Modules.ReplayEngine
         // 실시간 재생에서만 그 영역을 배경색 덮개로 가렸다가 위에서부터 지워서 보여줌, 그 외(탐색, undo, 캐시 생성)에서는 아무것도 안 함
         // 시간은 높이로 정하고 재생 속도와 상관없이 실제 시간(ms)으로 흐름, 틱 시계와 별개라서 타임라인 틱 합에 넣지 않고 따로 셈
         public static const FILL_ANIM_COMMAND:String = "fillanim";
-        public static var FILL_ANIM_MIN_MS:Number = 200; // 높이 0일때 애니메이션 시간
-        public static var FILL_ANIM_MAX_MS:Number = 1000; // FILL_ANIM_FULL_HEIGHT 이상일때 애니메이션 시간
+        public static var REPLAY_CMD_ANIM_MIN_MS:Number = 200; // 리플레이 명령 애니메이션(fillanim, lassoanim, moveanim) 공통, 높이나 거리가 0일때 시간
+        public static var REPLAY_CMD_ANIM_MAX_MS:Number = 1000; // 높이는 FILL_ANIM_FULL_HEIGHT, 거리는 MOVE_ANIM_FULL_DISTANCE 이상일때 시간
         public static var FILL_ANIM_FULL_HEIGHT:Number = 600; // 이 높이 이상은 최대 시간, 그 아래는 높이에 비례
 
         public static function isFillAnimCommand(command:Array):Boolean
@@ -202,10 +202,10 @@ package Modules.ReplayEngine
         }
 
         // 영역 높이로 정한 애니메이션 시간(ms), 재생 속도와 상관없음
-        public static function getFillAnimMs(height:Number):Number
+        public static function getHeightAnimMs(height:Number):Number
         {
             const t:Number = Math.max(0, Math.min(1, height / FILL_ANIM_FULL_HEIGHT));
-            return FILL_ANIM_MIN_MS + (FILL_ANIM_MAX_MS - FILL_ANIM_MIN_MS) * t;
+            return REPLAY_CMD_ANIM_MIN_MS + (REPLAY_CMD_ANIM_MAX_MS - REPLAY_CMD_ANIM_MIN_MS) * t;
         }
 
         // 이동 거리(px)로 정한 이동 애니메이션 시간(ms), 재생 속도와 상관없음
@@ -218,7 +218,7 @@ package Modules.ReplayEngine
             }
 
             const t:Number = Math.max(0, Math.min(1, Math.sqrt(dx * dx + dy * dy) / MOVE_ANIM_FULL_DISTANCE));
-            return FILL_ANIM_MIN_MS + (FILL_ANIM_MAX_MS - FILL_ANIM_MIN_MS) * t;
+            return REPLAY_CMD_ANIM_MIN_MS + (REPLAY_CMD_ANIM_MAX_MS - REPLAY_CMD_ANIM_MIN_MS) * t;
         }
 
         // group[i] 칸이 시간이 있는 애니메이션 칸이면 그 시간(ms), 아니면 0
@@ -229,7 +229,7 @@ package Modules.ReplayEngine
 
             if (isScanAnimCommand(c))
             {
-                return getFillAnimMs(c[1]);
+                return getHeightAnimMs(c[1]);
             }
 
             if (isMoveAnimCommand(c) && i + 1 < group.length && isMoveCommand(group[i + 1]))

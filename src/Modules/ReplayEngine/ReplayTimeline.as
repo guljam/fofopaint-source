@@ -248,7 +248,7 @@ package Modules.ReplayEngine
         }
 
         // frame 위치 뒤(그 칸 포함)부터 전체 프레임(ReplayState.TOTAL_FRAME) 앞까지의 애니메이션 시간(ms)의 합
-        public static function getFillAnimMsFrom(frame:Number):Number
+        public static function getAnimMsFrom(frame:Number):Number
         {
             return getAnimMsBetween(frame, ReplayState.TOTAL_FRAME);
         }
@@ -383,7 +383,7 @@ package Modules.ReplayEngine
                     continue;
                 }
 
-                // fillanim, lassoanim, moveanim은 그리지 않고 지연에도 영향이 없음 (애니메이션 시간은 getFillAnimMsFrom에서 따로 셈)
+                // fillanim, lassoanim, moveanim은 그리지 않고 지연에도 영향이 없음 (애니메이션 시간은 getAnimMsFrom에서 따로 셈)
                 if (ReplayState.isNonDrawCommand(c))
                 {
                     continue;
