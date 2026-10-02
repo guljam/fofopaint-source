@@ -18,7 +18,7 @@ package Modules.ReplayEngine
         private static var groupCommands:Vector.<Number> = new Vector.<Number>();
         // 리플레이 파일 구간의 fillanim 셀 프레임과 높이, 재생 속도에 따라 시간에 넣을지 달라져서 틱 합과 따로 보관함
         private static var fillFrames:Vector.<Number> = new Vector.<Number>();
-        private static var fillHeights:Vector.<Number> = new Vector.<Number>();
+        private static var fillMsSums:Vector.<Number> = new Vector.<Number>(); // 각 fillanim까지의 애니메이션 시간(ms) 누적합, 재생 속도와 상관없는 시간이라 미리 더해둘 수 있음
         private static var groupFills:Vector.<int> = new Vector.<int>(); // 뭉치가 시작할때의 fillFrames 길이
         private static var fileFrames:Number = 0; // 표가 만들어진 리플레이 파일의 프레임 수
         private static var fileTicks:Number = 0;
@@ -80,7 +80,7 @@ package Modules.ReplayEngine
                 fileTicks = groupTicks[end];
                 fileCommands = groupCommands[end];
                 fillFrames.length = groupFills[end];
-                fillHeights.length = groupFills[end];
+                fillMsSums.length = groupFills[end];
                 groupFrames.length = end;
                 groupTicks.length = end;
                 groupBytes.length = end;
@@ -194,9 +194,9 @@ package Modules.ReplayEngine
             return count;
         }
 
-        // frame 위치 뒤(그 칸 포함)에 있는 fillanim 중 그 재생 속도에서 애니메이션이 나오는 것들의 틱 합
-        // 틱 합(getTickAtFrame)과 따로 셈, 남은 시간에서 더해줌
-        public static function getFillAnimTicksFrom(frame:Number, speed:Number):Number
+        // frame 위치 뒤(그 칸 포함)에 있는 fillanim 애니메이션 시간(ms)의 합
+        // 재생 속도와 상관없는 실제 시간이라 틱 합(getTickAtFrame)과 따로 셈, 남은 시간에서 더해줌
+        public static function getFillAnimMsFrom(frame:Number):Number
         {
             if (!isValid())
             {
@@ -222,9 +222,9 @@ package Modules.ReplayEngine
                 }
             }
 
-            for (var i:int = low;i < fillFrames.length;i++)
+            if (low < fillFrames.length)
             {
-                sum += ReplayState.getFillAnimTicksAtSpeed(fillHeights[i], speed);
+                sum = fillMsSums[fillMsSums.length - 1] - (low > 0 ? fillMsSums[low - 1] : 0);
             }
 
             // 메모리 undo 구간
@@ -243,7 +243,7 @@ package Modules.ReplayEngine
                     {
                         if (ReplayState.isFillAnimCommand(data[j]))
                         {
-                            sum += ReplayState.getFillAnimTicksAtSpeed(data[j][1], speed);
+                            sum += ReplayState.getFillAnimMs(data[j][1]);
                         }
                     }
                 }
@@ -361,7 +361,7 @@ package Modules.ReplayEngine
                     continue;
                 }
 
-                // fillanim은 그리지 않고 지연에도 영향이 없음 (애니메이션 시간은 getFillAnimTicksFrom에서 따로 셈)
+                // fillanim은 그리지 않고 지연에도 영향이 없음 (애니메이션 시간은 getFillAnimMsFrom에서 따로 셈)
                 if (ReplayState.isFillAnimCommand(c))
                 {
                     continue;
@@ -400,7 +400,7 @@ package Modules.ReplayEngine
                 if (ReplayState.isFillAnimCommand(group[i]))
                 {
                     fillFrames.push(fileFrames + i);
-                    fillHeights.push(group[i][1]);
+                    fillMsSums.push((fillMsSums.length > 0 ? fillMsSums[fillMsSums.length - 1] : 0) + ReplayState.getFillAnimMs(group[i][1]));
                 }
             }
 
@@ -444,7 +444,7 @@ package Modules.ReplayEngine
             groupCommands.length = 0;
             groupFills.length = 0;
             fillFrames.length = 0;
-            fillHeights.length = 0;
+            fillMsSums.length = 0;
             fileFrames = 0;
             fileTicks = 0;
             fileCommands = 0;

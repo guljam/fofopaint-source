@@ -19,8 +19,8 @@ package Modules.ReplayEngine
         private var overlay:Bitmap = null;
         private var overlayData:BitmapData = null;
         private const area:Rectangle = new Rectangle(); // 덮개가 덮는 영역 (캔버스 좌표)
-        private var totalTicks:Number = 0;
-        private var clock:Number = 0; // 애니메이션이 시작하고 흐른 틱
+        private var totalMs:Number = 0;
+        private var elapsedMs:Number = 0; // 애니메이션이 시작하고 흐른 시간
         private var revealedRows:int = 0; // 위에서부터 이미 지운 줄 수
         private var active:Boolean = false;
 
@@ -29,14 +29,14 @@ package Modules.ReplayEngine
             return active;
         }
 
-        // 지금 재생 속도에서 애니메이션이 나오지 않거나 덮개를 만들지 못하면 false (그 채우기는 그냥 지나감)
+        // 덮개를 만들지 못하면 false (그 채우기는 그냥 지나감)
         // 부르는 쪽에서 fillanim 칸을 읽은 직후에 불러야 함 (fill5를 그 칸 앞에서 찾음)
-        public function start(height:Number, speed:Number):Boolean
+        public function start(height:Number):Boolean
         {
             clear();
-            totalTicks = ReplayState.getFillAnimTicksAtSpeed(height, speed);
+            totalMs = ReplayState.getFillAnimMs(height);
 
-            if (totalTicks <= 0)
+            if (totalMs <= 0)
             {
                 return false;
             }
@@ -110,24 +110,24 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasPanel.addChild(overlay);
             }
 
-            clock = 0;
+            elapsedMs = 0;
             revealedRows = 0;
             active = true;
             moveCursor(0);
             return true;
         }
 
-        // dTicks만큼 진행시킴. 끝났으면 덮개를 치우고 남은 틱을 돌려주고, 아직이면 -1
-        public function advance(dTicks:Number):Number
+        // dMs만큼 진행시킴. 끝났으면 덮개를 치우고 남은 시간(ms)을 돌려주고, 아직이면 -1
+        public function advance(dMs:Number):Number
         {
             if (!active)
             {
-                return dTicks;
+                return dMs;
             }
 
-            clock += dTicks;
+            elapsedMs += dMs;
 
-            const rows:int = (clock >= totalTicks) ? area.height : Math.floor(area.height * clock / totalTicks);
+            const rows:int = (elapsedMs >= totalMs) ? area.height : Math.floor(area.height * elapsedMs / totalMs);
 
             if (rows > revealedRows)
             {
@@ -137,9 +137,9 @@ package Modules.ReplayEngine
 
             moveCursor(rows);
 
-            if (clock >= totalTicks)
+            if (elapsedMs >= totalMs)
             {
-                const leftover:Number = clock - totalTicks;
+                const leftover:Number = elapsedMs - totalMs;
                 clear();
                 return leftover;
             }
@@ -147,9 +147,9 @@ package Modules.ReplayEngine
             return -1;
         }
 
-        public function getRemainingTicks():Number
+        public function getRemainingMs():Number
         {
-            return active ? Math.max(0, totalTicks - clock) : 0;
+            return active ? Math.max(0, totalMs - elapsedMs) : 0;
         }
 
         // 덮개를 치움 (탐색, 모드 탈출, 처음부터 다시 시작할때). 쉬고 있어도 불러도 됨

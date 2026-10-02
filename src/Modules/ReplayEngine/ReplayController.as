@@ -1007,22 +1007,22 @@ package Modules.ReplayEngine
                 elapsed = REALTIME_MAX_FRAME_MS;
             }
 
-            var elapsedTicks:Number = elapsed * ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
+            var elapsedMs:Number = elapsed;
 
-            // 채우기 애니메이션 중에는 그 애니메이션만 시간이 흐르고 다음 명령을 기다리는 시계는 멈춰있음
+            // 채우기 애니메이션 중에는 그 애니메이션만 실제 시간(재생 속도와 상관없음)으로 흐르고 다음 명령을 기다리는 시계는 멈춰있음
             // 끝나면 남은 시간은 다음 명령 시계로 넘겨서 시간이 정확히 더해지게 함
             if (ReplayDrawer.fillAnim.isActive)
             {
-                elapsedTicks = ReplayDrawer.fillAnim.advance(elapsedTicks);
+                elapsedMs = ReplayDrawer.fillAnim.advance(elapsedMs);
                 realtimeClockFrame = ReplayState.rNowFrame;
 
-                if (elapsedTicks < 0)
+                if (elapsedMs < 0)
                 {
                     return false;
                 }
             }
 
-            realtimeTickClock += elapsedTicks;
+            realtimeTickClock += elapsedMs * ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
             var cursorSpinStopped:Boolean = false; // 이번 프레임에 돌던 커서를 멈췄는지
 
             while (true)
@@ -1037,10 +1037,10 @@ package Modules.ReplayEngine
 
                 if (ReplayState.isFillAnimCommand(next))
                 {
-                    // 그리는건 없고 칸만 넘어감, 이 속도에서 애니메이션이 나오면 같은 프레임에 덮개를 올리고 다음 프레임부터 지움
+                    // 그리는건 없고 칸만 넘어감, 같은 프레임에 덮개를 올리고 다음 프레임부터 지움
                     ReplayDrawer.startDraw(1, ReplayDrawer.JUMP_FRAME_PLAY);
 
-                    if (ReplayDrawer.fillAnim.start(next[1], ReplayState.rReplaySpeedMultipler))
+                    if (ReplayDrawer.fillAnim.start(next[1]))
                     {
                         realtimeClockFrame = ReplayState.rNowFrame;
                         return false;
@@ -1106,13 +1106,14 @@ package Modules.ReplayEngine
         {
             var ticks:Number = ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) - ReplayTimeline.getTickAtFrame(frame);
 
-            // 채우기 애니메이션은 틱 합에 들어있지 않아서 재생 속도에서 나오는 것만 따로 더함
-            ticks += ReplayTimeline.getFillAnimTicksFrom(frame, ReplayState.rReplaySpeedMultipler);
+            // 채우기 애니메이션은 틱 합에 들어있지 않고 속도와 상관없는 실제 시간이라, 지금 속도의 틱으로 바꿔서 더함 (속도로 나누면 그 시간 그대로)
+            const msToTicks:Number = ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
+            ticks += ReplayTimeline.getFillAnimMsFrom(frame) * msToTicks;
 
             if (frame === realtimeClockFrame)
             {
                 ticks -= Math.min(realtimeTickClock, realtimePendingDelay);
-                ticks += ReplayDrawer.fillAnim.getRemainingTicks(); // 진행중인 애니메이션의 남은 시간
+                ticks += ReplayDrawer.fillAnim.getRemainingMs() * msToTicks; // 진행중인 애니메이션의 남은 시간
             }
 
             return ticks > 0 ? ticks : 0;
