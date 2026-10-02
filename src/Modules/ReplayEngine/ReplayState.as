@@ -53,7 +53,7 @@ package Modules.ReplayEngine
         // 1틱 = 앱의 스테이지 1프레임(24fps, 컴파일러 기본값). 구버전 데이터가 지금처럼 1프레임에 명령 1개로 재생되게 함
         // 저장 형식의 단위라서 나중에 스테이지 프레임레이트를 바꿔도 이 값은 바꾸면 안됨
         public static const WAIT_TICK_MS:Number = 1000 / 24;
-        public static const WAIT_MAX_TICK:int = 120; // 5초 이상 쉰 시간은 5초로 기록
+        public static const WAIT_MAX_TICK:int = 168; // 7초 이상 쉰 시간은 7초로 기록
         private static var lastCommandTime:int = -1; // 마지막으로 기록한 명령의 getTimer, -1이면 첫 명령 앞에 wait를 넣지 않음
         private static var bufferStartTime:int = -1; // 버퍼 첫 명령의 getTimer, 뭉치 안의 틱은 이 시간 기준으로 반올림
         private static var bufferLastTick:int = 0; // 버퍼 안에서 마지막 명령의 틱 (bufferStartTime 기준)
