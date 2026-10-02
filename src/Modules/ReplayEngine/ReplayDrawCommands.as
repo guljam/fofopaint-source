@@ -26,6 +26,7 @@ package Modules.ReplayEngine
         public static var index:uint = 0;
         public static var data:Array = []; // 데이터 뭉치
         public static var waitReadCount:uint = 0; // drawNext에서 읽은 wait 수 누적, 쓰는 곳에서 전후 차이만 봄
+        private static var firstCommandIndex:uint = 0; // 뭉치 앞쪽 wait를 건너뛴 첫 명령 위치, lineStyle이 새 획인지 판단할때 씀
         public static var cmd:Vector.<int> = new Vector.<int>();
         public static var pos:Vector.<Number> = new Vector.<Number>();
 
@@ -107,12 +108,20 @@ package Modules.ReplayEngine
         {
             data = [];
             index = 0;
+            firstCommandIndex = 0;
         }
 
         public static function setData(refData:Array, startIndex:uint = 0):void
         {
             data = refData;
             index = startIndex;
+            // 실시간 녹화 뭉치는 ["wait", n]으로 시작해서 첫 lineStyle이 0번이 아님
+            firstCommandIndex = 0;
+
+            while (data && firstCommandIndex < data.length && ReplayState.isWaitCommand(data[firstCommandIndex]))
+            {
+                firstCommandIndex++;
+            }
         }
 
         public static function getRemainingData():uint
@@ -250,7 +259,8 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             }
 
-            if (index === 0)
+            // 뭉치 첫 명령이면 새 획이라 그리기 범위를 초기화, 아니면 이어 그리기라 범위를 합침
+            if (index === firstCommandIndex)
             {
                 ReplayDrawer.resetRCanvasDrawLayerClipRect();
             }
@@ -290,7 +300,7 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             }
 
-            if (index === 0)
+            if (index === firstCommandIndex)
             {
                 ReplayDrawer.resetRCanvasDrawLayerClipRectLegacy();
             }
