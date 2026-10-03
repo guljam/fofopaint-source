@@ -293,6 +293,11 @@
             return "Version " + AppUpdater.newVersionStr + " is available!";
         }
 
+        public static function getDeleteColorHint():String
+        {
+            return "Delete this color";
+        }
+
         static private function getCurrentColorHintString():String
         {
             if (main === null)

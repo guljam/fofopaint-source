@@ -706,6 +706,7 @@ package Modules
         public static function startMyPaletteBoxDragging():void
         {
             var index:int = getMyPaletteIndexByMousePos();
+            var isOverDeleteTarget:Boolean = false;
 
             function onDragStart():void
             {
@@ -731,6 +732,7 @@ package Modules
                     }
 
                     ColorPickerController.colorPickerBox.updateDragColorPosToCursor();
+                    updateDeleteTarget();
                 }
                 else
                 {
@@ -738,17 +740,57 @@ package Modules
                 }
             }
 
+            // 드래그 중인 커서가 svBox에 들어가면 밝게 + "Delete this color" 힌트, 나오면 원래대로
+            function updateDeleteTarget():void
+            {
+                const isOver:Boolean = ColorPickerController.colorPickerBox.isSVBoxUnderMouse();
+
+                if (isOver === isOverDeleteTarget)
+                {
+                    return;
+                }
+
+                isOverDeleteTarget = isOver;
+                ColorPickerController.colorPickerBox.setSVBoxHighlighted(isOver);
+
+                if (isOver)
+                {
+                    HintController.showMouseHintAtTopCenter(HintStrings.getDeleteColorHint(), ColorPickerController.colorPickerBox.svBox);
+                }
+                else
+                {
+                    HintController.hideMouseHint();
+                }
+            }
+
             function onMouseUp():void
             {
+                if (isOverDeleteTarget)
+                {
+                    isOverDeleteTarget = false;
+                    ColorPickerController.colorPickerBox.setSVBoxHighlighted(false);
+                    HintController.hideMouseHint();
+                }
+
                 if (myPaletteDragStarted === true)
                 {
                     myPaletteDragStarted = false;
 
-                    const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
-                    const colorSave:* = myPalettePreset[putIndex];
+                    if (ColorPickerController.colorPickerBox.isSVBoxUnderMouse())
+                    {
+                        // 지우기 전 색을 저장해서 길게 클릭했을때 이전 색으로 복원되게 함
+                        myPaletteColorBeforeAddColor[0] = myPaletteDragClickedIndex;
+                        myPaletteColorBeforeAddColor[1] = myPaletteDragClickedColor;
+                        myPalettePreset[myPaletteDragClickedIndex] = null;
+                    }
+                    else
+                    {
+                        const putIndex:int = getMyPaletteIndexByMousePosLimitBound();
+                        const colorSave:* = myPalettePreset[putIndex];
 
-                    myPalettePreset[putIndex] = myPaletteDragClickedColor;
-                    myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null : colorSave;
+                        myPalettePreset[putIndex] = myPaletteDragClickedColor;
+                        myPalettePreset[myPaletteDragClickedIndex] = (colorSave === null || colorSave === undefined) ? null : colorSave;
+                    }
                     updateMyPaletteList();
                 }
 

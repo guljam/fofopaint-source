@@ -6,6 +6,7 @@
 	import flash.display.GradientType;
 	import flash.display.Sprite;
 	import flash.geom.Matrix;
+	import flash.geom.ColorTransform;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
 	import flash.display.Shape;
@@ -19,6 +20,7 @@
 
 	public class ColorPickerSet extends Sprite
 	{
+		private static const SV_BOX_HIGHLIGHT_OFFSET:Number = 50; //svBox 하이라이트 때 RGB에 더해주는 값
 		private var mainColorPickerBox:Sprite = new Sprite();
 		private var colorPickerPresetBox:Sprite = new Sprite();
 		private var colorPickerTypeBox:Sprite = new Sprite();
@@ -361,6 +363,17 @@
 			svBase.graphics.endFill();
 
 			svBaseColor = color;
+		}
+
+		public function isSVBoxUnderMouse():Boolean
+		{
+			return svBox.hitTestPoint(stage.mouseX,stage.mouseY);
+		}
+
+		// 색 삭제 드래그 중 svBox 위에 올라가면 테마 상관없이 살짝 밝게 해서 알려줌
+		public function setSVBoxHighlighted(flag:Boolean):void
+		{
+			svBox.transform.colorTransform = flag ? new ColorTransform(1,1,1,1,SV_BOX_HIGHLIGHT_OFFSET,SV_BOX_HIGHLIGHT_OFFSET,SV_BOX_HIGHLIGHT_OFFSET,0) : new ColorTransform();
 		}
 
 		public function removeDragColor():void
