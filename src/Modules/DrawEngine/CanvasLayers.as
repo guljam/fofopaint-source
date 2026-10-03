@@ -21,6 +21,11 @@ package Modules.DrawEngine
         public static var checkedLayer:int = 0; // 레이어가 체크되면 저장해줌
         public static var isLayerSwapped:Boolean = false; // 1<->2 번호 바뀌는 힌트 써주려고 만듬
 
+        // 지우개 미리보기: 선택된 레이어 비트맵과 canvasDrawLayer를 layer 블렌드 홀더에 묶고 canvasDrawLayer를 ERASE로 그려
+        // 그 레이어만 지워진 것처럼 보이게 함 (참조/다른 레이어/배경은 홀더 밖이라 그대로). 획이 진행되는 동안에만 유지함
+        private static const eraserToolPreviewHolder:Sprite = new Sprite();
+        private static var eraserToolPreviewLayer2:Boolean = false;
+
         public static function isAllLayerInvisible():Boolean
         {
             if (!DrawCanvas.canvasLayer1Bitmap.visible && !DrawCanvas.canvasLayer2Bitmap.visible)
@@ -101,44 +106,41 @@ package Modules.DrawEngine
             return checkedLayer === 0;
         }
 
-        // 지우개 미리보기: 선택된 레이어 비트맵과 canvasDrawLayer를 layer 블렌드 홀더에 묶고 canvasDrawLayer를 ERASE로 그려
-        // 그 레이어만 지워진 것처럼 보이게 함 (참조/다른 레이어/배경은 홀더 밖이라 그대로). 획이 진행되는 동안에만 유지함
-        private static const erasePreviewHolder:Sprite = new Sprite();
-        private static var erasePreviewLayer2:Boolean = false;
 
-        public static function beginErasePreview(layer2:Boolean):void
+
+        public static function beginEraserToolPreview(layer2:Boolean):void
         {
             endEraserToolPreview(); // 이전 획이 정상적으로 끝나지 못했어도 복구함
 
             const panel:Sprite = CanvasView.canvasPanel;
             const layerBitmap:Bitmap = (layer2) ? DrawCanvas.canvasLayer2Bitmap : DrawCanvas.canvasLayer1Bitmap;
 
-            erasePreviewLayer2 = layer2;
-            erasePreviewHolder.blendMode = BlendMode.LAYER;
-            panel.addChildAt(erasePreviewHolder, panel.getChildIndex(layerBitmap));
-            erasePreviewHolder.addChild(layerBitmap);
-            erasePreviewHolder.addChild(StrokeBuffer.canvasDrawLayer);
+            eraserToolPreviewLayer2 = layer2;
+            eraserToolPreviewHolder.blendMode = BlendMode.LAYER;
+            panel.addChildAt(eraserToolPreviewHolder, panel.getChildIndex(layerBitmap));
+            eraserToolPreviewHolder.addChild(layerBitmap);
+            eraserToolPreviewHolder.addChild(StrokeBuffer.canvasDrawLayer);
             StrokeBuffer.canvasDrawLayer.blendMode = BlendMode.ERASE;
         }
 
         // 여러 번 호출해도 안전함. 저장해둔 인덱스 없이 현재 상태 기준으로 원래 순서를 다시 계산함
         public static function endEraserToolPreview():void
         {
-            if (erasePreviewHolder.parent === null)
+            if (eraserToolPreviewHolder.parent === null)
             {
                 return;
             }
 
             const panel:Sprite = CanvasView.canvasPanel;
-            const layerBitmap:Bitmap = (erasePreviewLayer2) ? DrawCanvas.canvasLayer2Bitmap : DrawCanvas.canvasLayer1Bitmap;
+            const layerBitmap:Bitmap = (eraserToolPreviewLayer2) ? DrawCanvas.canvasLayer2Bitmap : DrawCanvas.canvasLayer1Bitmap;
 
-            panel.addChildAt(layerBitmap, panel.getChildIndex(erasePreviewHolder));
-            panel.removeChild(erasePreviewHolder);
-            erasePreviewHolder.blendMode = BlendMode.NORMAL;
+            panel.addChildAt(layerBitmap, panel.getChildIndex(eraserToolPreviewHolder));
+            panel.removeChild(eraserToolPreviewHolder);
+            eraserToolPreviewHolder.blendMode = BlendMode.NORMAL;
 
             StrokeBuffer.canvasDrawLayer.blendMode = BlendMode.LAYER;
 
-            if (erasePreviewLayer2)
+            if (eraserToolPreviewLayer2)
             {
                 panel.addChildAt(StrokeBuffer.canvasDrawLayer, panel.getChildIndex(DrawCanvas.canvasLayer1Bitmap)); // 레이어 2번 선택 시 layer1 바로 아래
             }

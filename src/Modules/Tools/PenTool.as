@@ -721,7 +721,7 @@ package Modules.Tools
 
 			if (!isPenTool)
 			{
-				CanvasLayers.beginErasePreview(CanvasLayers.isLayer2Selected); // 선택된 레이어만 지워지는 미리보기
+				CanvasLayers.beginEraserToolPreview(CanvasLayers.isLayer2Selected); // 선택된 레이어만 지워지는 미리보기
 			}
 
 			isStabilizerON = isPenTool && PenSettings.penSmoothSlideValue > 1;
