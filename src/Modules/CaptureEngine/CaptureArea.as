@@ -15,6 +15,7 @@ package Modules.CaptureEngine
     import flash.geom.Rectangle;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
+    import flash.events.TransformGestureEvent;
 
     public class CaptureArea
     {
@@ -161,12 +162,19 @@ package Modules.CaptureEngine
                 return EDGE_NONE;
             }
 
+            // 값싼 변 판정을 먼저 하고, 변에 걸렸을 때만 비싼 hitTestPoint를 확인함
+            const edge:int = hitEdge(xPanel.mouseX, xPanel.mouseY);
+            if (edge === EDGE_NONE)
+            {
+                return EDGE_NONE;
+            }
+
             if (UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) || CaptureStamp.captureStampFontListBox.visible)
             {
                 return EDGE_NONE;
             }
 
-            return hitEdge(xPanel.mouseX, xPanel.mouseY);
+            return edge;
         }
 
         private static function setHighlightEdge(edge:int):void
@@ -253,8 +261,15 @@ package Modules.CaptureEngine
                 CaptureController.onCaptureAreaDragStarted();
             }
 
-            rectClamped.x = Math.round(Math.max(0, Math.min(canvasWidth - rectClamped.width, moveStartRect.x + subX)));
-            rectClamped.y = Math.round(Math.max(0, Math.min(canvasHeight - rectClamped.height, moveStartRect.y + subY)));
+            const newX:Number = Math.round(Math.max(0, Math.min(canvasWidth - rectClamped.width, moveStartRect.x + subX)));
+            const newY:Number = Math.round(Math.max(0, Math.min(canvasHeight - rectClamped.height, moveStartRect.y + subY)));
+            if (newX === rectClamped.x && newY === rectClamped.y)
+            {
+                return;
+            }
+
+            rectClamped.x = newX;
+            rectClamped.y = newY;
             drawArea();
         }
 
@@ -273,6 +288,11 @@ package Modules.CaptureEngine
 
             if (mouseMoved)
             {
+                if (rectRaw.width === subX && rectRaw.height === subY)
+                {
+                    return;
+                }
+
                 rectRaw.width = subX;
                 rectRaw.height = subY;
                 rectClamped.x = rectRaw.x;
@@ -435,7 +455,6 @@ package Modules.CaptureEngine
             clickPos.setTo(0, 0);
             rectClamped.setTo(0, 0, 0, 0);
             rectRaw.setTo(0, 0, 0, 0);
-            rectFull.setTo(0, 0, 0, 0);
             highlightEdge = EDGE_NONE;
             activeEdge = EDGE_NONE;
         }
@@ -453,6 +472,7 @@ package Modules.CaptureEngine
             clearAreaState();
             canvasWidth = 0;
             canvasHeight = 0;
+            rectFull.setTo(0, 0, 0, 0);
             xPanel = null;
             mouseMoved = false;
             // 드래그 도중 캡처 모드가 끝나면 리스너와 등록이 남지 않게 정리함
@@ -500,45 +520,47 @@ package Modules.CaptureEngine
             MouseState.beginDrag(DRAG_OWNER, finishCaptureAreaDrag);
         }
 
+        // 캡처 모드 진입 시 한 번 호출함. 캡처 모드 중에는 캔버스 크기와 패널이 바뀌지 않음
+        public static function initCanvas():void
+        {
+            if (ReplayState.isReplayModeON)
+            {
+                canvasWidth = ReplayState.RCANVAS_WIDTH;
+                canvasHeight = ReplayState.RCANVAS_HEIGHT;
+                xPanel = ReplayDrawer.rCanvasPanel;
+            }
+            else
+            {
+                canvasWidth = DrawCanvas.CANVAS_WIDTH;
+                canvasHeight = DrawCanvas.CANVAS_HEIGHT;
+                xPanel = CanvasView.canvasPanel;
+            }
+            rectFull.setTo(0, 0, canvasWidth, canvasHeight);
+        }
+
         public static function start():void
         {
             if (UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
-                if (ReplayState.isReplayModeON) // 리플레이 변수로 변경
-                {
-                    canvasWidth = ReplayState.RCANVAS_WIDTH;
-                    canvasHeight = ReplayState.RCANVAS_HEIGHT;
-                    xPanel = ReplayDrawer.rCanvasPanel;
-                }
-                else
-                {
-                    canvasWidth = DrawCanvas.CANVAS_WIDTH;
-                    canvasHeight = DrawCanvas.CANVAS_HEIGHT;
-                    xPanel = CanvasView.canvasPanel;
-                }
-
                 const mx:Number = xPanel.mouseX;
                 const my:Number = xPanel.mouseY;
-
-                rectFull.setTo(0, 0, canvasWidth, canvasHeight);
-
                 const hasCaptureArea:Boolean = !isFullImageCapture();
                 const edge:int = (hasCaptureArea) ? hitEdge(mx, my) : EDGE_NONE;
 
-                if (edge !== EDGE_NONE)
+                if (edge !== EDGE_NONE) // 크기 조절
                 {
                     activeEdge = edge;
                     highlightEdge = edge;
                     dragEdgeStartValue = getEdgeValue(edge);
                     beginDrag(mx, my, onMouseMoveEdge);
                 }
-                else if (hasCaptureArea && isCursorInCaptureDrea())
+                else if (hasCaptureArea && isCursorInCaptureDrea()) // 영역 이동
                 {
                     moveStartRect.copyFrom(rectClamped);
                     setHighlightEdge(EDGE_NONE);
                     beginDrag(mx, my, onMouseMoveAreaMove);
                 }
-                else
+                else if (!hasCaptureArea) // 새로 그리기
                 {
                     setHighlightEdge(EDGE_NONE);
                     beginDrag(mx, my, onMouseMoveDrawCaptureArea);

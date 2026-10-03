@@ -424,6 +424,7 @@ package Modules.CaptureEngine
             }
 
             activateCaptureUI();
+            CaptureArea.initCanvas();
             CaptureArea.startHoverTracking();
             HintController.hideBottomHint();
 
