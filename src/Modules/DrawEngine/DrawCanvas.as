@@ -239,7 +239,6 @@ package Modules.DrawEngine
 
             canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
 
-            // todo applyCanvasBGColorDrawMode로 옮겨야 할것 같은데 centerMovedFlag를 전역 상태로 처리해주어야하나? 함수끼리 통신해야하니까
             // canvas width가 갱신되게 전에 업데이트 해야함
             ReferenceLayerController.updateRefLayerImagePos(w, h, centerMovedFlag);
             CANVAS_WIDTH = w;

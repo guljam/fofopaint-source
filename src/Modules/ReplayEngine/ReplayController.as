@@ -53,12 +53,6 @@ package Modules.ReplayEngine
 
     public class ReplayController
     {
-        // todo r캔버스는 따로 분리해야함, r캔버스 줌 회전 툴등 조작하는것도 분리해야함
-        // 일부 접근자 private로 변경했는데 모듈 완전히 분리하고 나서 해야함 오류나는것들 점검
-        // todo 리플레이 실행중일때 탐색바만 나오는데 리플레이 속도 조절할수있게 같이 나오게 해야함 ui고민
-        // todo playback speed 키보드로 조정할때 힌트 박스를 topbar 아래쪽으로 직관적으로 보이게 조정
-        // todo 탐색바 힌트를 표시한 채로 f1으로 드로우 모드에 진입하면 테두리랑 힌트가 남음
-        // todo 그런데 컷 잘라주면 다시 0프레임부터 시작되는데 아까는 왜 중간부터 시작되었는지 모르겠음
         public static var main:Main;
 
         private static const REPLAY_SLIDESHOW_ACTIVE_SPEED:Number = 60;
@@ -69,7 +63,7 @@ package Modules.ReplayEngine
         private static var rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0), "auto", true);
         private static var updatePrograssBarStartTime:int = 0; // 리플레이 시작 시간저장 update prograss bar에서 프레임 오차 수정할때 참고하는 변수
         private static var rReplayRestartTimerCount:uint = 0; // 리스타트 타이머
-        private static var isReplaySpeedDragging:Boolean = false; // 속도 슬라이더 드래그 중에는 seekbar 텍스트에 속도 힌트를 보여줌
+        private static var isReplaySpeedDragging:Boolean = false; // 속도 슬라이더 드래그 중에는 s eekbar 텍스트에 속도 힌트를 보여줌
         private static var rSeekbarTextUpdateTime:int = 0; // 프레임 바 딜레이
         private static var stopGeneratingCacheImageFunc:Function = null; // 캐시 이미지 만드는 중이면 멈추는 함수
         private static var frameOnEnterReplayMode:Number = -1; // 리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼줄때 이 프레임으로 되돌림
