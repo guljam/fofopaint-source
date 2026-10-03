@@ -2,10 +2,13 @@ package Modules.CaptureEngine
 {
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
-    import Modules.UIEngine.HintController;
-    import Modules.UIEngine.UIController;
     import Modules.InputPriority;
     import Modules.MouseState;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayState;
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
+
     import flash.display.CapsStyle;
     import flash.display.LineScaleMode;
     import flash.display.Shape;
@@ -13,9 +16,6 @@ package Modules.CaptureEngine
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.ReplayEngine.ReplayDrawer;
-    import Modules.ReplayEngine.ReplayState;
-    import flash.events.TransformGestureEvent;
 
     public class CaptureArea
     {
