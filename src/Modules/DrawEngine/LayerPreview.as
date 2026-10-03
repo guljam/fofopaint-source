@@ -19,6 +19,8 @@ package Modules.DrawEngine
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.utils.getTimer;
+    import Symbols.ToolOptionsSet;
 
     // 컨트롤 박스의 레이어 버튼에 hover 하면 캔버스를 비스듬히 눕혀 층(배경/참조/레이어2/레이어1)을 보여줌
     // 3D/GPU 없이 2D Matrix(세로 압축 + 층별 띄우기)만 사용. 레이어 BitmapData는 참조만 하므로 복사 없음
@@ -27,13 +29,15 @@ package Modules.DrawEngine
     {
         private static const ROTATE_DEGREES:Number = 45.0; // 평면 회전각
         private static const ISO_SQUASH:Number = 0.4; // 회전 후 세로 압축 비율 (작을수록 납작)
-        private static const FIT_MARGIN:Number = 1.0; // 뷰포트 대비 층 묶음이 차지하는 최대 비율
+        private static const FIT_MARGIN:Number = 0.9; // 뷰포트 대비 층 묶음이 차지하는 최대 비율
         private static const MAX_FIT_SCALE:Number = 1.5; // 작은 캔버스를 이 배율보다 크게 키우지는 않음
         private static const LAYER_GAP_RATIO:Number = 0.2; // 층 사이 화면상 간격 (캔버스 높이 대비)
         private static const HIDDEN_LAYER_ALPHA:Number = 0.12; // 꺼진 레이어도 위치를 알 수 있게 흐리게
         private static const CENTER_BAND_MIN:Number = 0.35; // 미리보기 중심의 세로 허용 범위 (뷰포트 높이 대비)
         private static const CENTER_BAND_MAX:Number = 0.65;
         private static const SIDEBAR_GAP:Number = 24.0; // 사이드바와 미리보기 사이 간격 (UI 배율 적용 전)
+        private static const ORBIT_PERIOD_MS:int = 2000; // hover 한 층이 원을 한 바퀴 돌아 원점으로 돌아오는 시간
+        private static const ORBIT_RADIUS_RATIO:Number = 0.01; // 원 반지름 (층 크기 대비)
         private static const EASE:Number = 0.4;
         private static const HIGHLIGHT_COLOR:uint = 0x2F8CFF;
 
@@ -57,16 +61,19 @@ package Modules.DrawEngine
         private static var isClosing:Boolean = false;
         private static var t:Number = 0.0; // 0: 평면, 1: 완전히 기울어진 상태
         private static var highlightDepth:int = -1;
+        private static var orbitDepth:int = -1;
+        private static var orbitStartTime:int = 0;
         private static var drawnWidth:int = 0;
         private static var drawnHeight:int = 0;
         private static var drawnHighlight:int = -2;
-        private static var optionsBoxRef:DisplayObject = null; // 컨트롤 박스(ToolOptionsSet): 켜고 끄는 영역이자 세로 위치 기준
+        private static var optionsBoxRef:ToolOptionsSet = null; // 컨트롤 박스(ToolOptionsSet): 켜고 끄는 영역이자 세로 위치 기준
         // 켤 때 한번 정하는 가로 배치: 사이드바가 뷰포트 중심의 어느 쪽인지로 결정
         private static var isPreviewOnRight:Boolean = true; // 사이드바의 오른쪽에 둘지
+        private static var isCenteredInViewport:Boolean = false; // 고정 사이드바면 true: 뷰포트 중앙, 퀵 사이드바면 false: 사이드바 옆
         private static var areaLeft:Number = 0.0; // 미리보기가 들어갈 가로 범위 (stage 좌표)
         private static var areaRight:Number = 0.0;
 
-        public static function init(optionsBox:*):void
+        public static function init(optionsBox:ToolOptionsSet):void
         {
             optionsBoxRef = optionsBox;
             attach(optionsBox.layer1SelectButton, DEPTH_LAYER1);
@@ -77,43 +84,30 @@ package Modules.DrawEngine
             attach(optionsBox.layer2UncheckedButton, DEPTH_LAYER2);
             // ROLL_OVER/OUT은 버튼 사이 빈틈이나 자식 경계에서 켜졌다 꺼지기를 반복하므로 쓰지 않고,
             // 마우스가 컨트롤 박스의 경계 사각형 안에 있는지로 켜고 끔
-            const stage:* = CanvasView.main.stage;
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, onStageMouseMove);
-            stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave);
+            optionsBox.layerButtonWrapper.addEventListener(MouseEvent.MOUSE_OVER, onlayerButtonWrapperMouseOver);
+            CanvasView.main.stage.addEventListener(MouseEvent.MOUSE_OUT, onlayerButtonWrapperMouseOut);
         }
 
-        private static function onStageMouseMove(e:MouseEvent):void
+        private static function onlayerButtonWrapperMouseOver(e:MouseEvent):void
         {
-            if (isMouseInsideOptionsBox(e.stageX, e.stageY))
-            {
-                show();
-            }
-            else
+            show(); // 닫히는 중이면 닫힘을 취소함 (show가 isClosing을 풀어줌)
+        }
+
+        private static function onlayerButtonWrapperMouseOut(e:Event):void
+        {
+            if(!optionsBoxRef.layerButtonWrapper.hitTestPoint(CanvasView.main.stage.mouseX,CanvasView.main.stage.mouseY))
             {
                 hide();
             }
         }
 
-        private static function onMouseLeave(e:Event):void
+        private static function getLayerButtonWrapperBounds():Rectangle
         {
-            hide();
-        }
-
-        private static function getOptionsBoxBounds():Rectangle
-        {
-            const r:Rectangle = optionsBoxRef.getBounds(optionsBoxRef.stage);
+            const r:Rectangle = optionsBoxRef.layerButtonWrapper.getBounds(optionsBoxRef.stage);
             const view:Rectangle = UIController.getViewportRect(); // 스크롤로 상단바 뒤로 올라간 부분은 제외
-            return r.intersection(new Rectangle(0, view.y, optionsBoxRef.stage.stageWidth, view.height));
+            return r.intersection(new Rectangle(0, view.y, optionsBoxRef.layerButtonWrapper.stage.stageWidth, view.height));
         }
 
-        private static function isMouseInsideOptionsBox(x:Number, y:Number):Boolean
-        {
-            if (optionsBoxRef === null || optionsBoxRef.stage === null || !SidebarController.sideBar.visible)
-            {
-                return false;
-            }
-            return getOptionsBoxBounds().contains(x, y);
-        }
 
         // 사이드바 위치(x축으로만 움직임)를 확인해 미리보기의 가로 범위를 정함
         private static function layoutBesideSidebar():void
@@ -124,7 +118,16 @@ package Modules.DrawEngine
             const leftEdge:Number = sideBar.x - (SidebarController.isRightSidebar ? barW : 0);
             const rightEdge:Number = sideBar.x + sideBar.getWidth() + (SidebarController.isRightSidebar ? 0 : barW);
             const gap:Number = SIDEBAR_GAP * UITheme.getUIScale();
-            isPreviewOnRight = (leftEdge + rightEdge) / 2 < stageW / 2; // 사이드바가 중심의 왼쪽이면 그 오른쪽에 둠
+            isCenteredInViewport = !SidebarController.isQuickSidebarActive;
+            if (isCenteredInViewport)
+            {
+                // 고정 사이드바: 사이드바를 뺀 뷰포트 영역의 가로 중앙에 표시
+                const view:Rectangle = UIController.getViewportRect();
+                areaLeft = view.x + gap;
+                areaRight = view.x + view.width - gap;
+                return;
+            }
+            isPreviewOnRight =(leftEdge + rightEdge) / 2 < stageW / 2; // 사이드바가 중심의 왼쪽이면 그 오른쪽에 둠
             areaLeft = isPreviewOnRight ? rightEdge + gap : gap;
             areaRight = isPreviewOnRight ? stageW - gap : leftEdge - gap;
         }
@@ -241,6 +244,11 @@ package Modules.DrawEngine
                 close();
                 return;
             }
+            // 닫히는 도중 마우스가 다시 들어왔는데 MOUSE_OVER를 놓친 경우를 대비해, 실제 위치로 닫힘을 취소함
+            if (isClosing && optionsBoxRef.layerButtonWrapper.hitTestPoint(CanvasView.main.stage.mouseX, CanvasView.main.stage.mouseY))
+            {
+                isClosing = false;
+            }
             const target:Number = isClosing ? 0.0 : 1.0;
             t += (target - t) * EASE;
             if (Math.abs(target - t) < 0.01)
@@ -270,6 +278,11 @@ package Modules.DrawEngine
 
             updateRefPlane(w, h);
 
+            if (highlightDepth !== orbitDepth)
+            {
+                orbitDepth = highlightDepth;
+                orbitStartTime = getTimer(); // 다른 층으로 옮기면 원점에서 다시 시작
+            }
             if (w !== drawnWidth || h !== drawnHeight || highlightDepth !== drawnHighlight)
             {
                 drawnWidth = w;
@@ -292,7 +305,8 @@ package Modules.DrawEngine
             const startPos:Point = CanvasView.canvasPanel.localToGlobal(new Point(w / 2, h / 2));
             // 사이드바 쪽 가장자리에 붙임 (사이드바가 왼쪽이면 영역의 왼쪽 끝, 오른쪽이면 영역의 오른쪽 끝)
             const halfStackWidth:Number = stackWidth * fit / 2;
-            const endX:Number = isPreviewOnRight ? area.x + halfStackWidth : area.x + area.width - halfStackWidth;
+            const endX:Number = isCenteredInViewport ? area.x + area.width / 2
+                : isPreviewOnRight ? area.x + halfStackWidth : area.x + area.width - halfStackWidth;
             container.x = startPos.x + (endX - startPos.x) * t;
             container.y = startPos.y + (area.y + area.height / 2 - startPos.y) * t;
 
@@ -307,6 +321,13 @@ package Modules.DrawEngine
                 m.rotate(rotation);
                 m.scale(s, s * squash);
                 m.translate(0, ((DEPTH_COUNT - 1) / 2 - d) * gap); // 위층일수록 위로, 전체는 가운데 기준
+                if (d === highlightDepth)
+                {
+                    // hover 한 층만 원을 그리며 움직이고 ORBIT_PERIOD_MS 마다 원점으로 돌아옴 (원점을 지나는 원)
+                    const theta:Number = ((getTimer() - orbitStartTime) % ORBIT_PERIOD_MS) / ORBIT_PERIOD_MS * Math.PI * 2;
+                    const radius:Number = boundSize * s * ORBIT_RADIUS_RATIO * t;
+                    m.translate(radius * Math.sin(theta), radius * (Math.cos(theta) - 1));
+                }
                 planes[d].transform.matrix = m;
             }
         }
@@ -317,7 +338,7 @@ package Modules.DrawEngine
         private static function getPreviewArea():Rectangle
         {
             const view:Rectangle = UIController.getViewportRect();
-            const box:Rectangle = getOptionsBoxBounds();
+            const box:Rectangle = getLayerButtonWrapperBounds();
             const boxCenterY:Number = box.isEmpty() ? view.y + view.height / 2 : box.y + box.height / 2;
             const minY:Number = view.y + view.height * CENTER_BAND_MIN;
             const maxY:Number = view.y + view.height * CENTER_BAND_MAX;
