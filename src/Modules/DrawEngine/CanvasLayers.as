@@ -6,7 +6,6 @@ package Modules.DrawEngine
     import Modules.UndoHistory;
     import Modules.ReplayEngine.ReplayState;
     import Modules.Tools.LassoTool;
-    import Modules.Tools.FillPenTool;
     import Modules.UIEngine.HintController;
 
     import flash.display.Bitmap;
@@ -194,31 +193,6 @@ package Modules.DrawEngine
             }
         }
 
-        // 디버그용: drawLayer가 선택된 레이어에 맞는 자리에 있는지 검사하고 어긋나면 trace로 알림. 필펜이 임시로 올려둔 동안과 지우개 홀더가 켜진 동안은 검사하지 않음
-        public static function verifyDrawLayerOrder(where:String):Boolean
-        {
-            if (erasePreviewHolder.parent !== null || FillPenTool.isStarted)
-            {
-                return true;
-            }
-
-            const panel:Sprite = CanvasView.canvasPanel;
-            var ok:Boolean = StrokeBuffer.canvasDrawLayer.parent === panel;
-
-            if (ok)
-            {
-                const current:int = panel.getChildIndex(StrokeBuffer.canvasDrawLayer);
-                const expected:int = (isLayer2Selected) ? panel.getChildIndex(DrawCanvas.canvasLayer1Bitmap) - 1 : panel.getChildIndex(LassoTool.lassoLayer1) + 1;
-                ok = (current === expected);
-            }
-
-            if (!ok)
-            {
-                trace("[LayerOrder] drawLayer 순서 어긋남 @" + where + " layer2=" + isLayer2Selected);
-            }
-            return ok;
-        }
-
         public static function selectLayer1(onlyViewFlag:Boolean):void
         {
             isLayer2Selected = false;
@@ -234,7 +208,6 @@ package Modules.DrawEngine
             }
             ToolPanel.updateLayerSelectButtons(1, onlyViewFlag);
             syncDrawLayerOrder();
-            verifyDrawLayerOrder("selectLayer1");
         }
         public static function selectLayer2(onlyViewFlag:Boolean):void
         {
@@ -251,7 +224,6 @@ package Modules.DrawEngine
             }
             ToolPanel.updateLayerSelectButtons(2, onlyViewFlag);
             syncDrawLayerOrder();
-            verifyDrawLayerOrder("selectLayer2");
         }
     }
 }

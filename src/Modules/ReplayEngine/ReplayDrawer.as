@@ -375,22 +375,6 @@ package Modules.ReplayEngine
         public static function resetReplayLayerOrder():void
         {
             selectReplaySubLayer(false);
-            verifyReplayLayerOrder("resetReplayLayerOrder");
-        }
-
-        // 디버그용: 플래그와 rCanvasDrawLayer의 실제 위치가 맞는지 검사하고 어긋나면 trace로 알림
-        public static function verifyReplayLayerOrder(where:String):Boolean
-        {
-            const drawIndex:int = rCanvasPanel.getChildIndex(rCanvasDrawLayer);
-            const layer1Index:int = rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap);
-            const expected:int = (ReplayState.rLastLayer2Selcted) ? layer1Index - 1 : layer1Index + 1;
-            const ok:Boolean = (drawIndex === expected);
-
-            if (!ok)
-            {
-                trace("[LayerOrder] 리플레이 drawLayer 순서 어긋남 @" + where + " layer2=" + ReplayState.rLastLayer2Selcted);
-            }
-            return ok;
         }
 
         // drawdone에서 줌된 blur사이즈가 아니 1배율 블러를 적용해야 제대로 되기 때문에 이거해줌

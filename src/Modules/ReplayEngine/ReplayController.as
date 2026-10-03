@@ -1397,7 +1397,6 @@ package Modules.ReplayEngine
             ReplayController.seekBarBox.visible = false;
             CanvasView.canvasAnchorPoint.visible = true;
             CanvasLayers.syncDrawLayerOrder(); // 드로우 모드로 돌아올 때 drawLayer 위치를 선택된 레이어 기준으로 확정
-            CanvasLayers.verifyDrawLayerOrder("exitReplayMode");
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
             PenSizePreviewCursor.setVisible(true);
 
