@@ -447,19 +447,14 @@ package Modules.ReplayEngine
             return cachedGroup;
         }
 
+        // 리플레이 파일을 바꾸는 곳은 append, truncate, invalidate로 표에 알려주므로 파일 크기나 프레임 수를 매번 비교하지 않음
+        // 재생 중에 파일을 다시 읽어도 캔버스, 캐시와 어긋나서 의미가 없고, 프레임 수가 안 맞는 상태가 이어지면 매번 rebuild가 돌게 됨
         private static function isValid():Boolean
         {
-            return valid && fileFrames === ReplayState.getRFileDataTotalFrame() && fileBytes === getFileSize();
+            return valid;
         }
 
-        private static function getFileSize():Number
-        {
-            const f:File = AppStateManager.replayDataFilePath;
-            return f.exists ? f.size : 0;
-        }
-
-        //todo 아마 디버그할때 제대로 저장안하고 바로 컴파일해서 앱켜서 그런것같은데 런타임에서는 이런밀이 없을거임 하지만 이 함수가 실행될때 무한히 멈추는 버그가 있어서
-        //한테 물어봐야함
+        // 리플레이 파일 전체를 읽어서 표를 새로 만듬. 파일 프레임 수가 ReplayState와 다르면(저장 없이 앱이 죽은 경우 등) 알리기만 하고 표는 파일 기준으로 둠
         private static function rebuild():void
         {
             groupFrames.length = 0;
