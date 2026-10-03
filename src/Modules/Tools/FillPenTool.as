@@ -42,20 +42,21 @@ package Modules.Tools
         public static const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
 
         private static var _isStarted:Boolean = false; // 채우기 펜 시작됨
-        private static const lastMousePos:Point = new Point(0, 0);
         private static var canvasSizeRect:Rectangle = new Rectangle();
 
         private static var command:Vector.<int>;
         private static var data:Vector.<Number>;
-        private static var commandUndoIndexArr:Array = [];
 
         private static var xColor:uint;
         private static var xAlpha:Number;
         private static var xBlendMode:String;
         private static var xAirBrushSize:int; // 미리보기에 적용된 블러 크기와 줌 배율
         private static var xZoom:Number;
+        private static var blurFilterSize:Number = 0; // 미리보기에 걸어둔 블러 필터 크기 (0이면 없음)
+        private static var isFillPreviewShown:Boolean = false; // 점선이 아니라 채운 미리보기가 보이는 중
+        private static const BLUR_PREVIEW_IDLE_TIME:Number = 0.15; // 점을 찍다가 이 시간 멈추면 블러 미리보기를 보여줌
+        private static const UNDO_LENGTH:Number = 30; // undo 한 번에 지우는 경로 길이 (화면 px)
 
-        private static var mouseMoveCount:int;
         private static var _afterKeyUpOK:Boolean = false; // 단축키를 떼고 나서 마우스 키를 땠을때 적용해주는 플래그
         private static var _pos05Offset:Number;
         private static var clickedButtonName:String;
@@ -67,19 +68,6 @@ package Modules.Tools
 
         private static function handleOnMouseUp():void
         {
-            const mousePos:Point = new Point(main.stage.mouseX, main.stage.mouseY);
-            const dist:Number = Math.floor(Point.distance(mousePos, lastMousePos));
-
-            mouseMoveCount += dist;
-
-            if (mouseMoveCount >= 10)
-            {
-                mouseMoveCount = 0;
-                commandUndoIndexArr.push(command.length - 1);
-            }
-
-            lastMousePos.setTo(mousePos.x, mousePos.y);
-
             if (_afterKeyUpOK)
             {
                 applyFillPen();
@@ -87,6 +75,11 @@ package Modules.Tools
             else if (Utils.isCursorInDrawArea())
             {
                 showDottedLine();
+            }
+            else if (isFillPreviewShown && StrokeBuffer.canvasDrawLayerChild.filters.length === 0)
+            {
+                // 그리던 채운 미리보기가 그대로 남는 경우 (사이드바 위에서 뗌), 멈춘 상태이므로 블러를 걸어줌
+                showFillColor(true);
             }
 
             resetPreviewOFFTimerCount();
@@ -116,23 +109,6 @@ package Modules.Tools
         private static function resetPreviewOFFTimerCount():void
         {
             turnOffFillPenPreviewTimerCount = 0;
-        }
-
-        private static function updateLastMousePos():void
-        {
-            lastMousePos.setTo(main.stage.mouseX, main.stage.mouseY);
-        }
-
-        private static function increasetMoveCount():void
-        {
-            mouseMoveCount++;
-
-            if (mouseMoveCount >= 6)
-            {
-                mouseMoveCount = 0;
-                commandUndoIndexArr.push(command.length - 1);
-            }
-
         }
 
         private static function inputLineToData(posX:Number, posY:Number):void
@@ -274,14 +250,18 @@ package Modules.Tools
             StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
         }
 
-        private static function showFillColor():void
+        // applyBlur: 에어브러시 블러를 미리보기에 걸지 여부, 점을 찍는 중에는 비용 때문에 걸지 않음
+        private static function showFillColor(applyBlur:Boolean = true):void
         {
             StrokeBuffer.canvasDrawLayerChild.graphics.clear();
 
             if (data.length === 0)
             {
+                isFillPreviewShown = false;
                 return;
             }
+
+            isFillPreviewShown = true;
 
             StrokeBuffer.canvasDrawLayerChild.graphics.lineStyle(1, xColor);
             StrokeBuffer.canvasDrawLayerChild.graphics.beginFill(xColor);
@@ -292,22 +272,78 @@ package Modules.Tools
             StrokeBuffer.canvasDrawLayerChild.graphics.lineTo(data[0], data[1]);
 
             StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
-            showBlurPreview();
+
+            xAirBrushSize = PenSettings.airBrushSizeDrawMode;
+            xZoom = CanvasView.canvasZoomMultiplier;
+
+            if (applyBlur && xAirBrushSize > 0)
+            {
+                setBlurPreviewFilter();
+            }
+            else
+            {
+                clearBlurPreviewFilter();
+            }
+        }
+
+        // 점을 찍는 중에는 블러 없이 채운 모양만 보여주고, 마우스가 잠시 멈추면 블러를 걸어줌
+        private static function showFillColorWhileDrawing():void
+        {
+            showFillColorSharp();
+            scheduleBlurPreview();
+        }
+
+        private static function showFillColorSharp():void
+        {
+            showFillColor(false);
+        }
+
+        private static function scheduleBlurPreview():void
+        {
+            if (PenSettings.airBrushSizeDrawMode > 0)
+            {
+                FOFOTimer.addByName("fillBlurPreviewTimer", BLUR_PREVIEW_IDLE_TIME, false, showBlurPreviewAfterIdle); // 같은 이름이면 시간을 다시 시작함
+            }
+        }
+
+        private static function cancelBlurPreview():void
+        {
+            FOFOTimer.remove("fillBlurPreviewTimer");
+        }
+
+        private static function showBlurPreviewAfterIdle():void
+        {
+            if (!_isStarted)
+            {
+                return;
+            }
+
+            // 같은 프레임에 채운 미리보기 타이머가 뒤따라 블러를 지우지 못하게 먼저 없앰
+            FOFOTimer.remove("previewFilledColorUpdateTimer");
+            showFillColor(true);
         }
 
         // 에어브러시가 켜져 있으면 채운 미리보기에도 OK할 때와 같은 블러를 보여줌 (점선 미리보기에는 적용하지 않음)
         // 필터는 줌 배율에 따라 커지지 않으므로 화면 기준 크기로 맞춰줌, OK할 때는 DrawingFinish가 1배율로 다시 적용함
-        private static function showBlurPreview():void
+        // 같은 크기의 필터가 이미 걸려 있으면 다시 걸지 않음
+        private static function setBlurPreviewFilter():void
         {
-            xAirBrushSize = PenSettings.airBrushSizeDrawMode;
-            xZoom = CanvasView.canvasZoomMultiplier;
+            const blurSize:Number = PenTool.getBlurSize(xAirBrushSize, xZoom);
 
-            if (xAirBrushSize > 0)
+            if (blurSize === blurFilterSize && StrokeBuffer.canvasDrawLayerChild.filters.length > 0)
             {
-                const blurSize:Number = PenTool.getBlurSize(xAirBrushSize, xZoom);
-                StrokeBuffer.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
+                return;
             }
-            else
+
+            blurFilterSize = blurSize;
+            StrokeBuffer.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
+        }
+
+        private static function clearBlurPreviewFilter():void
+        {
+            blurFilterSize = 0;
+
+            if (StrokeBuffer.canvasDrawLayerChild.filters.length > 0)
             {
                 StrokeBuffer.canvasDrawLayerChild.filters = [];
             }
@@ -316,7 +352,9 @@ package Modules.Tools
         private static function showDottedLine():void
         {
             StrokeBuffer.canvasDrawLayerChild.graphics.clear();
-            StrokeBuffer.canvasDrawLayerChild.filters = [];
+            isFillPreviewShown = false;
+            cancelBlurPreview();
+            clearBlurPreviewFilter();
 
             const len:uint = data.length;
 
@@ -348,15 +386,15 @@ package Modules.Tools
 
             StrokeBuffer.canvasDrawLayer.alpha = 1.0;
 
-            mouseMoveCount = 0;
             _isStarted = false;
 
             command = new <int>[];
             data = new <Number>[];
-            commandUndoIndexArr = [];
 
             StrokeBuffer.canvasDrawLayerChild.graphics.clear();
-            StrokeBuffer.canvasDrawLayerChild.filters = [];
+            isFillPreviewShown = false;
+            cancelBlurPreview();
+            clearBlurPreviewFilter();
 
             if (ReferenceLayerController.isRefLayerMenuON)
             {
@@ -406,7 +444,7 @@ package Modules.Tools
                 StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
                 ReplayState.pushCommand(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), PenSettings.isPenAirBrushON, PenSettings.airBrushSizeDrawMode]);
 
-                showFillColor();
+                showFillColor(false); // 블러는 DrawingFinish가 적용함
             }
 
             StrokeBuffer.resetCanvasDrawLayerClipRect();
@@ -422,22 +460,38 @@ package Modules.Tools
                 return;
             }
 
-            command.splice(commandUndoIndexArr[commandUndoIndexArr.length - 1], command.length);
-            data.splice(commandUndoIndexArr[commandUndoIndexArr.length - 1] * 2, data.length);
-            commandUndoIndexArr.pop();
+            // 끝점부터 경로 길이가 UNDO_LENGTH(화면 px)에 닿을 때까지 점을 통째로 지움
+            // 마지막 점이 이전 점에서 그 길이 이상 떨어져 있으면 그 점 하나만 지워짐 (점을 멀리 찍은 경우)
+            const maxLength:Number = UNDO_LENGTH / CanvasView.canvasZoomMultiplier; // data는 캔버스 좌표라서 줌으로 나눔
+            var count:int = command.length;
+            var removedLength:Number = 0;
+            var i:int;
+            var dx:Number;
+            var dy:Number;
 
-            if (command.length <= 1)
+            while (count > 1 && removedLength < maxLength)
+            {
+                i = (count - 1) * 2;
+                dx = data[i] - data[i - 2];
+                dy = data[i + 1] - data[i - 1];
+                removedLength += Math.sqrt(dx * dx + dy * dy);
+                count--;
+            }
+
+            if (count <= 1)
             {
                 command.length = 0;
                 data.length = 0;
-                commandUndoIndexArr[0] = 0;
-
-                StrokeBuffer.canvasDrawLayerChild.graphics.clear();
+                _lastPosOnMouseMove.setTo(NaN, NaN); // 같은 자리에 다시 찍어도 점이 들어가게 함
             }
             else
             {
-                showDottedLine();
+                command.length = count;
+                data.length = count * 2;
+                _lastPosOnMouseMove.setTo(data[data.length - 2], data[data.length - 1]);
             }
+
+            showDottedLine(); // 점이 없으면 점선 없이 미리보기만 지움
         }
 
         public static function cancel():void
@@ -469,7 +523,6 @@ package Modules.Tools
                 ColorPickerController.switchColorPickerModePen();
             }
 
-            mouseMoveCount = 0;
             _afterKeyUpOK = false;
             _pos05Offset = PenSettings.getSharpLinePosOffset(1.0);
 
@@ -478,8 +531,9 @@ package Modules.Tools
             xBlendMode = (PenTool.isTransparentPenColor) ? "erase" : null;
             xAirBrushSize = PenSettings.airBrushSizeDrawMode;
             xZoom = CanvasView.canvasZoomMultiplier;
+            isFillPreviewShown = false;
+            blurFilterSize = 0;
 
-            commandUndoIndexArr[0] = 0;
             clickedButtonName = null;
 
             updateLastFillPenBoxButtonUsed(fillPenBox.fillPenOK as SimpleButton);
@@ -514,8 +568,6 @@ package Modules.Tools
             command.push(1);
             data.push(mx);
             data.push(my);
-
-            lastMousePos.setTo(mx, my);
 
             StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
 
@@ -558,15 +610,14 @@ package Modules.Tools
                 inputLineToData(mx, my);
             }
 
-            increasetMoveCount();
-
-            updateLastMousePos();
             resetPreviewOFFTimerCount();
 
             if (!FOFOTimer.hasTimer("previewFilledColorUpdateTimer"))
             {
-                FOFOTimer.addByName("previewFilledColorUpdateTimer", 0.1, false, showFillColor);
+                FOFOTimer.addByName("previewFilledColorUpdateTimer", 0.1, false, showFillColorSharp);
             }
+
+            scheduleBlurPreview();
         }
 
         private static function onMouseDownFillPen(e:MouseEvent):void
@@ -684,7 +735,7 @@ package Modules.Tools
                 if (_lastPosOnMouseMove.x === mx && _lastPosOnMouseMove.y === my)
                 {
                     FOFOTimer.remove("previewFilledColorUpdateTimer");
-                    showFillColor();
+                    showFillColorWhileDrawing();
 
                     return;
                 }
@@ -701,7 +752,7 @@ package Modules.Tools
                 }
 
                 FOFOTimer.remove("previewFilledColorUpdateTimer");
-                showFillColor();
+                showFillColorWhileDrawing();
             }
         }
 
@@ -789,6 +840,7 @@ package Modules.Tools
         {
             MouseState.endDrag(FILLPEN_DRAG_OWNER);
             FOFOTimer.remove("previewFilledColorUpdateTimer");
+            cancelBlurPreview();
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
 
             // 드래그 도중 FillPen이 이미 종료됐다면(등록이 남은 경우) 미리보기를 다시 그리지 않음
@@ -813,6 +865,7 @@ package Modules.Tools
 
             MouseState.endDrag(FILLPEN_DRAG_OWNER);
             FOFOTimer.remove("previewFilledColorUpdateTimer");
+            cancelBlurPreview();
             main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
 
             if (clickedButtonName === targetName)
