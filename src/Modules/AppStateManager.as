@@ -57,6 +57,7 @@ package Modules
         public static var undoDataFilePath:File;
         public static var myPaletteDataFilePath:File;
         public static var replayDataFilePath:File;
+        private static var isRebuildFromReplayFileNeeded:Boolean = false; // loadUndoData에서 저장본이 리플레이 파일과 맞지 않아 쓰지 못했을때
         public static var replayCacheImageFolderPath:File;
         public static var replayCacheImageTempFolderPath:File; // worker가 캐시 이미지를 쓰는 곳, main이 확인 후 imagecache로 옮김
         public static var replayCacheImageFrameDataFilePath:File;
@@ -296,6 +297,11 @@ package Modules
             {
                 loadUndoData(); // ReplayController.undo data 복구 먼저 해줘야함
             }
+            else if (replayDataFilePath.exists && replayDataFilePath.size > 0)
+            {
+                // undo 저장본 없이 리플레이 파일만 있으면 타임라인 색인이 없으므로 파일부터 다시 읽음
+                isRebuildFromReplayFileNeeded = true;
+            }
 
             if (scratchPadDataFilePath.exists)
             {
@@ -513,18 +519,25 @@ package Modules
                         AppWindowState.updateWindowTitle();
                         CanvasLayers.selectLayer1(false);
 
-                        if (ReplayState.isGeneratingCacheImages())
-                        {
-                            // 닫을때 로드박스에 깔려있던 흐린 배경 이미지를 다시 깔아줌
-                            const preview:BitmapData = ReplayFileCache.loadCachePreview();
+                        // undo 저장본과 리플레이 파일이 맞지 않으면 캐시 이미지를 처음부터 다시 만들면서 최종 캔버스까지 갱신함
+                        const rebuildFromReplayFile:Boolean = isRebuildFromReplayFileNeeded;
+                        isRebuildFromReplayFileNeeded = false;
 
-                            if (preview)
+                        if (rebuildFromReplayFile || ReplayState.isGeneratingCacheImages())
+                        {
+                            if (!rebuildFromReplayFile)
                             {
-                                LoadBoxController.loadMenuBox.setPreviewImage(preview);
+                                // 닫을때 로드박스에 깔려있던 흐린 배경 이미지를 다시 깔아줌
+                                const preview:BitmapData = ReplayFileCache.loadCachePreview();
+
+                                if (preview)
+                                {
+                                    LoadBoxController.loadMenuBox.setPreviewImage(preview);
+                                }
                             }
 
                             // 캐시 이미지 만드는 도중에 닫았으면 마지막으로 확정된 캐시 이미지부터 이어서 만듬
-                            const resumeIndex:int = ReplayFileCache.restoreCacheProgress();
+                            const resumeIndex:int = rebuildFromReplayFile ? -1 : ReplayFileCache.restoreCacheProgress();
 
                             if (resumeIndex >= 0)
                             {
@@ -797,15 +810,21 @@ package Modules
             var bmpd:BitmapData = new BitmapData(arr[2], arr[3], true, 0);
             var bmpd1:BitmapData = new BitmapData(arr[2], arr[3], true, 0);
 
-            if (arr[6] is Number)
+            // 저장본이 저장 시점의 리플레이 파일과 맞는지 파일 크기와 저장해둔 타임라인 색인으로 확인함
+            // 저장 없이 앱이 죽어서 맞지 않거나 이전 버전 저장본이라 확인할 수 없으면 저장본은 버리고 리플레이 파일을 처음부터 읽어서 캐시 이미지와 캔버스, 색인을 다시 만듬
+            const nowReplayFileSize:Number = replayDataFilePath.exists ? replayDataFilePath.size : 0;
+
+            if (!(arr[6] is Number) || !ReplayTimeline.importIndex(arr[8] as Array, arr[6], nowReplayFileSize))
             {
-                // 저장 뒤에 리플레이 파일이 더 늘어난 채로 앱이 죽었으면 저장 시점으로 파일을 되돌림
-                if (!ReplayTimeline.fitFileToSavedState(arr[6], arr[7] is Number ? arr[7] : -1))
-                {
-                    writeCrashLog("Replay file does not match undo data: saved frame " + arr[6] + ", byte " + arr[7]);
-                }
-                ReplayState.setRFileDataTotalFrame(arr[6]);
+                writeCrashLog("Replay file does not match undo data: saved frame " + arr[6] + ", byte " + arr[7]);
+                fs.close();
+                bmpd.dispose();
+                bmpd1.dispose();
+                isRebuildFromReplayFileNeeded = true;
+                return;
             }
+
+            ReplayState.setRFileDataTotalFrame(arr[6]);
 
             ReplayState.rMemoryData = (fs.readObject() as Array).concat();
             ReplayState.rMemoryDataFrame = (fs.readObject() as Array).concat();
@@ -852,9 +871,10 @@ package Modules
 
             // ba.compress();
             // ba1.compress();
-            // 레이어 1,레이어2,가로,세로,배경색, 미러, repdata 합계 프레임, repdata 파일 크기
-            // 저장 없이 앱이 죽으면 파일만 더 길어질수 있어서 불러올때 저장 시점과 맞는지 확인하는데 씀
-            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayState.getRFileDataTotalFrame(), replayDataFilePath.exists ? replayDataFilePath.size : 0];
+            // 레이어 1,레이어2,가로,세로,배경색, 미러, repdata 합계 프레임, repdata 파일 크기, 리플레이 타임라인 색인
+            // 파일 크기는 저장 없이 앱이 죽으면 파일만 달라질수 있어서 불러올때 저장 시점과 맞는지 확인하는데 씀
+            // 색인은 앱을 켤때 repdata 전체를 다시 읽지 않기 위해 저장함
+            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayState.getRFileDataTotalFrame(), replayDataFilePath.exists ? replayDataFilePath.size : 0, ReplayTimeline.exportIndex()];
 
             fs.open(undoDataFilePath, FileMode.WRITE);
             fs.writeInt(UndoHistory.undoDataIndex);

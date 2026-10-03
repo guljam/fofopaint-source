@@ -157,7 +157,6 @@ package Modules.ReplayEngine
             ensureReplayCanvasState();
             ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
             ReplayFileCache.createFirstImageCache(ReplayDrawer.rCanvasLayer1BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, ReplayState.RCANVAS_BG_COLOR, ReplayState.rMirrorON);
-            ReplayTimeline.invalidate();
             const fs:FileStream = new FileStream();
 
             if (ReplayState.rMemoryDataReadON)
@@ -166,7 +165,8 @@ package Modules.ReplayEngine
                 UndoHistory.updateUndoBaseImageFromReplayMode();
                 fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE); // 파일 생성
                 fs.close();
-                FileManager.isFileAlreadySaved = false;
+                ReplayTimeline.reset();
+    FileManager.isFileAlreadySaved = false;
                 FileManager.enableNewFileButton();
                 ReplayState.setRFileDataTotalFrame(0);
                 ReplayState.rMemoryData.splice(0, ReplayState.rMemoryDataIndex + 1);
@@ -210,6 +210,7 @@ package Modules.ReplayEngine
                 fs.close();
                 ba.clear();
                 ba = null;
+                ReplayTimeline.beginBuild(); // 색인은 아래 캐시 이미지 생성이 파일을 읽으면서 만듬
                 ReplayDrawer.rReplayFOFOCursor.visible = false;
                 ReplayController.seekBarBox.resetReplayPrograssBarWidth();
                 FileManager.isFileAlreadySaved = false;
@@ -600,7 +601,6 @@ package Modules.ReplayEngine
             stopGeneratingCacheImageFunc = null;
             ReplayDrawCommands.clearData();
             ReplayState.setRFileDataTotalFrame(_frameSum);
-            ReplayTimeline.invalidate();
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReplayFileCache.deleteCacheProgress();
             resetReplayTime();
@@ -672,6 +672,13 @@ package Modules.ReplayEngine
             CanvasNavigator.box.visible = false;
             ReplayDrawer.clearCanvasReplayMode(); // 리플레이 캔버스 먼저 깨끗하게
             fs.open(AppStateManager.replayDataFilePath, FileMode.READ);
+            // 파일을 처음부터 읽을때는 읽은 뭉치로 타임라인 색인도 같이 만듬, 이어서 만들때는 앱을 켤때 만든 색인이 그대로 맞음
+            const buildTimeline:Boolean = resumeIndex < 0;
+
+            if (buildTimeline)
+            {
+                ReplayTimeline.beginBuild();
+            }
 
             if (resumeIndex >= 0)
             {
@@ -725,6 +732,11 @@ package Modules.ReplayEngine
 
                     if (namojiBytes === 0)
                     {
+                        if (buildTimeline)
+                        {
+                            ReplayTimeline.endBuild(fs.position);
+                        }
+
                         handleReplayCacheImageGenerateComplete(fs, onFrameEnter, _frameSum, _LastframeSum, finalizeFunc);
                         return;
                     }
@@ -736,7 +748,14 @@ package Modules.ReplayEngine
                         return;
                     }
 
+                    const groupStartByte:Number = fs.position;
                     const data:Array = fs.readObject() as Array;
+
+                    if (buildTimeline)
+                    {
+                        ReplayTimeline.addBuildGroup(data, groupStartByte);
+                    }
+
                     ReplayDrawCommands.setData(data);
                     _LastframeSum = _frameSum;
                     _frameSum += data.length; // _rJumpImageCount 변수보다 먼저 와야함
@@ -2069,7 +2088,6 @@ package Modules.ReplayEngine
             ReferenceLayerController.resetRefLayerImageTransform();
             ReferenceLayerController.resetRefLayerMenuOpacity();
             ReplayFileCache.initializeReplayDataFile(true);
-            ReplayTimeline.invalidate();
             ReplayFileCache.createFirstImageCache(DrawCanvas.canvasLayer1BitmapData, DrawCanvas.canvasLayer2BitmapData, DrawCanvas.CANVAS_BG_COLOR);
             resetReplaySpeedBar();
             resetReplayTime();

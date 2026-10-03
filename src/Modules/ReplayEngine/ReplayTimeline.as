@@ -27,71 +27,15 @@ package Modules.ReplayEngine
         private static var measuredTicks:Number = 0; // measureGroup 결과
         private static var measuredCommands:Number = 0;
         private static var fileBytes:Number = 0; // 표가 만들어진 리플레이 파일 크기
-        private static var valid:Boolean = false;
+        private static var valid:Boolean = false; // rebuild로 색인을 처음 만들기 전에는 append, truncate가 색인을 건드리지 않게 함
         private static var cachedGroup:Array = null; // getCommandAt에서 마지막으로 읽은 파일 뭉치
         private static var cachedGroupStart:Number = -1;
 
-        // 리플레이 파일 내용이 바뀌었는데 아래 append, truncate로 따라가지 않는 곳에서 호출. 다음에 쓸때 파일을 다시 읽음
-        public static function invalidate():void
-        {
-            valid = false;
-            cachedGroup = null;
-        }
-
-        // 저장 없이 앱이 죽어서 undo 저장본보다 리플레이 파일이 더 길면(저장 뒤에 뭉치가 파일로 밀려난 경우) 저장 시점의 뭉치 경계까지 파일을 잘라서 저장본과 맞춤
-        // 파일은 뒤에만 붙으므로 저장 시점까지의 내용은 그대로이고, 잘린 뭉치는 저장본 메모리에 들어있음
-        // savedByte가 0보다 작으면 바이트 위치는 비교하지 않음 (바이트를 기록하지 않던 저장본)
-        // 저장본과 맞출 수 없으면(파일이 더 짧거나 경계가 안 맞음) false
-        public static function fitFileToSavedState(savedFrame:Number, savedByte:Number):Boolean
-        {
-            if (!isValid())
-            {
-                rebuild();
-            }
-
-            var cutIndex:int = -1;
-
-            if (fileFrames === savedFrame)
-            {
-                return savedByte < 0 || fileBytes === savedByte;
-            }
-
-            if (fileFrames < savedFrame)
-            {
-                return false;
-            }
-
-            for (var i:int = 0;i < groupFrames.length;i++)
-            {
-                if (groupFrames[i] === savedFrame)
-                {
-                    cutIndex = i;
-                    break;
-                }
-            }
-
-            if (cutIndex < 0 || (savedByte >= 0 && groupBytes[cutIndex] !== savedByte))
-            {
-                return false;
-            }
-
-            const cutByte:Number = groupBytes[cutIndex];
-            const fs:FileStream = new FileStream();
-            fs.open(AppStateManager.replayDataFilePath, FileMode.UPDATE);
-            fs.position = cutByte;
-            fs.truncate();
-            fs.close();
-            truncateFile(cutByte, savedFrame);
-            return true;
-        }
-
         // UndoHistory.addNew에서 가장 오래된 undo 뭉치가 파일 끝에 붙을때
-        public static function appendFileGroup(group:Array, startFrame:Number, startByte:Number, endByte:Number):void
+        public static function appendFileGroup(group:Array, endByte:Number):void
         {
-            // 파일은 이미 바뀐 뒤라 isValid 대신 표가 기억하는 끝 위치와 비교함
-            if (!valid || startFrame !== fileFrames || startByte !== fileBytes)
+            if (!valid)
             {
-                valid = false;
                 return;
             }
 
@@ -115,13 +59,6 @@ package Modules.ReplayEngine
             }
 
             const end:int = count;
-
-            if ((end < groupBytes.length ? groupFrames[end] : fileFrames) !== frame || (end < groupBytes.length ? groupBytes[end] : fileBytes) !== byte)
-            {
-                // 뭉치 경계가 아니면 다시 읽음
-                valid = false;
-                return;
-            }
 
             if (end < groupBytes.length)
             {
@@ -147,11 +84,6 @@ package Modules.ReplayEngine
             if (frame <= 0)
             {
                 return 0;
-            }
-
-            if (!isValid())
-            {
-                rebuild();
             }
 
             if (frame < fileFrames)
@@ -196,11 +128,6 @@ package Modules.ReplayEngine
             if (frame <= 0)
             {
                 return 0;
-            }
-
-            if (!isValid())
-            {
-                rebuild();
             }
 
             if (frame < fileFrames)
@@ -250,11 +177,6 @@ package Modules.ReplayEngine
             if (!(to > from))
             {
                 return 0;
-            }
-
-            if (!isValid())
-            {
-                rebuild();
             }
 
             var sum:Number = 0;
@@ -332,11 +254,6 @@ package Modules.ReplayEngine
                 return null;
             }
 
-            if (!isValid())
-            {
-                rebuild();
-            }
-
             if (frame < fileFrames)
             {
                 const g:int = findFileGroup(frame);
@@ -376,11 +293,6 @@ package Modules.ReplayEngine
 
             if (ReplayState.getRFileDataTotalFrame() > 0)
             {
-                if (!isValid())
-                {
-                    rebuild();
-                }
-
                 first = groupBytes.length > 0 ? readFileGroup(groupBytes[0]) : null;
             }
             else if (ReplayState.rMemoryData.length > 0)
@@ -494,16 +406,87 @@ package Modules.ReplayEngine
             return cachedGroup;
         }
 
-        // 리플레이 파일을 바꾸는 곳은 append, truncate, invalidate로 표에 알려주므로 파일 크기나 프레임 수를 매번 비교하지 않음
-        // 재생 중에 파일을 다시 읽어도 캔버스, 캐시와 어긋나서 의미가 없고, 프레임 수가 안 맞는 상태가 이어지면 매번 rebuild가 돌게 됨
-        private static function isValid():Boolean
+        // 리플레이 파일이 비었을때(새 파일) 빈 색인으로 만듬
+        // 색인은 파일을 처음부터 끝까지 읽는 곳(파일 불러오기, 캐시 이미지 생성)에서만 읽은 뭉치로 만들고, 그 뒤에 undo 뭉치가 파일로 들어갈때는 append, 잘릴때는 truncate로 따라감
+        public static function reset():void
         {
-            return valid;
+            beginBuild();
+            endBuild(0);
         }
 
-        // 리플레이 파일 전체를 읽어서 표를 새로 만듬. 파일 프레임 수가 ReplayState와 다르면(저장 없이 앱이 죽은 경우 등) 알리기만 하고 표는 파일 기준으로 둠
-        private static function rebuild():void
+        // 앱 상태를 저장할때 색인도 같이 저장함, 앱을 켤때 파일 전체를 다시 읽지 않기 위해서임, 색인이 아직 없으면 null
+        public static function exportIndex():Array
         {
+            if (!valid)
+            {
+                return null;
+            }
+
+            const fillGroups:Array = [];
+
+            for (var i:int = 0;i < groupFills.length;i++)
+            {
+                fillGroups.push(groupFills[i]);
+            }
+
+            return [vectorToArray(groupFrames), vectorToArray(groupTicks), vectorToArray(groupBytes), vectorToArray(groupCommands), fillGroups,
+                    vectorToArray(fillFrames), vectorToArray(fillMsSums), fileFrames, fileTicks, fileCommands, fileBytes];
+        }
+
+        // 저장해둔 색인을 불러옴, 저장 시점의 파일 프레임 수와 크기가 지금과 다르면 쓰지 않고 false
+        public static function importIndex(data:Array, expectedFrames:Number, expectedBytes:Number):Boolean
+        {
+            if (data === null || data.length !== 11 || data[7] !== expectedFrames || data[10] !== expectedBytes)
+            {
+                return false;
+            }
+
+            beginBuild();
+            arrayToVector(data[0], groupFrames);
+            arrayToVector(data[1], groupTicks);
+            arrayToVector(data[2], groupBytes);
+            arrayToVector(data[3], groupCommands);
+
+            for (var i:int = 0;i < data[4].length;i++)
+            {
+                groupFills.push(data[4][i]);
+            }
+
+            arrayToVector(data[5], fillFrames);
+            arrayToVector(data[6], fillMsSums);
+            fileFrames = data[7];
+            fileTicks = data[8];
+            fileCommands = data[9];
+            fileBytes = data[10];
+            valid = true;
+            return true;
+        }
+
+        private static function vectorToArray(v:Vector.<Number>):Array
+        {
+            const arr:Array = [];
+
+            for (var i:int = 0;i < v.length;i++)
+            {
+                arr.push(v[i]);
+            }
+
+            return arr;
+        }
+
+        private static function arrayToVector(arr:Array, v:Vector.<Number>):void
+        {
+            for (var i:int = 0;i < arr.length;i++)
+            {
+                v.push(arr[i]);
+            }
+        }
+
+        // 파일을 처음부터 읽고 있는 쪽(캐시 이미지 생성)이 읽은 뭉치로 색인을 같이 만들때 씀, beginBuild → 뭉치마다 addBuildGroup → endBuild 순서
+        // 파일을 한번 더 읽지 않아도 됨
+        public static function beginBuild():void
+        {
+            valid = false;
             groupFrames.length = 0;
             cachedGroup = null;
             groupTicks.length = 0;
@@ -516,36 +499,17 @@ package Modules.ReplayEngine
             fileTicks = 0;
             fileCommands = 0;
             fileBytes = 0;
-            const f:File = AppStateManager.replayDataFilePath;
+        }
 
-            if (f.exists)
-            {
-                const fs:FileStream = new FileStream();
-                fs.open(f, FileMode.READ);
+        public static function addBuildGroup(group:Array, startByte:Number):void
+        {
+            addGroup(group, startByte);
+        }
 
-                while (fs.bytesAvailable > 0)
-                {
-                    const start:Number = fs.position;
-                    const group:Array = fs.readObject() as Array;
-
-                    if (!group)
-                    {
-                        continue;
-                    }
-
-                    addGroup(group, start);
-                }
-
-                fileBytes = fs.position;
-                fs.close();
-            }
-
+        public static function endBuild(endByte:Number):void
+        {
+            fileBytes = endByte;
             valid = true;
-
-            if (fileFrames !== ReplayState.getRFileDataTotalFrame())
-            {
-                trace("[ReplayTimeline] file frame mismatch", fileFrames, ReplayState.getRFileDataTotalFrame());
-            }
         }
 
         private static function findFileGroup(frame:Number):int

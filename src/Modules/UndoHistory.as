@@ -189,11 +189,10 @@ package Modules
                 const rf:File = AppStateManager.replayDataFilePath;
                 const lastRDataTotalFrame:Number = ReplayState.getRFileDataTotalFrame();
 
-                const startByte:Number = rf.exists ? rf.size : 0;
                 fs.open(rf, FileMode.APPEND);
                 fs.writeObject(oldData);
                 fs.close();
-                ReplayTimeline.appendFileGroup(oldData, lastRDataTotalFrame, startByte, rf.size);
+                ReplayTimeline.appendFileGroup(oldData, rf.size);
 
                 oldData = null;
                 ReplayState.increaseRFileDataTotalFrame(firstElementFrameCount);

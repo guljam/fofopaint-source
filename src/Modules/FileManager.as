@@ -240,7 +240,7 @@ package Modules
 
             replayData.clear();
             replayData = null;
-            ReplayTimeline.invalidate(); // 리플레이 파일이 통째로 바뀜
+            ReplayTimeline.beginBuild(); // 리플레이 파일이 통째로 바뀜, 색인은 바로 아래 캐시 이미지 생성이 파일을 읽으면서 만듬
             finalizeLoadFile(0, 0, null, null, false, 0);
             ReplayController.startGeneratingReplayCacheImage(true, null);
         }
