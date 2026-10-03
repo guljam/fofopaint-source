@@ -28,6 +28,13 @@ package Modules.ReplayEngine
         private static var measuredCommands:Number = 0;
         private static var fileBytes:Number = 0; // 표가 만들어진 리플레이 파일 크기
         private static var valid:Boolean = false; // rebuild로 색인을 처음 만들기 전에는 append, truncate가 색인을 건드리지 않게 함
+        // beginGroup ~ endGroup 사이에 모으는 값
+        private static var buildTicks:Number = 0;
+        private static var buildCommands:Number = 0;
+        private static var buildWaitSum:Number = 0;
+        private static var buildHasWait:Boolean = false;
+        private static var buildSkipFirst:Boolean = false;
+        private static var buildIndex:int = 0;
         private static var cachedGroup:Array = null; // getCommandAt에서 마지막으로 읽은 파일 뭉치
         private static var cachedGroupStart:Number = -1;
 
@@ -368,30 +375,85 @@ package Modules.ReplayEngine
             measuredCommands = commands;
         }
 
-        // 파일 끝에 뭉치 하나를 표에 추가, 틱과 명령 수는 한번 훑어서 같이 셈
-        private static function addGroup(group:Array, startByte:Number):void
+        // 뭉치 하나를 색인에 넣는 한 묶음: beginGroup → 명령마다 collectCommand(순서대로) → endGroup
+        // 명령을 읽는 쪽(캐시 이미지 생성)이 명령을 그리는 반복문 안에서 같이 부르면 명령을 한번만 읽고 지연과 애니메이션 시간까지 모음
+        public static function beginGroup(startByte:Number):void
         {
             groupFrames.push(fileFrames);
             groupTicks.push(fileTicks);
             groupCommands.push(fileCommands);
             groupBytes.push(startByte);
             groupFills.push(fillFrames.length);
+            buildTicks = 0;
+            buildCommands = 0;
+            buildWaitSum = 0;
+            buildHasWait = false;
+            buildSkipFirst = groupFrames.length === 1; // 데이터 맨 처음 그리기 명령은 지연이 0
+            buildIndex = 0;
+        }
+
+        // 뭉치의 buildIndex번째 명령을 셈, measureGroup과 같은 규칙에 애니메이션 시간(getAnimMsAt)까지 같이 모음
+        public static function collectCommand(group:Array):void
+        {
+            const c:Array = group[buildIndex];
+
+            if (ReplayState.isWaitCommand(c))
+            {
+                buildWaitSum += c[1];
+                buildHasWait = true;
+                buildIndex++;
+                return;
+            }
+
+            const animMs:Number = ReplayState.getAnimMsAt(group, buildIndex);
+
+            if (animMs > 0)
+            {
+                fillFrames.push(fileFrames + buildIndex);
+                fillMsSums.push((fillMsSums.length > 0 ? fillMsSums[fillMsSums.length - 1] : 0) + animMs);
+            }
+
+            buildIndex++;
+
+            // fillanim, lassoanim, moveanim은 그리지 않고 지연에도 영향이 없음
+            if (ReplayState.isNonDrawCommand(c))
+            {
+                return;
+            }
+
+            buildCommands++;
+
+            if (buildSkipFirst)
+            {
+                buildSkipFirst = false;
+            }
+            else
+            {
+                buildTicks += buildHasWait ? buildWaitSum : 1;
+            }
+
+            buildWaitSum = 0;
+            buildHasWait = false;
+        }
+
+        public static function endGroup(length:int):void
+        {
+            fileTicks += buildTicks;
+            fileCommands += buildCommands;
+            fileFrames += length;
+        }
+
+        // 뭉치를 이미 읽어둔 곳(undo 뭉치가 파일로 들어갈때)에서 한번에 넣음
+        private static function addGroup(group:Array, startByte:Number):void
+        {
+            beginGroup(startByte);
 
             for (var i:int = 0;i < group.length;i++)
             {
-                const animMs:Number = ReplayState.getAnimMsAt(group, i);
-
-                if (animMs > 0)
-                {
-                    fillFrames.push(fileFrames + i);
-                    fillMsSums.push((fillMsSums.length > 0 ? fillMsSums[fillMsSums.length - 1] : 0) + animMs);
-                }
+                collectCommand(group);
             }
 
-            measureGroup(group, group.length, groupFrames.length === 1);
-            fileTicks += measuredTicks;
-            fileCommands += measuredCommands;
-            fileFrames += group.length;
+            endGroup(group.length);
         }
 
         // 파일 구간 g번째 뭉치, 연속으로 같은 뭉치를 볼때 다시 읽지 않게 마지막 뭉치를 기억함
@@ -482,7 +544,7 @@ package Modules.ReplayEngine
             }
         }
 
-        // 파일을 처음부터 읽고 있는 쪽(캐시 이미지 생성)이 읽은 뭉치로 색인을 같이 만들때 씀, beginBuild → 뭉치마다 addBuildGroup → endBuild 순서
+        // 파일을 처음부터 읽고 있는 쪽(캐시 이미지 생성)이 읽은 뭉치로 색인을 같이 만들때 씀, beginBuild → 뭉치마다 beginGroup, collectCommand, endGroup → endBuild 순서
         // 파일을 한번 더 읽지 않아도 됨
         public static function beginBuild():void
         {
@@ -499,11 +561,6 @@ package Modules.ReplayEngine
             fileTicks = 0;
             fileCommands = 0;
             fileBytes = 0;
-        }
-
-        public static function addBuildGroup(group:Array, startByte:Number):void
-        {
-            addGroup(group, startByte);
         }
 
         public static function endBuild(endByte:Number):void

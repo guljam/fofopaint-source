@@ -751,16 +751,33 @@ package Modules.ReplayEngine
                     const groupStartByte:Number = fs.position;
                     const data:Array = fs.readObject() as Array;
 
-                    if (buildTimeline)
-                    {
-                        ReplayTimeline.addBuildGroup(data, groupStartByte);
-                    }
-
                     ReplayDrawCommands.setData(data);
                     _LastframeSum = _frameSum;
                     _frameSum += data.length; // _rJumpImageCount 변수보다 먼저 와야함
                     const nonDrawReadCountBefore:uint = ReplayDrawCommands.nonDrawReadCount;
-                    ReplayDrawCommands.drawAll();
+                    const dataLength:uint = data.length;
+
+                    // 명령을 그리는 반복문 안에서 타임라인 색인에 넣을 지연과 애니메이션 시간도 같이 모음 (뭉치를 한번만 읽음)
+                    if (buildTimeline)
+                    {
+                        ReplayTimeline.beginGroup(groupStartByte);
+                    }
+
+                    for (var commandIndex:uint = 0;commandIndex < dataLength;commandIndex++)
+                    {
+                        if (buildTimeline)
+                        {
+                            ReplayTimeline.collectCommand(data);
+                        }
+
+                        ReplayDrawCommands.drawNext();
+                    }
+
+                    if (buildTimeline)
+                    {
+                        ReplayTimeline.endGroup(dataLength);
+                    }
+
                     // 캐시 간격은 그리기 명령 수로 셈, 그리면서 읽은 wait, fillanim 수를 빼줌 (다시 훑지 않음)
                     dataWriteCount += data.length - (ReplayDrawCommands.nonDrawReadCount - nonDrawReadCountBefore);
 
