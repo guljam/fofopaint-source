@@ -135,15 +135,12 @@ package Modules.Tools
             FOFOTimer.remove("updateLineToolTimer");
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool);
             main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool);
+            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool);
 
             if (startFromShortCut)
             {
                 startFromShortCut = false;
                 main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpLineTool);
-            }
-            else
-            {
-                main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool);
             }
 
             command = new Vector.<int>();
@@ -358,6 +355,7 @@ package Modules.Tools
 
                 main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool, false, InputPriority.DEFAULT);
                 main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool, false, InputPriority.DEFAULT);
+                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool, false, InputPriority.LATE);
                 hasLineTouchedCanvas = checkPointInsideCanvas(mx, my);
 
                 FOFOTimer.addByName("updateLineToolTimer", 0.1, true, function ():Boolean
@@ -370,10 +368,6 @@ package Modules.Tools
                 {
                     startFromShortCut = true;
                     main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLineTool, false, InputPriority.DEFAULT);
-                }
-                else
-                {
-                    main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool, false, InputPriority.LATE);
                 }
             }
         }
