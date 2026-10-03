@@ -328,7 +328,6 @@ package Modules
                             FileManager.lastSaveFileName = loadMenuBoxFile.name;
                             FileManager.lastSaveFilePath = loadMenuBoxFile.nativePath;
                             FileManager.enterDrawModeOnLoadFile();
-                            // todo : load repllay file은 따로?
                             FileManager.loadFOFOFile(loadMenuBoxFile);
                             loadMenuBoxFile = null;
                             // 캐시 이미지 만드는 동안 로드박스 배경으로 쓰므로 배경은 남겨둠

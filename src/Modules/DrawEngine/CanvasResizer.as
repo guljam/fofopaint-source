@@ -102,7 +102,6 @@ package Modules.DrawEngine
             PenSizePreviewCursor.setVisible(false);
             HintController.showMouseHint(DrawCanvas.CANVAS_WIDTH + " x " + DrawCanvas.CANVAS_HEIGHT);
 
-            // TODO:Drag인터렉션으로 변환
             if (started === false)
             {
                 started = true;

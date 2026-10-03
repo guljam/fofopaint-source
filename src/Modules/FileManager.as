@@ -1289,7 +1289,6 @@ package Modules
             }
         }
 
-        // todo 이것은 mainui controller로 가야하지 않을까
         public static function enterDrawModeOnLoadFile():void
         {
             if (CaptureController.isCaptureModeON)
@@ -1301,7 +1300,5 @@ package Modules
                 ReplayController.exitReplayMode();
             }
         }
-
-
     }
 }
