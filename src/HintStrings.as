@@ -150,7 +150,7 @@
                 "svBox": "Saturation & Value",
                 "swapPositionButton": "Swap palette position",
                 "colorHistoryBox": "Color history _ Drag to add to My Palette",
-                "myPaletteBox": "Hold to add, remove, or restore _ Drag to swap position",
+                "myPaletteBox": "Hold to add or restore the previous color _ Drag to swap position or onto the color picker to delete",
                 "rgbInfoText": STRING_VARIABLE_HINT,
                 "paperColorButton": "Change background color",
                 "penColorButton": "Change pen color",
@@ -295,7 +295,7 @@
 
         public static function getDeleteColorHint():String
         {
-            return "Delete this color";
+            return "Drag here\nto delete this color";
         }
 
         static private function getCurrentColorHintString():String

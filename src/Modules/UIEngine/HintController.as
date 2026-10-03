@@ -405,14 +405,14 @@ package Modules.UIEngine
             Utils.setAsTopChild(mouseHint);
         }
 
-        // 커서 대신 target 윗부분 가운데에 마우스 힌트를 띄움
-        public static function showMouseHintAtTopCenter(str:String, target:DisplayObject):void
+        // 커서 대신 target 정중앙에 마우스 힌트를 띄움
+        public static function showMouseHintAtCenter(str:String, target:DisplayObject):void
         {
             showMouseHint(str);
 
             const rect:Rectangle = target.getBounds(main.stage);
             mouseHint.x = Math.floor(rect.x + (rect.width - mouseHint.getScaledTextWidth()) / 2);
-            mouseHint.y = Math.floor(rect.y + 4 * UITheme.getUIScale());
+            mouseHint.y = Math.floor(rect.y + (rect.height - mouseHint.getScaledTextHeight()) / 2);
         }
 
         private static function resetBottomHintScrolling():void

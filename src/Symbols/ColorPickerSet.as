@@ -20,7 +20,7 @@
 
 	public class ColorPickerSet extends Sprite
 	{
-		private static const SV_BOX_HIGHLIGHT_OFFSET:Number = 50; //svBox 하이라이트 때 RGB에 더해주는 값
+		private static const SV_BOX_HIGHLIGHT_OFFSETS:Vector.<Number> = new <Number>[0,25,50]; //svBox 하이라이트 단계(0=없음, 1=삭제 대상 표시, 2=커서가 올라감)별로 RGB에 더해주는 값
 		private var mainColorPickerBox:Sprite = new Sprite();
 		private var colorPickerPresetBox:Sprite = new Sprite();
 		private var colorPickerTypeBox:Sprite = new Sprite();
@@ -370,10 +370,18 @@
 			return svBox.hitTestPoint(stage.mouseX,stage.mouseY);
 		}
 
-		// 색 삭제 드래그 중 svBox 위에 올라가면 테마 상관없이 살짝 밝게 해서 알려줌
-		public function setSVBoxHighlighted(flag:Boolean):void
+		// 색 삭제 드래그 중 svBox를 테마 상관없이 살짝 밝게 해서 삭제 대상임을(level 1), 커서가 올라갔음을(level 2) 알려줌
+		public function setSVBoxHighlight(level:int):void
 		{
-			svBox.transform.colorTransform = flag ? new ColorTransform(1,1,1,1,SV_BOX_HIGHLIGHT_OFFSET,SV_BOX_HIGHLIGHT_OFFSET,SV_BOX_HIGHLIGHT_OFFSET,0) : new ColorTransform();
+			const offset:Number = SV_BOX_HIGHLIGHT_OFFSETS[level];
+			svBox.transform.colorTransform = (level > 0) ? new ColorTransform(1,1,1,1,offset,offset,offset,0) : new ColorTransform();
+		}
+
+		// 드래그 중인 색 사각형을 my palette의 index번 칸 위치에 붙임
+		public function snapDragColorToCell(index:int,cellWidth:Number,cellHeight:Number):void
+		{
+			myPaletteDragColor.x = myPaletteBox.x + (index % 10) * cellWidth;
+			myPaletteDragColor.y = myPaletteBox.y + Math.floor(index / 10) * cellHeight;
 		}
 
 		public function removeDragColor():void

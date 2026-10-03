@@ -5,6 +5,7 @@ package Modules
     import Modules.UIEngine.HintController;
     import Modules.SidebarController;
     import Modules.Tools.PenTool;
+    import Symbols.ColorPickerSet;
 
     import flash.display.DisplayObject;
     import flash.display.Graphics;
@@ -338,15 +339,20 @@ package Modules
                     updateMyPaletteList();
                     addColorMyPaletteHistory(color);
                 }
-                else
+                else if (PenTool.isTransparentPenColor)
                 {
-                    if (PenTool.isTransparentPenColor)
-                    {
-                        myPaletteColorBeforeAddColor[0] = index;
-                        myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
-                    }
-
+                    myPaletteColorBeforeAddColor[0] = index;
+                    myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
                     myPalettePreset[index] = null;
+                    updateMyPaletteList();
+                    addColorMyPaletteHistory(color);
+                }
+                else if (myPaletteColorBeforeAddColor[0] === index && myPaletteColorBeforeAddColor[1] is uint)
+                {
+                    // 이미 현재 색이면 이전 색과 맞바꿔서 "현재 색 - 이전 색"으로 순환함 (지우기는 svBox로 드래그)
+                    const colorSwap:uint = myPalettePreset[index];
+                    myPalettePreset[index] = myPaletteColorBeforeAddColor[1];
+                    myPaletteColorBeforeAddColor[1] = colorSwap;
                     updateMyPaletteList();
                     addColorMyPaletteHistory(color);
                 }
@@ -571,6 +577,25 @@ package Modules
             ColorPickerController.colorPickerBox.updateMainColorPickerBoxPosition(ColorPickerController.isColorPickerBoxPositionSwapped);
         }
 
+        // 드래그 중인 색 사각형을 놓일 칸에 붙이고, 놓을 수 없는 곳이면 커서를 따라가게 함.
+        // 외부(히스토리, 현재 색)에서 끌어온 경우 my palette 박스 위에서만 놓이고, my palette 안에서 끌어온 경우는 가장 가까운 칸에 놓임
+        private static function updateDragColorPosition(isFromMyPalette:Boolean):void
+        {
+            const box:ColorPickerSet = ColorPickerController.colorPickerBox;
+            const canDrop:Boolean = isFromMyPalette
+                ? !box.isSVBoxUnderMouse()
+                : box.myPaletteBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY);
+
+            if (canDrop)
+            {
+                box.snapDragColorToCell(getMyPaletteIndexByMousePosLimitBound(), myPaletteColorWidth, myPaletteColorHeight);
+            }
+            else
+            {
+                box.updateDragColorPosToCursor();
+            }
+        }
+
         public static function startColorHistoryBoxDragging():void
         {
             const index:int = getHistoryIndexByMousePos();
@@ -593,7 +618,7 @@ package Modules
                         ColorPickerController.colorPickerBox.updateDragColor(myPaletteDragClickedColor, myPaletteColorWidth, myPaletteColorHeight);
                     }
 
-                    ColorPickerController.colorPickerBox.updateDragColorPosToCursor();
+                    updateDragColorPosition(false);
                 }
                 else
                 {
@@ -656,7 +681,7 @@ package Modules
                     ColorPickerController.colorPickerBox.updateDragColor(color, myPaletteColorWidth, myPaletteColorHeight);
                 }
 
-                ColorPickerController.colorPickerBox.updateDragColorPosToCursor();
+                updateDragColorPosition(false);
             }
 
             function onMouseUp():void
@@ -729,10 +754,14 @@ package Modules
                         myPaletteDragStarted = true;
                         ColorPickerController.colorPickerBox.updateDragColor(myPaletteDragClickedColor, myPaletteColorWidth, myPaletteColorHeight);
                         updateMyPaletteList(myPaletteDragClickedIndex);
+
+                        // 드래그를 시작하면 svBox를 밝게 하고 힌트를 띄워서 지울 수 있음을 알려줌
+                        ColorPickerController.colorPickerBox.setSVBoxHighlight(1);
+                        HintController.showMouseHintAtCenter(HintStrings.getDeleteColorHint(), ColorPickerController.colorPickerBox.svBox);
                     }
 
-                    ColorPickerController.colorPickerBox.updateDragColorPosToCursor();
                     updateDeleteTarget();
+                    updateDragColorPosition(true);
                 }
                 else
                 {
@@ -740,7 +769,7 @@ package Modules
                 }
             }
 
-            // 드래그 중인 커서가 svBox에 들어가면 밝게 + "Delete this color" 힌트, 나오면 원래대로
+            // 드래그 중인 커서가 svBox에 들어가면 더 밝게, 나오면 삭제 대상 표시 정도로 되돌림
             function updateDeleteTarget():void
             {
                 const isOver:Boolean = ColorPickerController.colorPickerBox.isSVBoxUnderMouse();
@@ -751,30 +780,17 @@ package Modules
                 }
 
                 isOverDeleteTarget = isOver;
-                ColorPickerController.colorPickerBox.setSVBoxHighlighted(isOver);
-
-                if (isOver)
-                {
-                    HintController.showMouseHintAtTopCenter(HintStrings.getDeleteColorHint(), ColorPickerController.colorPickerBox.svBox);
-                }
-                else
-                {
-                    HintController.hideMouseHint();
-                }
+                ColorPickerController.colorPickerBox.setSVBoxHighlight(isOver ? 2 : 1);
             }
 
             function onMouseUp():void
             {
-                if (isOverDeleteTarget)
-                {
-                    isOverDeleteTarget = false;
-                    ColorPickerController.colorPickerBox.setSVBoxHighlighted(false);
-                    HintController.hideMouseHint();
-                }
-
                 if (myPaletteDragStarted === true)
                 {
                     myPaletteDragStarted = false;
+                    isOverDeleteTarget = false;
+                    ColorPickerController.colorPickerBox.setSVBoxHighlight(0);
+                    HintController.hideMouseHint();
 
                     if (ColorPickerController.colorPickerBox.isSVBoxUnderMouse())
                     {

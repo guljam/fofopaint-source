@@ -128,6 +128,7 @@
 			_hintTimerName = "hintShowTimer" + _instantCount;
 			visible = false;
 			hintText.mouseEnabled = false;
+			hintText.multiline = true; // 힌트 문구에 \n을 넣어 줄바꿈할 수 있게 함
 			hintText.autoSize = TextFieldAutoSize.LEFT;
 			this.mouseEnabled = false;
 
