@@ -25,6 +25,7 @@
 		public var stageClickBlocker:Sprite = new Sprite();
 
 		private var plaseWaitTextBase:String = "";
+		private var plaseWaitHintText:String = ""; // 진행 문구 아래 줄에 붙는 안내 문구
 		private static const PREVIEW_MAX_SIZE:Number = 1024; // 배경 이미지 긴 변 최대 크기
 		private var clickBlockerBitmap:Bitmap = new Bitmap(); // 흐린 배경 이미지, 없으면 bitmapData가 null
 		private var menuBox:Sprite = new Sprite();
@@ -62,16 +63,26 @@
 
 		public function updatePlaseWaitPrograss(prograss:String):void
 		{
-			pleaseWaitText.text = plaseWaitTextBase + " " + prograss;
+			setPleaseWaitText(plaseWaitTextBase + " " + prograss);
 		}
 
-		public function showPleaseWaitTextOrCustomText(str:String = "Please Wait..."):void
+		// hintText가 있으면 줄바꿈 한 다음 줄에 괄호로 넣어줌
+		public function showPleaseWaitTextOrCustomText(str:String = "Please Wait...", hintText:String = ""):void
 		{
 			plaseWaitTextBase = str;
-			pleaseWaitText.text = str;
+			plaseWaitHintText = hintText;
+			pleaseWaitText.multiline = true;
 			pleaseWaitText.autoSize = "left";
+			setPleaseWaitText(str);
 			pleaseWaitText.visible = true;
 			mainBox.visible = false;
+		}
+
+		private function setPleaseWaitText(str:String):void
+		{
+			pleaseWaitText.text = (plaseWaitHintText.length > 0) ? str + "\n" + plaseWaitHintText : str;
+			pleaseWaitText.x = stageClickBlocker.width / 2 - pleaseWaitText.width / 2;
+			pleaseWaitText.y = stageClickBlocker.height / 2 - pleaseWaitText.height / 2;
 		}
 
 		public function hide():void

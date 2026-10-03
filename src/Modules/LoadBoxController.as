@@ -8,6 +8,7 @@ package Modules
     import Modules.UIEngine.HintController;
     import Modules.CaptureEngine.CaptureController;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.ReplayEngine.ReplayController;
 
     import Symbols.LoadBoxSet;
 
@@ -159,6 +160,12 @@ package Modules
             const firstKey:uint = InputManager.getFirstPressedKey();
             if (firstKey === InputManager.KEY.esc || firstKey === InputManager.KEY.backspace)
             {
+                // 캐시 이미지를 만드는 중이면 멈추고 새 파일로 초기화함
+                if (ReplayState.isGeneratingCacheImages())
+                {
+                    ReplayController.cancelGeneratingReplayCacheImageAndCreateNewFile();
+                    return;
+                }
                 closeLoadMenuBox();
 
                 // 저장 후 불러오기 대기중이거나 캐시 이미지를 만드는 중이면 이미지가 아직 필요함

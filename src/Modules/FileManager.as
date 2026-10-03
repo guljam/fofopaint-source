@@ -628,7 +628,7 @@ package Modules
             InputManager.startPressHoldKey((!fromShortcut) ? UIController.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, resetAllCanvasAndReplayData, null, isReplayDataLocked);
         }
 
-        private static function resetAllCanvasAndReplayData():void
+        public static function resetAllCanvasAndReplayData():void
         {
             // 길게 누르는 동안 worker가 시작되었을 수 있음
             if (FileManager.isReplayDataLocked())

@@ -666,7 +666,7 @@ package Modules.ReplayEngine
                 LoadBoxController.loadMenuBox.updatePlaseWaitPrograss(perc + "%");
             }
 
-            LoadBoxController.loadMenuBox.showPleaseWaitTextOrCustomText("Reading replay file");
+            LoadBoxController.loadMenuBox.showPleaseWaitTextOrCustomText("Reading replay file", "(Press Esc to cancel)");
             LoadBoxController.openLoadMenuBox();
 
             function onFrameEnter(e:Event):void
@@ -747,6 +747,51 @@ package Modules.ReplayEngine
                 stopGeneratingCacheImageFunc();
                 stopGeneratingCacheImageFunc = null;
             }
+        }
+
+        // 캐시 이미지를 만드는 도중 취소하면 캐시도 리플레이 데이터도 중간 상태라 그대로 그릴수 없으므로 생성을 멈추고 새 파일로 초기화함
+        public static function cancelGeneratingReplayCacheImageAndCreateNewFile():void
+        {
+            if (!ReplayState.isGeneratingCacheImages())
+            {
+                return;
+            }
+
+            if (FileManager.isReplayDataLocked())
+            {
+                FileManager.showReplayDataLockedHint();
+                return;
+            }
+
+            stopGeneratingReplayCacheImage();
+            ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
+            ReplayFileCache.deleteCacheProgress();
+            LoadBoxController.closeLoadMenuBox();
+            LoadBoxController.loadMenuBox.clearPreviewImage();
+            FileManager.resetAllCanvasAndReplayData();
+            // 불러오던 파일에서 읽어둔 참조 레이어 원본이 남아있으면 다음 불러오기에 섞이므로 해제하고 참조 레이어도 비움
+            if (ReferenceLayerController.refLayerRawBitmapData)
+            {
+                ReferenceLayerController.refLayerRawBitmapData.dispose();
+                ReferenceLayerController.refLayerRawBitmapData = null;
+            }
+            ReferenceLayerController.refLayerRawTransformData = null;
+            ReferenceLayerController.clearRefLayerImage();
+            // exitReplayMode가 지워진 데이터 기준으로 프레임을 맞추지 않도록 초기화된 프레임으로 갱신
+            frameOnEnterReplayMode = ReplayState.rNowFrame;
+            CanvasNavigator.box.visible = true;
+            CanvasView.canvasAnchorPoint.visible = true;
+
+            if (ReplayState.isReplayModeON)
+            {
+                exitReplayMode();
+            }
+            else
+            {
+                DrawModeInput.addEvents();
+            }
+
+            InputManager.clearKeyBuffer();
         }
 
         public static function startGeneratingReplayCacheImage(fromLoadFile:Boolean, finalizeFunc:Function, resumeIndex:int = -1):void
