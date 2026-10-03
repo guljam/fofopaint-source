@@ -57,32 +57,7 @@ package Modules
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
-            dataFolderPath = File.applicationStorageDirectory.resolvePath(main.APP_STATE_VERSION);
-            appStateFilePath = dataFolderPath.resolvePath("appstate" + main.APP_STATE_VERSION);
-            scratchPadDataFilePath = dataFolderPath.resolvePath("scratchdata");
-            undoDataFilePath = dataFolderPath.resolvePath("undodata");
-            myPaletteDataFilePath = dataFolderPath.resolvePath("mypalettedata");
-            replayDataFilePath = dataFolderPath.resolvePath("repdata");
-            replayCacheImageFolderPath = dataFolderPath.resolvePath("imagecache");
-            replayCacheImageTempFolderPath = dataFolderPath.resolvePath("imagecache_tmp");
-            replayCacheImageFrameDataFilePath = dataFolderPath.resolvePath("jumpframedata");
-            replayCacheProgressFilePath = dataFolderPath.resolvePath("imagecacheprogress");
-            replayCachePreviewFilePath = dataFolderPath.resolvePath("imagecachepreview");
         }
-        // todo app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
-        private static var dataFolderPath:File;
-        private static var isWritingCrashLog:Boolean = false;
-        public static var appStateFilePath:File;
-        public static var scratchPadDataFilePath:File;
-        public static var undoDataFilePath:File;
-        public static var myPaletteDataFilePath:File;
-        public static var replayDataFilePath:File;
-        public static var replayCacheImageFolderPath:File;
-        public static var replayCacheImageTempFolderPath:File; // worker가 캐시 이미지를 쓰는 곳, main이 확인 후 imagecache로 옮김
-        public static var replayCacheImageFrameDataFilePath:File;
-        public static var replayCacheProgressFilePath:File; // 캐시 이미지 만드는 도중 앱을 닫았을때 이어서 만들기 위한 진행 기록
-        public static var replayCachePreviewFilePath:File; // 그때 로드박스에 깔려있던 흐린 배경 이미지
-        public static const appUpTimePath:File = File.applicationStorageDirectory.resolvePath("appuptime");
         public static var repFileTemp:File; // 파일을 저장하거나 불러올때 씀
         public static const REPLAY_FILE_HEADER_V1:String = "FOFOPAINT"; // 리플레이 블록이 zlib
         public static const REPLAY_FILE_HEADER_V2:String = "V2FOFOPAINT"; // 리플레이 블록이 ReplayDataCodec, 이전 버전 앱에서 못 읽음
@@ -101,88 +76,6 @@ package Modules
 
         private static var isNewFileAvailable:Boolean = true; // 새 파일 만들기 가능 여부, 아이콘 alpha는 refreshFileOperationButtonsTopbar에서 잠금 상태와 합쳐서 계산
         public static var isFileBrowserOpened:Boolean = false;
-
-        public static function writeCrashLog(errorObject:*):void
-        {
-            if (isWritingCrashLog || dataFolderPath === null)
-            {
-                return;
-            }
-
-            isWritingCrashLog = true;
-            var stream:FileStream;
-            try
-            {
-                const now:Date = new Date();
-                var dateKey:String = String(now.fullYear);
-                if (now.month + 1 < 10)
-                    dateKey += "0";
-                dateKey += String(now.month + 1);
-                if (now.date < 10)
-                    dateKey += "0";
-                dateKey += String(now.date);
-
-                const logFolder:File = dataFolderPath.resolvePath("log");
-                logFolder.createDirectory();
-                const logFile:File = logFolder.resolvePath("fofo_error_log_" + dateKey + ".txt");
-                var logText:String = "[" + now.toString() + "]\r\n";
-
-                if (errorObject is Error)
-                {
-                    const runtimeError:Error = errorObject as Error;
-                    logText += runtimeError.toString() + "\r\n";
-                    logText += "Message: " + runtimeError.message + "\r\n";
-                    logText += "Error ID: " + runtimeError.errorID + "\r\n";
-                    const stack:String = runtimeError.getStackTrace();
-                    logText += "Stack trace:\r\n" + (stack ? stack : "(unavailable)") + "\r\n";
-                }
-                else if (errorObject is ErrorEvent)
-                {
-                    const errorEvent:ErrorEvent = errorObject as ErrorEvent;
-                    logText += errorEvent.toString() + "\r\n";
-                    logText += "Message: " + errorEvent.text + "\r\n";
-                    logText += "Error ID: " + errorEvent.errorID + "\r\n";
-                    logText += "Stack trace: (unavailable for ErrorEvent)\r\n";
-                }
-                else
-                {
-                    logText += "Thrown value: " + String(errorObject) + "\r\n";
-                    logText += "Stack trace: (unavailable)\r\n";
-                }
-                logText += "\r\n";
-
-                stream = new FileStream();
-                stream.open(logFile, FileMode.APPEND);
-                stream.writeUTFBytes(logText);
-            }
-            catch (writeError:Error)
-            {
-                trace("Crash log write failed: " + writeError);
-            }
-            finally
-            {
-                if (stream !== null)
-                {
-                    try
-                    {
-                        stream.close();
-                    }
-                    catch (closeError:Error)
-                    {
-                        trace("Crash log close failed: " + closeError);
-                    }
-                }
-                isWritingCrashLog = false;
-            }
-        }
-
-        public static function saveReplayFrameData():void
-        {
-            const fs:FileStream = new FileStream();
-            fs.open(replayCacheImageFrameDataFilePath, FileMode.WRITE);
-            fs.writeObject(ReplayFileCache.rJumpImageFrameData);
-            fs.close();
-        }
 
         public static function loadFOFOFile(oldFile:File):void // loadrep
         {
@@ -325,7 +218,7 @@ package Modules
 
             if (isNew2020FileFlag)
             {
-                fs.open(replayDataFilePath, FileMode.WRITE);
+                fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE);
                 fs.position = 0;
                 fs.writeBytes(replayData);
                 fs.close();
@@ -337,7 +230,7 @@ package Modules
                 fs.position = imgStartByte;
                 fs.truncate();
                 fs.close();
-                repFileTemp.moveTo(replayDataFilePath, true);
+                repFileTemp.moveTo(AppStateManager.replayDataFilePath, true);
             }
 
             if (repFileTemp.exists)
@@ -769,29 +662,6 @@ package Modules
             }
         }
 
-        // 앱데이터\버전\log 폴더를 탐색기로 염, 크래시가 없어서 폴더가 없으면 만들어서 엶
-        public static function openCrashLogFolder():void
-        {
-            if (dataFolderPath === null)
-            {
-                return;
-            }
-
-            const logFolder:File = dataFolderPath.resolvePath("log");
-            try
-            {
-                if (!logFolder.exists)
-                {
-                    logFolder.createDirectory();
-                }
-                logFolder.openWithDefaultApplication();
-            }
-            catch (error:Error)
-            {
-                trace("Open crash log folder failed: " + error);
-            }
-        }
-
         private static function isWebpFile(file:File):Boolean
         {
             var stream:FileStream = new FileStream();
@@ -983,7 +853,7 @@ package Modules
 
         private static function saveFOFOFile():void
         {
-            if (replayDataFilePath.exists)
+            if (AppStateManager.replayDataFilePath.exists)
             {
                 rLayer1FirstImageData = new ByteArray();
                 rLayer2FirstImageData = new ByteArray();
@@ -1014,7 +884,7 @@ package Modules
                     ReferenceLayerController.canvasRefLayerBitmapData.copyPixelsToByteArray(newRectangle, ReferenceLayerController.refLayerImageData);
                 }
                 // 리플레이 파일을 임시파일로 복사해서 이 내부의 바이트만 읽어서 워커에게 보냄
-                replayDataFilePath.copyTo(repFileTemp, true);
+                AppStateManager.replayDataFilePath.copyTo(repFileTemp, true);
 
                 const fs:FileStream = new FileStream();
 
@@ -1419,77 +1289,6 @@ package Modules
             }
         }
 
-        public static function loadScratchPadImage():void
-        {
-            const fs:FileStream = new FileStream();
-            const ba:ByteArray = new ByteArray();
-            const bmpd:BitmapData = ColorPickerController.colorPickerBox.scratchPad.getBitmapData();
-            fs.open(scratchPadDataFilePath, FileMode.READ);
-            var arr:Array = fs.readObject() as Array;
-            fs.close();
-            bmpd.lock();
-            PixelRestore.setPixels(bmpd, new Rectangle(0, 0, arr[1], arr[2]), arr[0]);
-            bmpd.unlock();
-        }
-
-        private static function saveScratchPadImage():void
-        {
-            const fs:FileStream = new FileStream();
-            const ba:ByteArray = new ByteArray();
-            const bmpd:BitmapData = ColorPickerController.colorPickerBox.scratchPad.getBitmapData();
-            const newRectangle:Rectangle = new Rectangle(0, 0, bmpd.width, bmpd.height);
-            bmpd.copyPixelsToByteArray(ColorPickerController.colorPickerBox.scratchPad.getBitmapData().rect, ba);
-            fs.open(scratchPadDataFilePath, FileMode.WRITE);
-            fs.writeObject([ba, newRectangle.width, newRectangle.height]);
-            fs.close();
-        }
-
-        public static function deleteTempDirectory():void
-        {
-            const file:File = File.applicationStorageDirectory.resolvePath("tmp");
-            if (file.exists)
-            {
-                file.deleteDirectory(true);
-            }
-        }
-
-        public static function saveAllAppData():void
-        {
-            AppStateManager.saveAppState();
-            saveUndoData();
-            saveReplayFrameData();
-            ReferenceLayerController.saveRefLayerImage();
-            PaletteController.saveMypPaletteList();
-            saveScratchPadImage();
-            saveAppUpTime();
-        }
-
-        private static function saveAppUpTime():void
-        {
-            const fs:FileStream = new FileStream();
-
-            const appUpTime:int = ActivityWorkTimer.getAppUpTime();
-            fs.open(appUpTimePath, FileMode.WRITE);
-            fs.writeInt(appUpTime);
-            fs.close();
-        }
-
-        public static function checkWindowMaximizedAndSaveAllData():void
-        {
-            if (main.stage.nativeWindow.displayState === "maximized")
-            {
-                AppWindowState.lastAppWindowState = 1;
-                main.stage.nativeWindow.restore();
-            }
-            else
-            {
-                AppWindowState.lastAppWindowState = 0;
-                deleteTempDirectory();
-                saveAllAppData();
-                main.stage.nativeWindow.close();
-            }
-        }
-
         // todo 이것은 mainui controller로 가야하지 않을까
         public static function enterDrawModeOnLoadFile():void
         {
@@ -1504,91 +1303,5 @@ package Modules
         }
 
 
-        public static function loadUndoData():void
-        {
-            if (undoDataFilePath.exists === false)
-            {
-                return;
-            }
-
-            ReplayState.rMirrorON = false;
-            DrawCanvas.mirrorON = false;
-            UIController.canvasInfoBox.setMirror(false);
-
-            const fs:FileStream = new FileStream();
-            fs.open(undoDataFilePath, FileMode.READ);
-
-            const lastUndoIndex:int = fs.readInt();
-            var arr:Array = fs.readObject() as Array; // undodata first
-
-            const bmpdRect:Rectangle = new Rectangle(0, 0, arr[2], arr[3]);
-            var bmpd:BitmapData = new BitmapData(arr[2], arr[3], true, 0);
-            var bmpd1:BitmapData = new BitmapData(arr[2], arr[3], true, 0);
-
-            if (arr[6] is Number)
-            {
-                ReplayState.setRFileDataTotalFrame(arr[6]);
-            }
-
-            ReplayState.rMemoryData = (fs.readObject() as Array).concat();
-            ReplayState.rMemoryDataFrame = (fs.readObject() as Array).concat();
-            fs.close();
-
-            UndoHistory.setUndoDataIndex(lastUndoIndex);
-
-            bmpd.lock();
-            PixelRestore.setPixels(bmpd, bmpdRect, arr[0]);
-            bmpd.unlock();
-
-            bmpd1.lock();
-            PixelRestore.setPixels(bmpd1, bmpdRect, arr[1]);
-            bmpd1.unlock();
-
-            UndoHistory.updateUndoBaseImage(bmpd.clone(), bmpd1.clone(), arr[2], arr[3], arr[4], arr[5]);
-            UndoController.updateCanvasStateAfterUndo();
-
-            ReplayDrawer.rReplayFOFOCursor.visible = false;
-            HintController.hideMouseHint();
-
-            bmpd.dispose();
-            bmpd1.dispose();
-            bmpd = null;
-            bmpd1 = null;
-
-            arr.length = 0;
-            arr = null;
-        }
-
-        public static function saveUndoData():void
-        {
-            const fs:FileStream = new FileStream();
-            const arr:Array = UndoHistory.getUndoBaseImage();
-            const bmpd:BitmapData = arr[0];
-            const bmpd1:BitmapData = arr[1];
-
-            var ba:ByteArray = new ByteArray();
-            var ba1:ByteArray = new ByteArray();
-            var newRectangle:Rectangle = new Rectangle(0, 0, arr[2], arr[3]);
-
-            bmpd.copyPixelsToByteArray(newRectangle, ba);
-            bmpd1.copyPixelsToByteArray(newRectangle, ba1);
-
-            // ba.compress();
-            // ba1.compress();
-            // 레이어 1,레이어2,가로,세로,배경색, repdata 합계 프레임
-            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayState.getRFileDataTotalFrame()];
-
-            fs.open(undoDataFilePath, FileMode.WRITE);
-            fs.writeInt(UndoHistory.undoDataIndex);
-            fs.writeObject(newArr);
-            fs.writeObject(ReplayState.rMemoryData);
-            fs.writeObject(ReplayState.rMemoryDataFrame);
-            fs.close();
-
-            ba.clear();
-            ba1.clear();
-            ba = null;
-            ba1 = null;
-        }
     }
 }

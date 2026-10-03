@@ -165,7 +165,7 @@ package Modules
         public static function applyDeepUndo():void
         {
             const fs:FileStream = new FileStream();
-            fs.open(FileManager.replayDataFilePath, FileMode.UPDATE);
+            fs.open(AppStateManager.replayDataFilePath, FileMode.UPDATE);
             fs.position = ReplayState.rFileLastBytePosition;
             fs.truncate(); // 데이터 위에 짤라주고
             fs.close();

@@ -18,6 +18,7 @@ package Modules.ReplayEngine
     import Symbols.FOFOCursorSet;
     import Modules.CacheImageMetaData;
     import Modules.FileManager;
+    import Modules.AppStateManager;
     import flash.utils.getTimer;
     import Modules.UndoHistory;
     import Modules.UndoController;
@@ -320,7 +321,7 @@ package Modules.ReplayEngine
             stopReplayFOFOCursorSpin();
             fillAnim.clear();
             moveAnim.clear();
-            rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
+            rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
             const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);
             rFileStream.close();

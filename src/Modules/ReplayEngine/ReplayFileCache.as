@@ -10,6 +10,7 @@ package Modules.ReplayEngine
     import Modules.BackgroundWorkerCoordinator;
     import Modules.CacheImageMetaData;
     import Modules.FileManager;
+    import Modules.AppStateManager;
     import Modules.ReplayDataCodec;
     import Modules.PixelRestore;
     import Modules.ReferenceLayerController;
@@ -38,10 +39,10 @@ package Modules.ReplayEngine
         {
             FileManager.initializeRepTempFile();
 
-            if (FileManager.replayDataFilePath.exists === false || overWrite === true)
+            if (AppStateManager.replayDataFilePath.exists === false || overWrite === true)
             {
                 const fs:FileStream = new FileStream();
-                fs.open(FileManager.replayDataFilePath, FileMode.WRITE);
+                fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE);
                 fs.close();
                 ReplayTimeline.invalidate(); // 리플레이 파일이 비워짐
             }
@@ -135,7 +136,7 @@ package Modules.ReplayEngine
 
         public static function loadReplayCacheImage(index:int):Object
         {
-            const file:File = FileManager.replayCacheImageFolderPath.resolvePath(String(index));
+            const file:File = AppStateManager.replayCacheImageFolderPath.resolvePath(String(index));
             const fs:FileStream = new FileStream();
             fs.open(file, FileMode.READ);
 
@@ -168,8 +169,8 @@ package Modules.ReplayEngine
         // 캐시 이미지 파일을 다 쓴 다음에 부르므로 기록에 있는 번호는 전부 온전한 파일임
         public static function saveCacheProgress():void
         {
-            const dataFile:File = FileManager.replayDataFilePath;
-            const tempFile:File = FileManager.replayCacheProgressFilePath.parent.resolvePath(FileManager.replayCacheProgressFilePath.name + ".tmp");
+            const dataFile:File = AppStateManager.replayDataFilePath;
+            const tempFile:File = AppStateManager.replayCacheProgressFilePath.parent.resolvePath(AppStateManager.replayCacheProgressFilePath.name + ".tmp");
             const fs:FileStream = new FileStream();
 
             try
@@ -177,7 +178,7 @@ package Modules.ReplayEngine
                 fs.open(tempFile, FileMode.WRITE);
                 fs.writeObject([dataFile.size, dataFile.modificationDate.getTime(), rJumpImageFrameData.concat()]);
                 fs.close();
-                tempFile.moveTo(FileManager.replayCacheProgressFilePath, true);
+                tempFile.moveTo(AppStateManager.replayCacheProgressFilePath, true);
             }
             catch (error:Error)
             {
@@ -192,14 +193,14 @@ package Modules.ReplayEngine
         {
             try
             {
-                if (FileManager.replayCacheProgressFilePath.exists)
+                if (AppStateManager.replayCacheProgressFilePath.exists)
                 {
-                    FileManager.replayCacheProgressFilePath.deleteFile();
+                    AppStateManager.replayCacheProgressFilePath.deleteFile();
                 }
 
-                if (FileManager.replayCachePreviewFilePath.exists)
+                if (AppStateManager.replayCachePreviewFilePath.exists)
                 {
-                    FileManager.replayCachePreviewFilePath.deleteFile();
+                    AppStateManager.replayCachePreviewFilePath.deleteFile();
                 }
             }
             catch (error:Error)
@@ -216,9 +217,9 @@ package Modules.ReplayEngine
             {
                 if (bmpd === null)
                 {
-                    if (FileManager.replayCachePreviewFilePath.exists)
+                    if (AppStateManager.replayCachePreviewFilePath.exists)
                     {
-                        FileManager.replayCachePreviewFilePath.deleteFile();
+                        AppStateManager.replayCachePreviewFilePath.deleteFile();
                     }
                     return;
                 }
@@ -228,7 +229,7 @@ package Modules.ReplayEngine
                 ba.compress();
 
                 const fs:FileStream = new FileStream();
-                fs.open(FileManager.replayCachePreviewFilePath, FileMode.WRITE);
+                fs.open(AppStateManager.replayCachePreviewFilePath, FileMode.WRITE);
                 fs.writeObject([bmpd.width, bmpd.height, bmpd.transparent, ba]);
                 fs.close();
                 ba.clear();
@@ -244,13 +245,13 @@ package Modules.ReplayEngine
         {
             try
             {
-                if (!FileManager.replayCachePreviewFilePath.exists)
+                if (!AppStateManager.replayCachePreviewFilePath.exists)
                 {
                     return null;
                 }
 
                 const fs:FileStream = new FileStream();
-                fs.open(FileManager.replayCachePreviewFilePath, FileMode.READ);
+                fs.open(AppStateManager.replayCachePreviewFilePath, FileMode.READ);
                 const data:Array = fs.readObject() as Array;
                 fs.close();
 
@@ -272,17 +273,17 @@ package Modules.ReplayEngine
         // 이어서 만들수 있으면 rJumpImageFrameData를 기록대로 되돌리고 이어서 시작할 캐시 번호를 돌려줌, 못하면 -1
         public static function restoreCacheProgress():int
         {
-            const dataFile:File = FileManager.replayDataFilePath;
+            const dataFile:File = AppStateManager.replayDataFilePath;
             const fs:FileStream = new FileStream();
 
             try
             {
-                if (!FileManager.replayCacheProgressFilePath.exists || !dataFile.exists)
+                if (!AppStateManager.replayCacheProgressFilePath.exists || !dataFile.exists)
                 {
                     return -1;
                 }
 
-                fs.open(FileManager.replayCacheProgressFilePath, FileMode.READ);
+                fs.open(AppStateManager.replayCacheProgressFilePath, FileMode.READ);
                 const progress:Array = fs.readObject() as Array;
                 fs.close();
 
@@ -310,7 +311,7 @@ package Modules.ReplayEngine
                         return -1;
                     }
 
-                    fs.open(FileManager.replayCacheImageFolderPath.resolvePath(String(i)), FileMode.READ);
+                    fs.open(AppStateManager.replayCacheImageFolderPath.resolvePath(String(i)), FileMode.READ);
                     const data:Array = fs.readObject() as Array;
                     fs.close();
 
@@ -348,9 +349,9 @@ package Modules.ReplayEngine
 
             // 폴더를 지우고 바로 다시 만들면 다른 프로그램이 안의 파일을 잡고 있을때 삭제 대기 상태가 되어 생성이 실패할수 있어서 안의 파일만 지움
             // 캐시는 번호 목록 범위 안에서만 읽고 새 캐시는 덮어쓰기로 쓰니 못 지운 파일이 남아도 결과는 같음
-            if (FileManager.replayCacheImageFolderPath.exists)
+            if (AppStateManager.replayCacheImageFolderPath.exists)
             {
-                const list:Array = FileManager.replayCacheImageFolderPath.getDirectoryListing();
+                const list:Array = AppStateManager.replayCacheImageFolderPath.getDirectoryListing();
 
                 for (var i:int = 0;i < list.length;i++)
                 {
@@ -366,7 +367,7 @@ package Modules.ReplayEngine
             }
             else
             {
-                FileManager.replayCacheImageFolderPath.createDirectory();
+                AppStateManager.replayCacheImageFolderPath.createDirectory();
             }
 
             var ba1:ByteArray = new ByteArray();
@@ -465,7 +466,7 @@ package Modules.ReplayEngine
         {
             const fs:FileStream = new FileStream();
             rJumpImageFrameData.push(metadata.nowFrame);
-            fs.open(FileManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length - 1)), FileMode.WRITE);
+            fs.open(AppStateManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length - 1)), FileMode.WRITE);
             fs.writeObject([bmpd1, bmpd2, metadata]);
             fs.close();
         }
@@ -481,7 +482,7 @@ package Modules.ReplayEngine
                 return false;
             }
 
-            const dest:File = FileManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length));
+            const dest:File = AppStateManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length));
 
             try
             {
@@ -492,7 +493,7 @@ package Modules.ReplayEngine
                 // 같은 번호의 오래된 파일이 남아있을수 있으니 크기까지 비교
                 if (size <= 0 || !dest.exists || dest.size !== size || tempFile.exists)
                 {
-                    FileManager.writeCrashLog("Cache image commit not moved: " + dest.nativePath);
+                    AppStateManager.writeCrashLog("Cache image commit not moved: " + dest.nativePath);
                     return false;
                 }
             }
@@ -511,7 +512,7 @@ package Modules.ReplayEngine
         {
             BackgroundWorkerCoordinator.cancelPendingCacheImages();
 
-            const list:Array = FileManager.replayCacheImageFolderPath.getDirectoryListing();
+            const list:Array = AppStateManager.replayCacheImageFolderPath.getDirectoryListing();
             const index:int = getCachedFrameImageIndex(frame);
 
             // index번 이후 파일 삭제

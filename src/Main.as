@@ -173,7 +173,7 @@
             // 입력 이벤트는 loadappdstate보다느려야함
             addGlobalEvents();
             DrawModeInput.addEvents();
-            const isNewReplayFile:Boolean = !FileManager.replayDataFilePath.exists;
+            const isNewReplayFile:Boolean = !AppStateManager.replayDataFilePath.exists;
             ReplayFileCache.initializeReplayDataFile();
             if (isNewReplayFile)
             {
@@ -239,7 +239,7 @@
             {
                 e.preventDefault();
                 const errorObject:* = e.error;
-                FileManager.writeCrashLog(errorObject);
+                AppStateManager.writeCrashLog(errorObject);
 
                 try
                 {

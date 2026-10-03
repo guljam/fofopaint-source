@@ -4,6 +4,7 @@ package Modules.ReplayEngine
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
     import Modules.FileManager;
+    import Modules.AppStateManager;
 
     // 프레임(명령 순번) 위치를 실시간 재생 시간(틱)과 그리기 명령 수(wait 제외)로 바꿔줌
     // 틱은 남은 시간, 최대 속도 계산에 쓰고 명령 수는 캐시 이미지 간격 계산에 씀
@@ -453,7 +454,7 @@ package Modules.ReplayEngine
 
         private static function getFileSize():Number
         {
-            const f:File = FileManager.replayDataFilePath;
+            const f:File = AppStateManager.replayDataFilePath;
             return f.exists ? f.size : 0;
         }
 
@@ -473,7 +474,7 @@ package Modules.ReplayEngine
             fileTicks = 0;
             fileCommands = 0;
             fileBytes = 0;
-            const f:File = FileManager.replayDataFilePath;
+            const f:File = AppStateManager.replayDataFilePath;
 
             if (f.exists)
             {
@@ -530,7 +531,7 @@ package Modules.ReplayEngine
         private static function readFileGroup(byte:Number):Array
         {
             const fs:FileStream = new FileStream();
-            fs.open(FileManager.replayDataFilePath, FileMode.READ);
+            fs.open(AppStateManager.replayDataFilePath, FileMode.READ);
             fs.position = byte;
             const group:Array = fs.bytesAvailable > 0 ? fs.readObject() as Array : null;
             fs.close();

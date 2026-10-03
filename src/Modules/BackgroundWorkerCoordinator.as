@@ -357,7 +357,7 @@ package Modules
 
             const jobId:int = ++cacheJobSeq;
             const generation:int = cacheGeneration;
-            const tempFile:File = FileManager.replayCacheImageTempFolderPath.resolvePath(jobId + ".tmp");
+            const tempFile:File = AppStateManager.replayCacheImageTempFolderPath.resolvePath(jobId + ".tmp");
             undoDataQueue.push([jobId, generation, tempFile, metadata]);
 
             sendDataToWorker(function ():void
@@ -405,7 +405,7 @@ package Modules
                 {
                     // 세대 변경으로 인한 취소가 아닌 쓰기, 이동 실패만 기록해서 다음 캐시 간격 동안 재시도를 쉼
                     cacheFailedFrame = Math.max(cacheFailedFrame, job[3].nowFrame);
-                    FileManager.writeCrashLog("Cache image job " + jobId + " failed: " + result);
+                    AppStateManager.writeCrashLog("Cache image job " + jobId + " failed: " + result);
                     deleteFileQuietly(tempFile);
                 }
             }
@@ -420,7 +420,7 @@ package Modules
         // 그래서 폴더는 두고 안의 파일만 지움, 확정은 작업별 임시 파일 하나만 옮기고 worker는 덮어쓰기로 쓰니 못 지운 파일이 남아도 결과는 같음
         private static function prepareCacheTempFolder():Boolean
         {
-            const folder:File = FileManager.replayCacheImageTempFolderPath;
+            const folder:File = AppStateManager.replayCacheImageTempFolderPath;
 
             try
             {
@@ -441,7 +441,7 @@ package Modules
             }
             catch (error:Error)
             {
-                FileManager.writeCrashLog(error);
+                AppStateManager.writeCrashLog(error);
             }
 
             return false;

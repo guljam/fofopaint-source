@@ -104,7 +104,7 @@ package
                     && !LoadBoxController.loadMenuBox.visible
                     && !ReplayState.isGeneratingCacheImages())
             {
-                FileManager.saveAllAppData();
+                AppStateManager.saveAllAppData();
             }
 
             if (SidebarController.isQuickSidebarActive && !UndoController.isDeepUndoEnabled)
@@ -177,7 +177,7 @@ package
                             if (BackgroundWorkerCoordinator.isWorkerStopped())
                             {
                                 FOFOTimer.remove("pollTimerWaitWorkerStop");
-                                FileManager.checkWindowMaximizedAndSaveAllData();
+                                AppStateManager.checkWindowMaximizedAndSaveAllData();
                                 return false;
                             }
                             return true;
@@ -186,7 +186,7 @@ package
             }
             else
             {
-                FileManager.checkWindowMaximizedAndSaveAllData();
+                AppStateManager.checkWindowMaximizedAndSaveAllData();
             }
         }
 
@@ -229,8 +229,8 @@ package
             }
 
             isCloseRequested = true;
-            FileManager.deleteTempDirectory();
-            FileManager.saveAllAppData();
+            AppStateManager.deleteTempDirectory();
+            AppStateManager.saveAllAppData();
             main.stage.nativeWindow.close();
         }
     }

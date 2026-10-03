@@ -37,6 +37,7 @@ package Modules.ReplayEngine
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
     import Modules.FileManager;
+    import Modules.AppStateManager;
     import Modules.LoadBoxController;
     import Modules.ImageViewWindow;
     import Modules.InputManager.InputManager;
@@ -169,7 +170,7 @@ package Modules.ReplayEngine
             {
                 // repfile 초기화
                 UndoHistory.updateUndoBaseImageFromReplayMode();
-                fs.open(FileManager.replayDataFilePath, FileMode.WRITE); // 파일 생성
+                fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE); // 파일 생성
                 fs.close();
                 FileManager.isFileAlreadySaved = false;
                 FileManager.enableNewFileButton();
@@ -204,12 +205,12 @@ package Modules.ReplayEngine
                 var ba:ByteArray = new ByteArray();
                 var d:Array;
                 // 짤라서 ba에 넣어주기
-                fs.open(FileManager.replayDataFilePath, FileMode.READ);
+                fs.open(AppStateManager.replayDataFilePath, FileMode.READ);
                 fs.position = ReplayState.rFileLastBytePosition;
                 fs.readBytes(ba, 0, fs.bytesAvailable);
                 fs.close();
                 // ba에 넣어준걸 다시 써주기
-                fs.open(FileManager.replayDataFilePath, FileMode.WRITE);
+                fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE);
                 fs.position = 0;
                 fs.writeBytes(ba, 0, ba.length);
                 fs.close();
@@ -261,7 +262,7 @@ package Modules.ReplayEngine
             {
                 ReplayDrawCommands.setFirstRCursorPosCurrent();
                 const fs:FileStream = new FileStream();
-                fs.open(FileManager.replayDataFilePath, FileMode.UPDATE);
+                fs.open(AppStateManager.replayDataFilePath, FileMode.UPDATE);
                 fs.position = ReplayState.rFileLastBytePosition;
                 fs.truncate(); // 데이터 위에 짤라주고
                 fs.close();
@@ -665,7 +666,7 @@ package Modules.ReplayEngine
         {
             const fs:FileStream = new FileStream();
             const fs2:FileStream = new FileStream();
-            const totalSize:Number = FileManager.replayDataFilePath.size;
+            const totalSize:Number = AppStateManager.replayDataFilePath.size;
             const deepUndoFlag:Boolean = UndoController.isDeepUndoEnabled;
             var rect:Rectangle;
             var _frameSum:Number = 0;
@@ -676,7 +677,7 @@ package Modules.ReplayEngine
             ReplayDrawer.rCanvasAnchorPoint.visible = false;
             CanvasNavigator.box.visible = false;
             ReplayDrawer.clearCanvasReplayMode(); // 리플레이 캔버스 먼저 깨끗하게
-            fs.open(FileManager.replayDataFilePath, FileMode.READ);
+            fs.open(AppStateManager.replayDataFilePath, FileMode.READ);
 
             if (resumeIndex >= 0)
             {
@@ -938,7 +939,7 @@ package Modules.ReplayEngine
 
                             if (!ReplayState.rMemoryDataReadON)
                             {
-                                ReplayDrawer.rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
+                                ReplayDrawer.rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
                                 ReplayDrawer.rFileStream.position = ReplayState.rFileLastBytePosition;
                             }
 
@@ -1625,7 +1626,7 @@ package Modules.ReplayEngine
 
             if (!ReplayState.rMemoryDataReadON)
             {
-                ReplayDrawer.rFileStream.open(FileManager.replayDataFilePath, FileMode.READ);
+                ReplayDrawer.rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
                 ReplayDrawer.rFileStream.position = ReplayState.rFileLastBytePosition;
             }
 

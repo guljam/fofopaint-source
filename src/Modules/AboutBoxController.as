@@ -59,7 +59,7 @@ package Modules
                     FileManager.openLocalManual();
                     break;
                 case "aboutErrorLogFolder":
-                    FileManager.openCrashLogFolder();
+                    AppStateManager.openCrashLogFolder();
                     break;
                     // case "aboutMeLink":
                     // navigateToURL(new URLRequest("https://twitter.com/ninanoninini"));

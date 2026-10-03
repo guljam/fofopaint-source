@@ -15,13 +15,11 @@ package Modules
     import Symbols.FOFO;
     import Symbols.SidePanelSet;
 
-    import flash.display.BitmapData;
     import flash.display.DisplayObject;
     import flash.display.Sprite;
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
-    import flash.filesystem.File;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Modules.Tools.EyeDropperTool;
@@ -54,15 +52,9 @@ package Modules
         public static var isRightSidebar:Boolean = false; // 사이드바 위치 (false: 왼쪽, true: 오른쪽)
 
         public static var isQuickSidebarActive:Boolean = false; // 퀵 사이드바 활성화 여부
-        public static var isLoadPendingAfterSaving:Boolean = false; // 저장 후 로드 대기 플래그
         private static var isLayerCheckKeyPressed:Boolean = false; // 키 입력 반복 시 함수 중복 호출 방지 플래그
         private static var isDrawModeInputEventsAdded:Boolean = false; // 드로우 모드 이벤트 중복 추가 방지
         private static var isReplayModeInputEventsAdded:Boolean = false; // 리플레이 모드 이벤트 중복 추가 방지
-        private static var isFileBrowserOpened:Boolean = false; // 캡처 저장 시 중복 실행 방지 플래그
-        private static var lastLoadedFile:File; // invoke나 파일 드래그 드롭했을때 저장해줘서 같은 파일 로드하지 않게
-        private static var loadMenuBoxBitmapData:BitmapData; // 메뉴 박스 미리보기 이미지 데이터
-        private static var loadMenuBoxFileType:String; // 메뉴 박스에 로드할 파일 종류
-        private static var loadMenuBoxFile:File; // 메뉴 박스에 로드할 파일
 
         public static function isMouseCursorInSideBar():Boolean
         {

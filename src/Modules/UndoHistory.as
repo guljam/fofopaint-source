@@ -186,7 +186,7 @@ package Modules
             {
                 const fs:FileStream = new FileStream();
                 const firstElementFrameCount:uint = ReplayState.rMemoryDataFrame[0];
-                const rf:File = FileManager.replayDataFilePath;
+                const rf:File = AppStateManager.replayDataFilePath;
                 const lastRDataTotalFrame:Number = ReplayState.getRFileDataTotalFrame();
 
                 const startByte:Number = rf.exists ? rf.size : 0;

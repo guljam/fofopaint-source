@@ -274,7 +274,7 @@ package Modules
         {
             const fs:FileStream = new FileStream();
 
-            fs.open(FileManager.myPaletteDataFilePath, FileMode.WRITE);
+            fs.open(AppStateManager.myPaletteDataFilePath, FileMode.WRITE);
             fs.writeObject(myPalettePreset);
             fs.close();
         }
@@ -284,7 +284,7 @@ package Modules
             updateHistoryList();
             updateMyPaletteList();
 
-            if (!FileManager.myPaletteDataFilePath.exists)
+            if (!AppStateManager.myPaletteDataFilePath.exists)
             {
                 saveMypPaletteList();
             }
