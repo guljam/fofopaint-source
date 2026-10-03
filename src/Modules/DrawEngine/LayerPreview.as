@@ -338,6 +338,11 @@ package Modules.DrawEngine
         private static function getPreviewArea():Rectangle
         {
             const view:Rectangle = UIController.getViewportRect();
+            if (isCenteredInViewport)
+            {
+                // 고정 사이드바: 세로도 뷰포트 전체의 중앙 기준
+                return new Rectangle(areaLeft, view.y, Math.max(1.0, areaRight - areaLeft), view.height);
+            }
             const box:Rectangle = getLayerButtonWrapperBounds();
             const boxCenterY:Number = box.isEmpty() ? view.y + view.height / 2 : box.y + box.height / 2;
             const minY:Number = view.y + view.height * CENTER_BAND_MIN;
