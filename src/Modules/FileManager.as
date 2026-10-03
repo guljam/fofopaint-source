@@ -992,7 +992,7 @@ package Modules
             var path:String = getExistingParentDirectory(lastSaveCaptureFilePath);
             setFileBrowserIsOpen(true);
             name = CaptureStamp.cutTimeStamp(name);
-            name = name.substr(0, name.lastIndexOf(".png")) + "_capture_" + CaptureStamp.getTimeStampTail() + ".png"; // 뒤에 프레임 번호 붙여줌
+            name = stripExtension(name) + "_capture_" + CaptureStamp.getTimeStampTail() + ".png"; // 뒤에 프레임 번호 붙여줌
             path = path.substr(0, path.lastIndexOf(lastSaveFileName)) + name;
             var file:File = (name !== path) ? new File(path) : File.desktopDirectory.resolvePath(name);
             const fs:FileStream = new FileStream();
@@ -1040,8 +1040,8 @@ package Modules
             if (saveFailed)
             {
                 // 파일 쓰기가 실패하면 뒤에 new 붙임
-                filePath = _path.substr(0, _path.lastIndexOf(".png")) + "_copy.png";
-                fileName = _name.substr(0, _name.lastIndexOf(".png")) + "_copy.png";
+                filePath = _path.substr(0, _path.length - (_name.length - stripExtension(_name).length)) + "_copy.png";
+                fileName = stripExtension(_name) + "_copy.png";
             }
             return (_name !== _path) ? new File(filePath) : File.desktopDirectory.resolvePath(fileName);
         }
@@ -1057,6 +1057,12 @@ package Modules
                 return path.substring(lastSlash + 1);
             }
             return path;
+        }
+
+        // 파일 이름 끝의 알려진 확장자를 떼어냄. 확장자가 없으면 그대로 반환
+        public static function stripExtension(name:String):String
+        {
+            return name.replace(/\.(fofo|2020|jpg|jpeg|gif|jfif|webp|png)$/i, "");
         }
 
         public static function convertToPNGFilePath(path:String):String

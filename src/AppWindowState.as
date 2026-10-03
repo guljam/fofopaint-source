@@ -192,7 +192,7 @@ package
 
         public static function updateWindowTitle():void
         {
-            main.stage.nativeWindow.title = FileManager.lastSaveFileName + main.STRING_TITLE_FOFOPAINT;
+            main.stage.nativeWindow.title = FileManager.stripExtension(FileManager.lastSaveFileName) + main.STRING_TITLE_FOFOPAINT;
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.copyMainWindowTitleToCanvasWindow();
