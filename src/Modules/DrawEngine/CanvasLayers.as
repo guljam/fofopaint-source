@@ -108,7 +108,7 @@ package Modules.DrawEngine
 
         public static function beginErasePreview(layer2:Boolean):void
         {
-            endErasePreview(); // 이전 획이 정상적으로 끝나지 못했어도 복구함
+            endEraserToolPreview(); // 이전 획이 정상적으로 끝나지 못했어도 복구함
 
             const panel:Sprite = CanvasView.canvasPanel;
             const layerBitmap:Bitmap = (layer2) ? DrawCanvas.canvasLayer2Bitmap : DrawCanvas.canvasLayer1Bitmap;
@@ -122,7 +122,7 @@ package Modules.DrawEngine
         }
 
         // 여러 번 호출해도 안전함. 저장해둔 인덱스 없이 현재 상태 기준으로 원래 순서를 다시 계산함
-        public static function endErasePreview():void
+        public static function endEraserToolPreview():void
         {
             if (erasePreviewHolder.parent === null)
             {
@@ -151,7 +151,7 @@ package Modules.DrawEngine
         // drawLayer를 레이어 1번 선택 위치(lassoLayer1 바로 위)에 놓음. 현재 위치와 상관없이 항상 같은 자리로 가고, 이미 거기 있으면 아무것도 안 함
         public static function bringCanvasDrawLayerAboveLayer1():void
         {
-            endErasePreview();
+            endEraserToolPreview();
 
             const panel:Sprite = CanvasView.canvasPanel;
             const current:int = panel.getChildIndex(StrokeBuffer.canvasDrawLayer);
@@ -167,7 +167,7 @@ package Modules.DrawEngine
         // drawLayer를 레이어 2번 선택 위치(layer1Bitmap 바로 아래)에 놓음. 마찬가지로 항상 같은 자리, 멱등
         public static function bringCanvasDrawLayerAboveLayer2():void
         {
-            endErasePreview();
+            endEraserToolPreview();
 
             const panel:Sprite = CanvasView.canvasPanel;
             const current:int = panel.getChildIndex(StrokeBuffer.canvasDrawLayer);
