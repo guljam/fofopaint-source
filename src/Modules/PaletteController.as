@@ -230,12 +230,9 @@ package Modules
 
             if (myPalettePresetType === 0)
             {
+                // 빈 칸은 투명색조차 선택하지 않음
                 if (isSelctedColorEmpty(index))
                 {
-                    if (PenTool.isTransparentPenColor === false && ColorPickerController.isColorPickerModeBG === false)
-                    {
-                        ColorPickerController.selectTransparentColor();
-                    }
                     return;
                 }
 
