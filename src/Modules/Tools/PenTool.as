@@ -28,7 +28,6 @@ package Modules.Tools
 
 	public final class PenTool
 	{
-		// todo 스무딩 슬라이더가 중간 부분이 체감이 별로 안됨 좀더 체감될수있도록 수치를 조정해야함
 		public static var main:Main;
 		public static function setMainInstance(instance:Main):void
 		{

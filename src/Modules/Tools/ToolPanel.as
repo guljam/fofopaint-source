@@ -10,6 +10,7 @@ package Modules.Tools
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
+    import Modules.DrawEngine.LayerPreview;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.InputManager.InputManager;
     import Modules.InputManager.DrawModeInput;
@@ -53,6 +54,7 @@ package Modules.Tools
         public static function addHintEventToolBox2():void
         {
             toolBox2.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverToolBox2Hint);
+            LayerPreview.init(toolOptionsBox);
         }
 
         public static function get toolBox2ONDelayTime():Number

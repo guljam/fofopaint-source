@@ -33,7 +33,6 @@ package Modules.UIEngine
             main = instance;
         }
 
-        // todo 타이머에서 앱전체 가동 시간 힌트로 표시하기 바로 밑에, 힌트는 예전처럼 툴 옆에 표시해보기, topbar힌트는 조금 고민임
         public static const BOTTOM_BAR_HEIGHT:Number = 25;
         public static var mouseHint:HintBoxSet = new HintBoxSet(true);
         public static var bottomHint:HintBoxSet = new HintBoxSet(false);

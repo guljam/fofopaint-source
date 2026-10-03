@@ -43,9 +43,7 @@ package Modules.Tools
 
     public class LassoTool
     {
-        // todo : 나중에 이 컨트롤러도 분해해서 lasso, pen fillpen등 투명도 크기 색깔 조정하는 클래스로 분리
-        // todo: 포멧팅 필요, 라소툴 관련 메서드는 tool controller에 분할되어 이식되어야함
-        // ane나 내부 구현으로 리사이즈시 뿌옇게되는거 란초스보간이나 average color 방식으로 바꾸어야함, 리플레이에도 적은것같은데 라소녹화 이미지는 비트맵 캐시되어야함 성능문제
+        // todo: 포멧팅 필요
 
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
@@ -998,7 +996,6 @@ package Modules.Tools
             }
         }
 
-        // todo cancel lasso bmpd 로 바꾸기, lasso툴이적용되었을경우 리플레이나 undo성능 향상을 위해서 캐싱하고 파일저장에도 써주여야함 이는 나중에 .fofo 새로운 세이브파일 구현때 하기
         public static function restoreToLastBmpd():void
         {
             if (lassoLayer1LastBitmapdata === null && lassoLayer2LastBitmapdata === null)

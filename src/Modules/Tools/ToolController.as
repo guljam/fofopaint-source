@@ -7,7 +7,6 @@ package Modules.Tools
 
     public class ToolController
     {
-        // todo: 포멧팅 필요
         public static var main:Main;
 
         public static function setMainInstance(instance:Main):void

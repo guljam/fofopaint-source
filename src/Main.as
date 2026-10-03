@@ -1,54 +1,57 @@
 ﻿package
 {
-    import Modules.Tools.ToolPanel;
-    import Modules.CanvasViewport;
-    import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.DrawCanvas;
-    import Modules.UIEngine.CanvasNavigator;
-    import Modules.DrawEngine.CanvasResizer;
-    import Modules.UIEngine.HintController;
-    import Modules.UIEngine.UIController;
-    import Modules.InputPriority;
-    import Modules.MouseState;
-    import Modules.ImeController;
     import Modules.AboutBoxController;
+    import Modules.ActivityWorkTimer;
     import Modules.AppStateManager;
     import Modules.AppStateVars;
     import Modules.AppUpdater;
     import Modules.BackgroundWorkerCoordinator;
+    import Modules.CacheImageMetaData;
     import Modules.CanvasGridOverlay;
+    import Modules.CanvasViewport;
+    import Modules.CaptureEngine.CaptureArea;
     import Modules.CaptureEngine.CaptureController;
+    import Modules.CaptureEngine.CaptureStamp;
     import Modules.ClipboardManager;
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
+    import Modules.DrawEngine.CanvasResizer;
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
     import Modules.FileManager;
-    import Modules.Tools.FillPenTool;
     import Modules.ImageViewWindow;
-    import Modules.InputManager.InputManager;
-    import Modules.InputManager.DrawModeInput;
+    import Modules.ImeController;
     import Modules.InputManager.CaptureModeInput;
+    import Modules.InputManager.DrawModeInput;
+    import Modules.InputManager.InputManager;
     import Modules.InputManager.ReplayModeInput;
+    import Modules.InputPriority;
+    import Modules.MouseState;
     import Modules.PaletteController;
+    import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
+    import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayFileCache;
     import Modules.SidebarController;
-    import Modules.Tools.ToolController;
     import Modules.Tools.EyeDropperTool;
+    import Modules.Tools.FillPenTool;
     import Modules.Tools.HandTool;
     import Modules.Tools.LassoTool;
     import Modules.Tools.LineTool;
     import Modules.Tools.MoveTool;
     import Modules.Tools.PenTool;
     import Modules.Tools.RotateTool;
+    import Modules.Tools.ToolController;
+    import Modules.Tools.ToolPanel;
     import Modules.Tools.ZoomTool;
+    import Modules.UIEngine.CanvasNavigator;
+    import Modules.UIEngine.HintController;
+    import Modules.UIEngine.UIController;
     import Modules.Utils;
 
-    // todo 힌트박스 컨트롤러 만들기, 지금 각툴에 힌트 관련 마우스 이벤트가 있음 이것을 전부 옮기기 mainui도아마 개편해야할듯싶음 힌트관련 메뉴가 많음
-    // todo if(켜졌으면) 꺼주기 형식 각 클래스마다 비슷한거 있는데 gpt한테 물어봐서 정리한다음 메서드 하나로 한줄로 호출되도록 바꾸기
-    // todo 함수 중복 처리되는거 잘 관찰한후 내부 값만 변경 - 최종 갱신순으로 해야겠음, 너무 툴마다 따로따로 생각했던것같음
     import Symbols.HintBoxSet;
 
     import flash.desktop.NativeApplication;
-    import flash.display.SimpleButton;
     import flash.display.Sprite;
     import flash.display.StageAlign;
     import flash.display.StageQuality;
@@ -62,20 +65,12 @@
     import flash.events.UncaughtErrorEvent;
     import flash.net.registerClassAlias;
     import flash.system.Capabilities;
-    import Modules.ActivityWorkTimer;
-    import Modules.PenSizePreviewCursor;
-    import Modules.CaptureEngine.CaptureStamp;
-    import Modules.CaptureEngine.CaptureArea;
-    import Modules.CacheImageMetaData;
-    import Modules.ReplayEngine.ReplayController;
-    import Modules.ReplayEngine.ReplayFileCache;
 
     // import
     public class Main extends Sprite
     {
         // todo: (중요) module 클래스는 정적 변수가 아니라 main에서 호출되어서 연결되어지는 클래스 인스턴스로 가는게맞는것같음
-        // todo 현재 일단 컴파일만되게 분리하는작업임
-        // todo layer (trace layer 포함) 좀더 쉽게 볼수있도록 ui 개편해야함
+        // todo layer, ref layer 유사 3d느낌으로 45도 각도로 비틀어서 보이게 할수 없을까?
 
         public static var _instance:Main;
         public const APP_VERSION:String = "28.01";
@@ -85,8 +80,6 @@
         public const STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT";
 
         // 기타
-
-
         public function Main():void
         {
             _instance = this;
