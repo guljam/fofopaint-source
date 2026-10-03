@@ -115,10 +115,10 @@
 
                 "layer1SelectButton": "Select Layer 1 [1 / 9] _ Click again to solo",
                 "layer2SelectButton": "Select Layer 2 [2 / 0] _ Click again to solo",
-                "layer1CheckedButton": "Enable Layer 1 (for Move, Lasso, Merge)",
-                "layer1UncheckedButton": "Enable Layer 1 (for Move, Lasso, Merge)",
-                "layer2CheckedButton": "Enable Layer 2 (for Move, Lasso, Merge)",
-                "layer2UncheckedButton": "Enable Layer 2 (for Move, Lasso, Merge)",
+                "layer1CheckedButton": "Apply Move and Lasso to Layer 1 only",
+                "layer1UncheckedButton": "Apply Move and Lasso to Layer 1 only",
+                "layer2CheckedButton": "Apply Move and Lasso to Layer 2 only",
+                "layer2UncheckedButton": "Apply Move and Lasso to Layer 2 only",
                 "layerSwapButton": "Swap layers",
                 "layerMergeButton": "Merge into Layer 2",
 
