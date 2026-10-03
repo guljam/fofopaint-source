@@ -38,6 +38,53 @@ package Modules.ReplayEngine
             cachedGroup = null;
         }
 
+        // 저장 없이 앱이 죽어서 undo 저장본보다 리플레이 파일이 더 길면(저장 뒤에 뭉치가 파일로 밀려난 경우) 저장 시점의 뭉치 경계까지 파일을 잘라서 저장본과 맞춤
+        // 파일은 뒤에만 붙으므로 저장 시점까지의 내용은 그대로이고, 잘린 뭉치는 저장본 메모리에 들어있음
+        // savedByte가 0보다 작으면 바이트 위치는 비교하지 않음 (바이트를 기록하지 않던 저장본)
+        // 저장본과 맞출 수 없으면(파일이 더 짧거나 경계가 안 맞음) false
+        public static function fitFileToSavedState(savedFrame:Number, savedByte:Number):Boolean
+        {
+            if (!isValid())
+            {
+                rebuild();
+            }
+
+            var cutIndex:int = -1;
+
+            if (fileFrames === savedFrame)
+            {
+                return savedByte < 0 || fileBytes === savedByte;
+            }
+
+            if (fileFrames < savedFrame)
+            {
+                return false;
+            }
+
+            for (var i:int = 0;i < groupFrames.length;i++)
+            {
+                if (groupFrames[i] === savedFrame)
+                {
+                    cutIndex = i;
+                    break;
+                }
+            }
+
+            if (cutIndex < 0 || (savedByte >= 0 && groupBytes[cutIndex] !== savedByte))
+            {
+                return false;
+            }
+
+            const cutByte:Number = groupBytes[cutIndex];
+            const fs:FileStream = new FileStream();
+            fs.open(AppStateManager.replayDataFilePath, FileMode.UPDATE);
+            fs.position = cutByte;
+            fs.truncate();
+            fs.close();
+            truncateFile(cutByte, savedFrame);
+            return true;
+        }
+
         // UndoHistory.addNew에서 가장 오래된 undo 뭉치가 파일 끝에 붙을때
         public static function appendFileGroup(group:Array, startFrame:Number, startByte:Number, endByte:Number):void
         {

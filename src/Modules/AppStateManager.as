@@ -27,6 +27,7 @@ package Modules
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.ReplayEngine.ReplayTimeline;
     import Modules.ReplayEngine.ReplaySaveMetaData;
     import flash.trace.Trace;
 
@@ -798,6 +799,11 @@ package Modules
 
             if (arr[6] is Number)
             {
+                // 저장 뒤에 리플레이 파일이 더 늘어난 채로 앱이 죽었으면 저장 시점으로 파일을 되돌림
+                if (!ReplayTimeline.fitFileToSavedState(arr[6], arr[7] is Number ? arr[7] : -1))
+                {
+                    writeCrashLog("Replay file does not match undo data: saved frame " + arr[6] + ", byte " + arr[7]);
+                }
                 ReplayState.setRFileDataTotalFrame(arr[6]);
             }
 
@@ -846,8 +852,9 @@ package Modules
 
             // ba.compress();
             // ba1.compress();
-            // 레이어 1,레이어2,가로,세로,배경색, repdata 합계 프레임
-            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayState.getRFileDataTotalFrame()];
+            // 레이어 1,레이어2,가로,세로,배경색, 미러, repdata 합계 프레임, repdata 파일 크기
+            // 저장 없이 앱이 죽으면 파일만 더 길어질수 있어서 불러올때 저장 시점과 맞는지 확인하는데 씀
+            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayState.getRFileDataTotalFrame(), replayDataFilePath.exists ? replayDataFilePath.size : 0];
 
             fs.open(undoDataFilePath, FileMode.WRITE);
             fs.writeInt(UndoHistory.undoDataIndex);
