@@ -50,6 +50,7 @@ package Modules
         private static var isSidebarTempShowDeactivated:Boolean = false; // 사이드바 임시로 보여주는 기능이 잠시 꺼졌을때 올려줌
         private static var isReactivateSidebarTempShowEventsAdded:Boolean = false; // 사이드바 임시로 보여주는 기능을 끄는 이벤트들이 등록되면 올려줌
         private static var isSidebarHideEventAdded:Boolean = false; // 사이드바가 임시로 보여졌을때 마우스 클릭하면 꺼주는 이벤트가 추가되면 올려줌
+        private static var isTempSideFlipped:Boolean = false; // 임시 표시로 방향이 반전된 상태 (isRightSidebar는 표시 중인 방향)
         public static var isRightSidebar:Boolean = false; // 사이드바 위치 (false: 왼쪽, true: 오른쪽)
 
         public static var isQuickSidebarActive:Boolean = false; // 퀵 사이드바 활성화 여부
@@ -295,6 +296,8 @@ package Modules
 
         public static function activeQuickSideBar(shortcut:Boolean):void
         {
+            restoreTempSideFlip();
+
             isQuickSidebarActive = true;
 
             if (shortcut)
@@ -454,7 +457,7 @@ package Modules
             }
         }
 
-        private static function startShowSideBarTemporary():void
+        private static function startShowSideBarTemporary(edgeIsRight:Boolean):void
         {
             if (!(MouseState.isLeftDown || MouseState.isRightDown || MouseState.isDragging))
             {
@@ -468,7 +471,7 @@ package Modules
                     if (sideBar.visible === false)
                     {
                         // setSidebarVisible(true,true);
-                        showSidebarTemporary();
+                        showSidebarTemporary(edgeIsRight);
                     }
                 }
             }
@@ -493,12 +496,18 @@ package Modules
             if (canShowSidebarTemporarily())
             {
                 const sideBarWidth:Number = sideBar.getWidth();
+                const mx:Number = main.stage.mouseX;
 
-                if (((isRightSidebar && main.stage.mouseX > main.stage.stageWidth - sideBarWidth)
-                            || (!isRightSidebar && main.stage.mouseX < sideBarWidth))
-                        && main.mouseY > UIController.STAGE_TOP_OFFSET)
+                if (main.mouseY > UIController.STAGE_TOP_OFFSET)
                 {
-                    startShowSideBarTemporary();
+                    if (mx < sideBarWidth)
+                    {
+                        startShowSideBarTemporary(false);
+                    }
+                    else if (mx > main.stage.stageWidth - sideBarWidth)
+                    {
+                        startShowSideBarTemporary(true);
+                    }
                 }
             }
         }
@@ -510,9 +519,16 @@ package Modules
                 const mx:Number = main.stage.mouseX;
                 const my:Number = main.stage.mouseY;
 
-                if ((!isRightSidebar && mx <= 15 || isRightSidebar && mx >= main.stage.stageWidth - 15) && my > UIController.STAGE_TOP_OFFSET)
+                if (my > UIController.STAGE_TOP_OFFSET)
                 {
-                    startShowSideBarTemporary();
+                    if (mx <= 15)
+                    {
+                        startShowSideBarTemporary(false);
+                    }
+                    else if (mx >= main.stage.stageWidth - 15)
+                    {
+                        startShowSideBarTemporary(true);
+                    }
                 }
             }
 
@@ -566,6 +582,8 @@ package Modules
 
         public static function showSidebarPermanent():void
         {
+            restoreTempSideFlip();
+
             isSidebarVisible = true;
             sideBar.visible = true;
 
@@ -587,6 +605,8 @@ package Modules
 
         public static function hideSidebarPermanent():void
         {
+            restoreTempSideFlip();
+
             isSidebarVisible = false;
             sideBar.visible = false;
 
@@ -604,8 +624,16 @@ package Modules
             main.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveSideBar);
         }
 
-        private static function showSidebarTemporary():void
+        private static function showSidebarTemporary(edgeIsRight:Boolean):void
         {
+            // 실제 사이드바 방향과 다른 쪽 가장자리면 임시로 그쪽에 표시 (숨길 때 복원)
+            if (edgeIsRight !== isRightSidebar)
+            {
+                isTempSideFlipped = true;
+                isRightSidebar = edgeIsRight;
+                applySidebarLayout(edgeIsRight);
+            }
+
             sideBar.visible = true;
 
             updateSidebarLayout();
@@ -619,13 +647,34 @@ package Modules
         {
             sideBar.visible = false;
 
+            restoreTempSideFlip();
+
             updateSidebarLayout();
 
             LassoTool.restoreLassoAndRefLayerBoxLastPos();
         }
 
+        // 임시 표시로 바뀐 사이드바 방향을 실제 값으로 되돌림
+        public static function restoreTempSideFlip():void
+        {
+            if (isTempSideFlipped)
+            {
+                isTempSideFlipped = false;
+                isRightSidebar = !isRightSidebar;
+                applySidebarLayout(isRightSidebar);
+            }
+        }
+
+        // 임시 반전과 무관한 실제 사이드바 방향 (저장/topbar 아이콘용)
+        public static function getActualIsRightSidebar():Boolean
+        {
+            return isTempSideFlipped ? !isRightSidebar : isRightSidebar;
+        }
+
         public static function toggleSideBarPosition():void
         {
+            restoreTempSideFlip();
+
             if (isRightSidebar === false)
             {
                 isRightSidebar = true;
@@ -638,11 +687,9 @@ package Modules
             }
         }
 
-        public static function moveSideBar(direction:String, ignoreCheckStageOffset:Boolean = false):void
+        // 사이드바 내부 배치만 적용 (topbar 아이콘/캔버스 앵커는 건드리지 않음). isRightSidebar가 isRight와 일치한 상태에서 호출
+        private static function applySidebarLayout(isRight:Boolean):void
         {
-            // direction: "left" or "right"
-            const isRight:Boolean = (direction === "right");
-
             setSidebarDefaultPos();
 
             UIController.updateStageOffset();
@@ -674,6 +721,14 @@ package Modules
             resetScrollBarX();
 
             sideBar.y = UIController.topBar.BARSIZE * UIController.topBar.scaleX;
+        }
+
+        public static function moveSideBar(direction:String, ignoreCheckStageOffset:Boolean = false):void
+        {
+            // direction: "left" or "right"
+            const isRight:Boolean = (direction === "right");
+
+            applySidebarLayout(isRight);
 
             if (!ignoreCheckStageOffset)
             {

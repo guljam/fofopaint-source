@@ -116,7 +116,7 @@ package Modules
 
             appStateObject.rReplayImageCacheState = ReplayState.rReplayImageCacheState;
 
-            appStateObject.isRightSidebar = SidebarController.isRightSidebar;
+            appStateObject.isRightSidebar = SidebarController.getActualIsRightSidebar();
             appStateObject.saveFilePath = FileManager.lastSaveFilePath;
             appStateObject.isSidebarVisible = SidebarController.isSidebarVisible;
             appStateObject.uiScaleIndex = UITheme.getUIScaleIndex();
@@ -381,6 +381,7 @@ package Modules
                         }
 
                         // Sidebar Settings
+                        SidebarController.restoreTempSideFlip();
                         SidebarController.isRightSidebar = appStateObject.isRightSidebar;
                         SidebarController.isSidebarVisible = appStateObject.isSidebarVisible;
 

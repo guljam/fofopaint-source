@@ -589,7 +589,7 @@
 
 			if (mode === 0)
 			{
-				showModeIcons("draw", SidebarController.isRightSidebar, SidebarController.isSidebarVisible);
+				showModeIcons("draw", SidebarController.getActualIsRightSidebar(), SidebarController.isSidebarVisible);
 				hideModeIcons("replay");
 				hideModeIcons("capture");
 				PenSizePreviewCursor.updateSizeAndShape();
