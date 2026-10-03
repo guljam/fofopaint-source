@@ -574,16 +574,12 @@ package Modules
             ColorPickerController.colorPickerBox.updateMainColorPickerBoxPosition(ColorPickerController.isColorPickerBoxPositionSwapped);
         }
 
-        // 드래그 중인 색 사각형을 놓일 칸에 붙이고, 놓을 수 없는 곳이면 커서를 따라가게 함.
-        // 외부(히스토리, 현재 색)에서 끌어온 경우 my palette 박스 위에서만 놓이고, my palette 안에서 끌어온 경우는 가장 가까운 칸에 놓임
-        private static function updateDragColorPosition(isFromMyPalette:Boolean):void
+        // 드래그 중인 색 사각형을 my palette 박스 위에 있을 때만 놓일 칸에 붙이고, 박스 밖에서는 커서를 부드럽게 따라가게 함
+        private static function updateDragColorPosition():void
         {
             const box:ColorPickerSet = ColorPickerController.colorPickerBox;
-            const canDrop:Boolean = isFromMyPalette
-                ? !box.isSVBoxUnderMouse()
-                : box.myPaletteBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY);
 
-            if (canDrop)
+            if (box.myPaletteBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
             {
                 box.snapDragColorToCell(getMyPaletteIndexByMousePosLimitBound(), myPaletteColorWidth, myPaletteColorHeight);
             }
@@ -615,7 +611,7 @@ package Modules
                         ColorPickerController.colorPickerBox.updateDragColor(myPaletteDragClickedColor, myPaletteColorWidth, myPaletteColorHeight);
                     }
 
-                    updateDragColorPosition(false);
+                    updateDragColorPosition();
                 }
                 else
                 {
@@ -678,7 +674,7 @@ package Modules
                     ColorPickerController.colorPickerBox.updateDragColor(color, myPaletteColorWidth, myPaletteColorHeight);
                 }
 
-                updateDragColorPosition(false);
+                updateDragColorPosition();
             }
 
             function onMouseUp():void
@@ -758,7 +754,7 @@ package Modules
                     }
 
                     updateDeleteTarget();
-                    updateDragColorPosition(true);
+                    updateDragColorPosition();
                 }
                 else
                 {
