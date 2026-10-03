@@ -64,6 +64,7 @@ package Modules
         // todo gpt한테 이 변수 곳곳에 쓰이는데 이를 최적화로  종합적으로 관리가 가능한지 묻기 아마 캔버스가 변경될때에만 내려주면 될것같은데 과연?
         public static var isFileAlreadySaved:Boolean = false; // 세이브 버튼 여러번 눌러서 데이터 계속 쓰여지는거 방지
         public static var isContinueSaveON:Boolean = false; // 한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
+        private static var pendingInvokeArguments:Array; // 앱 상태 복원이 끝나기 전에 받은 invoke 인자
         public static var lastSaveFileName:String = getRandomFileName(); // 세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
         public static var lastSaveFilePath:String = lastSaveFileName; // 파일 저장경로로 계속 저장 초기에는 filename이랑 똑같게 해줌
         private static var lastSaveCaptureFilePath:String = lastSaveFileName;
@@ -774,12 +775,36 @@ package Modules
         // 운영체제에서 fofo/2020파일 연결을 FOFOPAINT로 해줬을때
         public static function onInvokeEvent(e:InvokeEvent):void
         {
+            // 앱 상태 복원 중에는 창 크기와 UI 배치가 확정되지 않아 로드박스 크기가 어긋나므로 복원이 끝난 뒤에 띄움
+            if (AppStateManager.isLoadingAppData)
+            {
+                pendingInvokeArguments = e.arguments;
+                FOFOTimer.addByName("pendingInvokeTimer", 0.1, true, function ():Boolean
+                    {
+                        if (AppStateManager.isLoadingAppData)
+                        {
+                            return true;
+                        }
+                        openInvokeFile(pendingInvokeArguments);
+                        pendingInvokeArguments = null;
+                        return false;
+                    });
+                return;
+            }
             if (isFileLoadBlocked())
             {
                 e.preventDefault();
                 return;
             }
-            var arguments:Array = e.arguments;
+            openInvokeFile(e.arguments);
+        }
+
+        private static function openInvokeFile(arguments:Array):void
+        {
+            if (isFileLoadBlocked())
+            {
+                return;
+            }
             if (arguments && arguments.length > 0)
             {
                 try
