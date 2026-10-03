@@ -106,8 +106,6 @@ package Modules.DrawEngine
             return checkedLayer === 0;
         }
 
-
-
         public static function beginEraserToolPreview(layer2:Boolean):void
         {
             endEraserToolPreview(); // 이전 획이 정상적으로 끝나지 못했어도 복구함
