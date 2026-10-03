@@ -28,6 +28,7 @@ package Modules.ReplayEngine
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.ui.Mouse;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import Modules.CacheImageMetaData;
@@ -66,6 +67,7 @@ package Modules.ReplayEngine
         private static var rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0), "auto", true);
         private static var updatePrograssBarStartTime:int = 0; // 리플레이 시작 시간저장 update prograss bar에서 프레임 오차 수정할때 참고하는 변수
         private static var rReplayRestartTimerCount:uint = 0; // 리스타트 타이머
+        private static var isReplaySpeedDragging:Boolean = false; // 속도 슬라이더 드래그 중에는 seekbar 텍스트에 속도 힌트를 보여줌
         private static var rSeekbarTextUpdateTime:int = 0; // 프레임 바 딜레이
         private static var stopGeneratingCacheImageFunc:Function = null; // 캐시 이미지 만드는 중이면 멈추는 함수
         private static var frameOnEnterReplayMode:Number = -1; // 리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼줄때 이 프레임으로 되돌림
@@ -848,6 +850,12 @@ package Modules.ReplayEngine
 
         public static function updateReplayPrograssText(finishFlag:Boolean = false, customFrame:Number = NaN):void
         {
+            if (isReplaySpeedDragging)
+            {
+                ReplayController.seekBarBox.prograssInfo.text = getReplaySpeedHintText();
+                return;
+            }
+
             if (isNaN(customFrame))
             {
                 customFrame = ReplayState.rNowFrame;
@@ -1203,13 +1211,17 @@ package Modules.ReplayEngine
                 + ReplayTimeline.getAnimMsBetween(0, ReplayState.TOTAL_FRAME) / 1000;
         }
 
-        public static function showReplaySpeedMouseHint():void
+        private static function getReplaySpeedHintText():String
         {
             const timeStr:String = shouldUseReplaySlideShowMode()
                 ? getReplayRemainingTimeString(ReplayState.rReplaySpeedMultipler, ReplayState.TOTAL_FRAME)
                 : formatReplayTime(getTotalPlaySeconds(ReplayState.rReplaySpeedMultipler));
-            const finalStr:String = HintStrings.getReplaySpeedHintString(ReplayState.rReplaySpeedMultipler, timeStr);
-            HintController.showMouseHintTemp(finalStr);
+            return HintStrings.getReplaySpeedHintString(ReplayState.rReplaySpeedMultipler, timeStr);
+        }
+
+        public static function showReplaySpeedMouseHint():void
+        {
+            HintController.showMouseHintTemp(getReplaySpeedHintText());
         }
 
         // keyfunc
@@ -1390,21 +1402,19 @@ package Modules.ReplayEngine
                     oldSpeed = REPLAY_SLIDESHOW_ACTIVE_SPEED;
                     ReplayState.rReplaySpeedMultipler = REPLAY_SLIDESHOW_ACTIVE_SPEED;
                 }
-                showReplaySpeedMouseHint();
-
-                if (ReplayState.isReplayFinished === false)
-                {
-                    updateReplayPrograssText();
-                }
+                updateReplayPrograssText(); // 드래그 중에는 속도 힌트가 seekbar 텍스트에 표시됨
             }
 
             function replaySpeedButtomUpEvent(e:MouseEvent):void
             {
                 MouseState.endDrag("replaySpeed");
 
-                if (ReplayState.isReplayFinished === false)
+                if (isReplaySpeedDragging)
                 {
-                    updateReplayPrograssText();
+                    isReplaySpeedDragging = false;
+                    Mouse.show();
+                    HintController.hideMouseHint();
+                    updateReplayPrograssText(ReplayState.isReplayFinished, ReplayState.isReplayFinished ? ReplayState.TOTAL_FRAME : NaN);
                 }
 
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
@@ -1416,9 +1426,11 @@ package Modules.ReplayEngine
                 moveButton(UIController.topBar.replaySpeedSliderWrapper.mouseX);
             }
 
+            isReplaySpeedDragging = true;
+            Mouse.hide();
             moveButton(UIController.topBar.replaySpeedSliderWrapper.mouseX);
             setSpeed(UIController.topBar.replaySpeedSliderWrapper.mouseX);
-            showReplaySpeedMouseHint();
+            updateReplayPrograssText();
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
             main.stage.addEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent, false, InputPriority.DEFAULT);
             MouseState.beginDrag("replaySpeed", function ():void
@@ -1444,7 +1456,10 @@ package Modules.ReplayEngine
             const totalFrame:Number = ReplayState.TOTAL_FRAME;
             const nowFrame:Number = ReplayState.rNowFrame;
             const trackBarWidth:Number = ReplayController.seekBarBox.trackBar.width;
-            ReplayController.seekBarBox.prograssInfo.text = nowFrame + " / " + totalFrame;
+            if (!isReplaySpeedDragging)
+            {
+                ReplayController.seekBarBox.prograssInfo.text = nowFrame + " / " + totalFrame;
+            }
             ReplayController.seekBarBox.prograssBar.width = (totalFrame === 0) ? 0 : trackBarWidth * (nowFrame / totalFrame);
         }
 
@@ -1494,7 +1509,10 @@ package Modules.ReplayEngine
                             return false;
                         }
 
-                        ReplayController.seekBarBox.prograssInfo.text = HintStrings.getReplayRestartHintString(rReplayRestartTimerCount);
+                        if (!isReplaySpeedDragging)
+                        {
+                            ReplayController.seekBarBox.prograssInfo.text = HintStrings.getReplayRestartHintString(rReplayRestartTimerCount);
+                        }
                         --rReplayRestartTimerCount;
                         return true;
                     });
