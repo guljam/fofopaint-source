@@ -37,6 +37,7 @@ package Modules.ReplayEngine
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
     import Modules.FileManager;
+    import Modules.LoadBoxController;
     import Modules.ImageViewWindow;
     import Modules.InputManager.InputManager;
     import Modules.InputManager.DrawModeInput;
@@ -217,7 +218,7 @@ package Modules.ReplayEngine
                 ReplayDrawer.rReplayFOFOCursor.visible = false;
                 ReplayController.seekBarBox.resetReplayPrograssBarWidth();
                 FileManager.isFileAlreadySaved = false;
-                FileManager.loadMenuBox.clearPreviewImage(); // 이 경우 로드박스에 배경 이미지를 깔지 않음
+                LoadBoxController.loadMenuBox.clearPreviewImage(); // 이 경우 로드박스에 배경 이미지를 깔지 않음
                 startGeneratingReplayCacheImage(false, finalize);
             }
 
@@ -649,8 +650,8 @@ package Modules.ReplayEngine
                 DrawModeInput.addEvents();
             }
 
-            FileManager.closeLoadMenuBox();
-            FileManager.loadMenuBox.clearPreviewImage(); // 캐시 이미지 만드는 동안만 쓰던 배경
+            LoadBoxController.closeLoadMenuBox();
+            LoadBoxController.loadMenuBox.clearPreviewImage(); // 캐시 이미지 만드는 동안만 쓰던 배경
             InputManager.clearKeyBuffer();
 
             if (finalizeFunc !== null)
@@ -709,17 +710,17 @@ package Modules.ReplayEngine
             }
 
             ReplayFileCache.saveCacheProgress();
-            FileManager.loadMenuBox.visible = false;
+            LoadBoxController.loadMenuBox.visible = false;
 
             function printPrograssHint(bytes:Number):void
             {
                 const perc:Number = Math.round(((totalSize - bytes) / totalSize) * 100);
                 // const str:String = perc.toFixed(1)+"%";
-                FileManager.loadMenuBox.updatePlaseWaitPrograss(perc + "%");
+                LoadBoxController.loadMenuBox.updatePlaseWaitPrograss(perc + "%");
             }
 
-            FileManager.loadMenuBox.showPleaseWaitTextOrCustomText("Reading replay file");
-            FileManager.openLoadMenuBox();
+            LoadBoxController.loadMenuBox.showPleaseWaitTextOrCustomText("Reading replay file");
+            LoadBoxController.openLoadMenuBox();
 
             function onFrameEnter(e:Event):void
             {

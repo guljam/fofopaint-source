@@ -187,9 +187,9 @@ package Modules
                     worker = null;
                 }
 
-                if (FileManager.isLoadPendingAfterSaving)
+                if (LoadBoxController.isLoadPendingAfterSaving)
                 {
-                    FileManager.loadFileTo("canvas");
+                    LoadBoxController.loadFileTo("canvas");
                 }
                 else if (AppUpdater.isUpdatePendingAfterSaving)
                 {

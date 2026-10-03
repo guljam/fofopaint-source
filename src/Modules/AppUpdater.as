@@ -43,14 +43,14 @@ package Modules
 
         public static function prepareUpdate():void
         {
-            FileManager.prepareOpenLoadBox(true, false, null, null, null);
+            LoadBoxController.prepareOpenLoadBox(true, false, null, null, null);
             isUpdatePendingAfterSaving = true;
             FileManager.openSaveFileBrowser(false);
         }
 
         public static function startUpdate():void
         {
-            FileManager.closeLoadMenuBox();
+            LoadBoxController.closeLoadMenuBox();
             isUpdatePendingAfterSaving = false;
             UIController.topBar.hideUpdateButton();
 

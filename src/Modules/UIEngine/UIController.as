@@ -11,6 +11,7 @@ package Modules.UIEngine
     import Modules.ClipboardManager;
     import Modules.ColorPickerController;
     import Modules.FileManager;
+    import Modules.LoadBoxController;
     import Modules.Tools.FillPenTool;
     import Modules.ImageViewWindow;
     import Modules.ReferenceLayerController;
@@ -85,7 +86,7 @@ package Modules.UIEngine
             ToolPanel.selectedToolViewBitmap.name = "selectedToolViewBitmap";
             ToolPanel.selectedToolViewBitmap.visible = false;
 
-            main.stage.addChild(FileManager.loadMenuBox);
+            main.stage.addChild(LoadBoxController.loadMenuBox);
             main.stage.addChild(ReferenceLayerController.refLayerMenuBox);
             main.stage.addChild(AboutBoxController.aboutBox);
             main.stage.addChild(SidebarController.sideBar);
@@ -136,7 +137,7 @@ package Modules.UIEngine
 
         public static function isPopUpWindowOpened():Boolean
         {
-            return topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible || FileManager.loadMenuBox.visible || AboutBoxController.aboutBox.visible;
+            return topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible || LoadBoxController.loadMenuBox.visible || AboutBoxController.aboutBox.visible;
         }
 
         public static function updateStageOffset():void
@@ -335,9 +336,9 @@ package Modules.UIEngine
             SidebarController.updateScrollBarHeight();
             CanvasNavigator.updateCursor();
 
-            if (FileManager.loadMenuBox.visible === true)
+            if (LoadBoxController.loadMenuBox.visible === true)
             {
-                FileManager.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
+                LoadBoxController.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
             }
 
             if (ToolPanel.selectedToolViewBitmap.visible)

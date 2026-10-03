@@ -18,8 +18,6 @@ package Modules
     import Modules.Tools.LassoTool;
     import Modules.Tools.PenTool;
 
-    import Symbols.LoadBoxSet;
-
     import flash.desktop.ClipboardFormats;
     import flash.display.BitmapData;
     import flash.display.Loader;
@@ -71,7 +69,7 @@ package Modules
             replayCacheProgressFilePath = dataFolderPath.resolvePath("imagecacheprogress");
             replayCachePreviewFilePath = dataFolderPath.resolvePath("imagecachepreview");
         }
-        // todo load box는 load box controller로 따로 분리, app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
+        // todo app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
         private static var dataFolderPath:File;
         private static var isWritingCrashLog:Boolean = false;
         public static var appStateFilePath:File;
@@ -89,8 +87,6 @@ package Modules
         public static const REPLAY_FILE_HEADER_V1:String = "FOFOPAINT"; // 리플레이 블록이 zlib
         public static const REPLAY_FILE_HEADER_V2:String = "V2FOFOPAINT"; // 리플레이 블록이 ReplayDataCodec, 이전 버전 앱에서 못 읽음
 
-        public static const loadMenuBox:LoadBoxSet = new LoadBoxSet();
-
         // todo gpt한테 이 변수 곳곳에 쓰이는데 이를 최적화로  종합적으로 관리가 가능한지 묻기 아마 캔버스가 변경될때에만 내려주면 될것같은데 과연?
         public static var isFileAlreadySaved:Boolean = false; // 세이브 버튼 여러번 눌러서 데이터 계속 쓰여지는거 방지
         public static var isContinueSaveON:Boolean = false; // 한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
@@ -103,13 +99,8 @@ package Modules
         private static var rLayer2CurrentImageData:ByteArray = new ByteArray();
         private static var replayDataReadBytes:ByteArray = new ByteArray();
 
-        public static var isLoadPendingAfterSaving:Boolean = false;
         private static var isNewFileAvailable:Boolean = true; // 새 파일 만들기 가능 여부, 아이콘 alpha는 refreshFileOperationButtonsTopbar에서 잠금 상태와 합쳐서 계산
         public static var isFileBrowserOpened:Boolean = false;
-        public static var lastLoadedFile:File;
-        private static var loadMenuBoxBitmapData:BitmapData;
-        private static var loadMenuBoxFileType:String;
-        private static var loadMenuBoxFile:File;
 
         public static function writeCrashLog(errorObject:*):void
         {
@@ -197,7 +188,7 @@ package Modules
         {
             if (isTrue2020File(oldFile) === false)
             {
-                showLoadFaildMouseHint();
+                LoadBoxController.showLoadFaildMouseHint();
                 return;
             }
 
@@ -534,127 +525,14 @@ package Modules
                 ImageViewWindow.updateCanvasWindowBitmapSize();
             }
             CaptureController.resetCaptureCanvasChangeValue();
-            lastLoadedFile = null;
-            isLoadPendingAfterSaving = false;
-            closeLoadMenuBox();
-        }
-
-        public static function closeLoadMenuBox():void
-        {
-            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox);
-            loadMenuBox.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
-            loadMenuBox.visible = false;
-        }
-
-        public static function openLoadMenuBoxOnClosing():void
-        {
-            if (loadMenuBox.visible === false)
-            {
-                const bmpd:BitmapData = DrawCanvas.getMergedBitmapData(false, true, true, null);
-                loadMenuBox.setPreviewImage(bmpd);
-
-                // 줄인 복사본을 배경으로 썼으면 합성 이미지는 필요 없음
-                if (!loadMenuBox.isPreviewImage(bmpd))
-                {
-                    bmpd.dispose();
-                }
-
-                loadMenuBox.showPleaseWaitTextOrCustomText("Closing fofo paint...");
-                loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
-                Utils.setAsTopChild(loadMenuBox);
-                loadMenuBox.visible = true;
-            }
-        }
-
-        public static function openLoadMenuBox():void
-        {
-            if (loadMenuBox.visible === false)
-            {
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox, false, InputPriority.DEFAULT);
-                loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
-                loadMenuBox.visible = true;
-            }
-            loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
-            Utils.setAsTopChild(loadMenuBox);
+            LoadBoxController.lastLoadedFile = null;
+            LoadBoxController.isLoadPendingAfterSaving = false;
+            LoadBoxController.closeLoadMenuBox();
         }
 
         public static function initializeRepTempFile():void
         {
             repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_" + Utils.getRandomString(32));
-        }
-
-        private static function handleLoadMenuBoxClick(oldTargetName:String):void
-        {
-            loadMenuBox.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLoadMenuBox);
-            function onMouseUpLoadMenuBox(e:MouseEvent):void
-            {
-                loadMenuBox.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLoadMenuBox);
-                if (!e.target || e.target.alpha < 1.0)
-                {
-                    return;
-                }
-                if (oldTargetName === e.target.name
-                        && isLoadPendingAfterSaving === false && BackgroundWorkerCoordinator.isSaveInProgress === 0 && !isFileBrowserOpened)
-                {
-                    switch (e.target.name)
-                    {
-                        case "dragDropLoadButton":
-                            {
-                                if (!loadMenuBox.isRefLayerLoadMode())
-                                {
-                                    if (isReplayDataLocked())
-                                    {
-                                        // worker 작업이 끝나면 stopWorkerIfIdle에서 불러옴
-                                        isLoadPendingAfterSaving = true;
-                                        loadMenuBox.showPleaseWaitTextOrCustomText("Waiting for background tasks...");
-                                        return;
-                                    }
-                                    closeLoadMenuBox();
-                                    loadFileTo("canvas");
-                                }
-                            }
-                            break;
-                        case "dragDropSaveAndLoadButton":
-                            {
-                                if (!loadMenuBox.isRefLayerLoadMode())
-                                {
-                                    isLoadPendingAfterSaving = true;
-                                    loadMenuBox.showPleaseWaitTextOrCustomText("Saving in progress...");
-                                    openSaveFileBrowser(false);
-                                }
-                            }
-                            break;
-                        case "dragDropLoadRefLayerButton":
-                            {
-                                loadFileTo("reflayer");
-                                closeLoadMenuBox();
-                            }
-                            break;
-                        case "dragDropCancelButton":
-                            {
-                                closeLoadMenuBox();
-                                releaseLoadMenuBoxBitmapData(true);
-                            }
-                            break;
-                    }
-                }
-            }
-        }
-
-        private static function onMouseDownLoadMenuBox(e:MouseEvent):void
-        {
-            if (!e.target)
-            {
-                return;
-            }
-            handleLoadMenuBoxClick(e.target.name);
-        }
-        public static function showLoadFaildMouseHint():void
-        {
-            isLoadPendingAfterSaving = false;
-            HintController.showMouseHintTemp("Load failed");
-            HintController.mouseHint.y = main.stage.mouseY;
-            HintController.mouseHint.x = main.stage.mouseX;
         }
 
         public static function setFileBrowserIsOpen(flag:Boolean):void
@@ -670,7 +548,7 @@ package Modules
             lastSaveFilePath = getDirectoryOnly(lastSaveFilePath) + File.separator + newFileName;
         }
 
-        private static function getRandomFileName():String
+        public static function getRandomFileName():String
         {
             return CaptureStamp.getTimeStampTailHead() + "_" + Utils.getRandomString(8) + ".png";
         }
@@ -682,7 +560,7 @@ package Modules
             AppWindowState.markWindowTitleAsDirty();
         }
 
-        private static function getFinalBitmapDataFrom2020File(file:File, bgFlag:Boolean):BitmapData
+        public static function getFinalBitmapDataFrom2020File(file:File, bgFlag:Boolean):BitmapData
         {
             const fs:FileStream = new FileStream();
             fs.open(file, FileMode.READ);
@@ -914,93 +792,6 @@ package Modules
             }
         }
 
-        private static function keyDownLoadMenuBox(e:KeyboardEvent):void
-        {
-            const firstKey:uint = InputManager.getFirstPressedKey();
-            if (firstKey === InputManager.KEY.esc || firstKey === InputManager.KEY.backspace)
-            {
-                closeLoadMenuBox();
-
-                // 저장 후 불러오기 대기중이거나 캐시 이미지를 만드는 중이면 이미지가 아직 필요함
-                if (!isLoadPendingAfterSaving && BackgroundWorkerCoordinator.isSaveInProgress === 0 && !ReplayState.isGeneratingCacheImages())
-                {
-                    releaseLoadMenuBoxBitmapData(true);
-                }
-            }
-        }
-
-        // 불러오기 메뉴에 쓰던 이미지를 해제함
-        // 로드박스 배경으로 그대로 쓰고 있으면 clearPreview가 true일때만 배경까지 해제하고, false면 배경으로 남겨둠
-        private static function releaseLoadMenuBoxBitmapData(clearPreview:Boolean):void
-        {
-            if (loadMenuBoxBitmapData === null)
-            {
-                return;
-            }
-
-            if (loadMenuBox.isPreviewImage(loadMenuBoxBitmapData))
-            {
-                if (clearPreview)
-                {
-                    loadMenuBox.clearPreviewImage();
-                }
-            }
-            else
-            {
-                loadMenuBoxBitmapData.dispose();
-            }
-
-            loadMenuBoxBitmapData = null;
-        }
-        public static function prepareOpenLoadBox(fromUpdate:Boolean, reflayermenu:Boolean, file:File, bmpd:BitmapData, filetype:String):void
-        {
-            InputManager.clearKeyBuffer();
-            ToolPanel.closeToolBox2();
-            loadMenuBoxFileType = filetype;
-            loadMenuBoxFile = file;
-
-            // 이전에 불러오려던 이미지가 남아있으면 해제 (배경으로 쓰던건 setPreviewImage에서 해제됨)
-            if (loadMenuBoxBitmapData !== bmpd)
-            {
-                releaseLoadMenuBoxBitmapData(false);
-            }
-
-            loadMenuBoxBitmapData = bmpd;
-
-            if (LassoTool.isStarted === true)
-            {
-                LassoTool.cancelLassoTool();
-                ToolController.resetLastTool();
-                ToolController.selectPenTool();
-            }
-
-            if (bmpd)
-            {
-                loadMenuBox.setPreviewImage(bmpd);
-                loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
-            }
-            if (loadMenuBox.visible === false)
-            {
-                loadMenuBox.updateUIColor();
-                if (fromUpdate)
-                {
-                    loadMenuBox.showPleaseWaitTextOrCustomText("Waiting for the file to be saved");
-                }
-                else
-                {
-                    loadMenuBox.hidePleaseWait();
-                    if (reflayermenu)
-                    {
-                        loadMenuBox.activateReflayerButtonOnly();
-                    }
-                    else
-                    {
-                        loadMenuBox.activateAllButtons();
-                    }
-                }
-                openLoadMenuBox();
-            }
-        }
         private static function isWebpFile(file:File):Boolean
         {
             var stream:FileStream = new FileStream();
@@ -1019,36 +810,6 @@ package Modules
             }
             return false;
         }
-        public static function canDisplayLoadMenuBox(file:File):Boolean
-        {
-            return !loadMenuBox.visible || !isSameFile(file, lastLoadedFile);
-        }
-        public static function prepareLoadMenuBoxFromImageFile(file:File, toRefLayer:Boolean):void
-        {
-            validateImageFile(file,
-                    function (type:String, file:File, bmpd:BitmapData):void
-                    {
-                        lastLoadedFile = file;
-                        if (type === "image")
-                        {
-                            prepareOpenLoadBox(false, toRefLayer, file, bmpd, "image");
-                        }
-                        else if (type === "2020")
-                        {
-                            prepareOpenLoadBox(false, toRefLayer, file, getFinalBitmapDataFrom2020File(file, true), "2020");
-                        }
-                        else if (type === "webp")
-                        {
-                            var byteArray:ByteArray = new ByteArray();
-                            var stream:FileStream = new FileStream();
-                            stream.open(file, FileMode.READ);
-                            stream.readBytes(byteArray, 0, stream.bytesAvailable);
-                            stream.close();
-                            prepareOpenLoadBox(false, toRefLayer, file, libwebp.DecodeWebp(byteArray), "webp");
-                        }
-                    }, showLoadFaildMouseHint);
-        }
-
         public static function validateImageFile(file:File, callbackOk:Function, callbackCancel:Function = null):void
         {
             var loader:Loader = new Loader();
@@ -1105,18 +866,6 @@ package Modules
             loader.load(new URLRequest(file.url));
         }
 
-        private static function isSameFile(file1:File, file2:File):Boolean
-        {
-            if (!lastLoadedFile)
-            {
-                return false;
-            }
-            return file1.nativePath === file2.nativePath
-                && file1.size === file2.size
-                && file1.modificationDate.getTime() === file2.modificationDate.getTime()
-                && file1.creationDate.getTime() === file2.creationDate.getTime();
-        }
-
         // 캔버스로 불러오기 (드래그 드롭, 운영체제 파일 연결, 클립보드)
         public static function isFileLoadBlocked():Boolean
         {
@@ -1170,11 +919,11 @@ package Modules
                     var file:File = new File(arguments[0] as String);
                     if (file.exists)
                     {
-                        if (!canDisplayLoadMenuBox(file))
+                        if (!LoadBoxController.canDisplayLoadMenuBox(file))
                         {
                             return;
                         }
-                        lastLoadedFile = file;
+                        LoadBoxController.lastLoadedFile = file;
                         if (ReplayState.isReplayStarted)
                         {
                             ReplayController.stopReplay();
@@ -1183,7 +932,7 @@ package Modules
                         {
                             ReplayController.cancelReplayRestartTimer();
                         }
-                        prepareLoadMenuBoxFromImageFile(file, false);
+                        LoadBoxController.prepareLoadMenuBoxFromImageFile(file, false);
                     }
                 }
                 catch (err:Error) {}
@@ -1202,95 +951,11 @@ package Modules
             if (data && data.length > 0)
             {
                 const file:File = data[0] as File;
-                if (canDisplayLoadMenuBox(file))
+                if (LoadBoxController.canDisplayLoadMenuBox(file))
                 {
-                    prepareLoadMenuBoxFromImageFile(file, false);
+                    LoadBoxController.prepareLoadMenuBoxFromImageFile(file, false);
                     return;
                 }
-            }
-        }
-
-        public static function loadFileTo(where:String):void
-        {
-            if (where !== "reflayer" && isReplayDataLocked())
-            {
-                // worker 작업이 끝나면 stopWorkerIfIdle에서 다시 불러옴
-                isLoadPendingAfterSaving = true;
-                return;
-            }
-            if (where === "reflayer")
-            {
-                if (loadMenuBoxBitmapData)
-                {
-                    ReferenceLayerController.transferLoadedImageToRefLayer(loadMenuBoxBitmapData, loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height);
-                    if (!ReplayState.isReplayModeON && !CaptureController.isCaptureModeON)
-                    {
-                        ReferenceLayerController.openRefLayerMenu();
-                    }
-                    releaseLoadMenuBoxBitmapData(true);
-                }
-            }
-            else if (loadMenuBoxFile !== null)
-            {
-                if (loadMenuBoxFile.exists)
-                {
-                    if (loadMenuBoxFileType === "2020")
-                    {
-                        var fs:FileStream = new FileStream();
-                        function onCompleteFileStream(e:Event):void
-                        {
-                            fs.removeEventListener(Event.COMPLETE, onCompleteFileStream);
-                            fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
-                            fs.close();
-                            fs = null;
-                            // 비동기로 파일을 여는 사이에 worker가 시작되었을 수 있음
-                            if (isReplayDataLocked())
-                            {
-                                isLoadPendingAfterSaving = true;
-                                return;
-                            }
-                            lastSaveFileName = loadMenuBoxFile.name;
-                            lastSaveFilePath = loadMenuBoxFile.nativePath;
-                            enterDrawModeOnLoadFile();
-                            // todo : load repllay file은 따로?
-                            loadFOFOFile(loadMenuBoxFile);
-                            loadMenuBoxFile = null;
-                            // 캐시 이미지 만드는 동안 로드박스 배경으로 쓰므로 배경은 남겨둠
-                            releaseLoadMenuBoxBitmapData(false);
-                        }
-                        function onErrorFileStream(e:Event):void
-                        {
-                            showLoadFaildMouseHint();
-                            fs.removeEventListener(Event.COMPLETE, onCompleteFileStream);
-                            fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
-                            fs.close();
-                            fs = null;
-                            loadMenuBoxFile = null;
-                        }
-                        fs.addEventListener(Event.COMPLETE, onCompleteFileStream);
-                        fs.addEventListener(IOErrorEvent.IO_ERROR, onErrorFileStream);
-                        fs.openAsync(loadMenuBoxFile, FileMode.READ);
-                    }
-                    else if (loadMenuBoxFileType === "webp" || loadMenuBoxFileType === "image")
-                    {
-                        enterDrawModeOnLoadFile();
-                        lastSaveFileName = loadMenuBoxFile.name;
-                        lastSaveFilePath = loadMenuBoxFile.nativePath;
-                        loadImageFile(loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height, loadMenuBoxBitmapData, null);
-                        releaseLoadMenuBoxBitmapData(true);
-                    }
-                }
-                else
-                {
-                    showLoadFaildMouseHint();
-                }
-            }
-            else if (loadMenuBoxFileType === "clipboard")
-            {
-                enterDrawModeOnLoadFile();
-                lastSaveFileName = getRandomFileName();
-                loadImageFile(loadMenuBoxBitmapData.width, loadMenuBoxBitmapData.height, loadMenuBoxBitmapData, null);
-                releaseLoadMenuBoxBitmapData(true);
             }
         }
 
@@ -1435,7 +1100,7 @@ package Modules
                 cleanUpEvents();
                 setFileBrowserIsOpen(false);
                 ReplayController.addInputEventsDrawModeOrReplayMode();
-                prepareLoadMenuBoxFromImageFile(file, toRefLayer);
+                LoadBoxController.prepareLoadMenuBoxFromImageFile(file, toRefLayer);
             }
             setFileBrowserIsOpen(true);
             CanvasResizer.showButtonsWithDelay(false);
@@ -1608,9 +1273,9 @@ package Modules
                 {
                     AppUpdater.startUpdate();
                 }
-                else if (isLoadPendingAfterSaving)
+                else if (LoadBoxController.isLoadPendingAfterSaving)
                 {
-                    loadFileTo("canvas");
+                    LoadBoxController.loadFileTo("canvas");
                 }
                 else
                 {
@@ -1636,9 +1301,9 @@ package Modules
                 fs.close();
                 fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
                 isFileAlreadySaved = false;
-                if (isLoadPendingAfterSaving)
+                if (LoadBoxController.isLoadPendingAfterSaving)
                 {
-                    loadFileTo("canvas");
+                    LoadBoxController.loadFileTo("canvas");
                 }
                 else
                 {
@@ -1700,7 +1365,7 @@ package Modules
                 const file:File = checkSaveFailedFileName(saveFailed);
                 const saveWindowTitle:String = (saveFailed) ? "Failed to save file! save with new name"
                     : (asFlag === true) ? "Save file As.."
-                    : (isLoadPendingAfterSaving) ? "Save file before load file"
+                    : (LoadBoxController.isLoadPendingAfterSaving) ? "Save file before load file"
                     : (AppUpdater.isUpdatePendingAfterSaving) ? "Save file before update" : "Save file";
                 // 대화상자 연 시점의 이미지로 저장, 선택하면 Worker로 넘기고 취소하면 여기서 dispose
                 var mergedImage:BitmapData = DrawCanvas.getMergedBitmapData(false, true, true, null);
@@ -1725,9 +1390,9 @@ package Modules
                     setFileBrowserIsOpen(false);
                     file.cancel();
                     removeEvent();
-                    if (isLoadPendingAfterSaving)
+                    if (LoadBoxController.isLoadPendingAfterSaving)
                     {
-                        loadFileTo("canvas");
+                        LoadBoxController.loadFileTo("canvas");
                     }
                     else if (AppUpdater.isUpdatePendingAfterSaving)
                     {
@@ -1826,7 +1491,7 @@ package Modules
         }
 
         // todo 이것은 mainui controller로 가야하지 않을까
-        private static function enterDrawModeOnLoadFile():void
+        public static function enterDrawModeOnLoadFile():void
         {
             if (CaptureController.isCaptureModeON)
             {

@@ -37,14 +37,14 @@ package Modules
             {
                 if (data is BitmapData)
                 {
-                    FileManager.prepareOpenLoadBox(false, toRefLayer, null, data as BitmapData, "clipboard");
+                    LoadBoxController.prepareOpenLoadBox(false, toRefLayer, null, data as BitmapData, "clipboard");
                 }
                 else if (data is Array && data.length > 0)
                 {
                     const file:File = data[0] as File;
-                    if (FileManager.canDisplayLoadMenuBox(file))
+                    if (LoadBoxController.canDisplayLoadMenuBox(file))
                     {
-                        FileManager.prepareLoadMenuBoxFromImageFile(file, toRefLayer);
+                        LoadBoxController.prepareLoadMenuBoxFromImageFile(file, toRefLayer);
                     }
                 }
             }

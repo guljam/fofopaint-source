@@ -5,6 +5,7 @@ package Modules.InputManager
     import Modules.ActivityWorkTimer;
     import Modules.ClipboardManager;
     import Modules.FileManager;
+    import Modules.LoadBoxController;
     import Modules.InputPriority;
     import Modules.CaptureEngine.CaptureController;
     import Modules.ReplayEngine.ReplayController;
@@ -156,7 +157,7 @@ package Modules.InputManager
         private static function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         {
             const firstKey:uint = InputManager.getFirstPressedKey();
-            if (MouseState.isLeftDown || MouseState.isRightDown || InputManager.isLastKey(firstKey) || FileManager.loadMenuBox.visible)
+            if (MouseState.isLeftDown || MouseState.isRightDown || InputManager.isLastKey(firstKey) || LoadBoxController.loadMenuBox.visible)
             {
                 return;
             }
@@ -272,7 +273,7 @@ package Modules.InputManager
 
         private static function onRightMouseDownReplayMode(e:MouseEvent):void
         {
-            if (MouseState.isLeftDown || InputManager.isKeyPressed() || !e.target || FileManager.loadMenuBox.visible)
+            if (MouseState.isLeftDown || InputManager.isKeyPressed() || !e.target || LoadBoxController.loadMenuBox.visible)
             {
                 return;
             }
@@ -327,7 +328,7 @@ package Modules.InputManager
         private static function onMouseDownReplayMode(e:MouseEvent):void // repdown1
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if (!target || FileManager.loadMenuBox.visible)
+            if (!target || LoadBoxController.loadMenuBox.visible)
             {
                 return;
             }

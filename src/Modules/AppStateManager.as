@@ -492,7 +492,7 @@ package Modules
 
                             if (preview)
                             {
-                                FileManager.loadMenuBox.setPreviewImage(preview);
+                                LoadBoxController.loadMenuBox.setPreviewImage(preview);
                             }
 
                             // 캐시 이미지 만드는 도중에 닫았으면 마지막으로 확정된 캐시 이미지부터 이어서 만듬

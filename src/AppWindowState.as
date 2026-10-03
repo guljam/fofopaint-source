@@ -20,6 +20,7 @@ package
     import flash.utils.getTimer;
     import Modules.BackgroundWorkerCoordinator;
     import Modules.FileManager;
+    import Modules.LoadBoxController;
     import Modules.AppUpdater;
     import Modules.ReplayEngine.ReplayState;
     import Modules.UndoController;
@@ -98,9 +99,9 @@ package
             if (getTimer() - lastWindowDeactivateTime >= 3000
                     && !BackgroundWorkerCoordinator.isSaveInProgress
                     && !FileManager.isFileBrowserOpened
-                    && !FileManager.isLoadPendingAfterSaving
+                    && !LoadBoxController.isLoadPendingAfterSaving
                     && !AppUpdater.isUpdatePendingAfterSaving
-                    && !FileManager.loadMenuBox.visible
+                    && !LoadBoxController.loadMenuBox.visible
                     && !ReplayState.isGeneratingCacheImages())
             {
                 FileManager.saveAllAppData();
@@ -162,7 +163,7 @@ package
             if (ReplayState.isGeneratingCacheImages())
             {
                 ReplayController.stopGeneratingReplayCacheImage();
-                ReplayFileCache.saveCachePreview(FileManager.loadMenuBox.getPreviewImage());
+                ReplayFileCache.saveCachePreview(LoadBoxController.loadMenuBox.getPreviewImage());
             }
 
             if (BackgroundWorkerCoordinator.isWorkerBusy())
@@ -170,7 +171,7 @@ package
                 if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
                 {
                     main.stage.nativeWindow.title = "Waiting for remaining tasks...";
-                    FileManager.openLoadMenuBoxOnClosing();
+                    LoadBoxController.openLoadMenuBoxOnClosing();
                     FOFOTimer.addByName("pollTimerWaitWorkerStop", BackgroundWorkerCoordinator.getWaitPollingInterval(), true, function ():Boolean
                         {
                             if (BackgroundWorkerCoordinator.isWorkerStopped())

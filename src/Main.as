@@ -19,6 +19,7 @@
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.FileManager;
+    import Modules.LoadBoxController;
     import Modules.ImageViewWindow;
     import Modules.ImeController;
     import Modules.InputManager.CaptureModeInput;
@@ -124,6 +125,7 @@
             ColorPickerController.setMainInstance(this);
             DragInteraction.setMainInstance(this);
             FileManager.setMainInstance(this);
+            LoadBoxController.setMainInstance(this);
             ImageViewWindow.setMainInstance(this);
             HintController.setMainInstance(this);
             UIController.setMainInstance(this);

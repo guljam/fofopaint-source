@@ -16,6 +16,7 @@ package Modules.InputManager
     import Modules.ColorPickerController;
     import Modules.DragInteraction;
     import Modules.FileManager;
+    import Modules.LoadBoxController;
     import Modules.ImageViewWindow;
     import Modules.InputPriority;
     import Modules.PenSizePreviewCursor;
@@ -715,7 +716,7 @@ package Modules.InputManager
 
         private static function onMouseDownDrawMode(e:MouseEvent):void
         {
-            if (FillPenTool.isStarted || LineTool.isStarted || FileManager.loadMenuBox.visible
+            if (FillPenTool.isStarted || LineTool.isStarted || LoadBoxController.loadMenuBox.visible
                     || UIController.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;
@@ -903,7 +904,7 @@ package Modules.InputManager
         {
             if (MouseState.isLeftDown || InputManager.isKeyPressed() || InputManager.isPressingControl() || SidebarController.isQuickSidebarActive
                     || FillPenTool.isStarted || LineTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
-                    || FileManager.loadMenuBox.visible || UIController.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
+                    || LoadBoxController.loadMenuBox.visible || UIController.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;
             }

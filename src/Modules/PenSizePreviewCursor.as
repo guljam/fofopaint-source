@@ -114,7 +114,7 @@ package Modules
                     || !Utils.isCursorInDrawArea()
                     || CanvasResizer.isCanvasResizing()
                     || (ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mx, my))
-                    || FileManager.loadMenuBox.visible)
+                    || LoadBoxController.loadMenuBox.visible)
             {
                 _cursor.visible = false;
             }
