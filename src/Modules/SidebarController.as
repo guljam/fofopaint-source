@@ -181,6 +181,7 @@ package Modules
             if (isSidebarVisible === false)
             {
                 sideBar.visible = false;
+                UIController.updateStageOffset(); // 임시 표시 중 퀵 사이드바를 쓴 경우 남은 좌우 오프셋 갱신
             }
 
             setSidebarDefaultPos();
@@ -297,6 +298,7 @@ package Modules
         public static function activeQuickSideBar(shortcut:Boolean):void
         {
             restoreTempSideFlip();
+            FOFOTimer.remove("sidebarHideDelayTimer"); // 임시 표시 숨김 타이머가 퀵 사이드바를 숨기지 않게
 
             isQuickSidebarActive = true;
 
@@ -647,6 +649,7 @@ package Modules
         {
             sideBar.visible = false;
 
+            FOFOTimer.remove("sidebarHideDelayTimer");
             restoreTempSideFlip();
 
             updateSidebarLayout();
