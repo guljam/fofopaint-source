@@ -113,6 +113,11 @@ package Modules.ReplayEngine
 
             ReplayState.REPLAY_MAX_SPEED = maxSpeed;
 
+            if (UIController.topBar)
+            {
+                UIController.topBar.updateReplaySpeedSnapMarker(maxSpeed, REPLAY_SLIDESHOW_ACTIVE_SPEED);
+            }
+
             if (ReplayState.rReplaySpeedMultipler > maxSpeed)
             {
                 ReplayState.rReplaySpeedMultipler = maxSpeed;
@@ -1293,8 +1298,80 @@ package Modules.ReplayEngine
                 }
             }
 
+            // 회전 스냅(showCanvasRotateCursorMouseDrag)과 같은 개념: 버튼의 논리 위치(logicX)는 마우스 이동량을 누적해서 구함
+            // 논리 위치가 스냅 영역 안이고 스냅이 활성이면 버튼을 선에 고정, 영역을 벗어나면 논리 위치를 선으로 되돌려 거기서부터 이어서 움직임
+            // 그래서 스냅에 걸릴 때마다 마우스 위치와 버튼 위치에 차이가 생기고, 그만큼 미세 조정이 가능함
+            // 풀린 뒤에는 논리 위치가 영역을 벗어났다가 다시 들어올 때까지 걸리지 않음
+            const SNAP_RANGE_PX:Number = 5;
+            var logicX:Number = NaN;
+            var prevMx:Number = NaN;
+            var snapIgnore:Boolean = true;
+            var snapActive:Boolean = false;
+            var isSnapped:Boolean = false;
+
+            function applySnap(mx:Number):Number
+            {
+                const snapX:Number = UIController.topBar.replaySpeedSnapX;
+                isSnapped = false;
+
+                if (isNaN(logicX)) // 시작할 때는 마우스와 같은 위치
+                {
+                    logicX = mx;
+                    prevMx = mx;
+                    snapIgnore = snapX >= 0 && Math.abs(mx - snapX) <= SNAP_RANGE_PX; // 누른 위치가 영역 안이면 영역을 벗어날 때까지 무시
+                    return mx;
+                }
+
+                const prevLogic:Number = logicX;
+                logicX += mx - prevMx;
+                prevMx = mx;
+
+                // 끝에서 마우스가 더 나가도 돌아올 때 바로 따라오도록 슬라이더 범위로 제한
+                if (logicX < minDist)
+                {
+                    logicX = minDist;
+                }
+                else if (logicX > maxDist)
+                {
+                    logicX = maxDist;
+                }
+
+                if (snapX < 0)
+                {
+                    snapActive = false;
+                    return logicX;
+                }
+
+                const inZone:Boolean = Math.abs(logicX - snapX) <= SNAP_RANGE_PX;
+                // 이벤트 사이에 영역을 건너뛴 경우도 진입으로 취급
+                const crossed:Boolean = Math.min(prevLogic, logicX) <= snapX + SNAP_RANGE_PX && Math.max(prevLogic, logicX) >= snapX - SNAP_RANGE_PX;
+
+                if (snapIgnore === false && (inZone || (snapActive === false && crossed)))
+                {
+                    snapActive = true;
+                    isSnapped = true;
+                    return snapX;
+                }
+
+                if (snapActive === true)
+                {
+                    logicX = snapX;
+                    snapActive = false;
+                    snapIgnore = true;
+                    return snapX;
+                }
+
+                if (snapIgnore === true && inZone === false)
+                {
+                    snapIgnore = false;
+                }
+                return logicX;
+            }
+
             function moveButton(mx:Number):void
             {
+                mx = applySnap(mx);
+
                 if (mx < minDist)
                 {
                     mx = minDist;
@@ -1306,6 +1383,13 @@ package Modules.ReplayEngine
 
                 UIController.topBar.replaySpeedSliderCursor.x = mx;
                 setSpeed(mx);
+
+                if (isSnapped)
+                {
+                    // floor 오차로 59가 되지 않도록 스냅 속도를 직접 지정
+                    oldSpeed = REPLAY_SLIDESHOW_ACTIVE_SPEED;
+                    ReplayState.rReplaySpeedMultipler = REPLAY_SLIDESHOW_ACTIVE_SPEED;
+                }
                 showReplaySpeedMouseHint();
 
                 if (ReplayState.isReplayFinished === false)

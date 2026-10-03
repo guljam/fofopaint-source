@@ -97,6 +97,9 @@
 		public var replaySpeedSliderCursor:SimpleButton;
 		public var replaySpeedSlider:SimpleButton;
 		public var replaySpeedSliderWrapper:Sprite = new Sprite();
+		// 슬라이드쇼 직전 속도 위치 표시선, 스냅 위치(wrapper 좌표) 없으면 -1
+		private var replaySpeedSnapMarker:Shape = new Shape();
+		public var replaySpeedSnapX:Number = -1;
 
 		public var captureInputWarpper:Sprite = new Sprite();
 		public var captureInput:TextField;
@@ -220,7 +223,9 @@
 		{
 			replaySpeedSliderWrapper.name = "replaySpeedSliderWrapper";
 			replaySpeedSliderWrapper.addChild(replaySpeedSlider);
+			replaySpeedSliderWrapper.addChild(replaySpeedSnapMarker);
 			replaySpeedSliderWrapper.addChild(replaySpeedSliderCursor);
+			replaySpeedSnapMarker.visible = false;
 			replaySpeedSlider.mouseEnabled = false;
 			replaySpeedSlider.x = replaySpeedSliderCursor.width / 2 + 3;
 			replaySpeedSlider.y = replaySpeedSliderCursor.height / 2 + 4;
@@ -307,6 +312,37 @@
 			timer.textColor = fgColor;
 			timerAFkDot.textColor = fgColor;
 			captureInput.textColor = fgColor;
+			drawReplaySpeedSnapMarker();
+		}
+
+		// snapSpeed 위치에 선을 표시, 최고 속도가 snapSpeed에 못 미치면 숨기고 스냅도 끔
+		public function updateReplaySpeedSnapMarker(maxSpeed:Number, snapSpeed:Number):void
+		{
+			if (maxSpeed <= snapSpeed)
+			{
+				replaySpeedSnapX = -1;
+				replaySpeedSnapMarker.visible = false;
+				return;
+			}
+
+			// adjutReplaySpeedByMouse의 오프셋 및 지수 매핑과 같아야함
+			const minDist:Number = replaySpeedSlider.x + 1.5;
+			const maxDist:Number = minDist + replaySpeedSlider.width - 2.5;
+			replaySpeedSnapX = maxDist * Math.log(snapSpeed) / Math.log(maxSpeed);
+			replaySpeedSnapMarker.visible = true;
+			drawReplaySpeedSnapMarker();
+		}
+
+		private function drawReplaySpeedSnapMarker():void
+		{
+			if (replaySpeedSnapX < 0)
+				return;
+
+			const halfH:Number = replaySpeedSliderCursor.height / 2;
+			replaySpeedSnapMarker.graphics.clear();
+			replaySpeedSnapMarker.graphics.lineStyle(1, UITheme.getUIFGColor(), 1, true);
+			replaySpeedSnapMarker.graphics.moveTo(replaySpeedSnapX, replaySpeedSlider.y - halfH);
+			replaySpeedSnapMarker.graphics.lineTo(replaySpeedSnapX, replaySpeedSlider.y + halfH);
 		}
 
 		public function setSpeedButtonPosByValue(rSpeed:Number, maxSpeed:Number):void
