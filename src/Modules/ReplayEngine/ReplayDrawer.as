@@ -364,9 +364,33 @@ package Modules.ReplayEngine
             ReplayDrawCommands.setRCursorPos(curcorX, p.y);
         }
 
+        // 선택 상태의 기준은 플래그(rLastLayer2Selcted)이고 rCanvasDrawLayer의 위치는 거기에 맞춰 놓은 결과임
+        // (둘은 selectReplaySubLayer에서만 같이 바뀜). 명령/틱마다 호출돼도 O(1)이라 부담 없음
         public static function isLayer2SelectedReplayMode():Boolean
         {
-            return rCanvasPanel.getChildIndex(rCanvasDrawLayer) < rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap);
+            return ReplayState.rLastLayer2Selcted;
+        }
+
+        // 리플레이 캔버스를 새로 시작하거나 되돌리는 확실한 지점(시작, 처음부터 재생, 캐시/점프로 되돌림)에서 레이어 상태를 초기화함. 틱마다 호출하지 않음
+        public static function resetReplayLayerOrder():void
+        {
+            selectReplaySubLayer(false);
+            verifyReplayLayerOrder("resetReplayLayerOrder");
+        }
+
+        // 디버그용: 플래그와 rCanvasDrawLayer의 실제 위치가 맞는지 검사하고 어긋나면 trace로 알림
+        public static function verifyReplayLayerOrder(where:String):Boolean
+        {
+            const drawIndex:int = rCanvasPanel.getChildIndex(rCanvasDrawLayer);
+            const layer1Index:int = rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap);
+            const expected:int = (ReplayState.rLastLayer2Selcted) ? layer1Index - 1 : layer1Index + 1;
+            const ok:Boolean = (drawIndex === expected);
+
+            if (!ok)
+            {
+                trace("[LayerOrder] 리플레이 drawLayer 순서 어긋남 @" + where + " layer2=" + ReplayState.rLastLayer2Selcted);
+            }
+            return ok;
         }
 
         // drawdone에서 줌된 blur사이즈가 아니 1배율 블러를 적용해야 제대로 되기 때문에 이거해줌
@@ -395,16 +419,14 @@ package Modules.ReplayEngine
         {
             ReplayState.rLastLayer2Selcted = flag;
 
-            if (flag)
+            // 현재 위치와 상관없이 항상 같은 자리로 놓음 (2번: layer1 바로 아래, 1번: layer1 바로 위). 이미 거기 있으면 아무것도 안 함
+            const current:int = rCanvasPanel.getChildIndex(rCanvasDrawLayer);
+            const anchor:int = rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap);
+            const target:int = (flag) ? ((current < anchor) ? anchor - 1 : anchor) : ((current < anchor) ? anchor : anchor + 1);
+
+            if (current !== target)
             {
-                if (rCanvasPanel.getChildIndex(rCanvasDrawLayer) > rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap))
-                {
-                    rCanvasPanel.setChildIndex(rCanvasDrawLayer, rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap));
-                }
-            }
-            else if (rCanvasPanel.getChildIndex(rCanvasDrawLayer) < rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap))
-            {
-                rCanvasPanel.setChildIndex(rCanvasDrawLayer, rCanvasPanel.getChildIndex(rCanvasLayer1Bitmap));
+                rCanvasPanel.setChildIndex(rCanvasDrawLayer, target);
             }
         }
 
@@ -594,11 +616,13 @@ package Modules.ReplayEngine
             rCanvasLayer1BitmapData.fillRect(rect, 0);
             rCanvasLayer2BitmapData.fillRect(rect, 0);
             rCanvasDrawLayerBitmapData.fillRect(rect, 0);
+            resetReplayLayerOrder();
         }
 
         public static function setReplayCanvasBmpdFromDrawMode():void
         {
             rCanvasDrawShape.graphics.clear();
+            resetReplayLayerOrder();
             rCanvasLayer1BitmapData = DrawCanvas.updateBitmapData(rCanvasLayer1BitmapData, DrawCanvas.canvasLayer1BitmapData, rCanvasLayer1Bitmap);
             rCanvasLayer2BitmapData = DrawCanvas.updateBitmapData(rCanvasLayer2BitmapData, DrawCanvas.canvasLayer2BitmapData, rCanvasLayer2Bitmap);
             syncCanvasSizeReplayMode(DrawCanvas.canvasLayer1Bitmap.width, DrawCanvas.canvasLayer1Bitmap.height);

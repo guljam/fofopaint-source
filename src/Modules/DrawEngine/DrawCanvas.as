@@ -110,7 +110,8 @@ package Modules.DrawEngine
             {
                 bmpd.draw(xBitmapData11, mat); // 레이어 쌓기
             }
-            if (ReplayDrawer.isLayer2SelectedReplayMode()) // 레이어 2번을 그리고 있을때
+            const isLayer2Drawing:Boolean = (ReplayState.isReplayModeON) ? ReplayDrawer.isLayer2SelectedReplayMode() : CanvasLayers.isLayer2Selected;
+            if (isLayer2Drawing) // 레이어 2번을 그리고 있을때
             {
                 if (layer2merge)
                     bmpd.draw(xDrawLayer, mat, new ColorTransform(1, 1, 1, alpha));

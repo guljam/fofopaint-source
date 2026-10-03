@@ -577,6 +577,7 @@ package Modules.Tools
 
 			ReferenceLayerController.hideMemoryTrainingMask();
 			CanvasLayers.endErasePreview(); // DrawingFinish가 레이어를 갱신하기 전에 원래 순서로 복귀
+			CanvasLayers.verifyDrawLayerOrder("finishStroke");
 
 			if (isStabilizerON)
 			{

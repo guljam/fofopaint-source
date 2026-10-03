@@ -6,6 +6,7 @@ package Modules.DrawEngine
     import Modules.UndoHistory;
     import Modules.ReplayEngine.ReplayState;
     import Modules.Tools.LassoTool;
+    import Modules.Tools.FillPenTool;
     import Modules.UIEngine.HintController;
 
     import flash.display.Bitmap;
@@ -148,23 +149,74 @@ package Modules.DrawEngine
             }
         }
 
+        // drawLayer를 레이어 1번 선택 위치(lassoLayer1 바로 위)에 놓음. 현재 위치와 상관없이 항상 같은 자리로 가고, 이미 거기 있으면 아무것도 안 함
         public static function bringCanvasDrawLayerAboveLayer1():void
         {
             endErasePreview();
 
-            if (CanvasView.canvasPanel.getChildIndex(StrokeBuffer.canvasDrawLayer) < CanvasView.canvasPanel.getChildIndex(LassoTool.lassoLayer1))
+            const panel:Sprite = CanvasView.canvasPanel;
+            const current:int = panel.getChildIndex(StrokeBuffer.canvasDrawLayer);
+            const anchor:int = panel.getChildIndex(LassoTool.lassoLayer1);
+            const target:int = (current < anchor) ? anchor : anchor + 1; // setChildIndex는 이동 후의 인덱스를 받음
+
+            if (current !== target)
             {
-                CanvasView.canvasPanel.setChildIndex(StrokeBuffer.canvasDrawLayer, CanvasView.canvasPanel.getChildIndex(LassoTool.lassoLayer1));
+                panel.setChildIndex(StrokeBuffer.canvasDrawLayer, target);
             }
         }
+
+        // drawLayer를 레이어 2번 선택 위치(layer1Bitmap 바로 아래)에 놓음. 마찬가지로 항상 같은 자리, 멱등
         public static function bringCanvasDrawLayerAboveLayer2():void
         {
             endErasePreview();
 
-            if (CanvasView.canvasPanel.getChildIndex(StrokeBuffer.canvasDrawLayer) > CanvasView.canvasPanel.getChildIndex(DrawCanvas.canvasLayer1Bitmap))
+            const panel:Sprite = CanvasView.canvasPanel;
+            const current:int = panel.getChildIndex(StrokeBuffer.canvasDrawLayer);
+            const anchor:int = panel.getChildIndex(DrawCanvas.canvasLayer1Bitmap);
+            const target:int = (current < anchor) ? anchor - 1 : anchor;
+
+            if (current !== target)
             {
-                CanvasView.canvasPanel.setChildIndex(StrokeBuffer.canvasDrawLayer, CanvasView.canvasPanel.getChildIndex(DrawCanvas.canvasLayer1Bitmap));
+                panel.setChildIndex(StrokeBuffer.canvasDrawLayer, target);
             }
+        }
+
+        // 선택된 레이어(isLayer2Selected)에 맞춰 drawLayer 위치를 한 번에 맞춤. 지우개 임시 홀더도 먼저 풀어줌
+        public static function syncDrawLayerOrder():void
+        {
+            if (isLayer2Selected)
+            {
+                bringCanvasDrawLayerAboveLayer2();
+            }
+            else
+            {
+                bringCanvasDrawLayerAboveLayer1();
+            }
+        }
+
+        // 디버그용: drawLayer가 선택된 레이어에 맞는 자리에 있는지 검사하고 어긋나면 trace로 알림. 필펜이 임시로 올려둔 동안과 지우개 홀더가 켜진 동안은 검사하지 않음
+        public static function verifyDrawLayerOrder(where:String):Boolean
+        {
+            if (erasePreviewHolder.parent !== null || FillPenTool.isStarted)
+            {
+                return true;
+            }
+
+            const panel:Sprite = CanvasView.canvasPanel;
+            var ok:Boolean = StrokeBuffer.canvasDrawLayer.parent === panel;
+
+            if (ok)
+            {
+                const current:int = panel.getChildIndex(StrokeBuffer.canvasDrawLayer);
+                const expected:int = (isLayer2Selected) ? panel.getChildIndex(DrawCanvas.canvasLayer1Bitmap) - 1 : panel.getChildIndex(LassoTool.lassoLayer1) + 1;
+                ok = (current === expected);
+            }
+
+            if (!ok)
+            {
+                trace("[LayerOrder] drawLayer 순서 어긋남 @" + where + " layer2=" + isLayer2Selected);
+            }
+            return ok;
         }
 
         public static function selectLayer1(onlyViewFlag:Boolean):void
@@ -181,7 +233,8 @@ package Modules.DrawEngine
                 DrawCanvas.canvasLayer2Bitmap.visible = true;
             }
             ToolPanel.updateLayerSelectButtons(1, onlyViewFlag);
-            bringCanvasDrawLayerAboveLayer1();
+            syncDrawLayerOrder();
+            verifyDrawLayerOrder("selectLayer1");
         }
         public static function selectLayer2(onlyViewFlag:Boolean):void
         {
@@ -197,7 +250,8 @@ package Modules.DrawEngine
                 DrawCanvas.canvasLayer2Bitmap.visible = true;
             }
             ToolPanel.updateLayerSelectButtons(2, onlyViewFlag);
-            bringCanvasDrawLayerAboveLayer2();
+            syncDrawLayerOrder();
+            verifyDrawLayerOrder("selectLayer2");
         }
     }
 }

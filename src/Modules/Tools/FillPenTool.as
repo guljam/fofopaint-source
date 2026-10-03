@@ -405,10 +405,8 @@ package Modules.Tools
             fillPenBox.x = -fillPenBox.width - 3;
             fillPenBox.y = -fillPenBox.height - 3;
 
-            if (CanvasLayers.isLayer2Selected)
-            {
-                CanvasLayers.bringCanvasDrawLayerAboveLayer2();
-            }
+            CanvasLayers.syncDrawLayerOrder(); // 종료 시점에 선택된 레이어 기준으로 drawLayer 위치를 확정함 (미리보기 중 레이어를 바꿨어도 맞춰짐)
+            CanvasLayers.verifyDrawLayerOrder("exitFillPen");
 
             if (SidebarController.isQuickSidebarActive)
             {
