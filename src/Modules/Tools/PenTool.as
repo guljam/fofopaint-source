@@ -575,10 +575,7 @@ package Modules.Tools
 			main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
 			main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
 
-			if (!ReferenceLayerController.isRefLayerEmpty() && isPenTool && ReferenceLayerController.isRefLayerMemoryTrainingON && ReferenceLayerController.refLayerLastAlpha > 0.0)
-			{
-				ReferenceLayerController.setCanvasRefLayerVisibleDelay();
-			}
+			ReferenceLayerController.hideMemoryTrainingMask();
 
 			if (isStabilizerON)
 			{
@@ -680,9 +677,9 @@ package Modules.Tools
 				sq1pxCursor = false;
 			}
 
-			if (!ReferenceLayerController.isRefLayerEmpty() && flag && ReferenceLayerController.isRefLayerMemoryTrainingON)
+			if (flag && ReferenceLayerController.isRefLayerMemoryTrainingON)
 			{
-				ReferenceLayerController.setCanvasRefLayerInvisible();
+				ReferenceLayerController.showMemoryTrainingMask();
 			}
 
 			offsetForSharpline = PenSettings.getSharpLinePosOffset(xSize);

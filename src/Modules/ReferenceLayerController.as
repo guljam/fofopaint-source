@@ -13,7 +13,10 @@ package Modules
     import flash.display.BitmapData;
     import flash.display.DisplayObject;
     import flash.display.IBitmapDrawable;
+    import flash.display.BlendMode;
+    import flash.display.Shape;
     import flash.display.SimpleButton;
+    import flash.filters.BlurFilter;
     import flash.display.Sprite;
     import flash.events.MouseEvent;
     import flash.filesystem.File;
@@ -36,6 +39,21 @@ package Modules
         public static const REFLAYER_VISIBLE_DELAY:Number = 0.7;
 
         public static const canvasRefLayer:Sprite = new Sprite(); // 트레이스 레이어임
+
+        // canvasRefLayer와 메모리 트레이닝 원을 담는 홀더. layer 블렌드라서 원의 ERASE가 참조 이미지만 지우고 캔버스 배경색은 그대로 비침
+        public static const canvasRefHolder:Sprite = new Sprite();
+
+        public static const MEMORY_TRAINING_MASK_DIAMETER:Number = 250; // 화면 기준 지름(px)
+        public static const MEMORY_TRAINING_MASK_BLUR:Number = 40;
+        public static const MEMORY_TRAINING_MASK_HIDE_DELAY:Number = 0.0; // 도구 종료 후 원이 사라지기 시작하기까지의 지연(초). 체감 테스트용
+        public static const MEMORY_TRAINING_MASK_FADE_STEP:Number = 0.12; // 프레임당 alpha 변화량
+
+        private static var memoryTrainingMask:Shape = null; // 메모리 트레이닝이 켜져 있는 동안에만 존재
+        private static var memoryTrainingMaskZoom:Number = 0; // 스케일을 마지막으로 적용한 줌 값
+        private static var isMemoryTrainingMaskActive:Boolean = false; // 펜/라인툴이 진행 중이라 원이 따라다니는 중
+        private static const MEMORY_TRAINING_MASK_FOLLOW_TIMER:String = "refLayerMemoryTrainingMaskFollowTimer";
+        private static const MEMORY_TRAINING_MASK_FADE_TIMER:String = "refLayerMemoryTrainingMaskFadeTimer";
+        private static const MEMORY_TRAINING_MASK_DELAY_TIMER:String = "refLayerMemoryTrainingMaskDelayTimer";
 
         public static var isRefLayerMemoryTrainingON:Boolean = false, // 이거 켜지면 캔버스 그릴때 임시적으로 안보이게함
             canvasRefLayerBitmapData:BitmapData = new BitmapData(1, 1, true, 0),
@@ -328,13 +346,156 @@ package Modules
                 isRefLayerMemoryTrainingON = true;
                 refLayerMenuBox.refMemoryTrainingOffButton.visible = false;
                 refLayerMenuBox.refMemoryTrainingOnButton.visible = true;
+                createMemoryTrainingMask();
             }
             else if (isRefLayerMemoryTrainingON === true)
             {
                 isRefLayerMemoryTrainingON = false;
                 refLayerMenuBox.refMemoryTrainingOffButton.visible = true;
                 refLayerMenuBox.refMemoryTrainingOnButton.visible = false;
+                destroyMemoryTrainingMask();
             }
+        }
+
+        // 펜/라인툴 시작 시 호출: 커서를 따라다니는 블러 원이 즉시 나타나 참조 이미지 일부를 가림
+        public static function showMemoryTrainingMask():void
+        {
+            if (memoryTrainingMask === null || isRefLayerEmpty() || refLayerLastAlpha <= 0.0)
+            {
+                return;
+            }
+
+            FOFOTimer.remove(MEMORY_TRAINING_MASK_DELAY_TIMER);
+            isMemoryTrainingMaskActive = true;
+
+            // 줌이 바뀌었을 때만 스케일을 갱신함 (블러도 스케일을 따라가므로 다시 그리지 않음)
+            const zoom:Number = Math.abs(CanvasView.canvasAnchorPoint.scaleY);
+            if (zoom !== memoryTrainingMaskZoom && zoom > 0)
+            {
+                memoryTrainingMaskZoom = zoom;
+                memoryTrainingMask.scaleX = memoryTrainingMask.scaleY = 1 / zoom;
+            }
+
+            updateMemoryTrainingMaskPos(); // 나타나기 전에 위치를 먼저 맞춰 이전 위치에서 번쩍이지 않게 함
+            memoryTrainingMask.visible = true;
+            FOFOTimer.addByName(MEMORY_TRAINING_MASK_FOLLOW_TIMER, 0.0, true, updateMemoryTrainingMaskPos); // 프레임당 한 번만 따라감
+            FOFOTimer.remove(MEMORY_TRAINING_MASK_FADE_TIMER); // 사라지는 중이었다면 멈추고 즉시 보여줌
+            memoryTrainingMask.alpha = 1.0;
+        }
+
+        // 펜/라인툴 종료 시 호출: delay초 뒤 원이 서서히 사라짐
+        public static function hideMemoryTrainingMask(delay:Number = MEMORY_TRAINING_MASK_HIDE_DELAY):void
+        {
+            if (memoryTrainingMask === null || !isMemoryTrainingMaskActive)
+            {
+                return;
+            }
+
+            isMemoryTrainingMaskActive = false;
+            FOFOTimer.remove(MEMORY_TRAINING_MASK_FOLLOW_TIMER);
+
+            if (delay > 0)
+            {
+                FOFOTimer.addByName(MEMORY_TRAINING_MASK_DELAY_TIMER, delay, false, function ():void
+                    {
+                        startMemoryTrainingMaskFade(0.0);
+                    });
+            }
+            else
+            {
+                startMemoryTrainingMaskFade(0.0);
+            }
+        }
+
+        private static function createMemoryTrainingMask():void
+        {
+            if (memoryTrainingMask !== null)
+            {
+                return;
+            }
+
+            const radius:Number = MEMORY_TRAINING_MASK_DIAMETER / 2;
+            memoryTrainingMask = new Shape();
+            memoryTrainingMask.graphics.beginFill(0xFFFFFF, 1.0);
+            memoryTrainingMask.graphics.drawCircle(0, 0, radius);
+            memoryTrainingMask.graphics.endFill();
+            memoryTrainingMask.filters = [new BlurFilter(MEMORY_TRAINING_MASK_BLUR, MEMORY_TRAINING_MASK_BLUR, 3)];
+            memoryTrainingMask.cacheAsBitmap = true;
+            memoryTrainingMask.blendMode = BlendMode.ERASE; // 색을 신경쓰지 않고 참조 이미지를 네이티브 투명으로 지움
+            memoryTrainingMask.alpha = 0.0;
+            memoryTrainingMask.visible = false;
+            memoryTrainingMaskZoom = 0;
+
+            canvasRefHolder.blendMode = BlendMode.LAYER; // 원의 ERASE가 홀더 안에서만 동작하게 함
+            canvasRefHolder.addChild(memoryTrainingMask);
+        }
+
+        private static function destroyMemoryTrainingMask():void
+        {
+            FOFOTimer.remove(MEMORY_TRAINING_MASK_FOLLOW_TIMER);
+            FOFOTimer.remove(MEMORY_TRAINING_MASK_FADE_TIMER);
+            FOFOTimer.remove(MEMORY_TRAINING_MASK_DELAY_TIMER);
+            isMemoryTrainingMaskActive = false;
+
+            if (memoryTrainingMask !== null)
+            {
+                if (memoryTrainingMask.parent)
+                {
+                    memoryTrainingMask.parent.removeChild(memoryTrainingMask);
+                }
+                memoryTrainingMask.graphics.clear();
+                memoryTrainingMask.filters = [];
+                memoryTrainingMask = null;
+            }
+
+            canvasRefHolder.blendMode = BlendMode.NORMAL;
+        }
+
+        private static function updateMemoryTrainingMaskPos():Boolean
+        {
+            if (memoryTrainingMask === null)
+            {
+                return false;
+            }
+
+            memoryTrainingMask.x = canvasRefHolder.mouseX;
+            memoryTrainingMask.y = canvasRefHolder.mouseY;
+            return true;
+        }
+
+        private static var memoryTrainingMaskTargetAlpha:Number = 0.0;
+
+        private static function startMemoryTrainingMaskFade(targetAlpha:Number):void
+        {
+            memoryTrainingMaskTargetAlpha = targetAlpha;
+            FOFOTimer.addByName(MEMORY_TRAINING_MASK_FADE_TIMER, 0.0, true, onMemoryTrainingMaskFade);
+        }
+
+        private static function onMemoryTrainingMaskFade():Boolean
+        {
+            if (memoryTrainingMask === null)
+            {
+                return false;
+            }
+
+            if (memoryTrainingMask.alpha < memoryTrainingMaskTargetAlpha)
+            {
+                memoryTrainingMask.alpha = Math.min(memoryTrainingMaskTargetAlpha, memoryTrainingMask.alpha + MEMORY_TRAINING_MASK_FADE_STEP);
+            }
+            else
+            {
+                memoryTrainingMask.alpha = Math.max(memoryTrainingMaskTargetAlpha, memoryTrainingMask.alpha - MEMORY_TRAINING_MASK_FADE_STEP);
+            }
+
+            if (memoryTrainingMask.alpha === memoryTrainingMaskTargetAlpha)
+            {
+                if (memoryTrainingMaskTargetAlpha === 0.0)
+                {
+                    memoryTrainingMask.visible = false;
+                }
+                return false;
+            }
+            return true;
         }
 
         public static function startRefLayerImageMirror():void

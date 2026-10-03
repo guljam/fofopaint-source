@@ -198,7 +198,8 @@ package Modules.DrawEngine
             StrokeBuffer.canvasDrawLayer.addChild(StrokeBuffer.canvasDrawLayerChild);
             StrokeBuffer.canvasDrawLayer.blendMode = "layer"; // 캔버스1이랑 알파 불투명도가 겹치지 않게 layer모드로 해줌
             ReplayDrawer.rReplayFOFOCursor.visible = false;
-            canvasPanel.addChild(ReferenceLayerController.canvasRefLayer);
+            ReferenceLayerController.canvasRefHolder.addChild(ReferenceLayerController.canvasRefLayer);
+            canvasPanel.addChild(ReferenceLayerController.canvasRefHolder);
             canvasPanel.addChild(DrawCanvas.canvasLayer2Bitmap);
             canvasPanel.addChild(LassoTool.lassoLayer2);
             canvasPanel.addChild(DrawCanvas.canvasLayer1Bitmap);

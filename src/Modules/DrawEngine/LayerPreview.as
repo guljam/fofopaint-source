@@ -382,10 +382,12 @@ package Modules.DrawEngine
         {
             const refBmpd:BitmapData = ReferenceLayerController.canvasRefLayerBitmap.bitmapData;
             const hasRef:Boolean = refBmpd !== null && refBmpd.width > 1 && refBmpd.height > 1
-                && ReferenceLayerController.canvasRefLayer.visible && !ReferenceLayerController.isRefLayerMemoryTrainingON;
-            planes[DEPTH_REF].visible = hasRef;
+                && ReferenceLayerController.canvasRefLayer.visible;
+            planes[DEPTH_REF].visible = true; // 참조 이미지가 없어도 캔버스 크기의 빈 층(테두리)은 보여줌
             if (!hasRef)
             {
+                refView.bitmapData = null;
+                planes[DEPTH_REF].alpha = 1.0;
                 return;
             }
             refView.bitmapData = refBmpd;

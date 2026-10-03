@@ -150,10 +150,7 @@ package Modules.Tools
 
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
 
-            if (!ReferenceLayerController.isRefLayerEmpty() && ReferenceLayerController.isRefLayerMemoryTrainingON && ReferenceLayerController.refLayerLastAlpha > 0.0)
-            {
-                ReferenceLayerController.setCanvasRefLayerVisibleDelay();
-            }
+            ReferenceLayerController.hideMemoryTrainingMask();
         }
 
         public static function cancel():void
@@ -348,9 +345,9 @@ package Modules.Tools
 
                 subLayerFlag = CanvasLayers.isLayer2Selected;
 
-                if (!ReferenceLayerController.isRefLayerEmpty() && ReferenceLayerController.isRefLayerMemoryTrainingON)
+                if (ReferenceLayerController.isRefLayerMemoryTrainingON)
                 {
-                    ReferenceLayerController.setCanvasRefLayerInvisible();
+                    ReferenceLayerController.showMemoryTrainingMask();
                 }
 
                 main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool, false, InputPriority.DEFAULT);
