@@ -516,7 +516,7 @@ package Modules
                 }
             }
 
-            if (!isSidebarVisible && sideBar.visible)
+            if (!isSidebarVisible && sideBar.visible && !isQuickSidebarActive)
             {
                 // 사이드바 안에서 시작한 드래그(스크롤바, 컬러피커, opabox 등) 도중에는 밖으로 나가도 숨기지 않음
                 if (MouseState.isDragging)
