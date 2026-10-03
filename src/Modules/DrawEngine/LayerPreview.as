@@ -27,9 +27,9 @@ package Modules.DrawEngine
     // 실제 레이어 상태(visible, alpha)는 건드리지 않고 매 프레임 읽어서 보여주기만 함
     public class LayerPreview
     {
-        private static const ROTATE_DEGREES:Number = 45.0; // 평면 회전각
-        private static const ISO_SQUASH:Number = 0.4; // 회전 후 세로 압축 비율 (작을수록 납작)
-        private static const FIT_MARGIN:Number = 0.9; // 뷰포트 대비 층 묶음이 차지하는 최대 비율
+        private static const ROTATE_DEGREES:Number = 40.0; // 평면 회전각
+        private static const ISO_SQUASH:Number = 0.5; // 회전 후 세로 압축 비율 (작을수록 납작)
+        private static const FIT_MARGIN:Number = 0.88; // 뷰포트 대비 층 묶음이 차지하는 최대 비율
         private static const MAX_FIT_SCALE:Number = 1.5; // 작은 캔버스를 이 배율보다 크게 키우지는 않음
         private static const LAYER_GAP_RATIO:Number = 0.2; // 층 사이 화면상 간격 (캔버스 높이 대비)
         private static const HIDDEN_LAYER_ALPHA:Number = 0.12; // 꺼진 레이어도 위치를 알 수 있게 흐리게
