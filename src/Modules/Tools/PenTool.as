@@ -364,7 +364,9 @@ package Modules.Tools
 			const normalizedDirectionX:Number = directionX / length;
 			const normalizedDirectionY:Number = directionY / length;
 
-			extendedPos.setTo(x2 + normalizedDirectionX * distance, y2 + normalizedDirectionY * distance);
+			// 리플레이에 원시 number가 저장되지 않도록 getRefinedPoint로 정제
+				const refined:Point = PenTool.getRefinedPoint(x2 + normalizedDirectionX * distance, y2 + normalizedDirectionY * distance);
+				extendedPos.setTo(refined.x, refined.y);
 		}
 
 		private static function handleMouseMove(mx:Number, my:Number):void
@@ -408,8 +410,6 @@ package Modules.Tools
 					filteredStartPos.y = filteredStartPos.y + offsetForSharpline;
 
 					updateExtendEndPoint(mx, my, filteredStartPos.x, filteredStartPos.y, xSize / 8);
-
-					//todo extendedPos도 refinedpos해주어야함 찍어보니 원시 number값나옴
 
 					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
 					penPoints.push(extendedPos.x);
