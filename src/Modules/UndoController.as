@@ -14,7 +14,6 @@ package Modules
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.ReplayEngine.ReplayTimeline;
 
     // undo / redo / 딥 언두로 위치를 옮기고 그 위치의 캔버스를 다시 그려줌
     // 메모리 undo 데이터와 undo 위치 자체는 UndoHistory가 가지고 있음
@@ -169,7 +168,6 @@ package Modules
             fs.position = ReplayState.rFileLastBytePosition;
             fs.truncate(); // 데이터 위에 짤라주고
             fs.close();
-            ReplayTimeline.truncateFile(ReplayState.rFileLastBytePosition, ReplayState.rNowFrame);
             // 썸네일 이미지도 날려줌
             const rNowFrameSave:Number = ReplayState.rNowFrame;
             ReplayFileCache.truncateCacheImagesAfterFrame(rNowFrameSave);

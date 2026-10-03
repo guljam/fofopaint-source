@@ -68,6 +68,5 @@ package Modules
         public var captureStampFont:String;
         public var scrollSetMovedY:Number;
         public var isRefLayerMemoryTrainingON:Boolean;
-        public var lastCommandWallTime:Number; // 마지막 그리기 명령의 실제 시각(ms), 앱을 다시 켠 뒤 첫 명령 앞에 wait를 넣는데 씀
     }
 }

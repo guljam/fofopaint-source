@@ -56,7 +56,6 @@ package Modules.ReplayEngine
         public static var main:Main;
 
         private static const REPLAY_SLIDESHOW_ACTIVE_SPEED:Number = 60;
-        private static const REPLAY_MAX_SPEED_TARGET_SEC:Number = 10; // 최대 속도에서 전체를 재생하는 목표 시간
         private static const REPLAY_SLIDESHOW_FRAME_RATE:Number = 2; // 1/2초 = 0.5초마다 갱신
         private static const REPLAY_SLIDESHOW_UPDATE_TIME:Number = 1000 / REPLAY_SLIDESHOW_FRAME_RATE;
         private static var rCanvasCompleteAnchorPoint:Sprite = new Sprite(); // 리플레이에어 이미지가 재생되었을때 보여주는 객체 stage와 가로세로 중앙정렬
@@ -96,13 +95,7 @@ package Modules.ReplayEngine
         public static function updateTotalFrameAndReplayMaxSpeedFor10Sec(totalframe:Number):void
         {
             ReplayState.TOTAL_FRAME = totalframe;
-            // 슬라이드쇼 속도 아래에서는 wait를 포함한 실제 재생 시간, 그 위에서는 프레임 기준으로 10초에 끝나는 속도
-            // 실시간 재생 시간은 틱 합 / 속도 + 애니메이션 시간 (애니메이션은 속도와 상관없음)이라, 10초에서 애니메이션 시간을 뺀 나머지를 틱 시간이 쓰도록 속도를 구함
-            // 애니메이션만으로 10초를 넘으면 실시간 재생으로는 10초에 못 끝내므로 슬라이드쇼 쪽 계산으로 넘김 (슬라이드쇼는 애니메이션을 재생하지 않음)
-            const tickSeconds:Number = ReplayTimeline.getTickAtFrame(totalframe) * ReplayState.WAIT_TICK_MS / 1000;
-            const tickBudget:Number = REPLAY_MAX_SPEED_TARGET_SEC - ReplayTimeline.getAnimMsBetween(0, totalframe) / 1000;
-            const speedByTick:Number = tickBudget > 0 ? Math.floor(tickSeconds / tickBudget) : Number.POSITIVE_INFINITY;
-            var maxSpeed:Number = speedByTick <= REPLAY_SLIDESHOW_ACTIVE_SPEED ? speedByTick : Math.max(Math.floor(totalframe / 10 / main.stage.frameRate), REPLAY_SLIDESHOW_ACTIVE_SPEED);
+            var maxSpeed:Number = Math.floor(totalframe / 10 / main.stage.frameRate);
 
             if (maxSpeed < 1.0)
             {
@@ -165,8 +158,7 @@ package Modules.ReplayEngine
                 UndoHistory.updateUndoBaseImageFromReplayMode();
                 fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE); // 파일 생성
                 fs.close();
-                ReplayTimeline.reset();
-    FileManager.isFileAlreadySaved = false;
+                FileManager.isFileAlreadySaved = false;
                 FileManager.enableNewFileButton();
                 ReplayState.setRFileDataTotalFrame(0);
                 ReplayState.rMemoryData.splice(0, ReplayState.rMemoryDataIndex + 1);
@@ -210,7 +202,6 @@ package Modules.ReplayEngine
                 fs.close();
                 ba.clear();
                 ba = null;
-                ReplayTimeline.beginBuild(); // 색인은 아래 캐시 이미지 생성이 파일을 읽으면서 만듬
                 ReplayDrawer.rReplayFOFOCursor.visible = false;
                 ReplayController.seekBarBox.resetReplayPrograssBarWidth();
                 FileManager.isFileAlreadySaved = false;
@@ -261,7 +252,6 @@ package Modules.ReplayEngine
                 fs.position = ReplayState.rFileLastBytePosition;
                 fs.truncate(); // 데이터 위에 짤라주고
                 fs.close();
-                ReplayTimeline.truncateFile(ReplayState.rFileLastBytePosition, ReplayState.rNowFrame);
                 // 썸네일 이미지도 날려줌
                 const rNowFrameSave:Number = ReplayState.rNowFrame;
                 ReplayFileCache.truncateCacheImagesAfterFrame(rNowFrameSave);
@@ -440,51 +430,13 @@ package Modules.ReplayEngine
             }
         }
 
-        // 1프레임 이동은 그리기 명령 하나씩 움직임, wait와 fillanim 칸은 그려지는게 없어서 건너뜀
-        // 멈추는 위치는 항상 그리기 명령 바로 뒤 (그 명령 뒤에 붙은 wait, fillanim은 읽지 않음)
-        private static function isNonDrawAt(frame:Number):Boolean
-        {
-            return ReplayState.isNonDrawCommand(ReplayTimeline.getCommandAt(frame));
-        }
-
-        private static function getPreviousCommandFrame(frame:Number):Number
-        {
-            // 지금 위치 앞의 wait, 그리기 명령 하나, 그 명령 앞에 붙은 wait 순서로 되돌아감
-            while (frame > 0 && isNonDrawAt(frame - 1))
-            {
-                frame--;
-            }
-
-            if (frame > 0)
-            {
-                frame--;
-            }
-
-            while (frame > 0 && isNonDrawAt(frame - 1))
-            {
-                frame--;
-            }
-
-            return frame;
-        }
-
-        private static function getNextCommandFrame(frame:Number):Number
-        {
-            while (frame < ReplayState.TOTAL_FRAME && isNonDrawAt(frame))
-            {
-                frame++;
-            }
-
-            return frame < ReplayState.TOTAL_FRAME ? frame + 1 : frame;
-        }
-
         public static function moveToPreviousFrame():void
         {
             readyForFrameJump();
 
             if (ReplayState.rNowFrame > 0)
             {
-                ReplayDrawer.renderReplayFrame(getPreviousCommandFrame(ReplayState.rNowFrame), ReplayDrawer.JUMP_FRAME_MANUAL);
+                ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame - 1, ReplayDrawer.JUMP_FRAME_MANUAL);
                 updateDeleteReplayDataButtonsState();
                 ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
                 updateReplayPrograssText();
@@ -497,7 +449,7 @@ package Modules.ReplayEngine
 
             if (ReplayState.rNowFrame < ReplayState.TOTAL_FRAME)
             {
-                ReplayDrawer.renderReplayFrame(getNextCommandFrame(ReplayState.rNowFrame), ReplayDrawer.JUMP_FRAME_MANUAL);
+                ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame + 1, ReplayDrawer.JUMP_FRAME_MANUAL);
                 updateDeleteReplayDataButtonsState();
                 ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
                 updateReplayPrograssText();
@@ -672,13 +624,6 @@ package Modules.ReplayEngine
             CanvasNavigator.box.visible = false;
             ReplayDrawer.clearCanvasReplayMode(); // 리플레이 캔버스 먼저 깨끗하게
             fs.open(AppStateManager.replayDataFilePath, FileMode.READ);
-            // 파일을 처음부터 읽을때는 읽은 뭉치로 타임라인 색인도 같이 만듬, 이어서 만들때는 앱을 켤때 만든 색인이 그대로 맞음
-            const buildTimeline:Boolean = resumeIndex < 0;
-
-            if (buildTimeline)
-            {
-                ReplayTimeline.beginBuild();
-            }
 
             if (resumeIndex >= 0)
             {
@@ -732,11 +677,6 @@ package Modules.ReplayEngine
 
                     if (namojiBytes === 0)
                     {
-                        if (buildTimeline)
-                        {
-                            ReplayTimeline.endBuild(fs.position);
-                        }
-
                         handleReplayCacheImageGenerateComplete(fs, onFrameEnter, _frameSum, _LastframeSum, finalizeFunc);
                         return;
                     }
@@ -748,38 +688,12 @@ package Modules.ReplayEngine
                         return;
                     }
 
-                    const groupStartByte:Number = fs.position;
                     const data:Array = fs.readObject() as Array;
-
                     ReplayDrawCommands.setData(data);
                     _LastframeSum = _frameSum;
                     _frameSum += data.length; // _rJumpImageCount 변수보다 먼저 와야함
-                    const nonDrawReadCountBefore:uint = ReplayDrawCommands.nonDrawReadCount;
-                    const dataLength:uint = data.length;
-
-                    // 명령을 그리는 반복문 안에서 타임라인 색인에 넣을 지연과 애니메이션 시간도 같이 모음 (뭉치를 한번만 읽음)
-                    if (buildTimeline)
-                    {
-                        ReplayTimeline.beginGroup(groupStartByte);
-                    }
-
-                    for (var commandIndex:uint = 0;commandIndex < dataLength;commandIndex++)
-                    {
-                        if (buildTimeline)
-                        {
-                            ReplayTimeline.collectCommand(data);
-                        }
-
-                        ReplayDrawCommands.drawNext();
-                    }
-
-                    if (buildTimeline)
-                    {
-                        ReplayTimeline.endGroup(dataLength);
-                    }
-
-                    // 캐시 간격은 그리기 명령 수로 셈, 그리면서 읽은 wait, fillanim 수를 빼줌 (다시 훑지 않음)
-                    dataWriteCount += data.length - (ReplayDrawCommands.nonDrawReadCount - nonDrawReadCountBefore);
+                    dataWriteCount += data.length;
+                    ReplayDrawCommands.drawAll();
 
                     if (dataWriteCount > ReplayFileCache.REPLAY_DISK_CACHE_FRAME_INTERVAL)
                     {
@@ -875,9 +789,6 @@ package Modules.ReplayEngine
             ReplayState.isReplayFinished = true;
             ReplayState.isReplaySlideShowMode = false;
             ReplayDrawCommands.clearData();
-            invalidateRealtimeClock();
-            ReplayDrawer.fillAnim.clear();
-            ReplayDrawer.moveAnim.clear();
         }
 
         public static function updateReplayPrograssText(finishFlag:Boolean = false, customFrame:Number = NaN):void
@@ -893,7 +804,7 @@ package Modules.ReplayEngine
                 customFrame = ReplayState.rNowFrame;
             }
 
-            const remainingTime:String = (UndoController.isDeepUndoEnabled || finishFlag) ? "" : getRemainingTimeStringAt(customFrame);
+            const remainingTime:String = (UndoController.isDeepUndoEnabled || finishFlag) ? "" : getReplayRemainingTimeString(ReplayState.rReplaySpeedMultipler, ReplayState.TOTAL_FRAME - customFrame);
 
             ReplayController.seekBarBox.prograssInfo.text = customFrame + " / " + ReplayState.TOTAL_FRAME + remainingTime;
         }
@@ -907,7 +818,7 @@ package Modules.ReplayEngine
 
             var lastCursorUpdateTime:int = getTimer();
             var lastTextUpdateTime:int = getTimer();
-            const cursorUpdateTime:int = ReplayState.REPLAY_VISUAL_UPDATE_MS;
+            const cursorUpdateTime:int = main.stage.frameRate * 2;
             const textUpdateTime:int = 1000;
             updateReplayPrograssText();
             ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
@@ -918,8 +829,7 @@ package Modules.ReplayEngine
                         return false;
                     }
 
-                    // 마지막 칸이 fillanim이면 칸을 읽은 뒤에도 애니메이션이 남아있어서 끝나기를 기다림
-                    if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME && !ReplayDrawer.fillAnim.isActive)
+                    if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
                     {
                         ReplayController.seekBarBox.setReplayPrograssBarMaxWidth();
                         updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
@@ -957,7 +867,6 @@ package Modules.ReplayEngine
 
         public static function startReplayDrawTimer():void
         {
-            resetRealtimeClock();
             FOFOTimer.addByName("replayDrawTimer", 0.0, true, function ():Boolean
                 {
                     if (ReplayState.isReplaySlideShowMode)
@@ -972,8 +881,6 @@ package Modules.ReplayEngine
                                 ReplayDrawer.rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
                                 ReplayDrawer.rFileStream.position = ReplayState.rFileLastBytePosition;
                             }
-
-                            resetRealtimeClock();
                         }
                         else
                         {
@@ -990,7 +897,7 @@ package Modules.ReplayEngine
                     }
                     else
                     {
-                        if (drawReplayRealtime())
+                        if (ReplayDrawer.startDraw(ReplayState.rReplaySpeedMultipler, ReplayDrawer.JUMP_FRAME_PLAY))
                         {
                             stopReplay();
                         }
@@ -1000,254 +907,14 @@ package Modules.ReplayEngine
                 });
         }
 
-        // 실시간 재생 시계, 단위는 ReplayState.WAIT_TICK_MS
-        private static const CURSOR_SPIN_MIN_WAIT_MS:Number = 600; // 실제 남은 대기 시간이 이 이상이면 리플레이 커서를 제자리에서 돌림
-        private static const REALTIME_MAX_FRAME_MS:int = 100; // 창 전환 등으로 프레임이 멈췄다가 돌아올때 밀린 시간을 한번에 그리지 않게 함
-        private static var realtimeTickClock:Number = 0; // 다음 그리기 명령을 기다리며 흐른 틱
-        private static var realtimePendingDelay:Number = 0; // 다음 그리기 명령의 지연 (ReplayTimeline과 같은 규칙)
-        private static var realtimeLastTime:int = 0;
-        private static var realtimeSkipWait:Boolean = false; // 데이터 첫 그리기 명령 앞의 wait는 기다리지 않음
-        private static var realtimeInWait:Boolean = false; // 바로 앞에서 wait를 읽었으면 이어지는 wait는 더함
-        private static var realtimeClockFrame:Number = -1; // 위 시계 상태가 맞는 프레임 위치, 탐색하면 -1
-
-        // 프레임을 건너뛰었을때(탐색, 슬라이드쇼, 처음부터 다시) 호출. 다음 재생때 그 위치 기준으로 시계를 다시 맞춤
-        public static function invalidateRealtimeClock():void
-        {
-            realtimeClockFrame = -1;
-        }
-
-        // 재생을 시작할때 호출. 일시정지했던 자리 그대로면 기다리던 시간을 이어감
-        // 탐색으로 wait와 명령 사이에 멈췄으면 그 wait를 다시 기다리고, 데이터 첫 그리기 명령 앞이면 바로 그림
-        // (앞부분을 잘라내서 데이터가 wait로 시작하는 경우도 여기서 같이 처리됨)
-        private static function resetRealtimeClock():void
-        {
-            realtimeLastTime = getTimer();
-
-            if (realtimeClockFrame === ReplayState.rNowFrame)
-            {
-                return;
-            }
-
-            realtimeClockFrame = ReplayState.rNowFrame;
-            realtimeTickClock = 0;
-
-            if (ReplayTimeline.isBeforeFirstCommand(ReplayState.rNowFrame))
-            {
-                realtimePendingDelay = 0;
-                realtimeSkipWait = true;
-                realtimeInWait = false;
-                return;
-            }
-
-            const preceding:Number = ReplayDrawCommands.getPrecedingWaitTicks();
-            realtimePendingDelay = preceding >= 0 ? preceding : 1;
-            realtimeSkipWait = false;
-            realtimeInWait = preceding >= 0;
-        }
-
-        // 지난 시간만큼 명령을 그림, wait 0이면 앞 명령과 같은 프레임에 그림
-        // 반환값: 리플레이를 정지해야 하면 true
-        public static function drawReplayRealtime():Boolean
-        {
-            const now:int = getTimer();
-            var elapsed:int = now - realtimeLastTime;
-            realtimeLastTime = now;
-
-            if (elapsed > REALTIME_MAX_FRAME_MS)
-            {
-                elapsed = REALTIME_MAX_FRAME_MS;
-            }
-
-            var elapsedMs:Number = elapsed;
-
-            // 채우기 애니메이션 중에는 그 애니메이션만 실제 시간(재생 속도와 상관없음)으로 흐르고 다음 명령을 기다리는 시계는 멈춰있음
-            // 끝나면 남은 시간은 다음 명령 시계로 넘겨서 시간이 정확히 더해지게 함
-            if (ReplayDrawer.fillAnim.isActive)
-            {
-                elapsedMs = ReplayDrawer.fillAnim.advance(elapsedMs);
-                realtimeClockFrame = ReplayState.rNowFrame;
-
-                if (elapsedMs < 0)
-                {
-                    return false;
-                }
-            }
-
-            // 이동 애니메이션도 같은 규칙, 끝난 뒤 이어서 실제 이동 명령을 읽음 (그 명령의 지연은 moveanim을 읽을때 이미 지나서 0)
-            if (ReplayDrawer.moveAnim.isActive)
-            {
-                elapsedMs = ReplayDrawer.moveAnim.advance(elapsedMs);
-                realtimeClockFrame = ReplayState.rNowFrame;
-
-                if (elapsedMs < 0)
-                {
-                    return false;
-                }
-            }
-
-            realtimeTickClock += elapsedMs * ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
-            var cursorSpinStopped:Boolean = false; // 이번 프레임에 돌던 커서를 멈췄는지
-
-            while (true)
-            {
-                if (!ReplayDrawer.prepareNextPlayData())
-                {
-                    ReplayDrawer.fillAnim.disarm(); // lasso2 없이 lassoanim으로 끝난 데이터
-                    realtimeClockFrame = -1;
-                    return true;
-                }
-
-                const next:Array = ReplayDrawCommands.peekNext();
-
-                if (ReplayState.isFillAnimCommand(next))
-                {
-                    // 그리는건 없고 칸만 넘어감, 같은 프레임에 덮개를 올리고 다음 프레임부터 지움
-                    ReplayDrawer.startDraw(1, ReplayDrawer.JUMP_FRAME_PLAY);
-
-                    if (ReplayDrawer.fillAnim.start(next[1]))
-                    {
-                        realtimeClockFrame = ReplayState.rNowFrame;
-                        return false;
-                    }
-
-                    continue;
-                }
-
-                if (ReplayState.isLassoAnimCommand(next))
-                {
-                    // 그리는건 없고 칸만 넘어감, 바로 다음 lasso2가 실행될때 애니메이션을 시작하도록 준비만 해둠 (시작하는 곳은 ReplayDrawCommands.lasso2)
-                    ReplayDrawer.startDraw(1, ReplayDrawer.JUMP_FRAME_PLAY);
-                    ReplayDrawer.fillAnim.arm(ReplayDrawCommands.data, ReplayDrawCommands.index, next[1]);
-                    continue;
-                }
-
-                if (ReplayState.isWaitCommand(next))
-                {
-                    if (!realtimeSkipWait)
-                    {
-                        realtimePendingDelay = realtimeInWait ? realtimePendingDelay + next[1] : next[1];
-                        realtimeInWait = true;
-                    }
-
-                    // wait는 시간을 쓰지 않고 프레임 번호만 넘어감
-                    ReplayDrawer.startDraw(1, ReplayDrawer.JUMP_FRAME_PLAY);
-                    continue;
-                }
-
-                if (realtimeTickClock < realtimePendingDelay)
-                {
-                    realtimeClockFrame = ReplayState.rNowFrame;
-
-                    // 멈춘 커서는 이번 프레임에 그린 마지막 위치에 바로 둠 (진행바 타이머의 위치 갱신을 기다리지 않음)
-                    if (cursorSpinStopped)
-                    {
-                        ReplayDrawCommands.updateRCursorPos();
-                    }
-
-                    // 오래 쉬는 구간이면 커서를 돌림, 남은 시간을 미리 알기 때문에 쉬는 구간마다 한번만 판단함
-                    if ((realtimePendingDelay - realtimeTickClock) * ReplayState.WAIT_TICK_MS / ReplayState.rReplaySpeedMultipler >= CURSOR_SPIN_MIN_WAIT_MS)
-                    {
-                        ReplayDrawer.startReplayFOFOCursorSpin();
-                    }
-
-                    return false;
-                }
-
-                realtimeTickClock -= realtimePendingDelay;
-                realtimePendingDelay = 1;
-                realtimeSkipWait = false;
-                realtimeInWait = false;
-
-                if (ReplayDrawer.startDraw(1, ReplayDrawer.JUMP_FRAME_PLAY))
-                {
-                    realtimeClockFrame = -1;
-                    return true;
-                }
-
-                if (ReplayDrawer.stopReplayFOFOCursorSpin())
-                {
-                    cursorSpinStopped = true;
-                }
-
-                if (ReplayState.isMoveAnimCommand(next))
-                {
-                    // moveanim 칸은 그리는게 없음, 바로 다음 칸이 이동 명령이라 읽지 않은 채로 이동 전 이미지가 움직이는 애니메이션을 시작함
-                    // 앞의 wait 지연은 이미 지나서 이동 명령은 애니메이션이 끝나면 바로 실행함
-                    realtimePendingDelay = 0;
-
-                    if (ReplayDrawer.moveAnim.start())
-                    {
-                        realtimeClockFrame = ReplayState.rNowFrame;
-                        return false;
-                    }
-
-                    continue;
-                }
-
-                // lasso2가 애니메이션을 시작했으면 이 프레임은 여기서 끝, 준비만 해두고 다른 명령이 나왔으면 준비를 끔
-                if (ReplayDrawer.fillAnim.isActive)
-                {
-                    realtimeClockFrame = ReplayState.rNowFrame;
-                    return false;
-                }
-
-                ReplayDrawer.fillAnim.disarm();
-            }
-
-            return false;
-        }
-
-        // frame 위치에서 끝까지 실시간 재생으로 남은 틱, 그 위치에서 기다리던 중이면 기다린 시간을 빼줌
-        public static function getRemainingTicks(frame:Number):Number
-        {
-            // moveanim 칸을 읽은 뒤 이동 명령 앞에서는 (애니메이션 중이거나, 애니메이션 중에 일시정지해서 지워졌어도) 그 명령의 지연이 이미 지났으므로 그 명령을 읽은 것으로 계산함
-            // moveanim을 읽을때 realtimePendingDelay를 0으로 만들기 때문에 0이면 지연이 지난 상태임 (탐색으로 이 위치에 온 경우는 앞의 wait를 다시 기다리므로 0이 아님)
-            const moveDelayPassed:Boolean = frame === realtimeClockFrame && (ReplayDrawer.moveAnim.isActive || (realtimePendingDelay === 0 && ReplayState.isMoveAnimCommand(ReplayTimeline.getCommandAt(frame - 1))));
-            var ticks:Number = ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) - ReplayTimeline.getTickAtFrame(moveDelayPassed ? frame + 1 : frame);
-
-            // 채우기 애니메이션은 틱 합에 들어있지 않고 속도와 상관없는 실제 시간이라, 지금 속도의 틱으로 바꿔서 더함 (속도로 나누면 그 시간 그대로)
-            const msToTicks:Number = ReplayState.rReplaySpeedMultipler / ReplayState.WAIT_TICK_MS;
-            ticks += ReplayTimeline.getAnimMsFrom(frame) * msToTicks;
-
-            if (frame === realtimeClockFrame)
-            {
-                ticks -= Math.min(realtimeTickClock, realtimePendingDelay);
-                ticks += (ReplayDrawer.fillAnim.getRemainingMs() + ReplayDrawer.moveAnim.getRemainingMs()) * msToTicks; // 진행중인 애니메이션의 남은 시간
-            }
-
-            return ticks > 0 ? ticks : 0;
-        }
-
-        // 남은 시간 문자열, 슬라이드쇼 속도에서는 wait를 건너뛰고 프레임 단위로 진행하므로 프레임 기준
-        private static function getRemainingTimeStringAt(frame:Number):String
-        {
-            const speed:Number = ReplayState.rReplaySpeedMultipler;
-
-            if (shouldUseReplaySlideShowMode())
-            {
-                return getReplayRemainingTimeString(speed, ReplayState.TOTAL_FRAME - frame);
-            }
-
-            return formatReplayTime(getRemainingTicks(frame) * ReplayState.WAIT_TICK_MS / 1000 / speed);
-        }
-
         public static function shouldUseReplaySlideShowMode():Boolean
         {
             return ReplayState.rReplaySpeedMultipler > REPLAY_SLIDESHOW_ACTIVE_SPEED;
         }
 
-        // 처음부터 끝까지 실시간 재생하는 총 시간(초), 틱 합은 속도로 나누고 애니메이션 시간은 속도와 상관없이 더함
-        public static function getTotalPlaySeconds(speed:Number):Number
-        {
-            return ReplayTimeline.getTickAtFrame(ReplayState.TOTAL_FRAME) * ReplayState.WAIT_TICK_MS / 1000 / speed
-                + ReplayTimeline.getAnimMsBetween(0, ReplayState.TOTAL_FRAME) / 1000;
-        }
-
         private static function getReplaySpeedHintText():String
         {
-            const timeStr:String = shouldUseReplaySlideShowMode()
-                ? getReplayRemainingTimeString(ReplayState.rReplaySpeedMultipler, ReplayState.TOTAL_FRAME)
-                : formatReplayTime(getTotalPlaySeconds(ReplayState.rReplaySpeedMultipler));
+            const timeStr:String = getReplayRemainingTimeString(ReplayState.rReplaySpeedMultipler, ReplayState.TOTAL_FRAME);
             return HintStrings.getReplaySpeedHintString(ReplayState.rReplaySpeedMultipler, timeStr);
         }
 
@@ -1605,12 +1272,6 @@ package Modules.ReplayEngine
         {
             FOFOTimer.remove("replayDrawTimer");
 
-            // 쉬는 구간이라 커서가 돌던 중에 멈추면 원래 각도로 되돌림
-            ReplayDrawer.stopReplayFOFOCursorSpin();
-
-            // 이동 애니메이션은 실제 레이어를 숨기고 있어서 멈추면 바로 복구함 (재개하면 그 이동은 애니메이션 없이 실행됨)
-            ReplayDrawer.moveAnim.clear();
-
             if (!ReplayState.isReplayFinished)
             {
                 ReplayController.seekBarBox.setPlayButtonVisible(true);
@@ -1683,8 +1344,6 @@ package Modules.ReplayEngine
                 stopReplay();
             }
 
-            ReplayDrawer.fillAnim.clear();
-            ReplayDrawer.moveAnim.clear();
             ReplayModeInput.removeEvents();
             cancelReplayRestartTimer();
             ReplayState.isReplayModeON = false;
@@ -2128,11 +1787,8 @@ package Modules.ReplayEngine
         public static function getReplayRemainingTimeString(speed:Number, totalFrame:Number, isSlideShowMode:Boolean = false):String
         {
             const fps:Number = (isSlideShowMode === true) ? 1.0 : main.stage.frameRate;
-            return formatReplayTime(totalFrame / (fps * speed));
-        }
+            const totalSec:Number = totalFrame / (fps * speed);
 
-        public static function formatReplayTime(totalSec:Number):String
-        {
             if (totalSec === 0)
                 return "";
             const hour:int = totalSec / 3600;

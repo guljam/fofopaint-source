@@ -205,15 +205,8 @@ package Modules
         {
             target.alpha = startAlpha;
             target.visible = true;
-            fadeOutDisplayTarget(target, waitDuration);
-        }
-
-        // 지금 알파값에서 천천히 사라지게 하기, 다 사라지면 visible을 끄고 알파는 1로 돌려둠
-        // 같은 대상에는 타이머가 하나라서 다시 부르면 이어서 하지 않고 새로 시작함
-        public static function fadeOutDisplayTarget(target:DisplayObject, waitDuration:Number = 0.0):void
-        {
             const startTime:int = getTimer() + waitDuration * 1000;
-            FOFOTimer.addByName(getFadeOutTimerName(target), 0.0, true, function ():Boolean
+            FOFOTimer.addByName("alphaFadeOutTimer_" + target.name, 0.0, true, function ():Boolean
                 {
                     if (getTimer() < startTime)
                     {
@@ -232,11 +225,6 @@ package Modules
                     }
                     return true;
                 });
-        }
-
-        private static function getFadeOutTimerName(target:DisplayObject):String
-        {
-            return "alphaFadeOutTimer_" + target.name;
         }
 
         // stage를 기준으로 사각형 꼭지점들 구하기

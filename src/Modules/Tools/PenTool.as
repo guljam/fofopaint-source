@@ -410,14 +410,14 @@ package Modules.Tools
 
 					updateExtendEndPoint(mx, my, filteredStartPos.x, filteredStartPos.y, xSize / 8);
 
-					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
+					ReplayState.rMemoryDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
 					penPoints.push(extendedPos.x);
 					penPoints.push(extendedPos.y);
 					StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(extendedPos.x, extendedPos.y);
 				}
 				else
 				{
-					ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
+					ReplayState.rMemoryDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
 					penPoints.push(smoothPos.x + offsetForSharpline);
 					penPoints.push(smoothPos.y + offsetForSharpline);
 					StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline);
@@ -431,7 +431,7 @@ package Modules.Tools
 					return;
 				}
 
-				ReplayState.pushCommand(["lineTo", mx, my]);
+				ReplayState.rMemoryDataBuffer.push(["lineTo", mx, my]);
 				penPoints.push(mx);
 				penPoints.push(my);
 
@@ -467,18 +467,18 @@ package Modules.Tools
 
 					penPoints.length = 0;
 
-					ReplayState.pushCommand(["tempDone4"]);
+					ReplayState.rMemoryDataBuffer.push(["tempDone4"]);
 
 					if (xShape === true)
 					{
-						ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
+						ReplayState.rMemoryDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
 						penPoints.push(prevX);
 						penPoints.push(prevY);
 						StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(prevX, prevY);
 					}
 					else
 					{
-						ReplayState.pushCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
+						ReplayState.rMemoryDataBuffer.push(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]);
 						penPoints.push(mx);
 						penPoints.push(my);
 						StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(mx, my);
@@ -597,7 +597,7 @@ package Modules.Tools
 					{
 						updateExtendEndPoint(penPoints[pointLen - 4], penPoints[pointLen - 3], penPoints[pointLen - 2], penPoints[pointLen - 1], xSize / 8);
 
-						ReplayState.pushCommand(["lineTo", extendedPos.x, extendedPos.y]);
+						ReplayState.rMemoryDataBuffer.push(["lineTo", extendedPos.x, extendedPos.y]);
 						StrokeBuffer.canvasDrawLayerChild.graphics.lineTo(extendedPos.x, extendedPos.y);
 					}
 				}
@@ -605,8 +605,8 @@ package Modules.Tools
 
 			if (isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag))
 			{
-				ReplayState.clearCommandBuffer();
-				ReplayState.pushCommand(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode, CanvasView.canvasAnchorPoint.rotation]);
+				ReplayState.rMemoryDataBuffer = [];
+				ReplayState.rMemoryDataBuffer.push(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode, CanvasView.canvasAnchorPoint.rotation]);
 
 				DotTool.start(xShape, xSize, xColor, clickPos.x, clickPos.y, CanvasView.canvasAnchorPoint.rotation);
 				StrokeBuffer.resetCanvasDrawLayerClipRect();

@@ -430,11 +430,8 @@ package Modules.Tools
 
         private static function applyFillPen():void
         {
-            var isFillRecorded:Boolean = false;
-
             if (checkFillPenUndoReady() === true && command.length > 2)
             {
-                isFillRecorded = true;
                 UndoHistory.canAddUndoData = true;
 
                 command.push(2);
@@ -442,13 +439,13 @@ package Modules.Tools
                 data.push(data[1]); // 마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
 
                 StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
-                ReplayState.pushCommand(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), PenSettings.isPenAirBrushON, PenSettings.airBrushSizeDrawMode]);
+                ReplayState.rMemoryDataBuffer.push(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), PenSettings.isPenAirBrushON, PenSettings.airBrushSizeDrawMode]);
 
                 showFillColor(false); // 블러는 DrawingFinish가 적용함
             }
 
             StrokeBuffer.resetCanvasDrawLayerClipRect();
-            DrawingFinish.run(isFillRecorded);
+            DrawingFinish.run();
 
             exitFillPen();
         }

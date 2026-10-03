@@ -44,7 +44,6 @@ package Modules.ReplayEngine
                 const fs:FileStream = new FileStream();
                 fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE);
                 fs.close();
-                ReplayTimeline.reset(); // 리플레이 파일이 비워짐
             }
         }
 

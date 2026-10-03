@@ -203,7 +203,7 @@ package Modules.Tools
                     l1 = false;
                     l2 = true;
                 }
-                ReplayState.pushCommand(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
+                ReplayState.rMemoryDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
                 UndoHistory.addNew();
                 disposeAllLayerBitmapData();
                 resetLassoBox();
@@ -919,23 +919,6 @@ package Modules.Tools
                     ang, boxX, boxY];
         }
 
-        // 도착한 올가미 이미지가 캔버스 안에서 차지하는 높이를 담은 ["lassoanim", 높이], 캔버스 밖이면 null
-        // 높이는 크기와 회전이 적용된 사각형의 위아래 길이 (lassoInfo = [scaleX, scaleY, 크기 적용된 가로, 세로, 회전(라디안), 중심 x, 중심 y])
-        private static function getLassoAnimCommand(lassoInfo:Array):Array
-        {
-            const ang:Number = lassoInfo[4];
-            const rotatedHeight:Number = Math.abs(lassoInfo[2] * Math.sin(ang)) + Math.abs(lassoInfo[3] * Math.cos(ang));
-            const top:Number = Math.max(0, lassoInfo[6] - rotatedHeight / 2);
-            const bottom:Number = Math.min(DrawCanvas.canvasLayer1BitmapData.height, lassoInfo[6] + rotatedHeight / 2);
-
-            if (!(bottom > top))
-            {
-                return null;
-            }
-
-            return [ReplayState.LASSO_ANIM_COMMAND, Math.ceil(bottom - top)];
-        }
-
         private static function applyLassoImageToCanvas():void
         {
             if (_isStarted === true)
@@ -966,13 +949,12 @@ package Modules.Tools
                         checklayer1 = false;
                         checklayer2 = true;
                     }
-                    // lasso2는 drawDone이 없어서 재생에서 도착 모양을 알 수 있는 때는 lasso2를 실행하는 순간뿐이라, 애니메이션 칸을 lasso2 앞에 넣음
-                    ReplayState.pushCommand(["lasso2", point1, point2
+                    ReplayState.rMemoryDataBuffer.push(["lasso2", point1, point2
                                 , lassoInfo
                                 , isLassoImageCopied
                                 , checklayer1
                                 , checklayer2
-                                , command], getLassoAnimCommand(lassoInfo));
+                                , command]);
                     UndoHistory.addNew();
                 }
                 else

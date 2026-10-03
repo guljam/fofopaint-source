@@ -17,12 +17,11 @@ package Modules
     {
         private static var drawLayerAlpha:ColorTransform = new ColorTransform();
 
-        // recordFillAnim: 채우기 펜이 fill5를 기록한 뒤라면 true, drawDone5 바로 뒤에 같은 undo 뭉치로 fillanim을 넣음
-        public static function run(recordFillAnim:Boolean = false):void
+        public static function run():void
         {
             if (UndoHistory.canAddUndoData === false)
             {
-                ReplayState.clearCommandBuffer();
+                ReplayState.rMemoryDataBuffer = [];
                 StrokeBuffer.canvasDrawLayerChild.graphics.clear();
                 return;
             }
@@ -81,19 +80,7 @@ package Modules
                 }
             }
 
-            ReplayState.pushCommand(["drawDone5", CanvasLayers.isLayer2Selected]);
-
-            if (recordFillAnim)
-            {
-                // 그려진 영역의 높이, 캔버스 밖으로 나간 부분은 애니메이션 시간에 넣지 않음
-                const fillTop:Number = Math.max(0, StrokeBuffer.canvasDrawLayerClipRect.top);
-                const fillBottom:Number = Math.min(DrawCanvas.canvasLayer1BitmapData.height, StrokeBuffer.canvasDrawLayerClipRect.bottom);
-
-                if (fillBottom > fillTop)
-                {
-                    ReplayState.pushFillAnim(Math.ceil(fillBottom - fillTop));
-                }
-            }
+            ReplayState.rMemoryDataBuffer.push(["drawDone5", CanvasLayers.isLayer2Selected]);
 
             if (CanvasLayers.isLayer2Selected)
             {

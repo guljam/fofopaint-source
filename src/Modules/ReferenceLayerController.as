@@ -626,8 +626,8 @@ package Modules
             }
             else
             {
-                ReplayState.clearCommandBuffer();
-                ReplayState.pushCommand([command]);
+                ReplayState.rMemoryDataBuffer = [];
+                ReplayState.rMemoryDataBuffer.push([command]);
                 UndoHistory.addNew();
             }
 

@@ -126,33 +126,34 @@ package Modules.Tools
             if (LassoTool.isStarted === false)
             {
                 var command:String = "move";
-                var distX:Number = movex;
-                var distY:Number = movey;
 
                 if (CanvasLayers.checkedLayer === 1)
                 {
                     command = "move1";
+                    ReplayState.rMemoryDataBuffer.push([command, movex, movey]);
                 }
                 else if (CanvasLayers.checkedLayer === 2)
                 {
                     command = "move2";
-                    distX = movex1;
-                    distY = movey1;
+                    ReplayState.rMemoryDataBuffer.push([command, movex1, movey1]);
                 }
-                else if (!DrawCanvas.canvasLayer2Bitmap.visible)
+                else
                 {
-                    command = "move1";
+                    if (!DrawCanvas.canvasLayer2Bitmap.visible)
+                    {
+                        command = "move1";
+                        ReplayState.rMemoryDataBuffer.push([command, movex, movey]);
+                    }
+                    else if (!DrawCanvas.canvasLayer1Bitmap.visible)
+                    {
+                        command = "move2";
+                        ReplayState.rMemoryDataBuffer.push([command, movex1, movey1]);
+                    }
+                    else
+                    {
+                        ReplayState.rMemoryDataBuffer.push([command, movex, movey]);
+                    }
                 }
-                else if (!DrawCanvas.canvasLayer1Bitmap.visible)
-                {
-                    command = "move2";
-                    distX = movex1;
-                    distY = movey1;
-                }
-
-                // 이동 거리가 어느정도 되면 이동 명령 바로 앞(wait 뒤)에 moveanim을 넣음, 실시간 재생에서 이동 전 이미지가 움직이는 애니메이션을 보여줌
-                const withAnim:Boolean = Math.sqrt(distX * distX + distY * distY) >= ReplayState.MOVE_ANIM_MIN_DISTANCE;
-                ReplayState.pushCommand([command, distX, distY], withAnim ? [ReplayState.MOVE_ANIM_COMMAND] : null);
 
                 UndoHistory.addNew();
             }

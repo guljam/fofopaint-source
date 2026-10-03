@@ -175,7 +175,7 @@ package Modules.DrawEngine
                     }
                     DrawCanvas.applyCanvasSizeDrawMode(finalWidth, finalHeight, subX, subY, centerMovedFlag);
                     updateButtonPos(finalWidth, finalHeight);
-                    ReplayState.pushCommand(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
+                    ReplayState.rMemoryDataBuffer.push(["canvasSize", finalWidth, finalHeight, subX, subY, centerMovedFlag]);
                     UndoHistory.addNew();
                     if (ImageViewWindow.isCanvasWindowON)
                     {

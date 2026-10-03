@@ -19,7 +19,6 @@ package Modules.ReplayEngine
     import Modules.CacheImageMetaData;
     import Modules.FileManager;
     import Modules.AppStateManager;
-    import flash.utils.getTimer;
     import Modules.UndoHistory;
     import Modules.UndoController;
     import Modules.Tools.PenTool;
@@ -32,8 +31,6 @@ package Modules.ReplayEngine
         public static var rCanvasPanel:Sprite = new Sprite();
         public static const viewport:ReplayViewport = new ReplayViewport(); // 리플레이 캔버스 화면 배치 (getter로 위 필드를 읽음)
         public static const cursorFollow:ReplayCursorFollow = new ReplayCursorFollow(); // 리플레이 커서 따라 캔버스 이동
-        public static const fillAnim:ReplayFillAnim = new ReplayFillAnim(); // 채우기 펜 스캔라인 애니메이션
-        public static const moveAnim:ReplayMoveAnim = new ReplayMoveAnim(); // 이동 명령 앞 moveanim 이동 애니메이션
         public static var rCanvasDrawLayer:Sprite = new Sprite();
         public static var rCanvasDrawShape:Shape = new Shape();
         public static var rCanvasLayer1BitmapData:BitmapData = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
@@ -50,10 +47,6 @@ package Modules.ReplayEngine
         public static const JUMP_FRAME_PREV:int = (1 << 2); // 이전 프레임으로 이동 (프레임 감소)
         public static const JUMP_FRAME_NEXT:int = (1 << 3); // 이후 프레임으로 이동 (프레임 증가)
 
-        public static const REPLAY_CURSOR_SPIN_TURN_MS:Number = 900; // 실시간 재생에서 오래 쉬는 동안 리플레이 커서가 한바퀴 도는 시간 (시계 방향)
-        public static const REPLAY_CURSOR_SPIN_RETURN_MS:Number = 200; // 쉬는 구간이 끝나고 원래 각도로 부드럽게 돌아가는 시간, 0이면 바로 돌아감
-        private static const REPLAY_CURSOR_SPIN_TIMER:String = "replayCursorSpinTimer";
-        private static var isReplayCursorSpinning:Boolean = false; // 쉬는 구간이라 커서가 도는 중인지 (되돌아가는 중은 false)
         private static var readCount:Number = 0;
         private static var rMemoryDataLen:uint;
 
@@ -131,8 +124,6 @@ package Modules.ReplayEngine
 
         public static function updateReplayCanvasFromUndoRefData(undoRefData:Array, undoIndexSave:int):void
         {
-            fillAnim.clear();
-            moveAnim.clear();
             ReplayState.rMemoryDataReadON = true;
             ReplayState.rMemoryDataIndex = undoIndexSave;
             ReplayState.rPrevFrame = ReplayState.rNowFrame;
@@ -317,10 +308,6 @@ package Modules.ReplayEngine
                 }
             }
 
-            ReplayController.invalidateRealtimeClock();
-            stopReplayFOFOCursorSpin();
-            fillAnim.clear();
-            moveAnim.clear();
             rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
             const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);
@@ -354,72 +341,6 @@ package Modules.ReplayEngine
             }
 
             return shouldStop;
-        }
-
-        // 실시간 재생에서 오래 쉬는 구간에 들어갈때 커서를 그림 중심으로 제자리에서 돌림, 쉬는 구간마다 한번만 불림
-        // 회전은 커서 안쪽 레이어에만 줘서 캔버스 회전 상쇄(setRcursorRotation)와 섞이지 않음
-        public static function startReplayFOFOCursorSpin():void
-        {
-            if (isReplayCursorSpinning || !rReplayFOFOCursor.visible)
-            {
-                return;
-            }
-
-            isReplayCursorSpinning = true;
-            // 되돌아가는 중에 다시 돌기 시작하면 지금 각도에서 이어서 돎
-            const startAngle:Number = rReplayFOFOCursor.spinRotation;
-            const startTime:int = getTimer();
-            FOFOTimer.addByName(REPLAY_CURSOR_SPIN_TIMER, 0.0, true, function ():Boolean
-                {
-                    if (!rReplayFOFOCursor.visible)
-                    {
-                        isReplayCursorSpinning = false;
-                        rReplayFOFOCursor.spinRotation = 0;
-                        return false;
-                    }
-
-                    rReplayFOFOCursor.spinRotation = startAngle + (getTimer() - startTime) * 360 / REPLAY_CURSOR_SPIN_TURN_MS;
-                    return true;
-                });
-        }
-
-        // 쉬는 구간이 끝나서 다시 그릴때, 일시정지/탐색할때 원래 각도로 부드럽게 되돌림 (가까운 방향으로, 끝에서 느려지게)
-        // 그리기 명령마다 불리지만 돌고 있지 않으면 플래그만 보고 끝남
-        // 반환값: 돌던 중이었으면 true (부르는 쪽에서 그 프레임을 다 그린 뒤 커서 위치를 맞춰줌)
-        public static function stopReplayFOFOCursorSpin():Boolean
-        {
-            if (!isReplayCursorSpinning)
-            {
-                return false;
-            }
-
-            isReplayCursorSpinning = false;
-            // rotation은 -180~180으로 정리되어 있어서 그대로 0까지 줄이면 가까운 방향임
-            const fromAngle:Number = rReplayFOFOCursor.spinRotation;
-
-            if (REPLAY_CURSOR_SPIN_RETURN_MS <= 0 || fromAngle === 0 || !rReplayFOFOCursor.visible)
-            {
-                FOFOTimer.remove(REPLAY_CURSOR_SPIN_TIMER);
-                rReplayFOFOCursor.spinRotation = 0;
-                return true;
-            }
-
-            const startTime:int = getTimer();
-            FOFOTimer.addByName(REPLAY_CURSOR_SPIN_TIMER, 0.0, true, function ():Boolean
-                {
-                    const t:Number = (getTimer() - startTime) / REPLAY_CURSOR_SPIN_RETURN_MS;
-
-                    if (t >= 1 || !rReplayFOFOCursor.visible)
-                    {
-                        rReplayFOFOCursor.spinRotation = 0;
-                        return false;
-                    }
-
-                    const ease:Number = 1 - (1 - t) * (1 - t); // ease-out
-                    rReplayFOFOCursor.spinRotation = fromAngle * (1 - ease);
-                    return true;
-                });
-            return true;
         }
 
         public static function updateReplayCursorScale(zoom:Number):void
@@ -669,8 +590,6 @@ package Modules.ReplayEngine
         public static function clearCanvasReplayMode():void
         {
             const rect:Rectangle = new Rectangle(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT);
-            fillAnim.clear();
-            moveAnim.clear();
             rCanvasDrawShape.graphics.clear();
             rCanvasLayer1BitmapData.fillRect(rect, 0);
             rCanvasLayer2BitmapData.fillRect(rect, 0);
@@ -751,38 +670,6 @@ package Modules.ReplayEngine
             return false;
         }
 
-        // 실시간 재생용: 지금 뭉치를 다 읽었으면 다음 뭉치를 그리지 않고 불러옴
-        // 다음 명령이 wait인지 먼저 봐야 이번 프레임에 그릴지 정할수 있어서 필요함
-        // 불러오는 순서와 상태 갱신은 drawFromFileData, drawFromMemoryData와 같음
-        // 반환값: 더 읽을 데이터가 없으면 false (리플레이 끝)
-        public static function prepareNextPlayData():Boolean
-        {
-            while (ReplayDrawCommands.isReadFinished())
-            {
-                if (!ReplayState.rMemoryDataReadON)
-                {
-                    if (readNextFileData() === false)
-                    {
-                        readyToReadMemoryData(JUMP_FRAME_PLAY);
-                    }
-
-                    continue;
-                }
-
-                ReplayState.rMemoryDataIndex++;
-
-                if (checkFinish(JUMP_FRAME_PLAY))
-                {
-                    return false;
-                }
-
-                ReplayState.rPrevFrame = ReplayState.rNowFrame;
-                ReplayDrawCommands.setData(ReplayState.rMemoryData[ReplayState.rMemoryDataIndex]);
-            }
-
-            return true;
-        }
-
         // 반환값: 리플레이를 정지해야 하면 true
         public static function drawFromMemoryData(len:Number, jumpFlag:int):Boolean
         {
@@ -824,8 +711,7 @@ package Modules.ReplayEngine
 
                     if (ReplayState.isReplayStarted === false && (jumpFlag === JUMP_FRAME_MANUAL || jumpFlag === JUMP_FRAME_PREV))
                     {
-                        // 간격은 그리기 명령 수로 셈 (디스크 캐시 간격과 같은 기준이라 한 구간에 쌓이는 임시 캐시 수가 그대로임)
-                        if (ReplayTimeline.getCommandCountAtFrame(ReplayState.rNowFrame) - ReplayTimeline.getCommandCountAtFrame(ReplayFileCache.getRFrameTempCacheLastFrame()) > ReplayFileCache.REPLAY_MEMORY_CACHE_FRAME_INTERVAL)
+                        if (ReplayState.rNowFrame > ReplayFileCache.getRFrameTempCacheLastFrame() + ReplayFileCache.REPLAY_MEMORY_CACHE_FRAME_INTERVAL)
                         {
                             makeMemoryCacheImage(completedStepStartFrame);
                         }

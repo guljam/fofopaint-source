@@ -25,8 +25,6 @@ package Modules.ReplayEngine
         // tempdone에서 쓰는 플래그임
         public static var index:uint = 0;
         public static var data:Array = []; // 데이터 뭉치
-        public static var nonDrawReadCount:uint = 0; // drawNext에서 읽은 wait, fillanim 수 누적, 쓰는 곳에서 전후 차이만 봄
-        private static var firstCommandIndex:uint = 0; // 뭉치 앞쪽 wait를 건너뛴 첫 명령 위치, lineStyle이 새 획인지 판단할때 씀
         public static var cmd:Vector.<int> = new Vector.<int>();
         public static var pos:Vector.<Number> = new Vector.<Number>();
 
@@ -108,20 +106,12 @@ package Modules.ReplayEngine
         {
             data = [];
             index = 0;
-            firstCommandIndex = 0;
         }
 
         public static function setData(refData:Array, startIndex:uint = 0):void
         {
             data = refData;
             index = startIndex;
-            // 실시간 녹화 뭉치는 ["wait", n]으로 시작해서 첫 lineStyle이 0번이 아님
-            firstCommandIndex = 0;
-
-            while (data && firstCommandIndex < data.length && ReplayState.isWaitCommand(data[firstCommandIndex]))
-            {
-                firstCommandIndex++;
-            }
         }
 
         public static function getRemainingData():uint
@@ -137,45 +127,6 @@ package Modules.ReplayEngine
             if (!data)
                 return true;
             return index > data.length - 1;
-        }
-
-        // 다음에 읽을 명령을 그리지 않고 돌려줌, 뭉치를 다 읽었으면 null
-        public static function peekNext():Array
-        {
-            if (!data || index >= data.length)
-                return null;
-            return data[index];
-        }
-
-        // 다음 명령 바로 앞에 이미 읽은 wait 값의 합, 없으면 -1 (탐색으로 wait와 명령 사이에 멈췄을때 남은 대기를 이어감)
-        public static function getPrecedingWaitTicks():Number
-        {
-            var sum:Number = -1;
-
-            // wait와 lasso2, move 사이에 들어가는 lassoanim, moveanim은 건너뛰고 그 앞의 wait를 찾음
-            for (var i:int = index - 1;data && i >= 0 && i < data.length && (ReplayState.isWaitCommand(data[i]) || ReplayState.isLassoAnimCommand(data[i]) || ReplayState.isMoveAnimCommand(data[i]));i--)
-            {
-                if (ReplayState.isWaitCommand(data[i]))
-                {
-                    sum = (sum < 0 ? 0 : sum) + data[i][1];
-                }
-            }
-
-            return sum;
-        }
-
-        // 방금 읽은 fillanim 칸 앞에서 가장 가까운 fill5 명령, 없으면 null (같은 뭉치 안에 있음)
-        public static function findFillBefore():Array
-        {
-            for (var i:int = index - 1;data && i >= 0 && i < data.length;i--)
-            {
-                if (data[i][0] === "fill5")
-                {
-                    return data[i];
-                }
-            }
-
-            return null;
         }
 
         public static function getDataLength():uint
@@ -277,8 +228,7 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             }
 
-            // 뭉치 첫 명령이면 새 획이라 그리기 범위를 초기화, 아니면 이어 그리기라 범위를 합침
-            if (index === firstCommandIndex)
+            if (index === 0)
             {
                 ReplayDrawer.resetRCanvasDrawLayerClipRect();
             }
@@ -318,7 +268,7 @@ package Modules.ReplayEngine
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             }
 
-            if (index === firstCommandIndex)
+            if (index === 0)
             {
                 ReplayDrawer.resetRCanvasDrawLayerClipRectLegacy();
             }
@@ -1043,13 +993,6 @@ package Modules.ReplayEngine
                     ReplayDrawer.rCanvasLayer2BitmapData.draw(LassoTool.lassoLayer2Bitmap, mat);
                     ReplayDrawer.rCanvasLayer2Bitmap.bitmapData = ReplayDrawer.rCanvasLayer2BitmapData;
                 }
-
-                // 바로 앞 lassoanim을 실시간 재생이 읽어 준비시킨 칸일때만, 올가미 비트맵이 지워지기 전에 같은 행렬로 덮개를 만들어 애니메이션 시작
-                // (파라미터 data가 명령이라서 묶음은 클래스 이름으로 가리킴)
-                if (ReplayDrawer.fillAnim.isArmedFor(ReplayDrawCommands.data, index))
-                {
-                    ReplayDrawer.fillAnim.startLasso(mat, (data[5] || !data[5] && !data[6]) ? LassoTool.lassoLayer1Bitmap : null, data[6] ? LassoTool.lassoLayer2Bitmap : null);
-                }
             }
 
             resetLassoVars();
@@ -1638,18 +1581,6 @@ package Modules.ReplayEngine
                     break;
                 case "merge":
                     mergeLayer();
-                    break;
-                case "wait": // 실시간 재생 간격, 그리는 것은 없음
-                    nonDrawReadCount++;
-                    break;
-                case "fillanim": // 애니메이션은 실시간 재생 루프(ReplayController.drawReplayRealtime)에서만 시작함
-                    nonDrawReadCount++;
-                    break;
-                case "lassoanim": // 실시간 재생 루프가 읽고 다음 lasso2를 준비시킴 (lasso2에서 시작)
-                    nonDrawReadCount++;
-                    break;
-                case "moveanim": // 실시간 재생 루프가 이 칸을 읽은 뒤 바로 다음 이동 명령 앞에서 애니메이션을 시작함
-                    nonDrawReadCount++;
                     break;
                 default:
                     break;

@@ -53,7 +53,7 @@ package Modules.DrawEngine
                 }
                 DrawCanvas.canvasLayer2BitmapData.draw(DrawCanvas.canvasLayer1BitmapData);
                 DrawCanvas.canvasLayer1BitmapData.fillRect(new Rectangle(0, 0, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT), 0);
-                ReplayState.pushCommand(["merge"]);
+                ReplayState.rMemoryDataBuffer.push(["merge"]);
                 UndoHistory.addNew();
             }
             ToolPanel.setLayerMergeButtonEnabled(false);
@@ -87,7 +87,7 @@ package Modules.DrawEngine
             }
             else
             {
-                ReplayState.pushCommand(["swap"]);
+                ReplayState.rMemoryDataBuffer.push(["swap"]);
                 UndoHistory.addNew();
             }
             ToolPanel.flickLayerSwapButton();

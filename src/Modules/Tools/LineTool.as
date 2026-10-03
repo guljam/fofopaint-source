@@ -255,7 +255,7 @@ package Modules.Tools
                 drawLine();
                 hasLineTouchedCanvas = false;
                 UndoHistory.canAddUndoData = true;
-                ReplayState.pushCommand(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenSettings.airBrushSizeDrawMode]);
+                ReplayState.rMemoryDataBuffer.push(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenSettings.airBrushSizeDrawMode]);
             }
 
             StrokeBuffer.resetCanvasDrawLayerClipRect();
