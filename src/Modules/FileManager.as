@@ -72,7 +72,6 @@ package Modules
             replayCachePreviewFilePath = dataFolderPath.resolvePath("imagecachepreview");
         }
         // todo load box는 load box controller로 따로 분리, app state로 따로분리, app state save load 키값 파일에서 main 다른 클래스 스코프 되어있는지 조심
-        // todo 저장할때 rdata undo 되어있을때 데이터가 사라짐 deepundo쪽은 그대로 살아있음
         private static var dataFolderPath:File;
         private static var isWritingCrashLog:Boolean = false;
         public static var appStateFilePath:File;
@@ -1378,11 +1377,13 @@ package Modules
                     replayDataReadBytes.position = replayDataReadBytes.length;
                     for (var i:int = 0, len:int = UndoHistory.undoDataIndex;i <= len;i++) // 리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
                     {
-                        if (ReplayState.rMemoryData[i] && ReplayState.rMemoryData[i].length === 0)
+                        const data:Array = ReplayState.rMemoryData[i];
+
+                        if (data && data.length === 0)
                         {
                             continue;
                         }
-                        replayDataReadBytes.writeObject(ReplayState.rMemoryData[i]);
+                        replayDataReadBytes.writeObject(data);
                     }
                 }
 

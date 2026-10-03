@@ -70,7 +70,6 @@
     public class Main extends Sprite
     {
         // todo: (중요) module 클래스는 정적 변수가 아니라 main에서 호출되어서 연결되어지는 클래스 인스턴스로 가는게맞는것같음
-        // todo layer, ref layer 유사 3d느낌으로 45도 각도로 비틀어서 보이게 할수 없을까?
 
         public static var _instance:Main;
         public const APP_VERSION:String = "28.01";
@@ -208,7 +207,7 @@
         public function addGlobalEvents():void
         {
             // 전역스테이지 이벤트 cMouseMoveStage <- 스테이지 마우스 무브는 클로저로 하고있음
-            // todo gpt가 동일한 우선순위라도 capture 플래그가 true인것이 먼저 실행된다고함 capture - target  -bubble 순이라고함
+            // gpt가 동일한 우선순위라도 capture 플래그가 true인것이 먼저 실행된다고함 capture - target  -bubble 순이라고함
             // 그래서 마우스랑 키보드 입력 mouseleave이벤트를 캡쳐플래그를 true로해놓았음 나중에 기능 이상생기면 확인
             stage.addEventListener(MouseEvent.MOUSE_DOWN, InputManager.onMouseDownStage, true, InputPriority.STAGE_ROOT);
             stage.addEventListener(MouseEvent.MOUSE_UP, InputManager.onMouseUpStage, false, InputPriority.STAGE_ROOT);
