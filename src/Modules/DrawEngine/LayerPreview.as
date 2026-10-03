@@ -38,6 +38,8 @@ package Modules.DrawEngine
         private static const SIDEBAR_GAP:Number = 24.0; // 사이드바와 미리보기 사이 간격 (UI 배율 적용 전)
         private static const ORBIT_PERIOD_MS:int = 2000; // hover 한 층이 원을 한 바퀴 돌아 원점으로 돌아오는 시간
         private static const ORBIT_RADIUS_RATIO:Number = 0.01; // 원 반지름 (층 크기 대비)
+        private static const SHOW_DELAY:Number = 0.75; // wrapper에 hover 한 뒤 이 시간(초)이 지나도 마우스가 있으면 켬
+        private static const SHOW_TIMER:String = "layerPreviewShowDelay";
         private static const EASE:Number = 0.4;
         private static const HIGHLIGHT_COLOR:uint = 0x2F8CFF;
 
@@ -88,17 +90,41 @@ package Modules.DrawEngine
             CanvasView.main.stage.addEventListener(MouseEvent.MOUSE_OUT, onlayerButtonWrapperMouseOut);
         }
 
-        private static function onlayerButtonWrapperMouseOver(e:MouseEvent):void
+        private static function isMouseOverLayerButtonWrapper():Boolean
         {
-            show(); // 닫히는 중이면 닫힘을 취소함 (show가 isClosing을 풀어줌)
+            return optionsBoxRef.layerButtonWrapper.hitTestPoint(CanvasView.main.stage.mouseX, CanvasView.main.stage.mouseY);
         }
 
+        // hover 후 SHOW_DELAY 뒤에도 마우스가 wrapper 위에 있을 때만 켬
+        private static function onlayerButtonWrapperMouseOver(e:MouseEvent):void
+        {
+            if (isShown)
+            {
+                show(); // 닫히는 중이면 닫힘을 취소함 (show가 isClosing을 풀어줌)
+            }
+            else if (!FOFOTimer.hasTimer(SHOW_TIMER))
+            {
+                FOFOTimer.addByName(SHOW_TIMER, SHOW_DELAY, false, onShowTimer);
+            }
+        }
+
+        private static function onShowTimer():void
+        {
+            if (isMouseOverLayerButtonWrapper())
+            {
+                show();
+            }
+        }
+
+        // wrapper 위에 마우스가 없으면 켜기 대기를 취소하고 끔
         private static function onlayerButtonWrapperMouseOut(e:Event):void
         {
-            if(!optionsBoxRef.layerButtonWrapper.hitTestPoint(CanvasView.main.stage.mouseX,CanvasView.main.stage.mouseY))
+            if (isMouseOverLayerButtonWrapper())
             {
-                hide();
+                return;
             }
+            FOFOTimer.remove(SHOW_TIMER);
+            hide();
         }
 
         private static function getLayerButtonWrapperBounds():Rectangle
