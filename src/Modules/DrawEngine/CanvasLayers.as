@@ -8,7 +8,10 @@ package Modules.DrawEngine
     import Modules.Tools.LassoTool;
     import Modules.UIEngine.HintController;
 
+    import flash.display.Bitmap;
     import flash.display.BitmapData;
+    import flash.display.BlendMode;
+    import flash.display.Sprite;
     import flash.geom.Rectangle;
 
     // 드로우 모드 레이어 1/2: 선택, 잠금(체크), 스왑, 병합
@@ -98,8 +101,57 @@ package Modules.DrawEngine
             return checkedLayer === 0;
         }
 
+        // 지우개 미리보기: 선택된 레이어 비트맵과 canvasDrawLayer를 layer 블렌드 홀더에 묶고 canvasDrawLayer를 ERASE로 그려
+        // 그 레이어만 지워진 것처럼 보이게 함 (참조/다른 레이어/배경은 홀더 밖이라 그대로). 획이 진행되는 동안에만 유지함
+        private static const erasePreviewHolder:Sprite = new Sprite();
+        private static var erasePreviewLayer2:Boolean = false;
+
+        public static function beginErasePreview(layer2:Boolean):void
+        {
+            endErasePreview(); // 이전 획이 정상적으로 끝나지 못했어도 복구함
+
+            const panel:Sprite = CanvasView.canvasPanel;
+            const layerBitmap:Bitmap = (layer2) ? DrawCanvas.canvasLayer2Bitmap : DrawCanvas.canvasLayer1Bitmap;
+
+            erasePreviewLayer2 = layer2;
+            erasePreviewHolder.blendMode = BlendMode.LAYER;
+            panel.addChildAt(erasePreviewHolder, panel.getChildIndex(layerBitmap));
+            erasePreviewHolder.addChild(layerBitmap);
+            erasePreviewHolder.addChild(StrokeBuffer.canvasDrawLayer);
+            StrokeBuffer.canvasDrawLayer.blendMode = BlendMode.ERASE;
+        }
+
+        // 여러 번 호출해도 안전함. 저장해둔 인덱스 없이 현재 상태 기준으로 원래 순서를 다시 계산함
+        public static function endErasePreview():void
+        {
+            if (erasePreviewHolder.parent === null)
+            {
+                return;
+            }
+
+            const panel:Sprite = CanvasView.canvasPanel;
+            const layerBitmap:Bitmap = (erasePreviewLayer2) ? DrawCanvas.canvasLayer2Bitmap : DrawCanvas.canvasLayer1Bitmap;
+
+            panel.addChildAt(layerBitmap, panel.getChildIndex(erasePreviewHolder));
+            panel.removeChild(erasePreviewHolder);
+            erasePreviewHolder.blendMode = BlendMode.NORMAL;
+
+            StrokeBuffer.canvasDrawLayer.blendMode = BlendMode.LAYER;
+
+            if (erasePreviewLayer2)
+            {
+                panel.addChildAt(StrokeBuffer.canvasDrawLayer, panel.getChildIndex(DrawCanvas.canvasLayer1Bitmap)); // 레이어 2번 선택 시 layer1 바로 아래
+            }
+            else
+            {
+                panel.addChildAt(StrokeBuffer.canvasDrawLayer, panel.getChildIndex(LassoTool.lassoLayer1) + 1);
+            }
+        }
+
         public static function bringCanvasDrawLayerAboveLayer1():void
         {
+            endErasePreview();
+
             if (CanvasView.canvasPanel.getChildIndex(StrokeBuffer.canvasDrawLayer) < CanvasView.canvasPanel.getChildIndex(LassoTool.lassoLayer1))
             {
                 CanvasView.canvasPanel.setChildIndex(StrokeBuffer.canvasDrawLayer, CanvasView.canvasPanel.getChildIndex(LassoTool.lassoLayer1));
@@ -107,6 +159,8 @@ package Modules.DrawEngine
         }
         public static function bringCanvasDrawLayerAboveLayer2():void
         {
+            endErasePreview();
+
             if (CanvasView.canvasPanel.getChildIndex(StrokeBuffer.canvasDrawLayer) > CanvasView.canvasPanel.getChildIndex(DrawCanvas.canvasLayer1Bitmap))
             {
                 CanvasView.canvasPanel.setChildIndex(StrokeBuffer.canvasDrawLayer, CanvasView.canvasPanel.getChildIndex(DrawCanvas.canvasLayer1Bitmap));

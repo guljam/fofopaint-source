@@ -576,6 +576,7 @@ package Modules.Tools
 			main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
 
 			ReferenceLayerController.hideMemoryTrainingMask();
+			CanvasLayers.endErasePreview(); // DrawingFinish가 레이어를 갱신하기 전에 원래 순서로 복귀
 
 			if (isStabilizerON)
 			{
@@ -717,6 +718,11 @@ package Modules.Tools
 			}
 
 			StrokeBuffer.canvasDrawLayerChild.filters = [];
+
+			if (!isPenTool)
+			{
+				CanvasLayers.beginErasePreview(CanvasLayers.isLayer2Selected); // 선택된 레이어만 지워지는 미리보기
+			}
 
 			isStabilizerON = isPenTool && PenSettings.penSmoothSlideValue > 1;
 
