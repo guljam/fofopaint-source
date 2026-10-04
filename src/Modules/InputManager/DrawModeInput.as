@@ -273,28 +273,14 @@ package Modules.InputManager
                 case "refMirrorImageButton":
                     {
                         Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                        if (ReferenceLayerController.isRefLayerEmpty())
-                        {
-                            ReferenceLayerController.showRefLayerIsEmptyHint();
-                        }
-                        else
-                        {
-                            ReferenceLayerController.startRefLayerImageMirror();
-                        }
+                        ReferenceLayerController.startRefLayerImageMirror();
                     }
                     break;
                 case "refMemoryTrainingOnButton":
                 case "refMemoryTrainingOffButton":
                     {
                         Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                        if (ReferenceLayerController.isRefLayerEmpty())
-                        {
-                            ReferenceLayerController.showRefLayerIsEmptyHint();
-                        }
-                        else
-                        {
-                            ReferenceLayerController.toggleRefLayerMemoryTraining();
-                        }
+                        ReferenceLayerController.toggleRefLayerMemoryTraining();
                     }
                     break;
                 case "layerMergeButton":
@@ -802,11 +788,7 @@ package Modules.InputManager
                     return;
                 case "refClearImageButton":
                     {
-                        if (ReferenceLayerController.isRefLayerEmpty())
-                        {
-                            ReferenceLayerController.showRefLayerIsEmptyHint();
-                        }
-                        else
+                        if(!ReferenceLayerController.isRefLayerEmpty())
                         {
                             InputManager.startPressHoldKey(ReferenceLayerController.refLayerMenuBox.refClearImageButton, "Erasing reference image...", null, ReferenceLayerController.startReflayerClear, null);
                         }
@@ -841,53 +823,25 @@ package Modules.InputManager
                 case "refRotateImageButton":
                     {
                         Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                        if (ReferenceLayerController.isRefLayerEmpty())
-                        {
-                            ReferenceLayerController.showRefLayerIsEmptyHint();
-                        }
-                        else
-                        {
-                            ReferenceLayerController.startRefLayerRotation();
-                        }
+                        ReferenceLayerController.startRefLayerRotation();
                     }
                     return;
                 case "refMoveImageButton":
                     {
                         Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                        if (ReferenceLayerController.isRefLayerEmpty())
-                        {
-                            ReferenceLayerController.showRefLayerIsEmptyHint();
-                        }
-                        else
-                        {
-                            ReferenceLayerController.startRefLayerImageDrag();
-                        }
+                        ReferenceLayerController.startRefLayerImageDrag();
                     }
                     return;
                 case "refResizeImageButton":
                     {
                         Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                        if (ReferenceLayerController.isRefLayerEmpty())
-                        {
-                            ReferenceLayerController.showRefLayerIsEmptyHint();
-                        }
-                        else
-                        {
-                            ReferenceLayerController.startRefLayerImageScale();
-                        }
+                        ReferenceLayerController.startRefLayerImageScale();
                     }
                     return;
                 case "refOpacitySliderWrapper":
                     {
                         Utils.setAsTopChild(ReferenceLayerController.refLayerMenuBox);
-                        if (ReferenceLayerController.isRefLayerEmpty())
-                        {
-                            ReferenceLayerController.showRefLayerIsEmptyHint();
-                        }
-                        else
-                        {
-                            ReferenceLayerController.startRefLayerOpacityDrag();
-                        }
+                        ReferenceLayerController.startRefLayerOpacityDrag();
                     }
                     return;
                 case "refLayerMenuMoveButton":

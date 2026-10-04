@@ -28,6 +28,7 @@ package Modules
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.UIEngine.UITheme;
 
     public final class ReferenceLayerController
     {
@@ -35,6 +36,7 @@ package Modules
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
+            setRefLayerMenuButtonsOff();
         }
         public static const REFLAYER_VISIBLE_DELAY:Number = 0.7;
 
@@ -341,6 +343,11 @@ package Modules
 
         public static function toggleRefLayerMemoryTraining():void
         {
+            if(isRefLayerEmpty())
+            {
+                return;
+            }
+
             if (isRefLayerMemoryTrainingON === false)
             {
                 isRefLayerMemoryTrainingON = true;
@@ -502,6 +509,11 @@ package Modules
 
         public static function startRefLayerImageMirror():void
         {
+            if(isRefLayerEmpty())
+            {
+                return;
+            }
+
             var tmpbmpd:BitmapData = new BitmapData(canvasRefLayerBitmapData.width,
                     canvasRefLayerBitmapData.height, true, 0);
             var flipMat:Matrix = new Matrix(-1, 0, 0, 1, canvasRefLayerBitmapData.width);
@@ -528,6 +540,11 @@ package Modules
 
         public static function startRefLayerRotation():void
         {
+            if(isRefLayerEmpty())
+            {
+                return;
+            }
+
             const getangle:Function = UIController.showCanvasRotateCursorMouseDrag(canvasRefLayer);
 
             function onDragStart():void
@@ -554,6 +571,11 @@ package Modules
 
         public static function startRefLayerImageScale():void
         {
+            if(isRefLayerEmpty())
+            {
+                return;
+            }
+
             const getscale:Function = Utils.updateImageScaleMouseDrag(canvasRefLayer.scaleX);
 
             function onDragStart():void
@@ -585,6 +607,11 @@ package Modules
 
         public static function startRefLayerImageDrag():void
         {
+            if(isRefLayerEmpty())
+            {
+                return;
+            }
+
             const getpos:Function = Utils.updateImagePosMouseDrag(canvasRefLayerBitmap,
                     canvasRefLayer.rotation + CanvasView.canvasAnchorPoint.rotation,
                     canvasRefLayer.scaleX,
@@ -624,6 +651,11 @@ package Modules
 
         public static function startRefLayerOpacityDrag():void
         {
+            if(isRefLayerEmpty())
+            {
+                return;
+            }
+
             const barwidth:Number = refLayerMenuBox.refOpacityBar.width;
             const minx:Number = refLayerMenuBox.refOpacityBar.x + 1;
             const maxx:Number = minx + barwidth - 2;
@@ -664,6 +696,29 @@ package Modules
             DragInteraction.startDragInteraction(onDragStart, onMouseMoveUpdateopacity, function ():void {});
         }
 
+        private static function setRefLayerMenuButtonsOff():void
+        {
+            setRefLayerMenuButtonAlpha(UITheme.OFFALPHA);
+        }
+
+        public static function setRefLayerMenuButtonsOn():void
+        {
+            setRefLayerMenuButtonAlpha(1.0);
+        }
+
+        private static function setRefLayerMenuButtonAlpha(alp:Number):void
+        {
+            refLayerMenuBox.refOpacityCursor.alpha = alp;
+            refLayerMenuBox.refOpacityBar.alpha = alp;
+            refLayerMenuBox.refMoveImageButton.alpha = alp;
+            refLayerMenuBox.refRotateImageButton.alpha = alp;
+            refLayerMenuBox.refResizeImageButton.alpha = alp;
+            refLayerMenuBox.refMirrorImageButton.alpha = alp;
+            refLayerMenuBox.refMemoryTrainingOnButton.alpha = alp;
+            refLayerMenuBox.refMemoryTrainingOffButton.alpha = alp;
+            refLayerMenuBox.refClearImageButton.alpha = alp;
+        }
+
         public static function saveRefLayerImage():void
         {
             if (!canvasRefLayerBitmap.bitmapData)
@@ -695,6 +750,7 @@ package Modules
             canvasRefLayer.alpha = 0.0;
             refLayerLastAlpha = 0.0;
             saveRefLayerImage();
+            setRefLayerMenuButtonsOff();
         }
 
         public static function resetRefLayerImageTransform():void
@@ -796,6 +852,7 @@ package Modules
 
             resetRefLayerImageTransform();
             resetRefLayerOpacitySlider();
+            setRefLayerMenuButtonsOn();
         }
 
         public static function transferLoadedImageToRefLayer(bmpd:IBitmapDrawable, w:Number, h:Number):void
@@ -837,6 +894,7 @@ package Modules
             }
 
             resetRefLayerOpacitySlider();
+            setRefLayerMenuButtonsOn();
         }
 
         public static function mirrorRefLayerImage():void
@@ -866,11 +924,6 @@ package Modules
                 canvasRefLayerBitmap.x += rPos.x / scX;
                 canvasRefLayerBitmap.y += rPos.y / scY;
             }
-        }
-
-        public static function showRefLayerIsEmptyHint():void
-        {
-            HintController.showMouseHintTemp("The reference layer is empty");
         }
 
         public static function isRefLayerEmpty():Boolean

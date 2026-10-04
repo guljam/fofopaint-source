@@ -267,6 +267,11 @@ package Modules
                 ReferenceLayerController.canvasRefLayerBitmapData = DrawCanvas.updateBitmapData(ReferenceLayerController.canvasRefLayerBitmapData, tmpbmpd, ReferenceLayerController.canvasRefLayerBitmap);
                 ReferenceLayerController.canvasRefLayerBitmap.smoothing = true;
 
+                if(!ReferenceLayerController.isRefLayerEmpty())
+                {
+                    ReferenceLayerController.setRefLayerMenuButtonsOn();
+                }
+
                 tmpbmpd.dispose();
                 tmpbmpd = null;
             }
