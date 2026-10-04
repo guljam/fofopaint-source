@@ -1423,6 +1423,11 @@ package Modules.ReplayEngine
                 HintController.hideMouseHint();
             }
 
+            if(HintController.isHighlightBoxVisible())
+            {
+                HintController.hideBottomHint();
+            }
+
             ReplayController.seekBarBox.pauseButton.visible = false;
             Utils.setAsTopChild(ReplayController.seekBarBox);
             ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
