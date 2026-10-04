@@ -7,6 +7,8 @@ package Modules.ReplayEngine
     import flash.filesystem.FileStream;
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
+    import flash.utils.getTimer;
+    import Modules.UIEngine.HintController;
     import Modules.BackgroundWorkerCoordinator;
     import Modules.CacheImageMetaData;
     import Modules.FileManager;
@@ -127,6 +129,8 @@ package Modules.ReplayEngine
             referenceImage = null;
             replayFileByteArray = null;
 
+            var savedFile:File;
+
             try
             {
                 if (isWritten === false)
@@ -134,7 +138,8 @@ package Modules.ReplayEngine
                     throw new Error("replay temp file write failed");
                 }
                 const newPath:String = getReplayFileNameFromPath(FileManager.lastSaveFilePath);
-                FileManager.repFileTemp.moveTo(new File(newPath), true);
+                savedFile = new File(newPath);
+                FileManager.repFileTemp.moveTo(savedFile, true);
             }
             catch (err:Error)
             {
@@ -153,6 +158,23 @@ package Modules.ReplayEngine
             {
                 BackgroundWorkerCoordinator.isSaveInProgress = 0;
             }
+
+            HintController.showMouseHintTemp("Saved (" + (getTimer() - FileManager.saveStartTime) + " ms, " + formatFileSize(savedFile.size) + ")",10.0);
+        }
+
+        private static function formatFileSize(bytes:Number):String
+        {
+            if (bytes >= 1048576)
+            {
+                return (bytes / 1048576).toFixed(2) + " MB";
+            }
+
+            if (bytes >= 1024)
+            {
+                return (bytes / 1024).toFixed(1) + " KB";
+            }
+
+            return bytes + " B";
         }
 
         public static function loadReplayCacheImage(index:int):Object

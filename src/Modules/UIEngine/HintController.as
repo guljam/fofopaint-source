@@ -364,7 +364,7 @@ package Modules.UIEngine
             mouseHint.hide();
         }
 
-        public static function showMouseHintTemp(str:String, duration:Number = 2.0):void
+        public static function showMouseHintTemp(str:String, duration:Number = 3.0):void
         {
             showMouseHint(str, duration);
         }

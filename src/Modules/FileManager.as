@@ -65,6 +65,7 @@ package Modules
         public static var isFileAlreadySaved:Boolean = false; // 세이브 버튼 여러번 눌러서 데이터 계속 쓰여지는거 방지
         public static var isContinueSaveON:Boolean = false; // 한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
         private static var pendingInvokeArguments:Array; // 앱 상태 복원이 끝나기 전에 받은 invoke 인자
+        public static var saveStartTime:int = 0; // saveFOFOFile 호출 시각, 저장 완료 힌트에 걸린 시간 표시용
         public static var lastSaveFileName:String = getRandomFileName(); // 세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
         public static var lastSaveFilePath:String = lastSaveFileName; // 파일 저장경로로 계속 저장 초기에는 filename이랑 똑같게 해줌
         private static var lastSaveCaptureFilePath:String = lastSaveFileName;
@@ -876,6 +877,8 @@ package Modules
 
         private static function saveFOFOFile():void
         {
+            saveStartTime = getTimer();
+
             if (AppStateManager.replayDataFilePath.exists)
             {
                 rLayer1FirstImageData = new ByteArray();
