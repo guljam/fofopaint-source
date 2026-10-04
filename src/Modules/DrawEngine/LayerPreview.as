@@ -42,6 +42,7 @@ package Modules.DrawEngine
         private static const SHOW_DELAY:Number = 0.75; // wrapper에 hover 한 뒤 이 시간(초)이 지나도 마우스가 있으면 켬
         private static const SHOW_TIMER:String = "layerPreviewShowDelay";
         private static const MOUSE_DOWN_PRIORITY:int = 10000; // 다른 마우스 입력 리스너보다 먼저 실행되게 함
+        private static const KEY_SHOW_TIMER:String = "layerPreviewKeyShow";
         private static const KEY_STOP_TIMER:String = "layerPreviewKeyStop";
         private static const KEY_STOP_DELAY:Number = 0.5; // 단축키를 뗀 뒤 이 시간(초) 뒤에 프리뷰를 끔
         private static const EASE:Number = 0.4;
@@ -116,12 +117,21 @@ package Modules.DrawEngine
             }
         }
 
-        // 레이어 선택 단축키(1/2/9/0)를 누르면 즉시 켬. keyCode는 떼는 키와 대조하는 용도
-        // 마우스 hover로 이미 켜져 있으면 키가 소유하지 않음 (닫히는 중이면 키가 이어받아 되살림)
+        // 레이어 선택 단축키(1/2/9/0)를 SHOW_DELAY 동안 누르고 있으면 켬. keyCode는 떼는 키와 대조하는 용도
         public static function startKeyPreview(keyCode:int):void
         {
             keyPreviewKey = keyCode;
-            FOFOTimer.remove(KEY_STOP_TIMER);
+            FOFOTimer.remove(KEY_STOP_TIMER); // 끄려고 기다리던 중이면 취소
+            FOFOTimer.addByName(KEY_SHOW_TIMER, SHOW_DELAY, false, onKeyShowTimer);
+        }
+
+        // 마우스 hover로 이미 켜져 있으면 키가 소유하지 않음 (닫히는 중이면 키가 이어받아 되살림)
+        private static function onKeyShowTimer():void
+        {
+            if (keyPreviewKey < 0 || !InputManager.isPressedKey(keyPreviewKey))
+            {
+                return; // 그 사이 키를 뗌
+            }
             if (isShown && !isClosing)
             {
                 return;
@@ -142,6 +152,7 @@ package Modules.DrawEngine
                 return;
             }
             keyPreviewKey = -1;
+            FOFOTimer.remove(KEY_SHOW_TIMER); // 켜기 전에 뗐으면 취소
             if (isKeyPreview)
             {
                 FOFOTimer.addByName(KEY_STOP_TIMER, KEY_STOP_DELAY, false, onKeyStopTimer);
@@ -265,6 +276,7 @@ package Modules.DrawEngine
             isKeyPreview = false;
             keyPreviewKey = -1;
             FOFOTimer.remove(KEY_STOP_TIMER);
+            FOFOTimer.remove(KEY_SHOW_TIMER);
             FOFOTimer.remove(SHOW_TIMER);
             t = 0.0;
             highlightDepth = -1;
