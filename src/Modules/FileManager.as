@@ -817,7 +817,9 @@ package Modules
                         {
                             return;
                         }
+
                         LoadBoxController.lastLoadedFile = file;
+
                         if (ReplayState.isReplayStarted)
                         {
                             ReplayController.stopReplay();

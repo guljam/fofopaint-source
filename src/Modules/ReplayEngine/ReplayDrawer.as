@@ -186,6 +186,8 @@ package Modules.ReplayEngine
             // slide show모드로 재생하게 되면 클리어 케시를 계속 호출해주고
             // 재생 완료시 rJumpImageIndexLast가 갱신되어있을때 다시 해주면 메모리 캐시가 없는데 캐시를 불러주는 버그가 생겨서
             // 아무생각없이 넣어본건데 버그 안나서 그대로 두려고함
+            // ReplayState.isReplayStarted와 관련하여
+            // 2026-10-04 claude 분석 결과 "재생 중에는 임시 캐시를 만들거나 지우지 않는다. 슬라이드쇼가 점프 이미지 경계를 넘을 때 디스크 재로드를 피하기 위함".
             if (index !== ReplayFileCache.rLastCacheImageIndex && ReplayState.isReplayStarted === false)
             {
                 ReplayFileCache.clearRFrameTempCache();

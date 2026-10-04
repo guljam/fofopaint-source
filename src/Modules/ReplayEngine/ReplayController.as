@@ -128,6 +128,7 @@ package Modules.ReplayEngine
             {
                 if (ReplayState.isReplayStarted)
                     stopReplay();
+
                 var files:Array = c.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
                 // 두개이상 선택하고 드래그 할수있기 때문에 하나만 선택되었을때 되도록 해줌
 
@@ -166,7 +167,7 @@ package Modules.ReplayEngine
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
                 updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
 
-                if (ReplayState.TOTAL_FRAME === 0)
+                if (ReplayState.isZeroReplayFrame())
                 {
                     ReplayController.seekBarBox.resetReplayPrograssBarWidth();
                 }
@@ -458,7 +459,7 @@ package Modules.ReplayEngine
 
         public static function onSeekbarClick():void
         {
-            if (ReplayState.TOTAL_FRAME === 0 || ReplayState.rReplayImageCacheState > ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE)
+            if (ReplayState.isZeroReplayFrame() || ReplayState.rReplayImageCacheState > ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE)
             {
                 return;
             }
@@ -1211,7 +1212,7 @@ package Modules.ReplayEngine
         {
             updateReplayPrograssText(true, ReplayState.rNowFrame);
 
-            if (ReplayState.TOTAL_FRAME === 0)
+            if (ReplayState.isZeroReplayFrame())
             {
                 ReplayController.seekBarBox.resetReplayPrograssBarWidth();
             }
@@ -1330,13 +1331,18 @@ package Modules.ReplayEngine
 
         public static function handleReplayStartButton():void
         {
+            if (!ReplayState.canStartReplay())
+            {
+                return;
+            }
+
             hideTopbarOnReplayStart();
             startReplay();
         }
 
         public static function startReplay():void
         {
-            if (ReplayState.isReplayStarted || ReplayState.TOTAL_FRAME === 0)
+            if (!ReplayState.canStartReplay())
             {
                 return;
             }
@@ -1647,7 +1653,6 @@ package Modules.ReplayEngine
             rCanvasCompleteBitmap.filters = [];
             ReplayDrawer.rCanvasPanel.filters = [];
         }
-
 
         private static function showCompleteImageToBGReplayMode():void
         {

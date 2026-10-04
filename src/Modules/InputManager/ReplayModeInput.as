@@ -123,6 +123,7 @@ package Modules.InputManager
                 }
             }
         }
+
         private static function handleShiftSubKeyReplayMode(input:int):void
         {
             switch (input)
@@ -131,7 +132,7 @@ package Modules.InputManager
                 case InputManager.KEY.z:
                 case InputManager.KEY.dot:
                     {
-                        if (!ReplayState.isReplayStarted)
+                        if (ReplayState.canStartReplay())
                         {
                             InputManager.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
                         }
@@ -141,7 +142,7 @@ package Modules.InputManager
                 case InputManager.KEY.x:
                 case InputManager.KEY.comma:
                     {
-                        if (!ReplayState.isReplayStarted)
+                        if (ReplayState.canStartReplay())
                         {
                             InputManager.startKeyRepeat(true, ReplayController.moveToNextFrame);
                         }
@@ -154,6 +155,7 @@ package Modules.InputManager
         {
             InputManager.checkGeneralKeyUp();
         }
+
         private static function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         {
             const firstKey:uint = InputManager.getFirstPressedKey();
@@ -161,6 +163,7 @@ package Modules.InputManager
             {
                 return;
             }
+
             if (ReplayState.isReplayStarted)
             {
                 switch (firstKey)
@@ -178,6 +181,7 @@ package Modules.InputManager
                 }
                 return;
             }
+
             if (ReplayController.isReplayRestartTimerON())
             {
                 switch (firstKey)
@@ -194,6 +198,7 @@ package Modules.InputManager
                 }
                 return;
             }
+
             if (InputManager.isPressingShift())
             {
                 InputManager.checkSubKey(2, false, handleShiftSubKeyReplayMode);
@@ -204,14 +209,16 @@ package Modules.InputManager
                 InputManager.checkSubKey(2, true, handleControlSubKeyReplayMode);
                 return;
             }
+
             InputManager.updateLastKey();
+
             switch (firstKey)
             {
                 case InputManager.KEY.left:
                 case InputManager.KEY.z:
                 case InputManager.KEY.dot:
                     {
-                        if (!ReplayState.isReplayStarted)
+                        if (ReplayState.canStartReplay())
                         {
                             InputManager.startKeyRepeat(true, ReplayController.moveToPreviousStep);
                         }
@@ -221,7 +228,7 @@ package Modules.InputManager
                 case InputManager.KEY.x:
                 case InputManager.KEY.comma:
                     {
-                        if (!ReplayState.isReplayStarted)
+                        if (ReplayState.canStartReplay())
                         {
                             InputManager.startKeyRepeat(true, ReplayController.moveToNextStep);
                         }
@@ -231,7 +238,7 @@ package Modules.InputManager
                 case InputManager.KEY.f:
                 case InputManager.KEY.h:
                     {
-                        if (!ReplayState.isReplayStarted)
+                        if (ReplayState.canStartReplay())
                         {
                             ReplayController.startAdjustPlayBackSpeedByShortcut(true);
                         }
@@ -241,7 +248,7 @@ package Modules.InputManager
                 case InputManager.KEY.v:
                 case InputManager.KEY.n:
                     {
-                        if (!ReplayState.isReplayStarted)
+                        if (ReplayState.canStartReplay())
                         {
                             ReplayController.startAdjustPlayBackSpeedByShortcut(false);
                         }
@@ -258,11 +265,7 @@ package Modules.InputManager
                 case InputManager.KEY.enter:
                 case InputManager.KEY.space:
                     {
-                        if (ReplayController.isReplayRestartTimerON())
-                        {
-                            ReplayController.cancelReplayRestartTimer();
-                        }
-                        else
+                        if (ReplayState.canStartReplay())
                         {
                             ReplayController.handleReplayStartButton();
                         }
@@ -273,7 +276,8 @@ package Modules.InputManager
 
         private static function onRightMouseDownReplayMode(e:MouseEvent):void
         {
-            if (MouseState.isLeftDown || InputManager.isKeyPressed() || !e.target || LoadBoxController.loadMenuBox.visible)
+            if (MouseState.isLeftDown || InputManager.isKeyPressed() || !e.target || LoadBoxController.loadMenuBox.visible
+                    || ReplayState.isZeroReplayFrame())
             {
                 return;
             }
@@ -476,7 +480,7 @@ package Modules.InputManager
                         InputManager.handleMouseClickStage(targetName, onClickReplayButton);
                     }
                     break;
-                // 캡처 모드로 들어가면 리플레이 입력이 해제되므로 실제로는 여기로 오지 않음
+                    // 캡처 모드로 들어가면 리플레이 입력이 해제되므로 실제로는 여기로 오지 않음
                 case "capOff":
                 case "capSave":
                 case "capClipBoard":
@@ -491,7 +495,7 @@ package Modules.InputManager
                         InputManager.handleMouseClickStage(targetName, CaptureModeInput.onClickCaptureButton);
                     }
                     break;
-                // 드로우 모드와 같이 쓰는 상단바 버튼
+                    // 드로우 모드와 같이 쓰는 상단바 버튼
                 case "saveButton":
                 case "captureButton":
                 case "repCaptureButton":

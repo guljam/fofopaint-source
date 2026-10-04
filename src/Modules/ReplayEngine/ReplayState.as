@@ -46,6 +46,16 @@ package Modules.ReplayEngine
         public static var rFileLastBytePosition:Number = 0; // fs position 저장
         public static var rFileCutBytePosition:Number = 0; // super undo에서 파일 잘라줄때 필요함
 
+        public static function isZeroReplayFrame():Boolean
+        {
+            return TOTAL_FRAME === 0;
+        }
+
+        public static function canStartReplay():Boolean
+        {
+            return isReplayStarted === false && !isZeroReplayFrame();
+        }
+
         // undo index까지의 프레임 합을 구함
         public static function getRMemoryDataTotalFrame(index:int):Number
         {

@@ -1,34 +1,34 @@
 package Modules
 {
+    import Modules.CaptureEngine.CaptureController;
+    import Modules.DrawEngine.CanvasLayers;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
-    import Modules.DrawEngine.CanvasLayers;
+    import Modules.ReplayEngine.ReplayState;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
-    import Modules.CaptureEngine.CaptureController;
+    import Modules.UIEngine.UITheme;
 
     import Symbols.RefLayerMenuSet;
 
     import flash.display.Bitmap;
     import flash.display.BitmapData;
+    import flash.display.BlendMode;
     import flash.display.DisplayObject;
     import flash.display.IBitmapDrawable;
-    import flash.display.BlendMode;
     import flash.display.Shape;
     import flash.display.SimpleButton;
-    import flash.filters.BlurFilter;
     import flash.display.Sprite;
     import flash.events.MouseEvent;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
+    import flash.filters.BlurFilter;
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
-    import Modules.ReplayEngine.ReplayState;
-    import Modules.UIEngine.UITheme;
 
     public final class ReferenceLayerController
     {
@@ -343,7 +343,7 @@ package Modules
 
         public static function toggleRefLayerMemoryTraining():void
         {
-            if(isRefLayerEmpty())
+            if (isRefLayerEmpty())
             {
                 return;
             }
@@ -509,7 +509,7 @@ package Modules
 
         public static function startRefLayerImageMirror():void
         {
-            if(isRefLayerEmpty())
+            if (isRefLayerEmpty())
             {
                 return;
             }
@@ -540,7 +540,7 @@ package Modules
 
         public static function startRefLayerRotation():void
         {
-            if(isRefLayerEmpty())
+            if (isRefLayerEmpty())
             {
                 return;
             }
@@ -571,7 +571,7 @@ package Modules
 
         public static function startRefLayerImageScale():void
         {
-            if(isRefLayerEmpty())
+            if (isRefLayerEmpty())
             {
                 return;
             }
@@ -607,7 +607,7 @@ package Modules
 
         public static function startRefLayerImageDrag():void
         {
-            if(isRefLayerEmpty())
+            if (isRefLayerEmpty())
             {
                 return;
             }
@@ -651,7 +651,7 @@ package Modules
 
         public static function startRefLayerOpacityDrag():void
         {
-            if(isRefLayerEmpty())
+            if (isRefLayerEmpty())
             {
                 return;
             }
