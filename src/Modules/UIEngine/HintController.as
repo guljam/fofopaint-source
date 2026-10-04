@@ -23,6 +23,7 @@ package Modules.UIEngine
     import flash.display.Sprite;
     import flash.events.MouseEvent;
     import flash.geom.Rectangle;
+    import Modules.DrawEngine.CanvasLayers;
 
     // 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시. 문구는 HintStrings가 담당
     public final class HintController
@@ -88,6 +89,10 @@ package Modules.UIEngine
             // || isLassoToolStarted
         }
 
+        public static function showMouseHintLayerChecked():void
+        {
+            showMouseHintTemp(HintStrings.getLayerCheckedHint(CanvasLayers.isLayer2Selected));
+        }
         public static function showMouseHintLayerVisible():void
         {
             showMouseHintTemp(HintStrings.getLayerVisibleHint(DrawCanvas.canvasLayer1Bitmap.visible, DrawCanvas.canvasLayer2Bitmap.visible));

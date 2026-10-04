@@ -523,6 +523,40 @@ package Modules.InputManager
             }
         }
 
+        private static function handleLayerSelectShortcut(layer:int, keyCode:int):void
+        {
+            const other:int = (layer === 1) ? 2 : 1;
+            const isLayer2Selected:Boolean = ((layer === 2) === CanvasLayers.isLayer2Selected);
+            const otherVisible:Boolean = (other === 1 ? DrawCanvas.canvasLayer1Bitmap : DrawCanvas.canvasLayer2Bitmap).visible;
+
+            if (!isLayer2Selected)
+            {
+                HintController.showMouseHintTemp("Layer " + layer + " selected");
+                CanvasLayers.selectLayer(layer, false);
+            }
+            else if (!otherVisible)
+            {
+                CanvasLayers.selectLayer(layer, false);
+                CanvasLayers.toggleLayerCheck(layer);
+                HintController.showMouseHintLayerChecked();
+            }
+            else if (CanvasLayers.checkedLayer === layer)
+            {
+                CanvasLayers.toggleLayerCheck(layer);
+            }
+            else
+            {
+                CanvasLayers.selectLayer(layer, true); // 이 분기에서 otherVisible은 항상 true
+                HintController.showMouseHintLayerVisible();
+            }
+
+            if (CanvasLayers.checkedLayer === other)
+            {
+                CanvasLayers.toggleLayerCheck(other);
+            }
+            LayerPreview.startKeyPreview(keyCode);
+        }
+
         // 도구 선택이 아닌 단축키: 참조 레이어 메뉴, 미러, 스크래치 패드 색 추출, 새 파일
         // 처리했으면 true. C/M을 스크래치 패드 밖에서 누른 경우는 스포이드 도구라 false로 넘김
         private static function handleNonToolKeyDown(keyCode:int):Boolean
@@ -600,43 +634,11 @@ package Modules.InputManager
                     return true;
                 case InputManager.KEY.n1:
                 case InputManager.KEY.n9:
-                    {
-                        if (CanvasLayers.isLayer2Selected)
-                        {
-                            HintController.showMouseHintTemp("Layer 1 selected");
-                            CanvasLayers.selectLayer1(false);
-                        }
-                        else
-                        {
-                            CanvasLayers.selectLayer1(DrawCanvas.canvasLayer2Bitmap.visible);
-                            HintController.showMouseHintLayerVisible();
-                        }
-                        if (CanvasLayers.checkedLayer === 2)
-                        {
-                            CanvasLayers.toggleLayer2Check();
-                        }
-                        LayerPreview.startKeyPreview(keyCode);
-                    }
+                    handleLayerSelectShortcut(1, keyCode);
                     return true;
                 case InputManager.KEY.n2:
                 case InputManager.KEY.n0:
-                    {
-                        if (!CanvasLayers.isLayer2Selected)
-                        {
-                            HintController.showMouseHintTemp("Layer 2 selected");
-                            CanvasLayers.selectLayer2(false);
-                        }
-                        else
-                        {
-                            CanvasLayers.selectLayer2(DrawCanvas.canvasLayer1Bitmap.visible);
-                            HintController.showMouseHintLayerVisible();
-                        }
-                        if (CanvasLayers.checkedLayer === 1)
-                        {
-                            CanvasLayers.toggleLayer1Check();
-                        }
-                        LayerPreview.startKeyPreview(keyCode);
-                    }
+                    handleLayerSelectShortcut(2, keyCode);
                     return true;
                 case InputManager.KEY.n3:
                 case InputManager.KEY.n8:

@@ -379,6 +379,11 @@
             return Math.round(width) + " x " + Math.round(height) + " (" + scaleStr + ")";
         }
 
+        public static function getLayerCheckedHint(isLayer2:Boolean):String
+        {
+            return (!isLayer2) ? "Layer 1 checked" : "Layer 2 checked";
+        }
+
         public static function getLayerVisibleHint(layer1:Boolean, layer2:Boolean):String
         {
             if (layer1)

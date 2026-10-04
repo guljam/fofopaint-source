@@ -513,7 +513,7 @@ package Modules
                         PenSizePreviewCursor.updateSizeAndShape();
                         isLoadingAppData = false;
                         AppWindowState.updateWindowTitle();
-                        CanvasLayers.selectLayer1(false);
+                        CanvasLayers.selectLayer(1, false);
 
                         // undo 저장본과 리플레이 파일이 맞지 않으면 캐시 이미지를 처음부터 다시 만들면서 최종 캔버스까지 갱신함
                         const rebuildFromReplayFile:Boolean = isRebuildFromReplayFileNeeded;
@@ -581,7 +581,7 @@ package Modules
                 UIController.applyUIColorSet();
 
                 UIController.canvasInfoBox.init(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, Math.floor(CanvasView.canvasZoomMultiplier * 100), CanvasView.canvasAnchorPoint.rotation, false);
-                CanvasLayers.selectLayer1(false);
+                CanvasLayers.selectLayer(1, false);
 
                 PaletteController.initMyPaletteHistory();
 

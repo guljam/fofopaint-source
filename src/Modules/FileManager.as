@@ -389,15 +389,15 @@ package Modules
                 ReferenceLayerController.canvasRefLayerBitmap.smoothing = true;
             }
             AppWindowState.updateWindowTitle();
-            CanvasLayers.selectLayer1(false);
+            CanvasLayers.selectLayer(1, false);
             ReplayDrawer.selectReplaySubLayer(false);
             if (CanvasLayers.checkedLayer === 1)
             {
-                CanvasLayers.toggleLayer1Check();
+                CanvasLayers.toggleLayerCheck(1);
             }
             if (CanvasLayers.checkedLayer === 2)
             {
-                CanvasLayers.toggleLayer2Check();
+                CanvasLayers.toggleLayerCheck(2);
             }
             CanvasResizer.updateButtonPos(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
             InputManager.removeKeyRepeatEvents(null);

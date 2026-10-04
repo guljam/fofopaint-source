@@ -36,15 +36,18 @@ package Modules.DrawEngine
             return false;
         }
 
-        public static function toggleLayer1Check():void
+        public static function toggleLayerCheck(layer:int):void
         {
-            checkedLayer = (checkedLayer === 1) ? 0 : 1;
-            ToolPanel.updateLayerCheckButtons();
-        }
-        public static function toggleLayer2Check():void
-        {
-            checkedLayer = (checkedLayer === 2) ? 0 : 2;
-            ToolPanel.updateLayerCheckButtons();
+            if(layer === 1)
+            {
+                checkedLayer = (checkedLayer === 1) ? 0 : 1;
+                ToolPanel.updateLayerCheckButtons();
+            }
+            else if(layer === 2)
+            {
+                checkedLayer = (checkedLayer === 2) ? 0 : 2;
+                ToolPanel.updateLayerCheckButtons();
+            }
         }
 
         public static function mergeImageIntoLayer2():void
@@ -193,36 +196,13 @@ package Modules.DrawEngine
             }
         }
 
-        public static function selectLayer1(onlyViewFlag:Boolean):void
+        // layer: 1 또는 2. onlyViewFlag가 true면 선택한 레이어만 보이게 함 (solo)
+        public static function selectLayer(layer:int, onlyViewFlag:Boolean):void
         {
-            isLayer2Selected = false;
-            if (onlyViewFlag)
-            {
-                DrawCanvas.canvasLayer1Bitmap.visible = true;
-                DrawCanvas.canvasLayer2Bitmap.visible = false;
-            }
-            else
-            {
-                DrawCanvas.canvasLayer1Bitmap.visible = true;
-                DrawCanvas.canvasLayer2Bitmap.visible = true;
-            }
-            ToolPanel.updateLayerSelectButtons(1, onlyViewFlag);
-            syncDrawLayerOrder();
-        }
-        public static function selectLayer2(onlyViewFlag:Boolean):void
-        {
-            isLayer2Selected = true;
-            if (onlyViewFlag)
-            {
-                DrawCanvas.canvasLayer1Bitmap.visible = false;
-                DrawCanvas.canvasLayer2Bitmap.visible = true;
-            }
-            else
-            {
-                DrawCanvas.canvasLayer1Bitmap.visible = true;
-                DrawCanvas.canvasLayer2Bitmap.visible = true;
-            }
-            ToolPanel.updateLayerSelectButtons(2, onlyViewFlag);
+            isLayer2Selected = (layer === 2);
+            DrawCanvas.canvasLayer1Bitmap.visible = !onlyViewFlag || layer === 1;
+            DrawCanvas.canvasLayer2Bitmap.visible = !onlyViewFlag || layer === 2;
+            ToolPanel.updateLayerSelectButtons(layer, onlyViewFlag);
             syncDrawLayerOrder();
         }
     }

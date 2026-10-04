@@ -906,32 +906,32 @@ package Modules.Tools
                 case "layer1CheckedButton":
                 case "layer1UncheckedButton":
                     {
-                        CanvasLayers.selectLayer1(false);
-                        CanvasLayers.toggleLayer1Check();
+                        CanvasLayers.selectLayer(1, false);
+                        CanvasLayers.toggleLayerCheck(1);
                     }
                     return true;
                 case "layer2CheckedButton":
                 case "layer2UncheckedButton":
                     {
-                        CanvasLayers.selectLayer2(false);
-                        CanvasLayers.toggleLayer2Check();
+                        CanvasLayers.selectLayer(2, false);
+                        CanvasLayers.toggleLayerCheck(2);
                     }
                     return true;
                 case "layer1SelectButton":
                     {
                         if (CanvasLayers.isLayer2Selected)
                         {
-                            CanvasLayers.selectLayer1(false);
+                            CanvasLayers.selectLayer(1, false);
                         }
                         else
                         {
-                            CanvasLayers.selectLayer1(DrawCanvas.canvasLayer2Bitmap.visible);
+                            CanvasLayers.selectLayer(1, DrawCanvas.canvasLayer2Bitmap.visible);
                             HintController.showMouseHintLayerVisible();
                         }
 
                         if (CanvasLayers.checkedLayer === 2)
                         {
-                            CanvasLayers.toggleLayer2Check();
+                            CanvasLayers.toggleLayerCheck(2);
                         }
                     }
                     return true;
@@ -939,17 +939,17 @@ package Modules.Tools
                     {
                         if (!CanvasLayers.isLayer2Selected)
                         {
-                            CanvasLayers.selectLayer2(false);
+                            CanvasLayers.selectLayer(2, false);
                         }
                         else
                         {
-                            CanvasLayers.selectLayer2(DrawCanvas.canvasLayer1Bitmap.visible);
+                            CanvasLayers.selectLayer(2, DrawCanvas.canvasLayer1Bitmap.visible);
                             HintController.showMouseHintLayerVisible();
                         }
 
                         if (CanvasLayers.checkedLayer === 1)
                         {
-                            CanvasLayers.toggleLayer1Check();
+                            CanvasLayers.toggleLayerCheck(1);
                         }
                     }
                     return true;
