@@ -43,9 +43,9 @@ package Modules
         // canvasRefLayer와 메모리 트레이닝 원을 담는 홀더. layer 블렌드라서 원의 ERASE가 참조 이미지만 지우고 캔버스 배경색은 그대로 비침
         public static const canvasRefHolder:Sprite = new Sprite();
 
-        public static const MEMORY_TRAINING_MASK_DIAMETER:Number = 250; // 화면 기준 지름(px)
+        public static const MEMORY_TRAINING_MASK_DIAMETER:Number = 350; // 화면 기준 지름(px)
         public static const MEMORY_TRAINING_MASK_BLUR:Number = 40;
-        public static const MEMORY_TRAINING_MASK_HIDE_DELAY:Number = 0.0; // 도구 종료 후 원이 사라지기 시작하기까지의 지연(초). 체감 테스트용
+        public static const MEMORY_TRAINING_MASK_HIDE_DELAY:Number = 0.6; // 도구 종료 후 원이 사라지기 시작하기까지의 지연(초). 체감 테스트용
         public static const MEMORY_TRAINING_MASK_FADE_STEP:Number = 0.12; // 프레임당 alpha 변화량
 
         private static var memoryTrainingMask:Shape = null; // 메모리 트레이닝이 켜져 있는 동안에만 존재

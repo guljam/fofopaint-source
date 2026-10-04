@@ -1,5 +1,6 @@
 package Modules.DrawEngine
 {
+    import Modules.InputManager.InputManager;
     import Modules.MouseState;
     import Modules.ReferenceLayerController;
     import Modules.SidebarController;
@@ -40,6 +41,7 @@ package Modules.DrawEngine
         private static const ORBIT_RADIUS_RATIO:Number = 0.01; // 원 반지름 (층 크기 대비)
         private static const SHOW_DELAY:Number = 0.75; // wrapper에 hover 한 뒤 이 시간(초)이 지나도 마우스가 있으면 켬
         private static const SHOW_TIMER:String = "layerPreviewShowDelay";
+        private static const KEY_TIMER:String = "layerPreviewKeyDelay";
         private static const EASE:Number = 0.4;
         private static const HIGHLIGHT_COLOR:uint = 0x2F8CFF;
 
@@ -63,6 +65,9 @@ package Modules.DrawEngine
         private static var isClosing:Boolean = false;
         private static var t:Number = 0.0; // 0: 평면, 1: 완전히 기울어진 상태
         private static var highlightDepth:int = -1;
+        private static var isKeyPreview:Boolean = false; // 단축키를 누르고 있어서 켜진 상태
+        private static var keyPreviewDepth:int = -1;
+        private static var keyPreviewKey:int = -1;
         private static var orbitDepth:int = -1;
         private static var orbitStartTime:int = 0;
         private static var drawnWidth:int = 0;
@@ -116,9 +121,53 @@ package Modules.DrawEngine
             }
         }
 
+        // 레이어 선택 단축키(1/2/9/0)를 SHOW_DELAY 동안 누르고 있으면 해당 레이어를 강조하며 켬
+        // layer: 1 또는 2, keyCode: 누른 키 (떼는 키와 대조하는 용도)
+        public static function startKeyPreview(layer:int, keyCode:int):void
+        {
+            keyPreviewDepth = (layer === 1) ? DEPTH_LAYER1 : DEPTH_LAYER2;
+            keyPreviewKey = keyCode;
+            FOFOTimer.addByName(KEY_TIMER, SHOW_DELAY, false, onKeyShowTimer);
+        }
+
+        private static function onKeyShowTimer():void
+        {
+            if (keyPreviewKey < 0 || !InputManager.isPressedKey(keyPreviewKey) || isShown)
+            {
+                return; // 이미 떼졌거나, 마우스 hover로 이미 켜져 있으면 키가 소유하지 않음
+            }
+            isKeyPreview = true;
+            highlightDepth = keyPreviewDepth;
+            show();
+            if (!isShown)
+            {
+                isKeyPreview = false; // 리플레이 모드 등으로 켜지지 못함
+            }
+        }
+
+        // 단축키를 떼면 즉시 원상복구
+        public static function endKeyPreview(keyCode:int):void
+        {
+            if (keyCode !== keyPreviewKey)
+            {
+                return;
+            }
+            FOFOTimer.remove(KEY_TIMER);
+            keyPreviewKey = -1;
+            if (isKeyPreview)
+            {
+                isKeyPreview = false;
+                hide();
+            }
+        }
+
         // wrapper 위에 마우스가 없으면 켜기 대기를 취소하고 끔
         private static function onlayerButtonWrapperMouseOut(e:Event):void
         {
+            if (isKeyPreview)
+            {
+                return; // 단축키로 켠 프리뷰는 키를 뗄 때 끔
+            }
             if (isMouseOverLayerButtonWrapper())
             {
                 return;
@@ -217,6 +266,7 @@ package Modules.DrawEngine
             }
             isShown = false;
             isClosing = false;
+            isKeyPreview = false;
             t = 0.0;
             highlightDepth = -1;
             container.removeEventListener(Event.ENTER_FRAME, onFrame);
@@ -270,8 +320,16 @@ package Modules.DrawEngine
                 close();
                 return;
             }
+            if (isKeyPreview)
+            {
+                highlightDepth = keyPreviewDepth;
+                if (!InputManager.isPressedKey(keyPreviewKey)) // keyup을 놓친 경우 (포커스 상실 등)
+                {
+                    endKeyPreview(keyPreviewKey);
+                }
+            }
             // 닫히는 도중 마우스가 다시 들어왔는데 MOUSE_OVER를 놓친 경우를 대비해, 실제 위치로 닫힘을 취소함
-            if (isClosing && optionsBoxRef.layerButtonWrapper.hitTestPoint(CanvasView.main.stage.mouseX, CanvasView.main.stage.mouseY))
+            if (isClosing && !isKeyPreview &&optionsBoxRef.layerButtonWrapper.hitTestPoint(CanvasView.main.stage.mouseX, CanvasView.main.stage.mouseY))
             {
                 isClosing = false;
             }

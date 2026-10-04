@@ -5,6 +5,7 @@ package Modules.InputManager
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
+    import Modules.DrawEngine.LayerPreview;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.DrawEngine.CanvasResizer;
     import Modules.MouseState;
@@ -314,6 +315,7 @@ package Modules.InputManager
         private static function onKeyUpDrawMode(e:KeyboardEvent):void // keyup1
         {
             const keyCode:uint = e.keyCode;
+            LayerPreview.endKeyPreview(keyCode); // 레이어 단축키를 떼면 프리뷰 즉시 복구
             if (InputManager.isLastKey(keyCode))
             {
                 if (MouseState.isLeftDown === true)
@@ -613,6 +615,7 @@ package Modules.InputManager
                         {
                             CanvasLayers.toggleLayer2Check();
                         }
+                        LayerPreview.startKeyPreview(1, keyCode);
                     }
                     return true;
                 case InputManager.KEY.n2:
@@ -632,6 +635,7 @@ package Modules.InputManager
                         {
                             CanvasLayers.toggleLayer1Check();
                         }
+                        LayerPreview.startKeyPreview(2, keyCode);
                     }
                     return true;
                 case InputManager.KEY.n3:
