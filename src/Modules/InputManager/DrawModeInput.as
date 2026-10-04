@@ -615,7 +615,7 @@ package Modules.InputManager
                         {
                             CanvasLayers.toggleLayer2Check();
                         }
-                        LayerPreview.startKeyPreview(1, keyCode);
+                        LayerPreview.startKeyPreview(keyCode);
                     }
                     return true;
                 case InputManager.KEY.n2:
@@ -635,7 +635,7 @@ package Modules.InputManager
                         {
                             CanvasLayers.toggleLayer1Check();
                         }
-                        LayerPreview.startKeyPreview(2, keyCode);
+                        LayerPreview.startKeyPreview(keyCode);
                     }
                     return true;
                 case InputManager.KEY.n3:

@@ -41,7 +41,9 @@ package Modules.DrawEngine
         private static const ORBIT_RADIUS_RATIO:Number = 0.01; // 원 반지름 (층 크기 대비)
         private static const SHOW_DELAY:Number = 0.75; // wrapper에 hover 한 뒤 이 시간(초)이 지나도 마우스가 있으면 켬
         private static const SHOW_TIMER:String = "layerPreviewShowDelay";
-        private static const KEY_TIMER:String = "layerPreviewKeyDelay";
+        private static const MOUSE_DOWN_PRIORITY:int = 10000; // 다른 마우스 입력 리스너보다 먼저 실행되게 함
+        private static const KEY_STOP_TIMER:String = "layerPreviewKeyStop";
+        private static const KEY_STOP_DELAY:Number = 0.5; // 단축키를 뗀 뒤 이 시간(초) 뒤에 프리뷰를 끔
         private static const EASE:Number = 0.4;
         private static const HIGHLIGHT_COLOR:uint = 0x2F8CFF;
 
@@ -66,7 +68,6 @@ package Modules.DrawEngine
         private static var t:Number = 0.0; // 0: 평면, 1: 완전히 기울어진 상태
         private static var highlightDepth:int = -1;
         private static var isKeyPreview:Boolean = false; // 단축키를 누르고 있어서 켜진 상태
-        private static var keyPreviewDepth:int = -1;
         private static var keyPreviewKey:int = -1;
         private static var orbitDepth:int = -1;
         private static var orbitStartTime:int = 0;
@@ -83,12 +84,6 @@ package Modules.DrawEngine
         public static function init(optionsBox:ToolOptionsSet):void
         {
             optionsBoxRef = optionsBox;
-            attach(optionsBox.layer1SelectButton, DEPTH_LAYER1);
-            attach(optionsBox.layer1CheckedButton, DEPTH_LAYER1);
-            attach(optionsBox.layer1UncheckedButton, DEPTH_LAYER1);
-            attach(optionsBox.layer2SelectButton, DEPTH_LAYER2);
-            attach(optionsBox.layer2CheckedButton, DEPTH_LAYER2);
-            attach(optionsBox.layer2UncheckedButton, DEPTH_LAYER2);
             // ROLL_OVER/OUT은 버튼 사이 빈틈이나 자식 경계에서 켜졌다 꺼지기를 반복하므로 쓰지 않고,
             // 마우스가 컨트롤 박스의 경계 사각형 안에 있는지로 켜고 끔
             optionsBox.layerButtonWrapper.addEventListener(MouseEvent.MOUSE_OVER, onlayerButtonWrapperMouseOver);
@@ -121,23 +116,17 @@ package Modules.DrawEngine
             }
         }
 
-        // 레이어 선택 단축키(1/2/9/0)를 SHOW_DELAY 동안 누르고 있으면 해당 레이어를 강조하며 켬
-        // layer: 1 또는 2, keyCode: 누른 키 (떼는 키와 대조하는 용도)
-        public static function startKeyPreview(layer:int, keyCode:int):void
+        // 레이어 선택 단축키(1/2/9/0)를 누르면 즉시 켬. keyCode는 떼는 키와 대조하는 용도
+        // 마우스 hover로 이미 켜져 있으면 키가 소유하지 않음 (닫히는 중이면 키가 이어받아 되살림)
+        public static function startKeyPreview(keyCode:int):void
         {
-            keyPreviewDepth = (layer === 1) ? DEPTH_LAYER1 : DEPTH_LAYER2;
             keyPreviewKey = keyCode;
-            FOFOTimer.addByName(KEY_TIMER, SHOW_DELAY, false, onKeyShowTimer);
-        }
-
-        private static function onKeyShowTimer():void
-        {
-            if (keyPreviewKey < 0 || !InputManager.isPressedKey(keyPreviewKey) || isShown)
+            FOFOTimer.remove(KEY_STOP_TIMER);
+            if (isShown && !isClosing)
             {
-                return; // 이미 떼졌거나, 마우스 hover로 이미 켜져 있으면 키가 소유하지 않음
+                return;
             }
             isKeyPreview = true;
-            highlightDepth = keyPreviewDepth;
             show();
             if (!isShown)
             {
@@ -145,20 +134,38 @@ package Modules.DrawEngine
             }
         }
 
-        // 단축키를 떼면 즉시 원상복구
+        // 단축키를 떼면 KEY_STOP_DELAY 뒤에 끔 (그 사이 다시 누르면 취소)
         public static function endKeyPreview(keyCode:int):void
         {
             if (keyCode !== keyPreviewKey)
             {
                 return;
             }
-            FOFOTimer.remove(KEY_TIMER);
             keyPreviewKey = -1;
             if (isKeyPreview)
+            {
+                FOFOTimer.addByName(KEY_STOP_TIMER, KEY_STOP_DELAY, false, onKeyStopTimer);
+            }
+        }
+
+        private static function onKeyStopTimer():void
+        {
+            if (isKeyPreview && keyPreviewKey < 0)
             {
                 isKeyPreview = false;
                 hide();
             }
+        }
+
+        // 캔버스 입력(마우스 누름)이 들어오면 애니메이션 중이라도 즉시 취소함. 레이어 버튼 클릭은 제외
+        private static function onStageMouseDown(e:MouseEvent):void
+        {
+            const target:DisplayObject = e.target as DisplayObject;
+            if (target !== null && optionsBoxRef.layerButtonWrapper.contains(target))
+            {
+                return;
+            }
+            close();
         }
 
         // wrapper 위에 마우스가 없으면 켜기 대기를 취소하고 끔
@@ -207,21 +214,6 @@ package Modules.DrawEngine
             areaRight = isPreviewOnRight ? stageW - gap : leftEdge - gap;
         }
 
-        // 레이어 버튼 hover는 테두리만 바꿈. 미리보기 위치는 움직이지 않음
-        private static function attach(button:DisplayObject, depth:int):void
-        {
-            button.addEventListener(MouseEvent.MOUSE_OVER, function(e:MouseEvent):void
-                {
-                    highlightDepth = depth;
-                });
-            button.addEventListener(MouseEvent.MOUSE_OUT, onButtonOut);
-        }
-
-        private static function onButtonOut(e:MouseEvent):void
-        {
-            highlightDepth = -1;
-        }
-
         public static function show():void
         {
             if (ReplayState.isReplayModeON || MouseState.isDragging)
@@ -242,6 +234,10 @@ package Modules.DrawEngine
             CanvasView.canvasPanel.visible = false;
             container.addEventListener(Event.ENTER_FRAME, onFrame);
             CanvasView.main.stage.addEventListener(Event.DEACTIVATE, onDeactivate);
+            // 캔버스 입력은 캡처 단계에서 먼저 받아서, 입력 처리보다 앞서 프리뷰를 걷어냄
+            CanvasView.main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onStageMouseDown, true, MOUSE_DOWN_PRIORITY);
+            CanvasView.main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onStageMouseDown, true, MOUSE_DOWN_PRIORITY);
+            CanvasView.main.stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, onStageMouseDown, true, MOUSE_DOWN_PRIORITY);
             update();
         }
 
@@ -267,10 +263,16 @@ package Modules.DrawEngine
             isShown = false;
             isClosing = false;
             isKeyPreview = false;
+            keyPreviewKey = -1;
+            FOFOTimer.remove(KEY_STOP_TIMER);
+            FOFOTimer.remove(SHOW_TIMER);
             t = 0.0;
             highlightDepth = -1;
             container.removeEventListener(Event.ENTER_FRAME, onFrame);
             CanvasView.main.stage.removeEventListener(Event.DEACTIVATE, onDeactivate);
+            CanvasView.main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onStageMouseDown, true);
+            CanvasView.main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onStageMouseDown, true);
+            CanvasView.main.stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, onStageMouseDown, true);
             if (container.parent)
             {
                 container.parent.removeChild(container);
@@ -320,13 +322,9 @@ package Modules.DrawEngine
                 close();
                 return;
             }
-            if (isKeyPreview)
+            if (isKeyPreview && keyPreviewKey >= 0 && !InputManager.isPressedKey(keyPreviewKey)) // keyup을 놓친 경우 (포커스 상실 등)
             {
-                highlightDepth = keyPreviewDepth;
-                if (!InputManager.isPressedKey(keyPreviewKey)) // keyup을 놓친 경우 (포커스 상실 등)
-                {
-                    endKeyPreview(keyPreviewKey);
-                }
+                endKeyPreview(keyPreviewKey);
             }
             // 닫히는 도중 마우스가 다시 들어왔는데 MOUSE_OVER를 놓친 경우를 대비해, 실제 위치로 닫힘을 취소함
             if (isClosing && !isKeyPreview &&optionsBoxRef.layerButtonWrapper.hitTestPoint(CanvasView.main.stage.mouseX, CanvasView.main.stage.mouseY))
@@ -362,6 +360,8 @@ package Modules.DrawEngine
 
             updateRefPlane(w, h);
 
+            // 파란 테두리와 궤도 움직임은 실제로 선택된 레이어에 표시
+            highlightDepth = CanvasLayers.isLayer2Selected ? DEPTH_LAYER2 : DEPTH_LAYER1;
             if (highlightDepth !== orbitDepth)
             {
                 orbitDepth = highlightDepth;
