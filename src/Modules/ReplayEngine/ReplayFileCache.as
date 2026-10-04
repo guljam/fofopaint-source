@@ -56,46 +56,64 @@ package Modules.ReplayEngine
                 replayFileByteArray:ByteArray):void
         {
             const fs:FileStream = new FileStream();
+            var isWritten:Boolean = true;
 
-            // 실제 저장할 파일을 다시 써줌
-            fs.open(FileManager.repFileTemp, FileMode.WRITE);
-            fs.position = 0;
-            // 파일 헤더, 리플레이 블록이 코덱 형식이면 이전 버전과 구분되게 V2FOFOPAINT
-            fs.writeUTFBytes(ReplayDataCodec.isEncoded(replayFileByteArray) ? FileManager.REPLAY_FILE_HEADER_V2 : FileManager.REPLAY_FILE_HEADER_V1);
-            fs.writeUnsignedInt(replayFileByteArray.length); // 뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
-            fs.writeBytes(replayFileByteArray);
-
-            // 임시 미러 플래그임
-            if (ReplayState.lastMirrorReadyFlag) // 임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
+            try
             {
-                const tempMirrorData:Array = [["mirror"]];
-                fs.writeObject(tempMirrorData);
+                // 실제 저장할 파일을 다시 써줌
+                fs.open(FileManager.repFileTemp, FileMode.WRITE);
+                fs.position = 0;
+                // 파일 헤더, 리플레이 블록이 코덱 형식이면 이전 버전과 구분되게 V2FOFOPAINT
+                fs.writeUTFBytes(ReplayDataCodec.isEncoded(replayFileByteArray) ? FileManager.REPLAY_FILE_HEADER_V2 : FileManager.REPLAY_FILE_HEADER_V1);
+                fs.writeUnsignedInt(replayFileByteArray.length); // 뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
+                fs.writeBytes(replayFileByteArray);
+
+                // 임시 미러 플래그임
+                if (ReplayState.lastMirrorReadyFlag) // 임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
+                {
+                    const tempMirrorData:Array = [["mirror"]];
+                    fs.writeObject(tempMirrorData);
+                }
+
+                fs.writeObject(["rFirstImage", firstImageLayer1,
+                                            firstImageLayer2,
+                                            ReplaySaveMetaData.firstImageWidth,
+                                            ReplaySaveMetaData.firstImageHeight,
+                                            ReplaySaveMetaData.firstImageBG,
+                                            ReplaySaveMetaData.firstImageMirrorFlag]);
+                fs.writeObject(["rFinalImage", finalImageLayer1, finalImageLayer2, ReplaySaveMetaData.finalImageWidth,ReplaySaveMetaData.finalImageHeight,ReplaySaveMetaData.finalImageBG]);
+
+                if (ReferenceLayerController.canvasRefLayerBitmapData)
+                {
+                    fs.writeObject(["refimage", referenceImage, // 1
+                                ReplaySaveMetaData.refImageWidth,
+                                ReplaySaveMetaData.refImageHeight,
+                                ReplaySaveMetaData.refImageBitmapX,
+                                ReplaySaveMetaData.refImageBitmapY,
+                                ReplaySaveMetaData.refImageBitmapRotation,
+                                ReplaySaveMetaData.refImageBitmapScaleX,
+                                ReplaySaveMetaData.refImageBitmapScaleY,
+                                ReplaySaveMetaData.refImageBitmapMirrorFlag,
+                                ReplaySaveMetaData.refImageBitmapMoveSum,
+                                ReplaySaveMetaData.refImageAlpha]);
+                }
+
+                fs.close();
+            }
+            catch (writeErr:Error)
+            {
+                // 임시 파일 쓰기 실패(디스크 부족, 잠김 등), 아래에서 저장 잠금을 풀고 새 파일로 저장해줌
+                isWritten = false;
+
+                try
+                {
+                    fs.close();
+                }
+                catch (closeErr:Error)
+                {
+                }
             }
 
-            fs.writeObject(["rFirstImage", firstImageLayer1,
-                                        firstImageLayer2,
-                                        ReplaySaveMetaData.firstImageWidth,
-                                        ReplaySaveMetaData.firstImageHeight,
-                                        ReplaySaveMetaData.firstImageBG,
-                                        ReplaySaveMetaData.firstImageMirrorFlag]);
-            fs.writeObject(["rFinalImage", finalImageLayer1, finalImageLayer2, ReplaySaveMetaData.finalImageWidth,ReplaySaveMetaData.finalImageHeight,ReplaySaveMetaData.finalImageBG]);
-
-            if (ReferenceLayerController.canvasRefLayerBitmapData)
-            {
-                fs.writeObject(["refimage", referenceImage, // 1
-                            ReplaySaveMetaData.refImageWidth,
-                            ReplaySaveMetaData.refImageHeight,
-                            ReplaySaveMetaData.refImageBitmapX,
-                            ReplaySaveMetaData.refImageBitmapY,
-                            ReplaySaveMetaData.refImageBitmapRotation,
-                            ReplaySaveMetaData.refImageBitmapScaleX,
-                            ReplaySaveMetaData.refImageBitmapScaleY,
-                            ReplaySaveMetaData.refImageBitmapMirrorFlag,
-                            ReplaySaveMetaData.refImageBitmapMoveSum,
-                            ReplaySaveMetaData.refImageAlpha]);
-            }
-
-            fs.close();
             firstImageLayer1.clear();
             firstImageLayer2.clear();
             finalImageLayer1.clear();
@@ -111,6 +129,10 @@ package Modules.ReplayEngine
 
             try
             {
+                if (isWritten === false)
+                {
+                    throw new Error("replay temp file write failed");
+                }
                 const newPath:String = getReplayFileNameFromPath(FileManager.lastSaveFilePath);
                 FileManager.repFileTemp.moveTo(new File(newPath), true);
             }
