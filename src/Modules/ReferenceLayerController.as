@@ -453,7 +453,9 @@ package Modules
 
         private static function updateMemoryTrainingMaskPos():Boolean
         {
-            if (memoryTrainingMask === null)
+            if (memoryTrainingMask === null
+                    || (memoryTrainingMask.x === canvasRefHolder.mouseX
+                        && memoryTrainingMask.y === canvasRefHolder.mouseY))
             {
                 return false;
             }
