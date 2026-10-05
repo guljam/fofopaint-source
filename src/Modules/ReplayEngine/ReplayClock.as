@@ -27,6 +27,8 @@ package Modules.ReplayEngine
 
         private static var cachedSegment:int = -1; // 풀어둔 파일 구간 번호
         private static var cachedTimes:Vector.<Number> = null; // 그 구간 안 프레임별 녹화 시각 (구간 시작 시각 포함한 절대값)
+        private static var cachedAnims:Vector.<uint> = null; // 그 구간 안 프레임별 연출 길이(ms)
+        private static var memoryAnims:Vector.<uint> = new Vector.<uint>(); // 파일 뒤 메모리 프레임의 연출 길이
 
         private static var anchorRecorded:Number = 0; // R0
         private static var anchorReal:int = 0; // T0
@@ -51,11 +53,13 @@ package Modules.ReplayEngine
             TimingSheetFile.alignTo(fileFrames);
             cachedSegment = -1;
             cachedTimes = null;
+            cachedAnims = null;
             afkEnd = -1;
 
             segmentStart = new Vector.<Number>();
             gapRanges = new Vector.<Number>();
             var sum:Number = 0;
+            var prevAnim:uint = 0; // 앞 프레임의 연출 길이
             const file:File = AppStateManager.replayTimingSheetFilePath;
 
             if (fileFrames > 0 && file.exists)
@@ -69,19 +73,22 @@ package Modules.ReplayEngine
                     segmentStart.push(sum);
                     const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES, fileFrames - first));
                     chunk.clear();
-                    fs.readBytes(chunk, 0, count * 4);
+                    fs.readBytes(chunk, 0, count * TimingSheetFile.RECORD_BYTES);
                     chunk.position = 0;
 
                     for (var i:int = 0; i < count; i++)
                     {
                         const delta:uint = chunk.readUnsignedInt();
+                        const anim:uint = chunk.readUnsignedInt();
 
-                        if (delta >= AFK_WAIT_MS)
+                        // 쉬는 구간은 앞 프레임의 연출이 끝난 시각부터 이 프레임까지
+                        if (delta > prevAnim && delta - prevAnim >= AFK_WAIT_MS)
                         {
-                            gapRanges.push(sum, sum + delta);
+                            gapRanges.push(sum + prevAnim, sum + delta);
                         }
 
                         sum += delta;
+                        prevAnim = anim;
                     }
                 }
 
@@ -91,17 +98,20 @@ package Modules.ReplayEngine
             fileEndTime = sum;
 
             // 메모리 묶음: 파일 마지막 프레임 이후의 간격
-            const memoryDeltas:Vector.<uint> = TimingSheetFile.computeMemoryDeltas(ReplayState.rMemoryDataTimingSheet, ReplayState.rMemoryData.length);
+            const memoryDeltas:Vector.<uint> = new Vector.<uint>();
+            memoryAnims = new Vector.<uint>();
+            TimingSheetFile.computeMemoryRecords(ReplayState.rMemoryDataTimingSheet, ReplayState.rMemoryData.length, memoryDeltas, memoryAnims);
             memoryCumulative = new Vector.<Number>(memoryDeltas.length, true);
 
             for (i = 0; i < memoryDeltas.length; i++)
             {
-                if (memoryDeltas[i] >= AFK_WAIT_MS)
+                if (memoryDeltas[i] > prevAnim && memoryDeltas[i] - prevAnim >= AFK_WAIT_MS)
                 {
-                    gapRanges.push(sum, sum + memoryDeltas[i]);
+                    gapRanges.push(sum + prevAnim, sum + memoryDeltas[i]);
                 }
 
                 sum += memoryDeltas[i];
+                prevAnim = memoryAnims[i];
                 memoryCumulative[i] = sum;
             }
 
@@ -132,6 +142,24 @@ package Modules.ReplayEngine
             return cachedTimes[int(frame - segment * TimingSheet.SEGMENT_FRAMES)];
         }
 
+        // 프레임 frame(0부터)의 연출 길이(ms), 연출이 없는 명령은 0
+        public static function animMsOfFrame(frame:Number):Number
+        {
+            if (frame < 0 || frame >= totalFrames)
+            {
+                return 0;
+            }
+
+            if (frame >= fileFrames)
+            {
+                return memoryAnims[int(frame - fileFrames)];
+            }
+
+            const segment:int = int(frame / TimingSheet.SEGMENT_FRAMES);
+            loadSegment(segment);
+            return cachedAnims[int(frame - segment * TimingSheet.SEGMENT_FRAMES)];
+        }
+
         private static function loadSegment(segment:int):void
         {
             if (segment === cachedSegment)
@@ -141,7 +169,9 @@ package Modules.ReplayEngine
 
             const first:Number = segment * TimingSheet.SEGMENT_FRAMES;
             const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES, fileFrames - first));
-            const deltas:Vector.<uint> = TimingSheetFile.readRange(first, count);
+            const deltas:Vector.<uint> = new Vector.<uint>(count, true);
+            const anims:Vector.<uint> = new Vector.<uint>(count, true);
+            TimingSheetFile.readRange(first, count, deltas, anims);
             const times:Vector.<Number> = new Vector.<Number>(count, true);
             var sum:Number = segmentStart[segment];
 
@@ -152,6 +182,7 @@ package Modules.ReplayEngine
             }
 
             cachedTimes = times;
+            cachedAnims = anims;
             cachedSegment = segment;
         }
 
@@ -260,7 +291,8 @@ package Modules.ReplayEngine
             // 다음 프레임이 AFK 공백 뒤에 있으면 공백이 끝날때까지 기다림
             if (drawnFrames < totalFrames && drawnFrames > 0)
             {
-                const gapStart:Number = timeOfFrame(drawnFrames - 1);
+                // 앞 프레임의 연출(도구를 쓰던 시간)은 쉬는 시간이 아니라서 연출이 끝난 시각부터 셈
+                const gapStart:Number = timeOfFrame(drawnFrames - 1) + animMsOfFrame(drawnFrames - 1);
                 const gapEnd:Number = timeOfFrame(drawnFrames);
 
                 if (recorded >= gapStart && gapEnd - gapStart >= AFK_WAIT_MS * speed && recorded < gapEnd)

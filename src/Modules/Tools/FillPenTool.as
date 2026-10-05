@@ -22,6 +22,7 @@ package Modules.Tools
     import flash.display.SimpleButton;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
+    import flash.utils.getTimer;
     import flash.display.DisplayObject;
     import Symbols.FillPenMenuSet;
     import flash.geom.Rectangle;
@@ -66,6 +67,7 @@ package Modules.Tools
         private static var lastFillPenBoxUsedButton:SimpleButton;
         private static var turnOffFillPenPreviewTimerCount:int = 0; // 프리뷰 일정시간 지나면 사라지게 함
         private static var isStartedFromShortCut:Boolean = false;
+        private static var toolStartStamp:int = 0; // 채우기 펜을 시작한 getTimer 값, 적용할때 타이밍 시트에 연출 시간(시작~적용)으로 기록함
 
         private static function handleOnMouseUp():void
         {
@@ -437,7 +439,7 @@ package Modules.Tools
                 data.push(data[1]); // 마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
 
                 StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
-                ReplayState.rMemoryDataBuffer.push(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), PenSettings.isPenAirBrushON, PenSettings.airBrushSizeDrawMode]);
+                ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), PenSettings.isPenAirBrushON, PenSettings.airBrushSizeDrawMode], toolStartStamp));
 
                 showFillColor(false); // 블러는 DrawingFinish가 적용함
             }
@@ -497,6 +499,7 @@ package Modules.Tools
         public static function start():void
         {
             _isStarted = true;
+            toolStartStamp = getTimer();
 
             if (InputManager.getFirstPressedKey() === InputManager.KEY.q || InputManager.getFirstPressedKey() === InputManager.KEY.o)
             {

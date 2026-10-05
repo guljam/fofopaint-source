@@ -31,6 +31,7 @@ package Modules.Tools
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
+    import flash.utils.getTimer;
     import flash.filters.ConvolutionFilter;
     import flash.geom.Matrix;
     import flash.geom.Point;
@@ -634,6 +635,7 @@ package Modules.Tools
 
         private static const SELECTION_DRAG_OWNER:String = "lassoSelection";
         private static var isLassoSelecting:Boolean = false;
+        private static var lassoStartStamp:int = 0; // 올가미를 시작한 getTimer 값, 적용할때 타이밍 시트에 연출 시간(시작~적용)으로 기록함
 
         public static function startLassoSelection():void
         {
@@ -649,6 +651,7 @@ package Modules.Tools
             const clickX:Number = StrokeBuffer.canvasDrawLayerChild.mouseX;
             const clickY:Number = StrokeBuffer.canvasDrawLayerChild.mouseY;
 
+            lassoStartStamp = getTimer();
             lassoPreviewDrawnCount = 0;
             _lassoMenuBox.hint("Lasso tool");
             lassoDraw.x = 0;
@@ -949,12 +952,12 @@ package Modules.Tools
                         checklayer1 = false;
                         checklayer2 = true;
                     }
-                    ReplayState.rMemoryDataBuffer.push(["lasso2", point1, point2
+                    ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand(["lasso2", point1, point2
                                 , lassoInfo
                                 , isLassoImageCopied
                                 , checklayer1
                                 , checklayer2
-                                , command]);
+                                , command], lassoStartStamp));
                     UndoHistory.addNew();
                 }
                 else

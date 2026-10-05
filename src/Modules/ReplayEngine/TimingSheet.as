@@ -16,16 +16,22 @@ package Modules.ReplayEngine
         public static const INFO_START_TIME:int = 2; // 구간 첫 프레임의 시각(ms, 처음 프레임 기준)
         public static const INFO_DURATION:int = 3; // 구간 첫 프레임부터 마지막 프레임까지의 시간(ms)
 
-        // delta를 가변 길이 정수로 쓰고 zlib으로 압축한 구간 데이터를 만듬
-        // delta는 작은 값이 대부분이라 대부분 1바이트, 긴 공백만 2~5바이트
-        public static function encodeSegment(deltas:Vector.<uint>, from:int, count:int):ByteArray
+        // 간격(deltas)과 연출 길이(anims)를 가변 길이 정수로 차례로 쓰고 zlib으로 압축한 구간 데이터를 만듬
+        // 간격은 작은 값이 대부분이라 대부분 1바이트, 긴 공백만 2~5바이트이고, 연출 길이는 대부분 0이라 거의 공간을 안 씀
+        public static function encodeSegment(deltas:Vector.<uint>, anims:Vector.<uint>, count:int):ByteArray
         {
             const output:ByteArray = new ByteArray();
-            const end:int = from + count;
+            writeVarints(output, deltas, count);
+            writeVarints(output, anims, count);
+            output.compress();
+            return output;
+        }
 
-            for (var i:int = from; i < end; i++)
+        private static function writeVarints(output:ByteArray, values:Vector.<uint>, count:int):void
+        {
+            for (var i:int = 0; i < count; i++)
             {
-                var value:uint = deltas[i];
+                var value:uint = values[i];
 
                 while (value >= 128)
                 {
@@ -35,21 +41,34 @@ package Modules.ReplayEngine
 
                 output.writeByte(value);
             }
-
-            output.compress();
-            return output;
         }
 
-        // encodeSegment의 반대. blob은 건드리지 않음
-        public static function decodeSegment(blob:ByteArray, count:int):Vector.<uint>
+        // encodeSegment의 반대. blob은 건드리지 않고, 결과는 count 길이의 deltas, anims에 채움
+        public static function decodeSegment(blob:ByteArray, count:int, deltas:Vector.<uint>, anims:Vector.<uint>):void
         {
             const raw:ByteArray = new ByteArray();
             raw.writeBytes(blob, 0, blob.length);
             raw.uncompress();
             raw.position = 0;
 
-            const deltas:Vector.<uint> = new Vector.<uint>(count, true);
+            try
+            {
+                readVarints(raw, deltas, count);
+                readVarints(raw, anims, count);
 
+                if (raw.bytesAvailable > 0)
+                {
+                    throw new Error("Trailing timing sheet bytes");
+                }
+            }
+            finally
+            {
+                raw.clear();
+            }
+        }
+
+        private static function readVarints(raw:ByteArray, values:Vector.<uint>, count:int):void
+        {
             for (var i:int = 0; i < count; i++)
             {
                 var result:uint = 0;
@@ -59,7 +78,6 @@ package Modules.ReplayEngine
                 {
                     if (raw.bytesAvailable === 0 || shift >= 35)
                     {
-                        raw.clear();
                         throw new Error("Invalid timing sheet segment");
                     }
 
@@ -73,18 +91,8 @@ package Modules.ReplayEngine
                     }
                 }
 
-                deltas[i] = result;
+                values[i] = result;
             }
-
-            const trailing:Boolean = raw.bytesAvailable > 0;
-            raw.clear();
-
-            if (trailing)
-            {
-                throw new Error("Trailing timing sheet bytes");
-            }
-
-            return deltas;
         }
 
         // 구간 안에서 각 프레임의 시각(구간 시작 기준 누적 ms)을 구함. 첫 값은 deltas[0]

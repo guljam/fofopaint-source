@@ -6,6 +6,7 @@ package Modules.Tools
     import Modules.InputPriority;
     import Modules.MouseState;
     import flash.events.MouseEvent;
+    import flash.utils.getTimer;
     import Modules.Utils;
     import flash.display.BitmapData;
     import flash.geom.Matrix;
@@ -130,28 +131,28 @@ package Modules.Tools
                 if (CanvasLayers.checkedLayer === 1)
                 {
                     command = "move1";
-                    ReplayState.rMemoryDataBuffer.push([command, movex, movey]);
+                    ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand([command, movex, movey], moveStartStamp));
                 }
                 else if (CanvasLayers.checkedLayer === 2)
                 {
                     command = "move2";
-                    ReplayState.rMemoryDataBuffer.push([command, movex1, movey1]);
+                    ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand([command, movex1, movey1], moveStartStamp));
                 }
                 else
                 {
                     if (!DrawCanvas.canvasLayer2Bitmap.visible)
                     {
                         command = "move1";
-                        ReplayState.rMemoryDataBuffer.push([command, movex, movey]);
+                        ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand([command, movex, movey], moveStartStamp));
                     }
                     else if (!DrawCanvas.canvasLayer1Bitmap.visible)
                     {
                         command = "move2";
-                        ReplayState.rMemoryDataBuffer.push([command, movex1, movey1]);
+                        ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand([command, movex1, movey1], moveStartStamp));
                     }
                     else
                     {
-                        ReplayState.rMemoryDataBuffer.push([command, movex, movey]);
+                        ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand([command, movex, movey], moveStartStamp));
                     }
                 }
 
@@ -189,6 +190,8 @@ package Modules.Tools
             }
         }
 
+        private static var moveStartStamp:int = 0; // 이동을 시작(마우스를 누른) getTimer 값, 놓을때 타이밍 시트에 연출 시간으로 기록함
+
         public static function start():void
         {
             if (CanvasLayers.isAllLayerInvisible())
@@ -196,6 +199,7 @@ package Modules.Tools
                 return;
             }
 
+            moveStartStamp = getTimer();
             getMovedPos = Utils.updateImagePosMouseDrag(DrawCanvas.canvasLayer1Bitmap, CanvasView.canvasAnchorPoint.rotation);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
 

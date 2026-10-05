@@ -889,7 +889,7 @@ package Modules
                 {
                     for (var j:int = 0;j < times[i].length;j++)
                     {
-                        times[i][j] = (times[i][j] + offset) | 0;
+                        times[i][j] = TimingSheetFile.packStamp((TimingSheetFile.unpackStamp(times[i][j]) + offset) | 0, TimingSheetFile.unpackAnimMs(times[i][j]));
                     }
                 }
 
@@ -905,7 +905,7 @@ package Modules
 
                 for (j = 0;j < filled.length;j++)
                 {
-                    filled[j] = now;
+                    filled[j] = TimingSheetFile.packStamp(now, 0);
                 }
 
                 ReplayState.rMemoryDataTimingSheet.push(filled);

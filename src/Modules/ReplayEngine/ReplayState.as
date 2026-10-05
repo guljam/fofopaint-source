@@ -113,27 +113,41 @@ package Modules.ReplayEngine
         // 버퍼에 push하는 식 안에서 감싸서 씀: rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["lineTo", x, y]))
         public static function stampTimingSheetCommand(command:Array):Array
         {
-            rTimingSheetBufferStamps[command] = getTimer();
+            rTimingSheetBufferStamps[command] = TimingSheetFile.packStamp(getTimer(), 0);
             return command;
         }
 
-        // 버퍼의 명령마다 기록할 getTimer 값을 순서대로 돌려주고 기록을 비움 (묶음이 메모리 undo 데이터로 들어갈때 부름)
-        // 기록하지 않은 명령은 앞 명령의 값을 따르고, 맨 앞에 기록 없는 명령(mirror 등)이 있으면 처음 기록된 값을 따름
-        // 기록이 하나도 없는 묶음(채우기, 올가미 등)은 전부 지금 시각, 순서대로 줄어들지 않도록 이전 값보다 작으면 올려줌
+        // 채우기, 올가미, 이동처럼 도구를 시작해서 끝낼때까지의 시간을 연출로 보여주는 명령에 씀 (명령을 버퍼에 넣는 끝낼 때 부름)
+        // 명령의 시각은 도구를 시작한 startStamp(getTimer 값)이고, 지금까지 걸린 시간이 연출 길이로 기록됨
+        public static function stampTimingSheetToolCommand(command:Array, startStamp:int):Array
+        {
+            rTimingSheetBufferStamps[command] = TimingSheetFile.packStamp(startStamp, (getTimer() - startStamp) | 0);
+            return command;
+        }
+
+        // 버퍼의 명령마다 기록할 값(TimingSheetFile.packStamp 형식)을 순서대로 돌려주고 기록을 비움 (묶음이 메모리 undo 데이터로 들어갈때 부름)
+        // 기록하지 않은 명령은 앞 명령의 시각을 따르고(연출 길이는 0), 맨 앞에 기록 없는 명령(mirror 등)이 있으면 처음 기록된 시각을 따름
+        // 마지막으로 기록된 명령 뒤의 명령(drawDone 등)은 묶음이 확정된 지금 시각, 기록이 하나도 없는 묶음도 전부 지금 시각
+        // 시각은 순서대로 줄어들지 않도록 이전 값보다 작으면 올려줌
         public static function takeTimingSheetBufferTimes():Array
         {
             const now:int = getTimer();
             const count:int = rMemoryDataBuffer.length;
             const times:Array = new Array(count);
+            const anims:Array = new Array(count);
             var firstStamped:int = -1;
+            var lastStamped:int = -1;
 
             for (var i:int = 0;i < count;i++)
             {
                 const stamp:* = rTimingSheetBufferStamps[rMemoryDataBuffer[i]];
+                anims[i] = 0;
 
                 if (stamp !== undefined)
                 {
-                    times[i] = stamp;
+                    times[i] = TimingSheetFile.unpackStamp(stamp);
+                    anims[i] = TimingSheetFile.unpackAnimMs(stamp);
+                    lastStamped = i;
 
                     if (firstStamped < 0)
                     {
@@ -158,11 +172,20 @@ package Modules.ReplayEngine
 
                 for (i = firstStamped + 1;i < count;i++)
                 {
-                    if (times[i] === undefined || ((times[i] - times[i - 1]) | 0) < 0)
+                    if (i > lastStamped)
+                    {
+                        times[i] = now;
+                    }
+                    else if (times[i] === undefined || ((times[i] - times[i - 1]) | 0) < 0)
                     {
                         times[i] = times[i - 1];
                     }
                 }
+            }
+
+            for (i = 0;i < count;i++)
+            {
+                times[i] = TimingSheetFile.packStamp(times[i], anims[i]);
             }
 
             rTimingSheetBufferStamps = new Dictionary(true);
@@ -205,7 +228,7 @@ package Modules.ReplayEngine
                     arr[i] = rMemoryDataBuffer[0].concat();
                     rMemoryDataBuffer = [];
                     rMemoryDataFrame[index] = arr.length;
-                    rMemoryDataTimingSheet[index][i] = getTimer();
+                    rMemoryDataTimingSheet[index][i] = TimingSheetFile.packStamp(getTimer(), 0);
                     return;
                 }
             }
