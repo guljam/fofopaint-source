@@ -52,6 +52,8 @@ package Modules.ReplayEngine
         public static const REPLAY_CURSOR_SPIN_RETURN_MS:Number = 200; // 쉬는 구간이 끝나고 원래 각도로 부드럽게 돌아가는 시간, 0이면 바로 돌아감
         private static const REPLAY_CURSOR_SPIN_TIMER:String = "replayCursorSpinTimer";
         private static var isReplayCursorSpinning:Boolean = false; // 쉬는 구간이라 커서가 도는 중인지 (되돌아가는 중은 false)
+        public static const anim:ReplayAnim = new ReplayAnim(); // 채우기, 올가미, 이동 연출
+        public static var isRealtimePlay:Boolean = false; // 시계를 따라 재생하는 틱 안에서만 true (탐색, 슬라이드쇼, 캐시 생성에서는 연출 없이 바로 그림)
         private static var readCount:Number = 0;
         private static var rMemoryDataLen:uint;
 
@@ -316,6 +318,7 @@ package Modules.ReplayEngine
             }
 
             stopReplayFOFOCursorSpin();
+            anim.clear();
             rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
             const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);
@@ -752,6 +755,37 @@ package Modules.ReplayEngine
         }
 
         // 반환값: 리플레이를 정지해야 하면 true
+        // 연출이 있는 명령(fill5, lasso2, move*)이면 실행하기 직전에 연출을 준비시킴. 실제 연출은 명령이 실행되면서 시작함
+        // 실제 재생 시간이 너무 짧거나 이미 연출이 끝난 시각이면 준비하지 않음
+        private static function prepareFrameAnim():void
+        {
+            if (!isRealtimePlay || !ReplayDrawCommands.data || ReplayDrawCommands.index >= ReplayDrawCommands.data.length)
+            {
+                anim.disarm();
+                return;
+            }
+
+            const name:String = ReplayDrawCommands.data[ReplayDrawCommands.index][0];
+
+            if (name !== "fill5" && name !== "lasso2" && name !== "move" && name !== "move1" && name !== "move2")
+            {
+                anim.disarm();
+                return;
+            }
+
+            const animMs:Number = ReplayClock.animMsOfFrame(ReplayState.rNowFrame);
+            const startRecorded:Number = ReplayClock.timeOfFrame(ReplayState.rNowFrame);
+
+            if (animMs / ReplayState.rReplaySpeedMultipler >= ReplayAnim.MIN_REAL_MS && ReplayClock.recordedPeek() - startRecorded < animMs)
+            {
+                anim.arm(animMs, startRecorded);
+            }
+            else
+            {
+                anim.disarm();
+            }
+        }
+
         public static function drawFromMemoryData(len:Number, jumpFlag:int):Boolean
         {
             for (var i:Number = 0;i < len;i++)
@@ -769,7 +803,9 @@ package Modules.ReplayEngine
                     ReplayDrawCommands.setData(ReplayState.rMemoryData[ReplayState.rMemoryDataIndex]);
                 }
 
+                prepareFrameAnim();
                 ReplayDrawCommands.drawNext();
+                anim.disarm();
                 ReplayState.rNowFrame++;
             }
 
@@ -799,7 +835,9 @@ package Modules.ReplayEngine
                     }
                 }
 
+                prepareFrameAnim();
                 ReplayDrawCommands.drawNext();
+                anim.disarm();
                 ReplayState.rNowFrame++;
                 readCount--;
             }

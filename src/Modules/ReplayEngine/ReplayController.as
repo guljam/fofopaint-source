@@ -1067,12 +1067,16 @@ package Modules.ReplayEngine
             var remaining:Number = ReplayClock.frameCountDue(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler) - ReplayState.rNowFrame;
             const startTime:int = getTimer();
             updateAfkState();
+            ReplayDrawer.anim.update(ReplayClock.recordedPeek()); // 진행 중인 연출(채우기, 올가미, 이동)을 시계에 맞춰 진행
 
             while (remaining > 0)
             {
                 const chunk:Number = Math.min(remaining, REPLAY_DRAW_CHUNK_FRAMES);
+                ReplayDrawer.isRealtimePlay = true;
+                const shouldStop:Boolean = ReplayDrawer.startDraw(chunk, ReplayDrawer.JUMP_FRAME_PLAY);
+                ReplayDrawer.isRealtimePlay = false;
 
-                if (ReplayDrawer.startDraw(chunk, ReplayDrawer.JUMP_FRAME_PLAY))
+                if (shouldStop)
                 {
                     return true;
                 }
@@ -1086,7 +1090,8 @@ package Modules.ReplayEngine
             }
 
             // 마지막 프레임까지 그렸으면 한번 더 읽어서 끝났다는 것을 확인 (정지 판단은 읽는 쪽에서 함)
-            if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
+            // 마지막 명령의 연출(채우기, 올가미, 이동)이 아직 진행 중이면 끝날때까지 기다림
+            if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME && !ReplayDrawer.anim.isActive)
             {
                 return ReplayDrawer.startDraw(1, ReplayDrawer.JUMP_FRAME_PLAY);
             }
@@ -1459,6 +1464,7 @@ package Modules.ReplayEngine
         public static function stopReplay():void
         {
             FOFOTimer.remove("replayDrawTimer");
+            ReplayDrawer.anim.clear();
             afkHintSecond = -1;
             seekBarBox.hideAfkHint();
             ReplayDrawer.stopReplayFOFOCursorSpin();

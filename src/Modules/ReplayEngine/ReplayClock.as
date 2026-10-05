@@ -282,6 +282,12 @@ package Modules.ReplayEngine
             return current;
         }
 
+        // 지금 녹화 시각을 기준점이나 배속은 건드리지 않고 읽기만 함 (연출 진행률 계산용)
+        public static function recordedPeek():Number
+        {
+            return anchorRecorded + (getTimer() - anchorReal) * anchorSpeed;
+        }
+
         // 지금 그려야 하는 프레임 수. AFK 중이면 그리지 않고 현재 프레임 수 그대로
         // drawnFrames: 지금까지 그린 프레임 수
         public static function frameCountDue(drawnFrames:Number, speed:Number):Number

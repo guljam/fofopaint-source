@@ -430,6 +430,7 @@ package Modules.ReplayEngine
                 setRCursorPos(xyData[xyData.length - 2], xyData[xyData.length - 1]);
             }
             ReplayDrawer.resetRCanvasDrawLayerClipRect();
+            ReplayDrawer.anim.startFill(command, xyData); // 연출이 준비된 명령이면 덮개를 올림
         }
 
         public static function fill4(data:Array):void
@@ -857,6 +858,7 @@ package Modules.ReplayEngine
 
         public static function move1(data:Array):void
         {
+            ReplayDrawer.anim.startMove(data[1], data[2], true, false);
             ReplayDrawer.moveImageReplayMode(data[1], data[2], true, false);
             if (!ReplayState.isGeneratingCacheImages())
             {
@@ -866,6 +868,7 @@ package Modules.ReplayEngine
 
         public static function move2(data:Array):void
         {
+            ReplayDrawer.anim.startMove(data[1], data[2], false, true);
             ReplayDrawer.moveImageReplayMode(data[1], data[2], false, true);
             if (!ReplayState.isGeneratingCacheImages())
             {
@@ -875,6 +878,7 @@ package Modules.ReplayEngine
 
         public static function move(data:Array):void
         {
+            ReplayDrawer.anim.startMove(data[1], data[2], true, true);
             ReplayDrawer.moveImageReplayMode(data[1], data[2], true, true);
             if (!ReplayState.isGeneratingCacheImages())
             {
@@ -993,6 +997,9 @@ package Modules.ReplayEngine
                     ReplayDrawer.rCanvasLayer2BitmapData.draw(LassoTool.lassoLayer2Bitmap, mat);
                     ReplayDrawer.rCanvasLayer2Bitmap.bitmapData = ReplayDrawer.rCanvasLayer2BitmapData;
                 }
+
+                // 연출이 준비된 명령이면 올가미 모양대로 덮개를 올림 (올가미 비트맵이 지워지기 전에 같은 행렬로 만들어야 함)
+                ReplayDrawer.anim.startLasso(mat, (data[5] || !data[5] && !data[6]) ? LassoTool.lassoLayer1Bitmap : null, data[6] ? LassoTool.lassoLayer2Bitmap : null);
             }
 
             resetLassoVars();
