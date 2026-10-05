@@ -29,6 +29,7 @@ package Modules.ReplayEngine
         public static var rLastMemoryCachedImageIndex:int = -2; // 마지막에 그려준 캐쉬 이미지 번호를 저장
         public static var rTempCachedLastImageIndex:int = -2; // 더 잘게 쪼개준 이미지 인덱스 바뀌면 여기다 저장
         public static var rJumpImageFrameData:Array = [0]; // 스킵이미지 저장될때 r file frame sum을 저장해줌 처음에 rfirstimage라서 0번 추가해줌
+        public static var rTimingSheetFileObject:Array = null; // 저장 시작때 만들어둔 ["rTimingSheet", ...] 객체, writeReplayFile에서 파일 끝에 쓰고 비움
         public static var rFrameTempCachedImages:Array = []; // 이전 탐색 프레임 빠르게 하기 위해서 jumpimage구간에서 더 잘게 이미지를 나누어주고 정보를여가다가 저장함
 
         public static function getReplayFileNameFromPath(path:String):String
@@ -46,7 +47,7 @@ package Modules.ReplayEngine
                 const fs:FileStream = new FileStream();
                 fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE);
                 fs.close();
-                TimingJournal.reset();
+                TimingSheetFile.reset();
             }
         }
 
@@ -101,6 +102,12 @@ package Modules.ReplayEngine
                                 ReplaySaveMetaData.refImageAlpha]);
                 }
 
+                // 타이밍 시트는 파일 맨 뒤에 둠. 읽을때 이 객체가 없으면 시트 없는 파일로 봄
+                if (rTimingSheetFileObject !== null)
+                {
+                    fs.writeObject(rTimingSheetFileObject);
+                }
+
                 fs.close();
             }
             catch (writeErr:Error)
@@ -117,6 +124,7 @@ package Modules.ReplayEngine
                 }
             }
 
+            rTimingSheetFileObject = null;
             firstImageLayer1.clear();
             firstImageLayer2.clear();
             finalImageLayer1.clear();

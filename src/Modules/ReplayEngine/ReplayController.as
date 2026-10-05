@@ -162,10 +162,10 @@ package Modules.ReplayEngine
                 FileManager.isFileAlreadySaved = false;
                 FileManager.enableNewFileButton();
                 ReplayState.setRFileDataTotalFrame(0);
-                TimingJournal.reset();
+                TimingSheetFile.reset();
                 ReplayState.rMemoryData.splice(0, ReplayState.rMemoryDataIndex + 1);
                 ReplayState.rMemoryDataFrame.splice(0, ReplayState.rMemoryDataIndex + 1);
-                ReplayState.rMemoryDataTimes.splice(0, ReplayState.rMemoryDataIndex + 1);
+                ReplayState.rMemoryDataTimingSheet.splice(0, ReplayState.rMemoryDataIndex + 1);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
                 updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
 
@@ -199,7 +199,7 @@ package Modules.ReplayEngine
                 fs.readBytes(ba, 0, fs.bytesAvailable);
                 fs.close();
                 // 시간 간격도 같은 프레임만큼 앞을 잘라줌
-                TimingJournal.cutBefore(ReplayState.rNowFrame);
+                TimingSheetFile.cutBefore(ReplayState.rNowFrame);
                 // ba에 넣어준걸 다시 써주기
                 fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE);
                 fs.position = 0;
@@ -246,7 +246,7 @@ package Modules.ReplayEngine
                 UndoController.undoToIndex(ReplayState.rMemoryDataIndex);
                 ReplayState.rMemoryData.splice(ReplayState.rMemoryDataIndex + 1);
                 ReplayState.rMemoryDataFrame.splice(ReplayState.rMemoryDataIndex + 1);
-                ReplayState.rMemoryDataTimes.splice(ReplayState.rMemoryDataIndex + 1);
+                ReplayState.rMemoryDataTimingSheet.splice(ReplayState.rMemoryDataIndex + 1);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
                 resetReplayTime();
             }
@@ -262,7 +262,7 @@ package Modules.ReplayEngine
                 const rNowFrameSave:Number = ReplayState.rNowFrame;
                 ReplayFileCache.truncateCacheImagesAfterFrame(rNowFrameSave);
                 ReplayState.setRFileDataTotalFrame(rNowFrameSave);
-                TimingJournal.truncateAfter(rNowFrameSave);
+                TimingSheetFile.truncateAfter(rNowFrameSave);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
                 DrawCanvas.canvasLayer1BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer1BitmapData, ReplayDrawer.rCanvasLayer1BitmapData, DrawCanvas.canvasLayer1Bitmap);
                 DrawCanvas.canvasLayer1Bitmap.bitmapData = DrawCanvas.canvasLayer1BitmapData;
@@ -560,6 +560,7 @@ package Modules.ReplayEngine
             stopGeneratingCacheImageFunc = null;
             ReplayDrawCommands.clearData();
             ReplayState.setRFileDataTotalFrame(_frameSum);
+            TimingSheetFile.alignTo(_frameSum); // 시트가 없거나 길이가 다르면 repdata 프레임 수에 맞춤
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReplayFileCache.deleteCacheProgress();
             resetReplayTime();

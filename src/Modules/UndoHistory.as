@@ -9,7 +9,7 @@ package Modules
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.ReplayEngine.TimingJournal;
+    import Modules.ReplayEngine.TimingSheetFile;
 
     // 메모리 undo 데이터(ReplayState.rMemoryData)를 쌓고 자르는 일과 undo 위치, undo 기준 이미지를 맡음
     // undo 위치를 옮겨서 캔버스를 다시 그리는 일은 UndoController가 함
@@ -100,7 +100,7 @@ package Modules
             _undoDataIndex = -1;
             ReplayState.rMemoryData = [];
             ReplayState.rMemoryDataFrame = [];
-            ReplayState.rMemoryDataTimes = [];
+            ReplayState.rMemoryDataTimingSheet = [];
             ReplayState.rMemoryDataBuffer = [];
         }
 
@@ -131,12 +131,12 @@ package Modules
 
             // 버퍼에mirror가 있을수도 있기 때문에 요소를 하나씩 push해주어야함
             const len:uint = ReplayState.rMemoryDataBuffer.length;
-            const bufferTimes:Array = ReplayState.takeBufferTimes();
+            const bufferTimes:Array = ReplayState.takeTimingSheetBufferTimes();
 
             for (var i:uint = 0;i < len;i++)
             {
                 ReplayState.rMemoryData[ReplayState.rMemoryData.length - 1].push(ReplayState.rMemoryDataBuffer[i]); // 배열안에 배열이 들어있음
-                ReplayState.rMemoryDataTimes[ReplayState.rMemoryDataTimes.length - 1].push(bufferTimes[i]);
+                ReplayState.rMemoryDataTimingSheet[ReplayState.rMemoryDataTimingSheet.length - 1].push(bufferTimes[i]);
             }
 
             ReplayState.rMemoryDataFrame[ReplayState.rMemoryDataFrame.length - 1] = ReplayState.rMemoryData[ReplayState.rMemoryData.length - 1].length;
@@ -159,7 +159,7 @@ package Modules
 
             if (ReplayState.rMemoryDataBuffer.length > 0)
             {
-                ReplayState.rMemoryDataTimes.push(ReplayState.takeBufferTimes());
+                ReplayState.rMemoryDataTimingSheet.push(ReplayState.takeTimingSheetBufferTimes());
                 ReplayState.rMemoryData.push(ReplayState.rMemoryDataBuffer);
                 ReplayState.rMemoryDataFrame.push(ReplayState.rMemoryDataBuffer.length);
                 ReplayState.rMemoryDataBuffer = [];
@@ -179,7 +179,7 @@ package Modules
         {
             ReplayState.rMemoryData.splice(_undoDataIndex + 1);
             ReplayState.rMemoryDataFrame.splice(_undoDataIndex + 1);
-            ReplayState.rMemoryDataTimes.splice(_undoDataIndex + 1);
+            ReplayState.rMemoryDataTimingSheet.splice(_undoDataIndex + 1);
         }
 
         // 가장 오래된 undo 뭉치를 리플레이 파일 끝에 붙이고, 기준 이미지를 그 뭉치까지 그린 이미지로 옮김
@@ -197,7 +197,7 @@ package Modules
                 fs.open(rf, FileMode.APPEND);
                 fs.writeObject(oldData);
                 fs.close();
-                TimingJournal.appendGroup(ReplayState.rMemoryDataTimes[0], lastRDataTotalFrame);
+                TimingSheetFile.appendGroup(ReplayState.rMemoryDataTimingSheet[0], lastRDataTotalFrame);
 
                 oldData = null;
                 ReplayState.increaseRFileDataTotalFrame(firstElementFrameCount);
@@ -232,7 +232,7 @@ package Modules
             ReplayState.rMemoryData.shift();
             ReplayState.rMemoryDataFrame[0] = null;
             ReplayState.rMemoryDataFrame.shift();
-            ReplayState.rMemoryDataTimes.shift();
+            ReplayState.rMemoryDataTimingSheet.shift();
         }
 
         private static function updateCanvasPreviews():void

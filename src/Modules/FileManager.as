@@ -44,6 +44,7 @@ package Modules
     import Modules.Tools.LineTool;
     import Modules.Tools.FillPenTool;
     import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.TimingSheetFile;
     import Modules.ReplayEngine.ReplayDrawCommands;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
@@ -188,6 +189,10 @@ package Modules
                 else if (d[0] === "rFinalImage")
                 {
                     // 아래에서 imgStartByte로 세고있어서 이걸 안넣으면 바이트 읽기 순서가 어긋남 지우면 안됨
+                }
+                else if (d[0] === "rTimingSheet")
+                {
+                    TimingSheetFile.loadFileObject(d);
                 }
                 else if (d[0] === "refimage" || d[0] === "traceImage")
                 {
@@ -950,6 +955,12 @@ package Modules
                     }
                 }
 
+                // 타이밍 시트: 파일에 쓰는 프레임과 같은 범위(딥 언두면 읽은 곳까지, 아니면 파일 + 메모리 뭉치 + 임시 미러 1프레임)
+                ReplayFileCache.rTimingSheetFileObject = TimingSheetFile.buildFileObject(
+                        UndoController.isDeepUndoEnabled ? ReplayState.rNowFrame : ReplayState.getRFileDataTotalFrame(),
+                        ReplayState.rMemoryDataTimingSheet,
+                        UndoController.isDeepUndoEnabled ? 0 : UndoHistory.undoDataIndex + 1,
+                        ReplayState.lastMirrorReadyFlag ? 1 : 0);
                 ReplaySaveMetaData.update();
                 BackgroundWorkerCoordinator.startReplayDataCompressionWorker(rLayer1FirstImageData, rLayer2FirstImageData, rLayer1CurrentImageData, rLayer2CurrentImageData, ReferenceLayerController.refLayerImageData, replayDataReadBytes);
             }

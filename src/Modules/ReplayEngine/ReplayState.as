@@ -37,8 +37,8 @@ package Modules.ReplayEngine
         public static var rMemoryDataBuffer:Array = []; // draw layer에서 그려준 데이터를 이쪽으로 다모아줌
         public static var rMemoryData:Array = []; // rDataBuffer가 이쪽으로 이동되고 undo image data갯수에 똑같이맞추어줌
         public static var rMemoryDataFrame:Array = []; // rdata안에 몇프레임이 들어있는지 저장
-        public static var rMemoryDataTimes:Array = []; // rMemoryData와 같은 모양으로 명령마다 기록한 getTimer 값(int)을 저장, 길이는 항상 rMemoryDataFrame과 같음
-        private static var rBufferStamps:Dictionary = new Dictionary(true); // 버퍼의 명령(키)이 기록된 getTimer 값, 펜 명령만 넣고 나머지는 묶음이 확정될때 채움
+        public static var rMemoryDataTimingSheet:Array = []; // rMemoryData와 같은 모양으로 명령마다 기록한 getTimer 값(int)을 저장, 길이는 항상 rMemoryDataFrame과 같음
+        private static var rTimingSheetBufferStamps:Dictionary = new Dictionary(true); // 버퍼의 명령(키)이 기록된 getTimer 값, 펜 명령만 넣고 나머지는 묶음이 확정될때 채움
         public static var mirrorCommandReady:Boolean = false; // 다음 버퍼 앞에 mirror 커맨드를 넣어줄지 말지 결정
         public static var lastMirrorReadyFlag:Boolean = false; // 리플레이 저장해줄때 마지막 mirror플래그는 여기서 가져다 씀 저장중간에 기존 mirror ready플래그가 바뀔수도 있기 때문에
 
@@ -110,17 +110,17 @@ package Modules.ReplayEngine
         }
 
         // 펜처럼 입력 시각이 중요한 명령에 지금 시각을 기록해두고 그 명령을 그대로 돌려줌
-        // 버퍼에 push하는 식 안에서 감싸서 씀: rMemoryDataBuffer.push(ReplayState.stampCommand(["lineTo", x, y]))
-        public static function stampCommand(command:Array):Array
+        // 버퍼에 push하는 식 안에서 감싸서 씀: rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["lineTo", x, y]))
+        public static function stampTimingSheetCommand(command:Array):Array
         {
-            rBufferStamps[command] = getTimer();
+            rTimingSheetBufferStamps[command] = getTimer();
             return command;
         }
 
         // 버퍼의 명령마다 기록할 getTimer 값을 순서대로 돌려주고 기록을 비움 (묶음이 메모리 undo 데이터로 들어갈때 부름)
         // 기록하지 않은 명령은 앞 명령의 값을 따르고, 맨 앞에 기록 없는 명령(mirror 등)이 있으면 처음 기록된 값을 따름
         // 기록이 하나도 없는 묶음(채우기, 올가미 등)은 전부 지금 시각, 순서대로 줄어들지 않도록 이전 값보다 작으면 올려줌
-        public static function takeBufferTimes():Array
+        public static function takeTimingSheetBufferTimes():Array
         {
             const now:int = getTimer();
             const count:int = rMemoryDataBuffer.length;
@@ -129,7 +129,7 @@ package Modules.ReplayEngine
 
             for (var i:int = 0;i < count;i++)
             {
-                const stamp:* = rBufferStamps[rMemoryDataBuffer[i]];
+                const stamp:* = rTimingSheetBufferStamps[rMemoryDataBuffer[i]];
 
                 if (stamp !== undefined)
                 {
@@ -165,7 +165,7 @@ package Modules.ReplayEngine
                 }
             }
 
-            rBufferStamps = new Dictionary(true);
+            rTimingSheetBufferStamps = new Dictionary(true);
             return times;
         }
 
@@ -205,7 +205,7 @@ package Modules.ReplayEngine
                     arr[i] = rMemoryDataBuffer[0].concat();
                     rMemoryDataBuffer = [];
                     rMemoryDataFrame[index] = arr.length;
-                    rMemoryDataTimes[index][i] = getTimer();
+                    rMemoryDataTimingSheet[index][i] = getTimer();
                     return;
                 }
             }
@@ -224,7 +224,7 @@ package Modules.ReplayEngine
             {
                 rMemoryData.splice(index);
                 rMemoryDataFrame.splice(index);
-                rMemoryDataTimes.splice(index);
+                rMemoryDataTimingSheet.splice(index);
             }
             else
             {
@@ -233,14 +233,14 @@ package Modules.ReplayEngine
                     if (command === rMemoryData[index][i][0])
                     {
                         rMemoryData[index].splice(i, 1);
-                        rMemoryDataTimes[index].splice(i, 1);
+                        rMemoryDataTimingSheet[index].splice(i, 1);
                         break;
                     }
                 }
 
                 rMemoryData.splice(index + 1);
                 rMemoryDataFrame.splice(index + 1);
-                rMemoryDataTimes.splice(index + 1);
+                rMemoryDataTimingSheet.splice(index + 1);
                 // 복수 명령일때만 해당 프레임수로 갱신함
                 rMemoryDataFrame[index] = rMemoryData[index].length;
             }
@@ -286,7 +286,7 @@ package Modules.ReplayEngine
                     mirrorCommandReady = false;
                     rMemoryData.pop();
                     rMemoryDataFrame.pop();
-                    rMemoryDataTimes.pop();
+                    rMemoryDataTimingSheet.pop();
                 }
                 // 그게 아니면 가장 앞에 미러커맨드를 넣어줌
                 else if (rMemoryDataBuffer.length > 0 && rMemoryDataBuffer[0][0] !== "mirror")
@@ -303,7 +303,7 @@ package Modules.ReplayEngine
                 {
                     rMemoryData.pop();
                     rMemoryDataFrame.pop();
-                    rMemoryDataTimes.pop();
+                    rMemoryDataTimingSheet.pop();
                     mirrorCommandReady = true;
                 }
                 // 그게 아니면 그냥 지워줌
