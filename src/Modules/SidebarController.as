@@ -84,7 +84,7 @@ package Modules
 
         private static function getSidebarConstHeight():Number
         {
-            return (sideBarConstHeight + ((PaletteController.isMyPaletteExpended && PaletteController.myPalettePresetType === 0) ? PaletteController.myPaletteColorHeight * 7 : 0));
+            return (sideBarConstHeight + ((PaletteController.isMyPaletteExpended && PaletteController.myPalettePresetType === 0) ? PaletteController.myPaletteColorHeight * (PaletteController.MYPALETTE_COUNT / PaletteController.MYPALETTE_COLUMNS - 2) : 0));
         }
 
         private static function checkCollisionFOFOAndSideBarScrollSet():int

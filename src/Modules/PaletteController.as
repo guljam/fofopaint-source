@@ -24,9 +24,11 @@ package Modules
 
         private static const COLOR_BOX_DRAG_DISTANCE:Number = 5; // 현재 색 박스를 이만큼(colorPickerBox 좌표 기준) 움직여야 드래그로 봄
 
+        public static const MYPALETTE_COUNT:int = 100; // my palette 칸 수 (10x10)
+        public static const MYPALETTE_COLUMNS:int = 10;
+
         public static var isMyPaletteExpended:Boolean = false, // 전체로 보면 올려줌
             myPaletteColorBeforeAddColor:Array = [-1, 0], // index, hexcolor
-            myPaletteColorLimit:int = 100,
             myPaletteColorWidth:Number = 17, // Math.floor(pickerBox.svBoxWidth/myPaletteLimit)//히스토리 개별 색깔 가로 크기
             myPaletteColorHeight:Number = 17,
             myPaletteClickPos:Point = new Point(), // 컬러 히스토리 클릭하면 위치 넣어줌
@@ -108,68 +110,52 @@ package Modules
                 });
         }
 
-        private static function getMyPaletteIndexByMousePosLimitBound():int
+        public static function getMyPaletteIndexByMousePosLimitBound():int
+        {
+            return calcMyPaletteIndexLimitBound(ColorPickerController.colorPickerBox.myPaletteBox.mouseX, ColorPickerController.colorPickerBox.myPaletteBox.mouseY);
+        }
+
+        // 박스 밖이어도 가장 가까운 칸을 돌려줌. 압축 보기는 2줄, 확장 보기는 전체 줄까지
+        public static function calcMyPaletteIndexLimitBound(localX:Number, localY:Number):int
         {
             const isAllViewMode:Boolean = (myPalettePresetType === 0 && isMyPaletteExpended);
-            const paletteLines:int = (isAllViewMode) ? 8 : 2;
-            var xLineIndex:int = Math.floor(ColorPickerController.colorPickerBox.myPaletteBox.mouseX / myPaletteColorWidth);
-            var yLineIndex:int = Math.floor(ColorPickerController.colorPickerBox.myPaletteBox.mouseY / myPaletteColorHeight);
+            const paletteLines:int = (isAllViewMode) ? MYPALETTE_COUNT / MYPALETTE_COLUMNS : 2;
+            var xLineIndex:int = Math.floor(localX / myPaletteColorWidth);
+            var yLineIndex:int = Math.floor(localY / myPaletteColorHeight);
 
             if (xLineIndex < 0)
                 xLineIndex = 0;
-            else if (xLineIndex > 9)
-                xLineIndex = 9;
+            else if (xLineIndex >= MYPALETTE_COLUMNS)
+                xLineIndex = MYPALETTE_COLUMNS - 1;
 
             if (yLineIndex < 0)
                 yLineIndex = 0;
             else if (yLineIndex >= paletteLines)
-            {
-                if (isAllViewMode)
-                {
-                    yLineIndex = paletteLines;
-                }
-                else
-                {
-                    yLineIndex = paletteLines - 1;
-                }
-            }
+                yLineIndex = paletteLines - 1;
 
-            return xLineIndex + yLineIndex * 10;
-        }
-
-        private static function getHistoryIndexByMousePos():int
-        {
-            const xLineIndex:int = Math.floor(ColorPickerController.colorPickerBox.colorHistoryBox.mouseX / myPaletteColorWidth);
-            const yLineIndex:int = 10 * (Math.floor(ColorPickerController.colorPickerBox.colorHistoryBox.mouseY / myPaletteColorHeight));
-
-            if (xLineIndex + yLineIndex < 0 || xLineIndex + yLineIndex > myPaletteColorLimit)
-            {
-                return -1;
-            }
-
-            return xLineIndex + yLineIndex;
+            return xLineIndex + yLineIndex * MYPALETTE_COLUMNS;
         }
 
         private static function getMyPaletteIndexByMousePos():int
         {
-            var xLineIndex:int = Math.floor(ColorPickerController.colorPickerBox.myPaletteBox.mouseX / myPaletteColorWidth);
-            var yLineIndex:int = 10 * (Math.floor(ColorPickerController.colorPickerBox.myPaletteBox.mouseY / myPaletteColorHeight));
-            if (xLineIndex > 9)
-                xLineIndex = 9;
-            if (yLineIndex > 80)
-                yLineIndex = 80;
+            return calcMyPaletteIndex(ColorPickerController.colorPickerBox.myPaletteBox.mouseX, ColorPickerController.colorPickerBox.myPaletteBox.mouseY);
+        }
 
-            if (xLineIndex + yLineIndex < 0 || xLineIndex + yLineIndex > myPaletteColorLimit)
+        public static function calcMyPaletteIndex(localX:Number, localY:Number):int
+        {
+            var xLineIndex:int = Math.floor(localX / myPaletteColorWidth);
+            var yLineIndex:int = MYPALETTE_COLUMNS * (Math.floor(localY / myPaletteColorHeight));
+            if (xLineIndex >= MYPALETTE_COLUMNS)
+                xLineIndex = MYPALETTE_COLUMNS - 1;
+            if (yLineIndex > MYPALETTE_COUNT - MYPALETTE_COLUMNS)
+                yLineIndex = MYPALETTE_COUNT - MYPALETTE_COLUMNS;
+
+            if (xLineIndex + yLineIndex < 0 || xLineIndex + yLineIndex >= MYPALETTE_COUNT)
             {
                 return -1;
             }
 
             return xLineIndex + yLineIndex;
-        }
-
-        private static function isSelctedHistoryColorEmpty(index:int):Boolean
-        {
-            return !(myPalettePreset[index + 90] is uint);
         }
 
         private static function isSelctedColorEmpty(index:int):Boolean
@@ -179,34 +165,6 @@ package Modules
                 : myPalettePreset;
 
             return !(list[index] is uint);
-        }
-
-        public static function selectHistoryColor():void
-        {
-            const index:int = getHistoryIndexByMousePos();
-
-            if (index < 0 || myPaletteDragStarted) // || index !== myPaletteDragClickedIndex)
-            {
-                return;
-            }
-
-            if (!(myPalettePreset[index + 90] is uint))
-            {
-                if (PenTool.isTransparentPenColor === false)
-                {
-                    ColorPickerController.selectTransparentColor();
-                }
-                return;
-            }
-
-            const pickedColor:uint = myPalettePreset[index + 90];
-
-            if (pickedColor === ColorPickerController.colorPickerBox.getRGBInfoBGColor() && !PenTool.isTransparentPenColor)
-            {
-                return;
-            }
-
-            ColorPickerController.pickColor(pickedColor);
         }
 
         public static function selectMyPaletteColor():void
@@ -275,13 +233,24 @@ package Modules
             const fs:FileStream = new FileStream();
 
             fs.open(AppStateManager.myPaletteDataFilePath, FileMode.WRITE);
-            fs.writeObject(myPalettePreset);
+            fs.writeObject({palette: myPalettePreset, history: ColorHistory.list});
             fs.close();
+        }
+
+        // 저장 파일에서 읽은 {palette, history}를 적용함
+        public static function applyMyPaletteData(data:Object):void
+        {
+            const palette:Array = data.palette as Array;
+            const history:Array = data.history as Array;
+
+            myPalettePreset = (palette) ? palette.concat() : [];
+            myPalettePreset.length = MYPALETTE_COUNT;
+            ColorHistory.setList((history) ? history : []);
         }
 
         public static function initializeMyPaletteList():void
         {
-            updateHistoryList();
+            ColorHistory.update();
             updateMyPaletteList();
 
             if (!AppStateManager.myPaletteDataFilePath.exists)
@@ -317,13 +286,13 @@ package Modules
                 {
                     myPalettePreset[index] = myPaletteColorBeforeAddColor[1];
                     updateMyPaletteList();
-                    addColorMyPaletteHistory(color);
+                    ColorHistory.add(color);
                 }
                 else
                 {
                     myPalettePreset[index] = color;
                     updateMyPaletteList();
-                    addColorMyPaletteHistory(color);
+                    ColorHistory.add(color);
                 }
             }
             else
@@ -334,7 +303,7 @@ package Modules
                     myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
                     myPalettePreset[index] = (PenTool.isTransparentPenColor) ? null : color;
                     updateMyPaletteList();
-                    addColorMyPaletteHistory(color);
+                    ColorHistory.add(color);
                 }
                 else if (PenTool.isTransparentPenColor)
                 {
@@ -342,7 +311,7 @@ package Modules
                     myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
                     myPalettePreset[index] = null;
                     updateMyPaletteList();
-                    addColorMyPaletteHistory(color);
+                    ColorHistory.add(color);
                 }
                 else if (myPaletteColorBeforeAddColor[0] === index && myPaletteColorBeforeAddColor[1] is uint)
                 {
@@ -351,108 +320,21 @@ package Modules
                     myPalettePreset[index] = myPaletteColorBeforeAddColor[1];
                     myPaletteColorBeforeAddColor[1] = colorSwap;
                     updateMyPaletteList();
-                    addColorMyPaletteHistory(color);
+                    ColorHistory.add(color);
                 }
             }
         }
 
         private static function clearMyPaletteList():void
         {
-            for (var i:int = 0;i < 90;i++)
+            for (var i:int = 0;i < MYPALETTE_COUNT;i++)
             {
                 myPalettePreset[i] = null;
             }
 
             if (myPalettePresetType === 0)
             {
-                updateHistoryList();
                 updateMyPaletteList();
-            }
-        }
-
-        public static function initMyPaletteHistory():void
-        {
-            myPalettePreset[90] = 0;
-            updateHistoryList();
-        }
-
-        public static function addColorMyPaletteHistory(color:uint):void
-        {
-            // 색깔 같으면 체크안함
-            if (myPalettePreset[90] === color)
-            {
-                return;
-            }
-
-            if ((ColorPickerController.pickerIgnoreHistoryColor as uint) === color)
-            {
-                ColorPickerController.pickerIgnoreHistoryColor = null;
-                return;
-            }
-
-            // 이미 있는 색깔이면 다시 최신으로 갱신
-            for (var i:uint = 90;i < 100;i++)
-            {
-                if (color === myPalettePreset[i])
-                {
-                    const tmpColor:uint = myPalettePreset.splice(i, 1);
-                    if (myPalettePreset[90] === null || myPalettePreset[90] === undefined)
-                    {
-                        myPalettePreset[90] = tmpColor;
-                    }
-                    else
-                    {
-                        myPalettePreset.insertAt(90, tmpColor);
-                    }
-                    updateHistoryList();
-                    return;
-                }
-            }
-
-            // 첫부분에 셕이 없으면 그대로 넣어줌
-            if (myPalettePreset[90] === null || myPalettePreset[90] === undefined)
-            {
-                myPalettePreset[90] = color;
-            }
-            else
-            {
-                myPalettePreset.insertAt(90, color);
-                myPalettePreset.removeAt(100);
-            }
-
-            updateHistoryList();
-        }
-
-        public static function updateHistoryList(ignoreIndex:int = -1):void
-        {
-            ColorPickerController.colorPickerBox.colorHistoryBox.graphics.clear();
-
-            for (var i:uint = 0;i < 10;i++)
-            {
-                if (90 + i === ignoreIndex)
-                {
-                    PaletteController.drawColorStartPos(ColorPickerController.colorPickerBox.colorHistoryBox.graphics, myPaletteColorWidth * i, 0, myPaletteColorWidth, myPaletteColorHeight);
-                    continue;
-                }
-                if (!(myPalettePreset[90 + i] is uint))
-                {
-                    ColorPickerController.colorPickerBox.colorHistoryBox.graphics.beginBitmapFill(ColorPickerController.colorPickerBox.myPaletteTransBGBmpd);
-                }
-                else
-                {
-                    ColorPickerController.colorPickerBox.colorHistoryBox.graphics.beginFill(myPalettePreset[i + 90]);
-                }
-
-                ColorPickerController.colorPickerBox.colorHistoryBox.graphics.drawRect(myPaletteColorWidth * i, 0, myPaletteColorWidth, myPaletteColorHeight);
-            }
-
-            ColorPickerController.colorPickerBox.colorHistoryBox.graphics.endFill();
-            ColorPickerController.colorPickerBox.colorHistoryBox.graphics.lineStyle(1, 0, 0.2);
-
-            for (i = 1;i < 10;i++)
-            {
-                ColorPickerController.colorPickerBox.colorHistoryBox.graphics.moveTo(myPaletteColorWidth * i, 0);
-                ColorPickerController.colorPickerBox.colorHistoryBox.graphics.lineTo(myPaletteColorWidth * i, myPaletteColorHeight);
             }
         }
 
@@ -469,7 +351,7 @@ package Modules
             const ww:Number = myPaletteColorWidth;
             const hh:Number = myPaletteColorHeight;
 
-            var len:int = (type === 0 && isMyPaletteExpended) ? myPaletteColorLimit - 10 : 20;
+            var len:int = (type === 0 && isMyPaletteExpended) ? MYPALETTE_COUNT : 20;
             var nextX:Number = 0.0;
             var nextY:Number = 0.0;
 
@@ -557,7 +439,7 @@ package Modules
                     ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineStyle(1, 0, 0.2);
 
                     // 가로
-                    for (i = 1;i < 9;i++)
+                    for (i = 1;i < MYPALETTE_COUNT / MYPALETTE_COLUMNS;i++)
                     {
                         ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(0, hh * i);
                         ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * 10, hh * i);
@@ -566,7 +448,7 @@ package Modules
                     for (i = 1;i < 10;i++)
                     {
                         ColorPickerController.colorPickerBox.myPaletteBox.graphics.moveTo(myPaletteColorWidth * i, 0);
-                        ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * i, hh * 9);
+                        ColorPickerController.colorPickerBox.myPaletteBox.graphics.lineTo(myPaletteColorWidth * i, hh * (MYPALETTE_COUNT / MYPALETTE_COLUMNS));
                     }
                 }
             }
@@ -575,7 +457,7 @@ package Modules
         }
 
         // 드래그 중인 색 사각형을 my palette 박스 위에 있을 때만 놓일 칸에 붙이고, 박스 밖에서는 커서를 부드럽게 따라가게 함
-        private static function updateDragColorPosition():void
+        public static function updateDragColorPosition():void
         {
             const box:ColorPickerSet = ColorPickerController.colorPickerBox;
 
@@ -586,58 +468,6 @@ package Modules
             else
             {
                 box.updateDragColorPosToCursor();
-            }
-        }
-
-        public static function startColorHistoryBoxDragging():void
-        {
-            const index:int = getHistoryIndexByMousePos();
-
-            function onDragStart():void
-            {
-                myPaletteDragClickedIndex = index + 90;
-                myPaletteDragClickedColor = myPalettePreset[index + 90];
-                myPaletteClickPos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
-                myPaletteMovePos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
-            }
-
-            function onMouseMove():void
-            {
-                if (Point.distance(myPaletteClickPos, myPaletteMovePos) >= 4)
-                {
-                    if (myPaletteDragStarted === false)
-                    {
-                        myPaletteDragStarted = true;
-                        ColorPickerController.colorPickerBox.updateDragColor(myPaletteDragClickedColor, myPaletteColorWidth, myPaletteColorHeight);
-                    }
-
-                    updateDragColorPosition();
-                }
-                else
-                {
-                    myPaletteMovePos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
-                }
-            }
-
-            function onMouseUp():void
-            {
-                if (myPaletteDragStarted === true)
-                {
-                    myPaletteDragStarted = false;
-
-                    // 히스토리는 그대로 두고 색만 복제해서 my palette에 놓음
-                    if (ColorPickerController.colorPickerBox.myPaletteBox.hitTestPoint(main.mouseX, main.mouseY))
-                    {
-                        putColorToMyPalette(myPaletteDragClickedColor, getMyPaletteIndexByMousePosLimitBound(), false);
-                    }
-                }
-
-                ColorPickerController.colorPickerBox.removeDragColor();
-            }
-
-            if (index >= 0 && !isSelctedHistoryColorEmpty(index))
-            {
-                DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
             }
         }
 
@@ -698,7 +528,7 @@ package Modules
         }
 
         // 선택한 칸의 색을 덮어씀 (addColorToMyPalette와 달리 같은 색이어도 지우지 않음)
-        private static function putColorToMyPalette(color:uint, index:int, addHistory:Boolean):void
+        public static function putColorToMyPalette(color:uint, index:int, addHistory:Boolean):void
         {
             if (index < 0)
             {
@@ -717,7 +547,7 @@ package Modules
 
             if (addHistory)
             {
-                addColorMyPaletteHistory(color);
+                ColorHistory.add(color);
             }
         }
 
@@ -812,7 +642,7 @@ package Modules
             }
         }
 
-        private static function drawColorStartPos(g:Graphics, px:Number, py:Number, ww:Number, hh:Number):void
+        public static function drawColorStartPos(g:Graphics, px:Number, py:Number, ww:Number, hh:Number):void
         {
             g.beginFill(0xFFFFFF);
             g.drawRect(px, py, PaletteController.myPaletteColorWidth, PaletteController.myPaletteColorHeight);
