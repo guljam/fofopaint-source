@@ -22,11 +22,13 @@ package Modules
     import flash.filesystem.FileStream;
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
+    import flash.utils.getTimer;
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawCommands;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.ReplayEngine.TimingJournal;
     import Modules.ReplayEngine.ReplaySaveMetaData;
     import flash.trace.Trace;
 
@@ -42,6 +44,7 @@ package Modules
             undoDataFilePath = dataFolderPath.resolvePath("undodata");
             myPaletteDataFilePath = dataFolderPath.resolvePath("mypalettedata");
             replayDataFilePath = dataFolderPath.resolvePath("repdata");
+            timingDataFilePath = dataFolderPath.resolvePath("repdata_timing");
             replayCacheImageFolderPath = dataFolderPath.resolvePath("imagecache");
             replayCacheImageTempFolderPath = dataFolderPath.resolvePath("imagecache_tmp");
             replayCacheImageFrameDataFilePath = dataFolderPath.resolvePath("jumpframedata");
@@ -56,6 +59,7 @@ package Modules
         public static var undoDataFilePath:File;
         public static var myPaletteDataFilePath:File;
         public static var replayDataFilePath:File;
+        public static var timingDataFilePath:File; // repdata 프레임마다의 시간 간격 (TimingJournal)
         private static var isRebuildFromReplayFileNeeded:Boolean = false; // loadUndoData에서 저장본이 리플레이 파일과 맞지 않아 쓰지 못했을때
         public static var replayCacheImageFolderPath:File;
         public static var replayCacheImageTempFolderPath:File; // worker가 캐시 이미지를 쓰는 곳, main이 확인 후 imagecache로 옮김
@@ -829,6 +833,7 @@ package Modules
 
             ReplayState.rMemoryData = (fs.readObject() as Array).concat();
             ReplayState.rMemoryDataFrame = (fs.readObject() as Array).concat();
+            restoreMemoryDataTimes(fs);
             fs.close();
 
             UndoHistory.setUndoDataIndex(lastUndoIndex);
@@ -856,6 +861,59 @@ package Modules
             arr = null;
         }
 
+        // 저장해둔 명령별 시각을 읽어서 지금 getTimer 기준으로 옮김. 앱이 꺼져있던 시간은 세지 않음
+        // 저장본에 없거나 메모리 뭉치와 모양이 맞지 않으면 전부 지금 시각으로 채움 (간격 0)
+        private static function restoreMemoryDataTimes(fs:FileStream):void
+        {
+            const now:int = getTimer();
+            var times:Array = null;
+            var offset:int = 0;
+
+            if (fs.bytesAvailable > 0)
+            {
+                times = fs.readObject() as Array;
+                offset = now - fs.readInt();
+                TimingJournal.setLastStamp(fs.readBoolean(), (fs.readInt() + offset) | 0);
+            }
+
+            var isValid:Boolean = times !== null && times.length === ReplayState.rMemoryData.length;
+
+            for (var i:int = 0;isValid && i < times.length;i++)
+            {
+                isValid = (times[i] as Array) !== null && times[i].length === ReplayState.rMemoryData[i].length;
+            }
+
+            if (isValid)
+            {
+                for (i = 0;i < times.length;i++)
+                {
+                    for (var j:int = 0;j < times[i].length;j++)
+                    {
+                        times[i][j] = (times[i][j] + offset) | 0;
+                    }
+                }
+
+                ReplayState.rMemoryDataTimes = times;
+                return;
+            }
+
+            ReplayState.rMemoryDataTimes = [];
+
+            for (i = 0;i < ReplayState.rMemoryData.length;i++)
+            {
+                const filled:Array = new Array(ReplayState.rMemoryData[i].length);
+
+                for (j = 0;j < filled.length;j++)
+                {
+                    filled[j] = now;
+                }
+
+                ReplayState.rMemoryDataTimes.push(filled);
+            }
+
+            TimingJournal.breakClock();
+        }
+
         public static function saveUndoData():void
         {
             const fs:FileStream = new FileStream();
@@ -880,6 +938,12 @@ package Modules
             fs.writeObject(newArr);
             fs.writeObject(ReplayState.rMemoryData);
             fs.writeObject(ReplayState.rMemoryDataFrame);
+            // 명령별 시각과 저장 시점의 getTimer, 시간 간격 파일의 마지막 시각 (불러올때 이 값을 새 getTimer 기준으로 옮김)
+            const timingLast:Object = TimingJournal.getLastStamp();
+            fs.writeObject(ReplayState.rMemoryDataTimes);
+            fs.writeInt(getTimer());
+            fs.writeBoolean(timingLast.has);
+            fs.writeInt(timingLast.stamp);
             fs.close();
 
             ba.clear();

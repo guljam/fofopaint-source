@@ -46,6 +46,7 @@ package Modules.ReplayEngine
                 const fs:FileStream = new FileStream();
                 fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE);
                 fs.close();
+                TimingJournal.reset();
             }
         }
 
