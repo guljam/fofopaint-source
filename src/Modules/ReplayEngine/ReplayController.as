@@ -921,7 +921,12 @@ package Modules.ReplayEngine
                     {
                         lastTextUpdateTime = nowTime;
                         updateReplayPrograssText();
-                        ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
+
+                        // 재생 중에는 위에서 매 프레임 시계 기준으로 갱신하니 그리지 않은 프레임 기준 값으로 덮어써서 바가 앞뒤로 튀지 않게 함
+                        if (!ReplayState.isReplayStarted)
+                        {
+                            ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
+                        }
                     }
 
                     updatePrograssBarStartTime = getTimer();

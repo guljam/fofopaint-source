@@ -19,6 +19,8 @@
 		public var trackBar:Sprite = new Sprite();
 		public var prograssBar:Sprite = new Sprite();
 		public var prograssInfo:TextField;
+		private const AFK_HINT_X:Number = 6; // AFK 안내 위치: 시크바 왼쪽에서 6px
+		private const AFK_HINT_Y:Number = 36 + 6; // 시크바 배경(테마색 영역, 높이 36) 아래에서 6px
 		private var afkHintBox:Sprite = new Sprite(); // 시크바 아래 왼쪽의 AFK 안내 (빨간 박스, 흰 글씨)
 		private var afkHintText:TextField = new TextField();
 		public var playButton:SimpleButton;
@@ -125,7 +127,6 @@
 			prograssBar.width = prograssBar.width * scaleFactor;
 			prograssInfo.x = startX;
 			prograssInfo.width = Math.floor(maxWidth / scale);
-			afkHintBox.x = startX;
 		}
 
 		public function updateDeleteDangeBarPosWidth(mode:String):void
@@ -208,8 +209,8 @@
 			prograssInfo.x = trackBar.x;
 			prograssInfo.y = trackBar.y;
 			prograssInfo.width = trackBar.width;
-			afkHintBox.x = trackBar.x;
-			afkHintBox.y = trackBar.y + 22;
+			afkHintBox.x = AFK_HINT_X;
+			afkHintBox.y = AFK_HINT_Y;
 		}
 
 		public function updateUIColor():void
