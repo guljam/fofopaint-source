@@ -12,6 +12,9 @@ package Modules.ReplayEngine
     // 한 프레임의 값은 직전 프레임과의 간격이고 첫 프레임이나 시계가 끊긴 직후(앱 재시작, 자르기)의 값은 0
     public final class TimingSheetFile
     {
+        // 시간 기록이 없는 프레임(옛 파일, 기록이 어긋난 부분)의 간격. 24fps에서 틱당 명령 1개로 재생하던 옛 1배속과 같은 속도
+        public static const LEGACY_FRAME_DELTA:uint = 42;
+
         private static var lastStamp:int = 0; // 마지막으로 파일에 쓴 프레임의 getTimer 값
         private static var hasLastStamp:Boolean = false;
 
@@ -47,7 +50,7 @@ package Modules.ReplayEngine
             lastStamp = stamp;
         }
 
-        // 파일이 frame개의 프레임만 가지도록 모자라면 0으로 채우고 남으면 자름
+        // 파일이 frame개의 프레임만 가지도록 모자라면 LEGACY_FRAME_DELTA로 채우고 남으면 자름
         // repdata와 길이가 어긋난 채로 이어 붙이지 않게 붙이기 직전에 부름
         public static function alignTo(frame:Number):void
         {
@@ -74,7 +77,7 @@ package Modules.ReplayEngine
 
             for (var i:Number = now; i < frame; i++)
             {
-                fs.writeUnsignedInt(0);
+                fs.writeUnsignedInt(LEGACY_FRAME_DELTA);
             }
 
             fs.close();
@@ -169,17 +172,14 @@ package Modules.ReplayEngine
             fs.close();
         }
 
-        // .fofo 파일 끝에 쓰는 ["rTimingSheet", 버전, 프레임 수, 구간 프레임 수, [구간별 압축 데이터]] 객체를 만듬
-        // 앞쪽 fileFrames개는 파일에서 읽고, 그 뒤는 메모리 undo 묶음(memoryStamps의 앞 memoryGroupCount개)의 시각에서 간격을 계산함
-        // 메모리 묶음 첫 프레임의 간격은 파일 마지막 프레임과 이어서 구하고, extraFrames는 끝에 간격 0으로 덧붙이는 프레임 수
-        // 구간 하나씩만 풀어서 압축하니 전체를 한번에 메모리에 올리지 않음
-        public static function buildFileObject(fileFrames:Number, memoryStamps:Array, memoryGroupCount:int, extraFrames:int):Array
+        // 메모리 undo 묶음(앞 groupCount개)의 시각을 간격으로 바꿈. 첫 프레임은 파일에 마지막으로 쓴 프레임과 이어서 구함
+        public static function computeMemoryDeltas(memoryStamps:Array, groupCount:int):Vector.<uint>
         {
-            const memoryDeltas:Vector.<uint> = new Vector.<uint>();
+            const deltas:Vector.<uint> = new Vector.<uint>();
             var last:int = lastStamp;
             var has:Boolean = hasLastStamp;
 
-            for (var g:int = 0; g < memoryGroupCount; g++)
+            for (var g:int = 0; g < groupCount; g++)
             {
                 const group:Array = memoryStamps[g];
 
@@ -198,13 +198,24 @@ package Modules.ReplayEngine
                         }
                     }
 
-                    memoryDeltas.push(uint(delta));
+                    deltas.push(uint(delta));
                     last = stamp;
                     has = true;
                 }
             }
 
-            for (i = 0; i < extraFrames; i++)
+            return deltas;
+        }
+
+        // .fofo 파일 끝에 쓰는 ["rTimingSheet", 버전, 프레임 수, 구간 프레임 수, [구간별 압축 데이터]] 객체를 만듬
+        // 앞쪽 fileFrames개는 파일에서 읽고, 그 뒤는 메모리 undo 묶음(memoryStamps의 앞 memoryGroupCount개)의 시각에서 간격을 계산함
+        // 메모리 묶음 첫 프레임의 간격은 파일 마지막 프레임과 이어서 구하고, extraFrames는 끝에 간격 0으로 덧붙이는 프레임 수
+        // 구간 하나씩만 풀어서 압축하니 전체를 한번에 메모리에 올리지 않음
+        public static function buildFileObject(fileFrames:Number, memoryStamps:Array, memoryGroupCount:int, extraFrames:int):Array
+        {
+            const memoryDeltas:Vector.<uint> = computeMemoryDeltas(memoryStamps, memoryGroupCount);
+
+            for (var i:int = 0; i < extraFrames; i++)
             {
                 memoryDeltas.push(0);
             }

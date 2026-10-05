@@ -56,6 +56,8 @@ package Modules.ReplayEngine
         public static var main:Main;
 
         private static const REPLAY_SLIDESHOW_ACTIVE_SPEED:Number = 60;
+        private static const REPLAY_DRAW_CHUNK_FRAMES:Number = 200; // 시계를 따라가려고 한번에 그리는 프레임 수 단위
+        private static const REPLAY_DRAW_TIME_BUDGET:int = 14; // 한 틱에 그리기에 쓰는 최대 시간(ms)
         private static const REPLAY_SLIDESHOW_FRAME_RATE:Number = 2; // 1/2초 = 0.5초마다 갱신
         private static const REPLAY_SLIDESHOW_UPDATE_TIME:Number = 1000 / REPLAY_SLIDESHOW_FRAME_RATE;
         private static var rCanvasCompleteAnchorPoint:Sprite = new Sprite(); // 리플레이에어 이미지가 재생되었을때 보여주는 객체 stage와 가로세로 중앙정렬
@@ -95,7 +97,8 @@ package Modules.ReplayEngine
         public static function updateTotalFrameAndReplayMaxSpeedFor10Sec(totalframe:Number):void
         {
             ReplayState.TOTAL_FRAME = totalframe;
-            var maxSpeed:Number = Math.floor(totalframe / 10 / main.stage.frameRate);
+            ReplayClock.rebuild(); // 프레임 수가 바뀌는 곳마다 부르므로 여기서 시계의 시간 색인도 새로 만듬
+            var maxSpeed:Number = Math.floor(ReplayClock.totalMs / 10000);
 
             if (maxSpeed < 1.0)
             {
@@ -333,8 +336,9 @@ package Modules.ReplayEngine
             if (nowTime - rSeekbarTextUpdateTime >= REPLAY_SLIDESHOW_UPDATE_TIME)
             {
                 rSeekbarTextUpdateTime = nowTime;
-                const nextFrame:Number = ReplayState.rReplaySpeedMultipler * main.stage.frameRate;
-                const shouldStop:Boolean = ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame + Math.floor(nextFrame / REPLAY_SLIDESHOW_FRAME_RATE), ReplayDrawer.JUMP_FRAME_MANUAL);
+                // 시계 기준으로 지금 그려야 하는 프레임까지 한번에 그림
+                const dueFrame:Number = ReplayClock.frameCountDue(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
+                const shouldStop:Boolean = ReplayDrawer.renderReplayFrame(dueFrame, ReplayDrawer.JUMP_FRAME_MANUAL);
 
                 if (shouldStop)
                 {
@@ -950,7 +954,7 @@ package Modules.ReplayEngine
                     }
                     else
                     {
-                        if (ReplayDrawer.startDraw(ReplayState.rReplaySpeedMultipler, ReplayDrawer.JUMP_FRAME_PLAY))
+                        if (drawDueFrames())
                         {
                             stopReplay();
                         }
@@ -958,6 +962,39 @@ package Modules.ReplayEngine
 
                     return true;
                 });
+        }
+
+        // 시계 기준으로 지금까지 그려야 하는 만큼 그림. 한 틱에 쓰는 시간에 상한을 둬서 못 따라가면 다음 틱에 이어서 그림
+        // 반환값: 리플레이를 정지해야 하면 true
+        private static function drawDueFrames():Boolean
+        {
+            var remaining:Number = ReplayClock.frameCountDue(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler) - ReplayState.rNowFrame;
+            const startTime:int = getTimer();
+
+            while (remaining > 0)
+            {
+                const chunk:Number = Math.min(remaining, REPLAY_DRAW_CHUNK_FRAMES);
+
+                if (ReplayDrawer.startDraw(chunk, ReplayDrawer.JUMP_FRAME_PLAY))
+                {
+                    return true;
+                }
+
+                remaining -= chunk;
+
+                if (getTimer() - startTime >= REPLAY_DRAW_TIME_BUDGET)
+                {
+                    break;
+                }
+            }
+
+            // 마지막 프레임까지 그렸으면 한번 더 읽어서 끝났다는 것을 확인 (정지 판단은 읽는 쪽에서 함)
+            if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
+            {
+                return ReplayDrawer.startDraw(1, ReplayDrawer.JUMP_FRAME_PLAY);
+            }
+
+            return false;
         }
 
         public static function shouldUseReplaySlideShowMode():Boolean
@@ -979,7 +1016,7 @@ package Modules.ReplayEngine
         // keyfunc
         public static function adjustReplaySpeedByShortcut(increaseFlag:Boolean):void
         {
-            const clacMax:Number = Math.floor(ReplayState.TOTAL_FRAME / (main.stage.frameRate * 3));
+            const clacMax:Number = Math.floor(ReplayClock.totalMs / 3000);
 
             if (clacMax <= 0)
             {
@@ -1020,9 +1057,7 @@ package Modules.ReplayEngine
 
         public static function adjutReplaySpeedByMouse():void
         {
-            const totalF:Number = ReplayState.TOTAL_FRAME;
-
-            if (totalF <= main.stage.frameRate * 3) // 3초 이내면 안함
+            if (ReplayClock.totalMs <= 3000) // 3초 이내면 안함
             {
                 return;
             }
@@ -1385,6 +1420,7 @@ package Modules.ReplayEngine
             }
 
             ReplayFileCache.clearRFrameTempCache();
+            ReplayClock.anchorAtFrame(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
             startReplayDrawTimer();
             startUpdatingPrograssBarTimer();
             ReplayMouseAutoHide.start();
@@ -1848,8 +1884,8 @@ package Modules.ReplayEngine
 
         public static function getReplayRemainingTimeString(speed:Number, totalFrame:Number, isSlideShowMode:Boolean = false):String
         {
-            const fps:Number = (isSlideShowMode === true) ? 1.0 : main.stage.frameRate;
-            const totalSec:Number = totalFrame / (fps * speed);
+            // totalFrame은 남은 프레임 수, 시계에서 그 지점부터 끝까지의 녹화 시간을 배속으로 나눠 실제 남은 시간을 구함
+            const totalSec:Number = ReplayClock.remainingMsFrom(ReplayState.TOTAL_FRAME - totalFrame) / 1000 / speed;
 
             if (totalSec === 0)
                 return "";
