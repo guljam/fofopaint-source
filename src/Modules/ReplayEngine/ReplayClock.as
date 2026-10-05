@@ -22,6 +22,9 @@ package Modules.ReplayEngine
         private static var totalTime:Number = 0;
         private static var totalFrames:Number = 0;
 
+        // 쉬는 구간(간격이 AFK_WAIT_MS 이상인 곳)의 [시작 시각, 끝 시각] 쌍을 이어붙인 목록. 시크바의 어두운 구간 표시에 씀
+        private static var gapRanges:Vector.<Number> = new Vector.<Number>();
+
         private static var cachedSegment:int = -1; // 풀어둔 파일 구간 번호
         private static var cachedTimes:Vector.<Number> = null; // 그 구간 안 프레임별 녹화 시각 (구간 시작 시각 포함한 절대값)
 
@@ -51,6 +54,7 @@ package Modules.ReplayEngine
             afkEnd = -1;
 
             segmentStart = new Vector.<Number>();
+            gapRanges = new Vector.<Number>();
             var sum:Number = 0;
             const file:File = AppStateManager.replayTimingSheetFilePath;
 
@@ -70,7 +74,14 @@ package Modules.ReplayEngine
 
                     for (var i:int = 0; i < count; i++)
                     {
-                        sum += chunk.readUnsignedInt();
+                        const delta:uint = chunk.readUnsignedInt();
+
+                        if (delta >= AFK_WAIT_MS)
+                        {
+                            gapRanges.push(sum, sum + delta);
+                        }
+
+                        sum += delta;
                     }
                 }
 
@@ -85,6 +96,11 @@ package Modules.ReplayEngine
 
             for (i = 0; i < memoryDeltas.length; i++)
             {
+                if (memoryDeltas[i] >= AFK_WAIT_MS)
+                {
+                    gapRanges.push(sum, sum + memoryDeltas[i]);
+                }
+
                 sum += memoryDeltas[i];
                 memoryCumulative[i] = sum;
             }
@@ -285,6 +301,23 @@ package Modules.ReplayEngine
             anchorRecorded = afkEnd;
             anchorReal = getTimer();
             afkEnd = -1;
+        }
+
+        // 현재 배속에서 AFK가 되는 쉬는 구간(녹화 길이가 AFK_WAIT_MS * 배속 이상)의 [시작 시각, 끝 시각] 쌍 목록
+        public static function getAfkRanges(speed:Number):Vector.<Number>
+        {
+            const result:Vector.<Number> = new Vector.<Number>();
+            const minLength:Number = AFK_WAIT_MS * speed;
+
+            for (var i:int = 0; i < gapRanges.length; i += 2)
+            {
+                if (gapRanges[i + 1] - gapRanges[i] >= minLength)
+                {
+                    result.push(gapRanges[i], gapRanges[i + 1]);
+                }
+            }
+
+            return result;
         }
 
         // 시크바 위치(0~1)는 프레임 수가 아니라 녹화 시간 기준. frame개를 그린 상태의 위치

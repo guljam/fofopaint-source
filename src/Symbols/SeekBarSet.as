@@ -16,6 +16,8 @@
 	{
 		private var replayBGBar:Sprite = new Sprite();
 		private var deleteRangeBar:Sprite = new Sprite();
+		private var afkRangeBar:Sprite = new Sprite(); // 쉬는(AFK) 구간을 트랙 위에 어둡게 칠하는 층
+		private var afkRanges:Vector.<Number> = new Vector.<Number>(); // 마지막으로 받은 구간 비율 쌍 (0~1)
 		public var trackBar:Sprite = new Sprite();
 		public var prograssBar:Sprite = new Sprite();
 		public var prograssInfo:TextField;
@@ -46,6 +48,33 @@
 		}
 
 		// AFK(오래 쉬는 구간) 안내를 시크바 아래 왼쪽에 보여줌. 글자는 prograssInfo와 같은 글꼴
+		// 쉬는 구간을 시크바 트랙 위에 어둡게 표시. ranges는 [시작 비율, 끝 비율] 쌍(0~1)을 이어붙인 목록
+		public function setAfkRanges(ranges:Vector.<Number>):void
+		{
+			afkRanges = ranges;
+			redrawAfkRanges();
+		}
+
+		private function redrawAfkRanges():void
+		{
+			const g:Graphics = afkRangeBar.graphics;
+			g.clear();
+			const w:Number = trackBar.width;
+			const h:Number = trackBar.height;
+
+			for (var i:int = 0; i < afkRanges.length; i += 2)
+			{
+				const x0:Number = Math.floor(w * afkRanges[i]);
+				const x1:Number = Math.max(x0 + 1, Math.ceil(w * afkRanges[i + 1])); // 아주 짧아도 1px는 보이게
+				g.beginFill(0x000000, 0.28);
+				g.drawRect(x0, 0, x1 - x0, h);
+				g.endFill();
+			}
+
+			afkRangeBar.x = trackBar.x;
+			afkRangeBar.y = trackBar.y;
+		}
+
 		public function showAfkHint(text:String):void
 		{
 			afkHintText.text = text;
@@ -125,6 +154,7 @@
 			replayBGBar.width = Math.floor(stw / scale) + 1;
 			prograssBar.x = startX;
 			prograssBar.width = prograssBar.width * scaleFactor;
+			redrawAfkRanges();
 			prograssInfo.x = startX;
 			prograssInfo.width = Math.floor(maxWidth / scale);
 		}
@@ -279,11 +309,15 @@
 			addChild(replayBGBar);
 			addChild(trackBar);
 			addChild(prograssBar);
+			afkRangeBar.mouseEnabled = false;
+			afkRangeBar.mouseChildren = false;
 			addChild(deleteRangeBar);
+			addChild(afkRangeBar);
 			setChildIndex(replayBGBar, 0);
 			setChildIndex(trackBar, 1);
 			setChildIndex(prograssBar, 2);
 			setChildIndex(deleteRangeBar, 3);
+			setChildIndex(afkRangeBar, 2); // 트랙 위, 진행 막대 아래
 		}
 
 		[Embed(source="fofoPaint-animate-27.13.swf",symbol="seekBarSet")]

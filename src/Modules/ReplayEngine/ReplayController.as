@@ -106,6 +106,7 @@ package Modules.ReplayEngine
             }
 
             ReplayState.REPLAY_MAX_SPEED = maxSpeed;
+            refreshAfkRanges();
 
             if (UIController.topBar)
             {
@@ -115,7 +116,28 @@ package Modules.ReplayEngine
             if (ReplayState.rReplaySpeedMultipler > maxSpeed)
             {
                 ReplayState.rReplaySpeedMultipler = maxSpeed;
+                refreshAfkRanges();
             }
+        }
+
+        // 시크바의 쉬는 구간 표시를 지금 배속 기준으로 다시 그림. 프레임 수나 배속이 바뀔때 부름
+        public static function refreshAfkRanges():void
+        {
+            if (!seekBarBox)
+            {
+                return;
+            }
+
+            const ranges:Vector.<Number> = ReplayClock.getAfkRanges(ReplayState.rReplaySpeedMultipler);
+            const ratios:Vector.<Number> = new Vector.<Number>(ranges.length, true);
+            const total:Number = ReplayClock.totalMs;
+
+            for (var i:int = 0; i < ranges.length; i++)
+            {
+                ratios[i] = total > 0 ? ranges[i] / total : 0;
+            }
+
+            seekBarBox.setAfkRanges(ratios);
         }
 
         public static function onDragEnterStage(e:NativeDragEvent):void
@@ -829,6 +851,7 @@ package Modules.ReplayEngine
         public static function resetReplaySpeedBar():void
         {
             ReplayState.rReplaySpeedMultipler = 1.0; // 속도 리셋
+            refreshAfkRanges();
             UIController.topBar.replaySpeedSliderCursor.x = UIController.topBar.replaySpeedSlider.x + 1.5;
         }
 
@@ -1120,6 +1143,7 @@ package Modules.ReplayEngine
             }
 
             ReplayState.rReplaySpeedMultipler = _rSpeed;
+            refreshAfkRanges();
             UIController.topBar.setSpeedButtonPosByValue(_rSpeed, maxSpeed);
             showReplaySpeedMouseHint();
         }
@@ -1168,6 +1192,7 @@ package Modules.ReplayEngine
                     }
 
                     ReplayState.rReplaySpeedMultipler = nowSpeed;
+                    refreshAfkRanges();
                 }
             }
 
@@ -1262,6 +1287,7 @@ package Modules.ReplayEngine
                     // floor 오차로 59가 되지 않도록 스냅 속도를 직접 지정
                     oldSpeed = REPLAY_SLIDESHOW_ACTIVE_SPEED;
                     ReplayState.rReplaySpeedMultipler = REPLAY_SLIDESHOW_ACTIVE_SPEED;
+                    refreshAfkRanges();
                 }
                 updateReplayPrograssText(); // 드래그 중에는 속도 힌트가 seekbar 텍스트에 표시됨
             }
