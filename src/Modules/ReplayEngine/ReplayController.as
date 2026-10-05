@@ -544,7 +544,7 @@ package Modules.ReplayEngine
                 }
             }
 
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
 
         private static function handleReplayCacheImageGenerateComplete(fs:FileStream, onFrameEnter:Function, _frameSum:Number, _frameSumLast:Number, finalizeFunc:Function):void

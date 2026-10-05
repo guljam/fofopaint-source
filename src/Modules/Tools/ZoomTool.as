@@ -189,7 +189,7 @@ package Modules.Tools
                 fixMouseHintPos();
             }
 
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         };
     }
 }

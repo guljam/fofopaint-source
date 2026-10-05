@@ -44,7 +44,7 @@ package Modules
             dragInteractionMouseMoveFunc = null;
         }
 
-        public static function startDragInteraction(onDragStartFunc:Function, onMouseMoveFunc:Function, onMouseUpFunc:Function):void
+        public static function start(onDragStartFunc:Function, onMouseMoveFunc:Function, onMouseUpFunc:Function):void
         {
             // mouseUp을 놓쳐서 이전 드래그가 열려있으면 먼저 마무리함 (콜백 슬롯이 하나라서 덮어쓰면 이전 드래그의 mouseUp 처리가 사라짐)
             if (dragInteractionMouseEventStarted)
@@ -66,7 +66,7 @@ package Modules
             }
         }
 
-        public static function startBoxDrag(target:DisplayObject):void
+        public static function startDragBox(target:DisplayObject):void
         {
             const clickPos:Point = new Point(main.stage.mouseX, main.stage.mouseY);
 
@@ -89,7 +89,7 @@ package Modules
                 UIController.keepBoxInsideViewPort(target);
             }
 
-            startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            start(onDragStart, onMouseMove, onMouseUp);
         }
     }
 }

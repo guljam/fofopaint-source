@@ -524,7 +524,7 @@ package Modules
                 }
             }
 
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
 
         // 선택한 칸의 색을 덮어씀 (addColorToMyPalette와 달리 같은 색이어도 지우지 않음)
@@ -638,7 +638,7 @@ package Modules
 
             if (index >= 0 && !isSelctedColorEmpty(index))
             {
-                DragInteraction.startDragInteraction(onDragStart, onMouseMouse, onMouseUp);
+                DragInteraction.start(onDragStart, onMouseMouse, onMouseUp);
             }
         }
 

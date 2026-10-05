@@ -773,7 +773,7 @@ package Modules
                 pickHueColor(colorPickerBox.hueColor.mouseX);
             }
 
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
 
         private static function startSVColorSelection():void
@@ -867,7 +867,7 @@ package Modules
                 pickSVColor(colorPickerBox.svBox.mouseX, colorPickerBox.svBox.mouseY);
             }
 
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
 
         private static function getTegakiColorPresetIndex(index:int):int

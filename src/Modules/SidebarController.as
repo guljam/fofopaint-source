@@ -867,7 +867,7 @@ package Modules
                 checkFOFOPosition();
             }
 
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
 
         public static function startScrollSidebarByMouseWheel(deltaY:Number):void

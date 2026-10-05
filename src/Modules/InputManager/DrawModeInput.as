@@ -846,7 +846,7 @@ package Modules.InputManager
                     return;
                 case "refLayerMenuMoveButton":
                     {
-                        DragInteraction.startBoxDrag(ReferenceLayerController.refLayerMenuBox);
+                        DragInteraction.startDragBox(ReferenceLayerController.refLayerMenuBox);
                     }
                     return;
                 case "dragDropFileBG":

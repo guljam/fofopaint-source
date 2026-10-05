@@ -566,7 +566,7 @@ package Modules
                 canvasRefLayerBitmap.smoothing = true;
             }
 
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
 
         public static function startRefLayerImageScale():void
@@ -602,7 +602,7 @@ package Modules
                 HintController.hideMouseHint();
             }
 
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
 
         public static function startRefLayerImageDrag():void
@@ -637,7 +637,7 @@ package Modules
                 canvasRefLayerBitmap.smoothing = true;
             }
 
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
 
         public static function resetRefLayerMenuOpacity():void
@@ -693,7 +693,7 @@ package Modules
                 onMouseMoveUpdateopacity();
             }
 
-            DragInteraction.startDragInteraction(onDragStart, onMouseMoveUpdateopacity, function ():void {});
+            DragInteraction.start(onDragStart, onMouseMoveUpdateopacity, function ():void {});
         }
 
         private static function setRefLayerMenuButtonsOff():void

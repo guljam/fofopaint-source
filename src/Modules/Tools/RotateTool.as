@@ -102,7 +102,7 @@ package Modules.Tools
             xAnc = CanvasViewport.forMode(isReplayMode).anchor;
             getAngle = UIController.showCanvasRotateCursorMouseDrag(xAnc);
 
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         };
     }
 }

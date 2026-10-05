@@ -381,7 +381,7 @@ package Modules.Tools
                 lassoLayer1.rotation = angle;
                 lassoLayer2.rotation = angle;
             }
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
 
         private static function startLassoImageResize():void
@@ -411,7 +411,7 @@ package Modules.Tools
                 lassoLayer2.scaleY = lassoLayer1.scaleY;
                 HintController.showMouseHint(HintStrings.getImageScaleHint(lassoLayer1.width, lassoLayer1.height, Math.abs(lassoLayer1.scaleX), false));
             }
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
 
         public static function hasLassoImageChanges():Boolean
@@ -450,7 +450,7 @@ package Modules.Tools
             {
                 setOptimizeView(true);
             }
-            DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+            DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
 
         public static function applyLassoShapen(scale:Number):void
@@ -1267,7 +1267,7 @@ package Modules.Tools
                     case "lassoMenuMoveButton":
                         {
                             Utils.setAsTopChild(lassoMenuBox);
-                            DragInteraction.startBoxDrag(lassoMenuBox);
+                            DragInteraction.startDragBox(lassoMenuBox);
                         }
                         break;
                     case "sideBarScrollBar":

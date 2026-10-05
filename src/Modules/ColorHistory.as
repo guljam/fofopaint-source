@@ -205,7 +205,7 @@ package Modules
 
             if (index >= 0 && !isEmpty(index))
             {
-                DragInteraction.startDragInteraction(onDragStart, onMouseMove, onMouseUp);
+                DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
             }
         }
     }
