@@ -8,7 +8,7 @@ package Modules
      */
     public class InputPriority
     {
-        public static const EARLY_KEY:int = 12;
+        public static const EARLY:int = 12;
         public static const STAGE_ROOT:int = 11;
         public static const DEFAULT:int = 10;
         public static const MODE:int = 9;

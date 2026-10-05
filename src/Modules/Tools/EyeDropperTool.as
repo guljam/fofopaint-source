@@ -24,6 +24,7 @@ package Modules.Tools
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayState;
     import flash.events.Event;
+    import Modules.SidebarController;
 
     public class EyeDropperTool
     {
@@ -142,7 +143,10 @@ package Modules.Tools
 
         private static function onRightMouseDownEyeDropper(e:MouseEvent):void
         {
-            exitEyeDropperTool(false);
+            if(!SidebarController.isQuickSidebarActive)
+            {
+                exitEyeDropperTool(false);
+            }
         }
 
         private static function onKeyDownEyeDropper(e:KeyboardEvent):void
@@ -306,9 +310,9 @@ package Modules.Tools
         {
             main.stage.addEventListener(Event.ENTER_FRAME, onEnterFrameEyeDropper);
             main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper, false, InputPriority.LATE);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper, false, InputPriority.LATE);
-            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper, false, InputPriority.EARLY_KEY);
-            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownEyeDropper, false, InputPriority.EARLY_KEY);
+            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper, false, InputPriority.EARLY);
+            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper, false, InputPriority.EARLY);
+            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownEyeDropper, false, InputPriority.EARLY);
         }
 
         private static function canShowEyedropperLens():Boolean

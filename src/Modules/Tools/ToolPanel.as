@@ -311,12 +311,7 @@ package Modules.Tools
                         break;
                     case "toolEyedropper":
                         {
-                            if (SidebarController.isQuickSidebarActive)
-                            {
-                                ToolController.resetLastTool();
-                                toolBox.moveToolCursor("toolEyedropper");
-                            }
-                            else if (!ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER))
+                            if (!ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER))
                             {
                                 EyeDropperTool.start();
                             }

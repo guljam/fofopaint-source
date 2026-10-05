@@ -183,11 +183,6 @@ package Modules
 
             sideBar.resetBG();
 
-            if (ToolPanel.toolBox.getLastTool() === "toolEyedropper")
-            {
-                EyeDropperTool.start();
-            }
-
             if (ReferenceLayerController.isRefLayerMenuON)
             {
                 ReferenceLayerController.refLayerMenuBox.visible = true;
