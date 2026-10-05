@@ -288,11 +288,10 @@ package Modules
             if (myPaletteDataFilePath.exists)
             {
                 fs.open(myPaletteDataFilePath, FileMode.READ);
-                var list:Array = fs.readObject();
+                var list:Object = fs.readObject();
                 fs.close(); // 기존 코드에 없던 항목 변경을 막기 위해 유지
 
-                PaletteController.myPalettePreset = list.concat();
-                list.length = 0;
+                PaletteController.applyMyPaletteData(list);
                 list = null;
             }
 
@@ -484,7 +483,7 @@ package Modules
                         if (appStateObject.myPalettePresetType > 0)
                             ColorPickerController.activeColorPreset(appStateObject.myPalettePresetType);
 
-                        PaletteController.updateHistoryList();
+                        ColorHistory.update();
                         PaletteController.isMyPaletteExpended = appStateObject.isMyPaletteExpended;
 
                         if (PaletteController.myPalettePresetType === 0 && appStateObject.isMyPaletteExpended)
@@ -588,7 +587,7 @@ package Modules
                 UIController.canvasInfoBox.init(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, Math.floor(CanvasView.canvasZoomMultiplier * 100), CanvasView.canvasAnchorPoint.rotation, false);
                 CanvasLayers.selectLayer(1, false);
 
-                PaletteController.initMyPaletteHistory();
+                ColorHistory.init();
 
                 FOFOTimer.add(0.3, true, function ():Boolean
                     {

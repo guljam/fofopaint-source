@@ -52,7 +52,7 @@ package Modules
             colorPickerBox.applyTransparentColorBrightness(UITheme.getUIColorIndex());
 
             PaletteController.updateMyPaletteList();
-            PaletteController.updateHistoryList();
+            ColorHistory.update();
 
             if (PenTool.isTransparentPenColor)
             {
@@ -995,7 +995,7 @@ package Modules
                             break;
 
                         case "colorHistoryBox":
-                            PaletteController.selectHistoryColor();
+                            ColorHistory.select();
                             break;
 
                         case "myPaletteBox":
@@ -1057,7 +1057,7 @@ package Modules
             {
                 if (PaletteController.myPalettePresetType === 0)
                 {
-                    PaletteController.startColorHistoryBoxDragging();
+                    ColorHistory.startDragging();
                 }
             }
 

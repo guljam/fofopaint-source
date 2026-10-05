@@ -4,6 +4,7 @@ package Modules.Tools
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.InputPriority;
+    import Modules.ColorHistory;
     import Modules.ColorPickerController;
     import Modules.DrawingFinish;
     import Modules.InputManager.InputManager;
@@ -330,7 +331,7 @@ package Modules.Tools
                     if (!ColorPickerController.isCurrentColorSamePickedColor())
                     {
                         ColorPickerController.updatePickerCurrentColor(ColorPickerController.colorPickerBox.getRGBInfoBGColor());
-                        PaletteController.addColorMyPaletteHistory(ColorPickerController.colorPickerBox.getRGBInfoBGColor());
+                        ColorHistory.add(ColorPickerController.colorPickerBox.getRGBInfoBGColor());
                     }
                 }
 
