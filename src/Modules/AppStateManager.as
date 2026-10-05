@@ -44,7 +44,7 @@ package Modules
             undoDataFilePath = dataFolderPath.resolvePath("undodata");
             myPaletteDataFilePath = dataFolderPath.resolvePath("mypalettedata");
             replayDataFilePath = dataFolderPath.resolvePath("repdata");
-            replayTimingSheetFilePath = dataFolderPath.resolvePath("reptimingsheet2");
+            replayTimingSheetFilePath = dataFolderPath.resolvePath("reptimingsheet");
             replayCacheImageFolderPath = dataFolderPath.resolvePath("imagecache");
             replayCacheImageTempFolderPath = dataFolderPath.resolvePath("imagecache_tmp");
             replayCacheImageFrameDataFilePath = dataFolderPath.resolvePath("jumpframedata");
