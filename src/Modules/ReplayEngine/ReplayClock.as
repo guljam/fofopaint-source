@@ -287,6 +287,39 @@ package Modules.ReplayEngine
             afkEnd = -1;
         }
 
+        // 시크바 위치(0~1)는 프레임 수가 아니라 녹화 시간 기준. frame개를 그린 상태의 위치
+        public static function frameRatio(frame:Number):Number
+        {
+            if (totalTime <= 0)
+            {
+                return totalFrames > 0 ? Math.min(1, frame / totalFrames) : 0;
+            }
+
+            return Math.min(1, timeOfFrame(frame - 1) / totalTime);
+        }
+
+        // 시크바의 위치 ratio(0~1)에 해당하는 프레임 수 (시크바 클릭, 드래그)
+        public static function ratioToFrame(ratio:Number):Number
+        {
+            if (ratio >= 1)
+            {
+                return totalFrames;
+            }
+
+            if (totalTime <= 0)
+            {
+                return Math.floor(totalFrames * Math.max(0, ratio));
+            }
+
+            return Math.min(totalFrames, framesDueAt(totalTime * Math.max(0, ratio)));
+        }
+
+        // 재생 중 시크바 위치. 그린 프레임이 아니라 시계가 흐르는 대로 움직여서 쉬는 구간(AFK)에도 바가 계속 감
+        public static function playRatio(speed:Number):Number
+        {
+            return totalTime > 0 ? Math.min(1, recordedNow(speed) / totalTime) : 0;
+        }
+
         // frame개를 그린 상태에서 남은 녹화 시간(ms). 표시용
         public static function remainingMsFrom(frame:Number):Number
         {

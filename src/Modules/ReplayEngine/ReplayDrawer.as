@@ -15,6 +15,7 @@ package Modules.ReplayEngine
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.utils.getTimer;
     import Symbols.FOFOCursorSet;
     import Modules.CacheImageMetaData;
     import Modules.FileManager;
@@ -47,6 +48,10 @@ package Modules.ReplayEngine
         public static const JUMP_FRAME_PREV:int = (1 << 2); // 이전 프레임으로 이동 (프레임 감소)
         public static const JUMP_FRAME_NEXT:int = (1 << 3); // 이후 프레임으로 이동 (프레임 증가)
 
+        public static const REPLAY_CURSOR_SPIN_TURN_MS:Number = 900; // 오래 쉬는(AFK) 동안 리플레이 커서가 한바퀴 도는 시간 (시계 방향)
+        public static const REPLAY_CURSOR_SPIN_RETURN_MS:Number = 200; // 쉬는 구간이 끝나고 원래 각도로 부드럽게 돌아가는 시간, 0이면 바로 돌아감
+        private static const REPLAY_CURSOR_SPIN_TIMER:String = "replayCursorSpinTimer";
+        private static var isReplayCursorSpinning:Boolean = false; // 쉬는 구간이라 커서가 도는 중인지 (되돌아가는 중은 false)
         private static var readCount:Number = 0;
         private static var rMemoryDataLen:uint;
 
@@ -310,6 +315,7 @@ package Modules.ReplayEngine
                 }
             }
 
+            stopReplayFOFOCursorSpin();
             rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
             const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);
@@ -343,6 +349,71 @@ package Modules.ReplayEngine
             }
 
             return shouldStop;
+        }
+
+        // AFK 구간에 들어갈때 커서를 몸통(그림 중심)을 축으로 제자리에서 돌림. 이미 돌고 있으면 아무것도 안 함
+        // 회전은 커서 안쪽 레이어에만 줘서 캔버스 회전 상쇄(setRcursorRotation)와 섞이지 않음
+        public static function startReplayFOFOCursorSpin():void
+        {
+            if (isReplayCursorSpinning || !rReplayFOFOCursor.visible)
+            {
+                return;
+            }
+
+            isReplayCursorSpinning = true;
+            // 되돌아가는 중에 다시 돌기 시작하면 지금 각도에서 이어서 돎
+            const startAngle:Number = rReplayFOFOCursor.spinRotation;
+            const startTime:int = getTimer();
+            FOFOTimer.addByName(REPLAY_CURSOR_SPIN_TIMER, 0.0, true, function ():Boolean
+                {
+                    if (!rReplayFOFOCursor.visible)
+                    {
+                        isReplayCursorSpinning = false;
+                        rReplayFOFOCursor.spinRotation = 0;
+                        return false;
+                    }
+
+                    rReplayFOFOCursor.spinRotation = startAngle + (getTimer() - startTime) * 360 / REPLAY_CURSOR_SPIN_TURN_MS;
+                    return true;
+                });
+        }
+
+        // 쉬는 구간이 끝나거나 일시정지, 탐색할때 원래 각도로 부드럽게 되돌림 (가까운 방향으로, 끝에서 느려지게)
+        // 돌고 있지 않으면 플래그만 보고 끝남. 반환값: 돌던 중이었으면 true
+        public static function stopReplayFOFOCursorSpin():Boolean
+        {
+            if (!isReplayCursorSpinning)
+            {
+                return false;
+            }
+
+            isReplayCursorSpinning = false;
+            // rotation은 -180~180으로 정리되어 있어서 그대로 0까지 줄이면 가까운 방향임
+            const fromAngle:Number = rReplayFOFOCursor.spinRotation;
+
+            if (REPLAY_CURSOR_SPIN_RETURN_MS <= 0 || fromAngle === 0 || !rReplayFOFOCursor.visible)
+            {
+                FOFOTimer.remove(REPLAY_CURSOR_SPIN_TIMER);
+                rReplayFOFOCursor.spinRotation = 0;
+                return true;
+            }
+
+            const startTime:int = getTimer();
+            FOFOTimer.addByName(REPLAY_CURSOR_SPIN_TIMER, 0.0, true, function ():Boolean
+                {
+                    const t:Number = (getTimer() - startTime) / REPLAY_CURSOR_SPIN_RETURN_MS;
+
+                    if (t >= 1 || !rReplayFOFOCursor.visible)
+                    {
+                        rReplayFOFOCursor.spinRotation = 0;
+                        return false;
+                    }
+
+                    const ease:Number = 1 - (1 - t) * (1 - t); // ease-out
+                    rReplayFOFOCursor.spinRotation = fromAngle * (1 - ease);
+                    return true;
+                });
+            return true;
         }
 
         public static function updateReplayCursorScale(zoom:Number):void

@@ -5,6 +5,7 @@
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
+	import flash.text.TextFieldAutoSize;
 	import flash.geom.ColorTransform;
 	import flash.display.Graphics;
 	import assets.VisualBuilder;
@@ -18,6 +19,8 @@
 		public var trackBar:Sprite = new Sprite();
 		public var prograssBar:Sprite = new Sprite();
 		public var prograssInfo:TextField;
+		private var afkHintBox:Sprite = new Sprite(); // 시크바 아래 왼쪽의 AFK 안내 (빨간 박스, 흰 글씨)
+		private var afkHintText:TextField = new TextField();
 		public var playButton:SimpleButton;
 		public var pauseButton:SimpleButton;
 		public var replayPrev:SimpleButton;
@@ -38,6 +41,23 @@
 			replayPrev.visible = false;
 			replayNext.visible = false;
 			updatePos(stage.stageWidth);
+		}
+
+		// AFK(오래 쉬는 구간) 안내를 시크바 아래 왼쪽에 보여줌. 글자는 prograssInfo와 같은 글꼴
+		public function showAfkHint(text:String):void
+		{
+			afkHintText.text = text;
+			const g:Graphics = afkHintBox.graphics;
+			g.clear();
+			g.beginFill(0xE03A3E);
+			g.drawRect(0, 0, afkHintText.width + 6, afkHintText.height + 2);
+			g.endFill();
+			afkHintBox.visible = true;
+		}
+
+		public function hideAfkHint():void
+		{
+			afkHintBox.visible = false;
 		}
 
 		public function updateReplayPrograssBarWidthByNowFame(frameRaio:Number):void
@@ -105,6 +125,7 @@
 			prograssBar.width = prograssBar.width * scaleFactor;
 			prograssInfo.x = startX;
 			prograssInfo.width = Math.floor(maxWidth / scale);
+			afkHintBox.x = startX;
 		}
 
 		public function updateDeleteDangeBarPosWidth(mode:String):void
@@ -187,6 +208,8 @@
 			prograssInfo.x = trackBar.x;
 			prograssInfo.y = trackBar.y;
 			prograssInfo.width = trackBar.width;
+			afkHintBox.x = trackBar.x;
+			afkHintBox.y = trackBar.y + 22;
 		}
 
 		public function updateUIColor():void
@@ -274,6 +297,19 @@
 			visible = false;
 
 			initReplayBox();
+			afkHintText.defaultTextFormat = prograssInfo.defaultTextFormat;
+			afkHintText.embedFonts = prograssInfo.embedFonts;
+			afkHintText.selectable = false;
+			afkHintText.mouseEnabled = false;
+			afkHintText.autoSize = TextFieldAutoSize.LEFT;
+			afkHintText.textColor = 0xFFFFFF;
+			afkHintText.x = 3;
+			afkHintText.y = 1;
+			afkHintBox.addChild(afkHintText);
+			afkHintBox.mouseEnabled = false;
+			afkHintBox.mouseChildren = false;
+			afkHintBox.visible = false;
+			addChild(afkHintBox);
 			playButton.useHandCursor = false;
 			pauseButton.useHandCursor = false;
 			replayPrev.useHandCursor = false;

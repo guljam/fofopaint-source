@@ -170,12 +170,19 @@ package Modules.InputManager
                 {
                     case InputManager.KEY.backspace:
                     case InputManager.KEY.esc:
-                    case InputManager.KEY.enter:
                     case InputManager.KEY.space:
                         {
                             InputManager.updateLastKey();
                             FOFOTimer.remove("prograssBarUpdateTimer");
                             ReplayController.handleReplayStopButton();
+                        }
+                        break;
+                    case InputManager.KEY.enter:
+                    case InputManager.KEY.right:
+                        {
+                            // 오래 쉬는(AFK) 구간이면 건너뜀. 아니면 아무것도 안 함
+                            InputManager.updateLastKey();
+                            ReplayController.skipAfk();
                         }
                         break;
                 }
@@ -262,7 +269,6 @@ package Modules.InputManager
                         ReplayController.exitReplayMode();
                     }
                     break;
-                case InputManager.KEY.enter:
                 case InputManager.KEY.space:
                     {
                         if (ReplayState.canStartReplay())

@@ -314,7 +314,7 @@ package Modules.ReplayEngine
                 {
                     ReplayDrawer.finalizeRemainingReplayData();
                     updateReplayPrograssText();
-                    ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
+                    ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
                     updateDeleteReplayDataButtonsState();
                 }
 
@@ -338,6 +338,7 @@ package Modules.ReplayEngine
                 rSeekbarTextUpdateTime = nowTime;
                 // 시계 기준으로 지금 그려야 하는 프레임까지 한번에 그림
                 const dueFrame:Number = ReplayClock.frameCountDue(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
+                updateAfkState();
                 const shouldStop:Boolean = ReplayDrawer.renderReplayFrame(dueFrame, ReplayDrawer.JUMP_FRAME_MANUAL);
 
                 if (shouldStop)
@@ -412,7 +413,7 @@ package Modules.ReplayEngine
             {
                 ReplayDrawer.renderReplayFrame(ReplayState.rPrevFrame, ReplayDrawer.JUMP_FRAME_PREV);
                 updateDeleteReplayDataButtonsState();
-                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
+                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
                 updateReplayPrograssText();
             }
         }
@@ -436,7 +437,7 @@ package Modules.ReplayEngine
                 }
 
                 updateDeleteReplayDataButtonsState();
-                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
+                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
                 updateReplayPrograssText();
             }
         }
@@ -449,7 +450,7 @@ package Modules.ReplayEngine
             {
                 ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame - 1, ReplayDrawer.JUMP_FRAME_MANUAL);
                 updateDeleteReplayDataButtonsState();
-                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
+                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
                 updateReplayPrograssText();
             }
         }
@@ -462,7 +463,7 @@ package Modules.ReplayEngine
             {
                 ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame + 1, ReplayDrawer.JUMP_FRAME_MANUAL);
                 updateDeleteReplayDataButtonsState();
-                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
+                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
                 updateReplayPrograssText();
             }
         }
@@ -477,7 +478,7 @@ package Modules.ReplayEngine
             // 리플레이 플레이 중인지 아닌지 플래그 미리 저장해둠
             var wasReplayRunning:Boolean = false;
             var clickX:Number = ReplayController.seekBarBox.trackBar.mouseX * ReplayController.seekBarBox.trackBar.scaleX;
-            var finalFrame:Number = Math.floor(ReplayState.TOTAL_FRAME * clickX / ReplayController.seekBarBox.trackBar.width);
+            var finalFrame:Number = ReplayClock.ratioToFrame(clickX / ReplayController.seekBarBox.trackBar.width);
 
             function clampFrame():void
             {
@@ -498,7 +499,7 @@ package Modules.ReplayEngine
                     ReplayController.seekBarBox.setReplayPrograssBarWidth(mx);
                 }
 
-                finalFrame = Math.floor(ReplayState.TOTAL_FRAME * mx / ReplayController.seekBarBox.trackBar.width);
+                finalFrame = ReplayClock.ratioToFrame(mx / ReplayController.seekBarBox.trackBar.width);
                 updateReplayPrograssText(false, finalFrame);
             }
 
@@ -878,7 +879,7 @@ package Modules.ReplayEngine
             const cursorUpdateTime:int = main.stage.frameRate * 2;
             const textUpdateTime:int = 1000;
             updateReplayPrograssText();
-            ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
+            ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
             FOFOTimer.addByName("prograssBarUpdateTimer", 0.0, true, function ():Boolean
                 {
                     if (!ReplayState.isReplayModeON)
@@ -910,11 +911,17 @@ package Modules.ReplayEngine
                         }
                     }
 
+                    // 재생 중 시크바는 시계가 흐르는 대로 매 프레임 움직임 (쉬는 구간에도 멈추지 않음)
+                    if (ReplayState.isReplayStarted)
+                    {
+                        ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.playRatio(ReplayState.rReplaySpeedMultipler));
+                    }
+
                     if (nowTime - lastTextUpdateTime >= textUpdateTime)
                     {
                         lastTextUpdateTime = nowTime;
                         updateReplayPrograssText();
-                        ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
+                        ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
                     }
 
                     updatePrograssBarStartTime = getTimer();
@@ -964,12 +971,74 @@ package Modules.ReplayEngine
                 });
         }
 
+        private static var afkHintSecond:Number = -1; // 힌트에 마지막으로 표시한 남은 초 (초가 바뀔때만 글자를 갱신)
+
+        // 시계가 AFK(10초 이상 쉬는 구간)이면 커서를 돌리고 시크바 아래에 남은 시간을 표시, 아니면 원래대로
+        // 매 틱 부르고, 글자는 남은 초가 바뀔때만 새로 만듬
+        private static function updateAfkState():void
+        {
+            if (!ReplayClock.isAfk)
+            {
+                if (afkHintSecond >= 0)
+                {
+                    afkHintSecond = -1;
+                    seekBarBox.hideAfkHint();
+                    ReplayDrawer.stopReplayFOFOCursorSpin();
+                }
+
+                return;
+            }
+
+            ReplayDrawer.startReplayFOFOCursorSpin();
+            const remainSec:Number = Math.ceil(ReplayClock.afkRemainingMs(ReplayState.rReplaySpeedMultipler) / 1000);
+
+            if (remainSec !== afkHintSecond)
+            {
+                afkHintSecond = remainSec;
+                seekBarBox.showAfkHint("afk " + formatAfkTime(remainSec) + " enter to skip");
+            }
+        }
+
+        // 60초 미만은 초만, 그 이상은 m:ss, 1시간 이상은 h:mm:ss
+        private static function formatAfkTime(totalSec:Number):String
+        {
+            if (totalSec < 60)
+            {
+                return String(totalSec);
+            }
+
+            const hour:int = totalSec / 3600;
+            const min:int = totalSec % 3600 / 60;
+            const sec:int = totalSec % 60;
+            const secStr:String = (sec < 10) ? "0" + sec : String(sec);
+
+            if (hour > 0)
+            {
+                return hour + ":" + ((min < 10) ? "0" + min : String(min)) + ":" + secStr;
+            }
+
+            return min + ":" + secStr;
+        }
+
+        // 쉬는 구간 건너뛰기 (Enter, 오른쪽 화살표). AFK가 아니면 아무것도 안 함
+        public static function skipAfk():void
+        {
+            if (!ReplayClock.isAfk)
+            {
+                return;
+            }
+
+            ReplayClock.skipAfk();
+            updateAfkState();
+        }
+
         // 시계 기준으로 지금까지 그려야 하는 만큼 그림. 한 틱에 쓰는 시간에 상한을 둬서 못 따라가면 다음 틱에 이어서 그림
         // 반환값: 리플레이를 정지해야 하면 true
         private static function drawDueFrames():Boolean
         {
             var remaining:Number = ReplayClock.frameCountDue(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler) - ReplayState.rNowFrame;
             const startTime:int = getTimer();
+            updateAfkState();
 
             while (remaining > 0)
             {
@@ -1247,7 +1316,7 @@ package Modules.ReplayEngine
             {
                 ReplayController.seekBarBox.prograssInfo.text = nowFrame + " / " + totalFrame;
             }
-            ReplayController.seekBarBox.prograssBar.width = (totalFrame === 0) ? 0 : trackBarWidth * (nowFrame / totalFrame);
+            ReplayController.seekBarBox.prograssBar.width = (totalFrame === 0) ? 0 : trackBarWidth * ReplayClock.frameRatio(nowFrame);
         }
 
         public static function updateReplayTimeBarFromDrawMode():void
@@ -1260,7 +1329,7 @@ package Modules.ReplayEngine
             }
             else
             {
-                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayState.rNowFrame / ReplayState.TOTAL_FRAME);
+                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
             }
         }
 
@@ -1359,6 +1428,9 @@ package Modules.ReplayEngine
         public static function stopReplay():void
         {
             FOFOTimer.remove("replayDrawTimer");
+            afkHintSecond = -1;
+            seekBarBox.hideAfkHint();
+            ReplayDrawer.stopReplayFOFOCursorSpin();
 
             if (!ReplayState.isReplayFinished)
             {
