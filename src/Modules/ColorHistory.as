@@ -10,7 +10,7 @@ package Modules
     {
         public static const HISTORY_COUNT:int = 10;
 
-        // 최신 색이 0번. uint만 들어가고 빈 칸은 뒤쪽에 length만큼만 비어있음
+        // 최신 색이 0번. uint만 들어가고 빈 칸은 뒤쪽에 length만큼만 비어있음. 화면에서는 좌우 반전되어 0번이 맨 오른쪽 칸에 그려짐
         public static var list:Array = [];
 
         public static function init():void
@@ -84,7 +84,7 @@ package Modules
                 return -1;
             }
 
-            return xLineIndex;
+            return HISTORY_COUNT - 1 - xLineIndex; // 화면 칸 순서가 list와 반대
         }
 
         private static function isEmpty(index:int):Boolean
@@ -127,19 +127,21 @@ package Modules
 
             for (var i:uint = 0;i < HISTORY_COUNT;i++)
             {
-                if (i === ignoreIndex)
+                const listIndex:int = HISTORY_COUNT - 1 - i; // i는 화면 칸 번호
+
+                if (listIndex === ignoreIndex)
                 {
                     PaletteController.drawColorStartPos(g, ww * i, 0, ww, hh);
                     continue;
                 }
 
-                if (isEmpty(i))
+                if (isEmpty(listIndex))
                 {
                     g.beginBitmapFill(ColorPickerController.colorPickerBox.myPaletteTransBGBmpd);
                 }
                 else
                 {
-                    g.beginFill(list[i]);
+                    g.beginFill(list[listIndex]);
                 }
 
                 g.drawRect(ww * i, 0, ww, hh);
