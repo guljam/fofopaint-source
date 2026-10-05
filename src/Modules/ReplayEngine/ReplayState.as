@@ -183,6 +183,8 @@ package Modules.ReplayEngine
                 }
             }
 
+            TimingSmoother.spread(times, rMemoryDataBuffer); // 같은 프레임에 몰린 펜 점의 시각을 나눠서 (끄려면 이 줄을 지우면 됨)
+
             for (i = 0;i < count;i++)
             {
                 times[i] = TimingSheetFile.packStamp(times[i], anims[i]);
