@@ -11,7 +11,7 @@ package Modules.ReplayEngine
 
         public static const REPLAY_IMAGE_CAHCHE_COMPLETE:int = (1 << 0);
         public static const REPLAY_IMAGE_CAHCHE_PROCESSING:int = (1 << 1);
-        private static const ANIM_COMMAND_TIME_LIMIT_MS:int = 10000; //툴 사용시간은 최대 10초로 저장함
+        private static const ANIM_COMMAND_TIME_LIMIT_MS:int = 10000; // 툴 사용시간은 최대 10초로 저장함
         public static var RCANVAS_WIDTH:Number = 600;
         public static var RCANVAS_HEIGHT:Number = 390;
         public static var RCANVAS_BG_COLOR:uint = 0xFFFFFF;
@@ -50,7 +50,6 @@ package Modules.ReplayEngine
         public static var rMemoryDataIndex:int = 0; // rData에서만씀 rData 스크로크 뭉치 인덱스
         public static var rFileLastBytePosition:Number = 0; // fs position 저장
         public static var rFileCutBytePosition:Number = 0; // super undo에서 파일 잘라줄때 필요함
-
 
         public static function isZeroReplayFrame():Boolean
         {
@@ -138,8 +137,8 @@ package Modules.ReplayEngine
 
             var endStamp:int = (getTimer() - startStamp);
 
-            //이거 안하면 툴 무한정 쓰면 시간이 계속 늘어남
-            if(endStamp > ANIM_COMMAND_TIME_LIMIT_MS)
+            // 이거 안하면 툴 무한정 쓰면 시간이 계속 늘어남
+            if (endStamp > ANIM_COMMAND_TIME_LIMIT_MS)
             {
                 endStamp = ANIM_COMMAND_TIME_LIMIT_MS;
             }
@@ -244,7 +243,7 @@ package Modules.ReplayEngine
             }
         }
 
-       private static function updateLastRMemoryDataCommand(command:String):void
+        private static function updateLastRMemoryDataCommand(command:String):void
         {
             const index:int = UndoHistory.undoDataIndex;
             if (index < 0 || index >= rMemoryData.length)
@@ -253,7 +252,7 @@ package Modules.ReplayEngine
             }
 
             const arr:Array = rMemoryData[index];
-            for (var i:int = 0; i < arr.length; i++)
+            for (var i:int = 0;i < arr.length;i++)
             {
                 if (arr[i][0] === command)
                 {
