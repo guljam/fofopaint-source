@@ -177,14 +177,6 @@ package Modules.InputManager
                             ReplayController.handleReplayStopButton();
                         }
                         break;
-                    case InputManager.KEY.enter:
-                    case InputManager.KEY.right:
-                        {
-                            // 오래 쉬는(AFK) 구간이면 건너뜀. 아니면 아무것도 안 함
-                            InputManager.updateLastKey();
-                            ReplayController.skipAfk();
-                        }
-                        break;
                 }
                 return;
             }

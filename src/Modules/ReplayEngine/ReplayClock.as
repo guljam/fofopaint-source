@@ -586,19 +586,6 @@ package Modules.ReplayEngine
             return Math.max(0, (Math.min(afkSkipAt, afkEnd) - recordedPeek()) / speed);
         }
 
-        // AFK 공백을 건너뜀
-        public static function skipAfk():void
-        {
-            if (afkEnd < 0)
-            {
-                return;
-            }
-
-            anchorRecorded = afkEnd;
-            anchorReal = getTimer();
-            afkEnd = -1;
-        }
-
         // 시크바 위치(0~1). 프레임 수가 아니라 녹화 시간을 쉬는 구간이 줄어든 축에 놓은 값. frame개를 그린 상태의 위치
         public static function frameRatio(frame:Number):Number
         {

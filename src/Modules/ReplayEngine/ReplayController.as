@@ -1006,18 +1006,18 @@ package Modules.ReplayEngine
                 });
         }
 
-        private static var afkHintSecond:Number = -1; // 힌트에 마지막으로 표시한 남은 초 (초가 바뀔때만 글자를 갱신)
+        private static var isAfkBoxShown:Boolean = false;
 
-        // 시계가 AFK(10초 이상 쉬는 구간)이면 커서를 돌리고 시크바 아래에 남은 시간을 표시, 아니면 원래대로
-        // 매 틱 부르고, 글자는 남은 초가 바뀔때만 새로 만듬
+        // 시계가 AFK(쉬는 구간을 기다리는 중)이면 커서를 돌리고 커서 위에 빨간 "afk" 상자를 띄우고, 아니면 원래대로
+        // 매 틱 부르지만 상태가 바뀔때만 상자를 갱신함
         private static function updateAfkState():void
         {
             if (!ReplayClock.isAfk)
             {
-                if (afkHintSecond >= 0)
+                if (isAfkBoxShown)
                 {
-                    afkHintSecond = -1;
-                    seekBarBox.hideAfkHint();
+                    isAfkBoxShown = false;
+                    ReplayDrawer.rReplayFOFOCursor.hideAfkBox();
                     ReplayDrawer.stopReplayFOFOCursorSpin();
                 }
 
@@ -1025,46 +1025,14 @@ package Modules.ReplayEngine
             }
 
             ReplayDrawer.startReplayFOFOCursorSpin();
-            const remainSec:Number = Math.ceil(ReplayClock.afkRemainingMs(ReplayState.rReplaySpeedMultipler) / 1000);
 
-            if (remainSec !== afkHintSecond)
+            if (!isAfkBoxShown)
             {
-                afkHintSecond = remainSec;
-                seekBarBox.showAfkHint("afk " + formatAfkTime(remainSec) + " enter to skip");
+                isAfkBoxShown = true;
+                // 상자 글꼴은 시크바 글자와 같은 것을 씀
+                ReplayDrawer.rReplayFOFOCursor.configureAfkBox(seekBarBox.prograssInfo.defaultTextFormat, seekBarBox.prograssInfo.embedFonts);
+                ReplayDrawer.rReplayFOFOCursor.showAfkBox(ReplayDrawer.rCanvasPanel, new Rectangle(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT));
             }
-        }
-
-        // 60초 미만은 초만, 그 이상은 m:ss, 1시간 이상은 h:mm:ss
-        private static function formatAfkTime(totalSec:Number):String
-        {
-            if (totalSec < 60)
-            {
-                return String(totalSec);
-            }
-
-            const hour:int = totalSec / 3600;
-            const min:int = totalSec % 3600 / 60;
-            const sec:int = totalSec % 60;
-            const secStr:String = (sec < 10) ? "0" + sec : String(sec);
-
-            if (hour > 0)
-            {
-                return hour + ":" + ((min < 10) ? "0" + min : String(min)) + ":" + secStr;
-            }
-
-            return min + ":" + secStr;
-        }
-
-        // 쉬는 구간 건너뛰기 (Enter, 오른쪽 화살표). AFK가 아니면 아무것도 안 함
-        public static function skipAfk():void
-        {
-            if (!ReplayClock.isAfk)
-            {
-                return;
-            }
-
-            ReplayClock.skipAfk();
-            updateAfkState();
         }
 
         // 시계 기준으로 지금까지 그려야 하는 만큼 그림. 한 틱에 쓰는 시간에 상한을 둬서 못 따라가면 다음 틱에 이어서 그림
@@ -1478,8 +1446,8 @@ package Modules.ReplayEngine
 
             FOFOTimer.remove("replayDrawTimer");
             ReplayDrawer.anim.clear();
-            afkHintSecond = -1;
-            seekBarBox.hideAfkHint();
+            isAfkBoxShown = false;
+            ReplayDrawer.rReplayFOFOCursor.hideAfkBox();
             ReplayDrawer.stopReplayFOFOCursorSpin();
 
             if (!ReplayState.isReplayFinished)
