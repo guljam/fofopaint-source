@@ -10,7 +10,7 @@
 
 | 등급 | 의미 |
 |---|---|
-| [실행] | AIR SDK(51.3.4)로 헤드리스 하네스를 컴파일/실행해 확인 (`test-output/rt2-review`, 172개 체크 전부 통과, 부록 A) |
+| [실행] | AIR SDK(51.3.4)로 헤드리스 하네스를 컴파일/실행해 확인 (`test-output/rt2-review`, 181개 체크 전부 통과, 부록 A) |
 | [근거] | 소스 코드 인용 (`파일:라인`). 라인 번호는 커밋 `17f255d` 기준 |
 | [추론] | 코드만으로 확정 불가(렌더/실기기 확인 필요) — 6장에 별도 정리 |
 
@@ -32,7 +32,7 @@
 | R6 | **적용 완료**(작업 트리, 미커밋) | 중복 `refreshAfkRanges()` 제거, 갱신 1회 (2장 R6) |
 | R7 | **수정 완료** (`e1c7aa2`) — 검토 통과 | `memory === null`, 컴파일 경고 0 (2장 R7) |
 | R8 | 미반영(주석 4건) | 2장 R8 |
-| R9 | 미반영 | 2장 R9 |
+| R9 | **수정 완료**(`793ab95`) — 검토 통과 | 연출 종료 시 목표 위치 확정 (2장 R9) |
 | B | B4만 해소(작업 트리 변경으로 `isArmed` 사용) | 3장 |
 
 ### 1.2 검토 시점(`17f255d`) 결론 요약
@@ -257,6 +257,12 @@ ReplayClock.as:358 Warning: Illogical comparison with undefined. Only untyped va
 
 ### R9. 이동 연출 종료 시 최종 위치 미보정 (하)
 
+**수정 완료(커밋 `793ab95`) — 검토 통과.** `update()`의 `elapsed >= totalMs` 분기에서 `mode === 2`(이동)이면 `ref1`/`ref2`를 목표 오프셋(`distX`/`distY`)으로 맞추고 커서도 목표 위치로 옮긴 뒤 `clear()` 합니다 — 제안한 형태와 동일합니다(`ReplayAnim.as:394-409`).
+
+- 검증(하네스 `r9.*` 8건): 진행률 80% 시점 커서 x=492(오차 상태) → 연출 종료 시 **정확히 500/295**(600/390 캔버스 중심 + 이동량 200/100), 음수 이동도 300/95, 종료 후 `anim.isActive=false` + 숨겼던 레이어 복원(연출 중에는 숨김) 확인. 앱 컴파일 오류 0/경고 0.
+- 관찰(동작 무관): 같은 커밋에서 `for`문 6곳의 공백(`for (var c:int = 0; c < ...; c++)` → `for (var c:int = 0;c < ...;c++)`)이 바뀌어 파일 내 다른 `for`문과 스타일이 다릅니다. 리뷰 문서 4장/6장의 "이동 연출 좌표·종료 오차 육안 확인" 항목은 이 수정으로 종료 오차 부분은 해소되었습니다.
+
+
 - 위치: `ReplayAnim.update()`(`:384-440`)의 `if (elapsed >= totalMs) { clear(); return; }` — 마지막 갱신은 항상 `p < 1`이므로 `ref1/ref2`의 오프셋과 커서 위치가 목표치에 도달하기 전 상태로 `clear()`(`:495`)가 호출됩니다.
 - 계산: 남은 오차 ≈ `dist * (1 - p)^2`. 틱 간격을 41ms(24fps)로 보면 연출 길이 3000ms일 때 오차 ≈ `dist * 0.0002`(무시 가능)이지만, `MIN_REAL_MS`(120ms)에 가까운 짧은 연출(예: 250ms)에서는 `p ≒ 0.82` → `dist` 400px일 때 약 13px 어긋난 위치에서 덮개가 사라지고 실제(이동 완료) 이미지로 바뀝니다.
 - 수정 제안(적용 안 함): 종료 직전 마지막 위치를 한 번 적용.
@@ -351,7 +357,7 @@ if (elapsed >= totalMs)
 1. **커서 회전 중심**: `FOFOCursorSet` 생성자(`FOFOCursorSet.as:124-141`)가 `fofoCursor.getBounds(fofoCursor)`로 중심·반지름을 잡습니다. 심볼 생성 직후 bounds가 비어 있으면(=0) 회전축이 등록점(0,0)이 되어 "회전" 연출이 몸통 중심이 아니라 왼쪽 아래를 축으로 돕니다. 확인법: 리플레이 모드에서 `Utils.testFoFoCursorAnim(0, -1, 5)`(회전 강제) 후 커서가 제자리에서 도는지 눈으로 확인.
 2. **AFK 상자 위치/크기**: 캔버스 확대(`rCanvasAnchorPoint.scale`)·회전 상태에서 상자가 캔버스 밖으로 잘리거나(스크롤Rect) 글자가 뭉개지는지, 커서가 캔버스 위쪽일 때 아래로 뒤집히는 판정(`FOFOCursorSet.as:79-101`)이 실제로 자연스러운지. (작성자 하네스는 bounds/픽셀만 확인)
 3. **채우기/올가미 스캔라인**: 참고 레이어 이미지가 켜져 있거나 배경색이 캔버스와 다를 때 덮개 색(`RCANVAS_BG_COLOR`)이 어색하지 않은지.
-4. **이동 연출 좌표**: `ReplayAnim.startMove`가 클론을 `rCanvasPanel` 좌표에 붙이므로 레이어 비트맵이 (0,0) 기준이라는 전제에 의존합니다(초기화 코드 `ReplayController.as:1846-1866`에서 확인했으나, 확대/회전 중 실제 오차는 육안 확인 권장). R9의 종료 오차도 함께 확인.
+4. **이동 연출 좌표**: `ReplayAnim.startMove`가 클론을 `rCanvasPanel` 좌표에 붙이므로 레이어 비트맵이 (0,0) 기준이라는 전제에 의존합니다(초기화 코드 `ReplayController.as:1846-1866`에서 확인했으나, 확대/회전 중 실제 오차는 육안 확인 권장). R9의 종료 오차는 `793ab95`로 해소(하네스 검증)되었고, 확대/회전 중 표시는 여전히 육안 확인 대상입니다.
 5. **AFK 연출 6종의 체감**: `MAX_AFK_SECONDS`(현재 5초)와 상수 조합에서 늘어짐(최대 3.5배)·커짐(최대 2.2/5.0배)이 5초 캡 안에 자연스럽게 끝나는지.
 
 6. **R5 색인 적용 뒤 선 도구 연출**: 값 등가성은 하네스로 검증했지만, 재생 중 직선 연출(점 순서대로 자라는 선)이 이전과 동일하게 보이는지는 실기기 육안 확인이 필요합니다.
@@ -379,7 +385,8 @@ sh /d/adobe_air_sdk_manager/AIRSDK_51.3.4/bin/amxmlc \
 cmd.exe /c "D:\adobe_air_sdk_manager\AIRSDK_51.3.4\bin\adl.exe -profile extendedDesktop rt2review-app.xml E:/fofopaint-source/test-output/rt2-review"
 ```
 
-- 결과: `RESULT pass=172 fail=0` (`test-output/rt2-review/report.txt`) — R5 색인 검증 12건(`idx.*`, `perf.hits`) + R6 경로 스모크 5건(`r6.*`) + R4 실패 주입 8건(`r4.*`) 포함
+- 결과: `RESULT pass=181 fail=0` (`test-output/rt2-review/report.txt`) — R5 색인 검증 12건(`idx.*`, `perf.hits`) + R6 경로 스모크 5건(`r6.*`) + R4 실패 주입 8건(`r4.*`) + R9 이동 종료 위치 9건(`r9.*`) 포함
+- R4 실패 주입 시 앱 로그에 `Replay timing sheet read failed: Error #3006: Not a file.`가 찍혀 `rebuild` catch 경로가 실제로 동작함을 확인
 - R5 성능 실측(같은 실행 로그, 실행마다 조금씩 다름): `PERF points read x400 over 3000 records: new(index)=29ms old(scan)=148ms` (직전 실행 47ms vs 213ms)
 - 전체 앱 컴파일 확인: `sh .../amxmlc -source-path+=E:/fofopaint-source/src ... src/Main.as` → 오류 0 / 경고 0 (`test-output/rt2-review/check-app.swf`)
 - 컴파일러 경고: R7 수정(`e1c7aa2`) 이후 0건 (수정 전에는 `ReplayClock.as:358` 1건).
