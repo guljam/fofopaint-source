@@ -17,8 +17,8 @@ package Modules.ReplayEngine
 
     // 채우기(fill5), 올가미(lasso2), 이동(move, move1, move2) 명령을 실시간 재생할때 보여주는 연출
     // 길이는 타이밍 시트의 연출 길이(그 도구를 시작해서 끝낼때까지 걸린 시간)이고, 진행률은 시계의 녹화 시각으로 구함
-    //   채우기, 올가미: 그려진 영역을 배경색 덮개로 가렸다가 위에서부터 서서히 지워서 드러나게 함 (스캔라인)
-    //   이동: 이동 전 레이어 이미지가 목표 위치까지 감속(ease-out)하며 움직임
+    // 채우기, 올가미: 그려진 영역을 배경색 덮개로 가렸다가 위에서부터 서서히 지워서 드러나게 함 (스캔라인)
+    // 이동: 이동 전 레이어 이미지가 목표 위치까지 감속(ease-out)하며 움직임
     // 명령은 연출이 시작하는 시점에 이미 실행된 상태(레이어 데이터는 최종 결과)이고, 연출은 그 위에 얹은 임시 표시라서
     // 중간에 멈추거나 탐색해도 clear만 하면 정확한 최종 상태가 보임
     // 흐름: 그리기 루프가 명령을 실행하기 전에 arm → 명령이 실행되면서 start*를 부름 → 틱마다 update → 끝나거나 clear
@@ -228,7 +228,7 @@ package Modules.ReplayEngine
             }
 
             // 선 도구는 moveTo(1)와 lineTo(2)만 씀. 다른 명령이 섞여 있으면 연출 없이 지나감
-            for (var c:int = 0; c < command.length; c++)
+            for (var c:int = 0;c < command.length;c++)
             {
                 if (command[c] !== 1 && command[c] !== 2)
                 {
@@ -242,7 +242,7 @@ package Modules.ReplayEngine
             var useRecorded:Boolean = recorded !== null && recorded.length === vertexCount;
 
             // 기록된 시각은 앞에서부터 줄어들지 않아야 하고 연출 길이를 넘지 않아야 씀
-            for (var i:int = 0; useRecorded && i < vertexCount; i++)
+            for (var i:int = 0;useRecorded && i < vertexCount;i++)
             {
                 if ((i > 0 && recorded[i] < recorded[i - 1]) || recorded[i] > totalMs)
                 {
@@ -252,7 +252,7 @@ package Modules.ReplayEngine
 
             if (useRecorded)
             {
-                for (i = 0; i < vertexCount; i++)
+                for (i = 0;i < vertexCount;i++)
                 {
                     lineOffsets[i] = recorded[i];
                 }
@@ -262,7 +262,7 @@ package Modules.ReplayEngine
                 // 경로 길이에 비례
                 var total:Number = 0;
 
-                for (i = 1; i < vertexCount; i++)
+                for (i = 1;i < vertexCount;i++)
                 {
                     total += Math.sqrt(Math.pow(xyData[i * 2] - xyData[i * 2 - 2], 2) + Math.pow(xyData[i * 2 + 1] - xyData[i * 2 - 1], 2));
                 }
@@ -270,7 +270,7 @@ package Modules.ReplayEngine
                 var walked:Number = 0;
                 lineOffsets[0] = 0;
 
-                for (i = 1; i < vertexCount; i++)
+                for (i = 1;i < vertexCount;i++)
                 {
                     walked += Math.sqrt(Math.pow(xyData[i * 2] - xyData[i * 2 - 2], 2) + Math.pow(xyData[i * 2 + 1] - xyData[i * 2 - 1], 2));
                     lineOffsets[i] = total > 0 ? totalMs * walked / total : totalMs * i / (vertexCount - 1);
@@ -392,6 +392,21 @@ package Modules.ReplayEngine
 
             if (elapsed >= totalMs)
             {
+                if (mode === 2)
+                {
+                    // 마지막 틱에서 목표 위치를 정확히 맞추고 커서도 그 위치로
+                    if (ref1 && moveLayer1)
+                    {
+                        ref1.x = distX;
+                        ref1.y = distY;
+                    }
+                    if (ref2 && moveLayer2)
+                    {
+                        ref2.x = distX;
+                        ref2.y = distY;
+                    }
+                    ReplayDrawCommands.setRCursorPos(ReplayState.RCANVAS_WIDTH / 2 + distX, ReplayState.RCANVAS_HEIGHT / 2 + distY);
+                }
                 clear();
                 return;
             }
@@ -452,7 +467,7 @@ package Modules.ReplayEngine
             const commands:Vector.<int> = new Vector.<int>();
             const coords:Vector.<Number> = new Vector.<Number>();
 
-            for (var i:int = 0; i <= reached; i++)
+            for (var i:int = 0;i <= reached;i++)
             {
                 commands.push(i === 0 ? 1 : 2);
                 coords.push(lineXY[i * 2], lineXY[i * 2 + 1]);
