@@ -293,7 +293,7 @@ package Modules.ReplayEngine
         }
 
         // 반환값: 리플레이를 정지해야 하면 true (슬라이드쇼 재생이 끝났을때)
-        public static function renderReplayFrame(frame:Number, jumpflag:int):Boolean // jumpp
+        public static function renderReplayFrame(frame:Number, jumpflag:int):Boolean
         {
             if (frame < 0)
             {
@@ -312,8 +312,12 @@ package Modules.ReplayEngine
                 }
             }
 
-            CursorAfkAnimation.stop();
-            anim.clear();
+            if(!ReplayState.isReplaySlideShowMode)
+            {
+                CursorAfkAnimation.stop();
+                anim.clear();
+            }
+
             rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
             const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);

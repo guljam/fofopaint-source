@@ -363,7 +363,6 @@ package Modules.ReplayEngine
                 rSeekbarTextUpdateTime = nowTime;
                 // 시계 기준으로 지금 그려야 하는 프레임까지 한번에 그림
                 const dueFrame:Number = ReplayClock.frameCountDue(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
-                updateAfkState();
                 const shouldStop:Boolean = ReplayDrawer.renderReplayFrame(dueFrame, ReplayDrawer.JUMP_FRAME_MANUAL);
 
                 if (shouldStop)
