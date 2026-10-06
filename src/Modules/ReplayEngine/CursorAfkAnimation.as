@@ -40,7 +40,7 @@ package Modules.ReplayEngine
 
         // ---- 4 커짐: 몸통 중심에서 서서히 커짐. 배율 = 1 + 속도 * 경과 초, 최대 GROW_MAX배
         public static const GROW_RATE_PER_SEC:Vector.<Number> = new <Number>[0.3, 0.4, 0.6];
-        public static const GROW_MAX:Number = 2.2;
+        public static const GROW_MAX:Number = 5.0;
 
         // ---- 5 심장 박동: 몸통 중심에서 두번 연달아 뛰고(쿵쿵) 쉬는 리듬. 커지는 정도와 한 박동 주기(ms), 쉴때 줄어드는 정도
         public static const HEART_BEAT_AMPLITUDE:Vector.<Number> = new <Number>[0.2, 0.3, 0.4];
