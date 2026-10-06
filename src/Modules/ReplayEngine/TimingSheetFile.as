@@ -109,16 +109,14 @@ package Modules.ReplayEngine
         // repdata와 길이가 어긋난 채로 이어 붙이지 않게 붙이기 직전에 부름
         public static function alignTo(frame:Number):void
         {
-            const file:File = AppStateManager.replayTimingSheetFilePath;
             const now:Number = frameCount;
-
             if (now === frame)
             {
                 return;
             }
 
+            const file:File = AppStateManager.replayTimingSheetFilePath;
             const fs:FileStream = new FileStream();
-
             if (now > frame)
             {
                 fs.open(file, FileMode.UPDATE);
@@ -257,7 +255,7 @@ package Modules.ReplayEngine
             const fs:FileStream = new FileStream();
             const kept:ByteArray = new ByteArray();
             fs.open(file, FileMode.READ);
-
+var c:int = 0;
             while (fs.bytesAvailable >= 8)
             {
                 const frame:uint = fs.readUnsignedInt();
@@ -285,6 +283,7 @@ package Modules.ReplayEngine
                         kept.writeUnsignedInt(value);
                     }
                 }
+                c++;
             }
 
             fs.close();

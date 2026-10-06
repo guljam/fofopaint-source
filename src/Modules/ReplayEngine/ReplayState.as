@@ -36,7 +36,7 @@ package Modules.ReplayEngine
         public static var isReplaySlideShowMode:Boolean = false; // doDrawSlowEvent가 켜지면 올려줌
         public static var rMemoryDataBuffer:Array = []; // draw layer에서 그려준 데이터를 이쪽으로 다모아줌
         public static var rMemoryData:Array = []; // rDataBuffer가 이쪽으로 이동되고 undo image data갯수에 똑같이맞추어줌
-        public static var rMemoryDataFrame:Array = []; // rdata안에 몇프레임이 들어있는지 저장
+        public static var rMemoryDataFrames:Array = []; // rdata안에 몇프레임이 들어있는지 저장
         public static var rMemoryDataTimingSheet:Array = []; // rMemoryData와 같은 모양으로 명령마다 기록한 getTimer 값(int)을 저장, 길이는 항상 rMemoryDataFrame과 같음
         private static var rTimingSheetBufferStamps:Dictionary = new Dictionary(true); // 버퍼의 명령(키)이 기록된 getTimer 값, 펜 명령만 넣고 나머지는 묶음이 확정될때 채움
         public static var mirrorCommandReady:Boolean = false; // 다음 버퍼 앞에 mirror 커맨드를 넣어줄지 말지 결정
@@ -72,7 +72,7 @@ package Modules.ReplayEngine
 
             for (var i:int = 0;i <= index;i++)
             {
-                sum += rMemoryDataFrame[i];
+                sum += rMemoryDataFrames[i];
             }
 
             return sum;
@@ -106,7 +106,7 @@ package Modules.ReplayEngine
 
         public static function getTotalFrame():Number
         {
-            return getNowFrameUntilUndoIndex(rMemoryDataFrame.length - 1);
+            return getNowFrameUntilUndoIndex(rMemoryDataFrames.length - 1);
         }
 
         // 펜처럼 입력 시각이 중요한 명령에 지금 시각을 기록해두고 그 명령을 그대로 돌려줌
@@ -245,7 +245,7 @@ package Modules.ReplayEngine
                 {
                     arr[i] = rMemoryDataBuffer[0].concat();
                     rMemoryDataBuffer = [];
-                    rMemoryDataFrame[index] = arr.length;
+                    rMemoryDataFrames[index] = arr.length;
                     rMemoryDataTimingSheet[index][i] = TimingSheetFile.packStamp(getTimer(), 0);
                     return;
                 }
@@ -264,7 +264,7 @@ package Modules.ReplayEngine
             if (rMemoryData[index].length === 1)
             {
                 rMemoryData.splice(index);
-                rMemoryDataFrame.splice(index);
+                rMemoryDataFrames.splice(index);
                 rMemoryDataTimingSheet.splice(index);
             }
             else
@@ -280,10 +280,10 @@ package Modules.ReplayEngine
                 }
 
                 rMemoryData.splice(index + 1);
-                rMemoryDataFrame.splice(index + 1);
+                rMemoryDataFrames.splice(index + 1);
                 rMemoryDataTimingSheet.splice(index + 1);
                 // 복수 명령일때만 해당 프레임수로 갱신함
-                rMemoryDataFrame[index] = rMemoryData[index].length;
+                rMemoryDataFrames[index] = rMemoryData[index].length;
             }
 
             updateLastRMemoryDataMirror();
@@ -326,7 +326,7 @@ package Modules.ReplayEngine
                 {
                     mirrorCommandReady = false;
                     rMemoryData.pop();
-                    rMemoryDataFrame.pop();
+                    rMemoryDataFrames.pop();
                     rMemoryDataTimingSheet.pop();
                 }
                 // 그게 아니면 가장 앞에 미러커맨드를 넣어줌
@@ -343,7 +343,7 @@ package Modules.ReplayEngine
                 if (rMemoryData.length > 0 && rMemoryData[rMemoryData.length - 1].length === 1 && rMemoryData[rMemoryData.length - 1][0][0] === "mirror")
                 {
                     rMemoryData.pop();
-                    rMemoryDataFrame.pop();
+                    rMemoryDataFrames.pop();
                     rMemoryDataTimingSheet.pop();
                     mirrorCommandReady = true;
                 }

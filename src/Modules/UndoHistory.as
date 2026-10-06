@@ -99,7 +99,7 @@ package Modules
         {
             _undoDataIndex = -1;
             ReplayState.rMemoryData = [];
-            ReplayState.rMemoryDataFrame = [];
+            ReplayState.rMemoryDataFrames = [];
             ReplayState.rMemoryDataTimingSheet = [];
             ReplayState.rMemoryDataBuffer = [];
         }
@@ -139,7 +139,7 @@ package Modules
                 ReplayState.rMemoryDataTimingSheet[ReplayState.rMemoryDataTimingSheet.length - 1].push(bufferTimes[i]);
             }
 
-            ReplayState.rMemoryDataFrame[ReplayState.rMemoryDataFrame.length - 1] = ReplayState.rMemoryData[ReplayState.rMemoryData.length - 1].length;
+            ReplayState.rMemoryDataFrames[ReplayState.rMemoryDataFrames.length - 1] = ReplayState.rMemoryData[ReplayState.rMemoryData.length - 1].length;
             ReplayState.rMemoryDataBuffer = [];
             ReplayState.syncRNowFrameWithTotalFrame();
 
@@ -152,7 +152,7 @@ package Modules
 
             if (ReplayState.rMemoryData.length >= NATIVE_UNDO_LIMIT_COUNT)
             {
-                moveOldestToReplayFile();
+                moveOldestUndoDataToReplayFile();
             }
 
             ReplayState.updateLastRMemoryDataMirror();
@@ -161,7 +161,7 @@ package Modules
             {
                 ReplayState.rMemoryDataTimingSheet.push(ReplayState.takeTimingSheetBufferTimes());
                 ReplayState.rMemoryData.push(ReplayState.rMemoryDataBuffer);
-                ReplayState.rMemoryDataFrame.push(ReplayState.rMemoryDataBuffer.length);
+                ReplayState.rMemoryDataFrames.push(ReplayState.rMemoryDataBuffer.length);
                 ReplayState.rMemoryDataBuffer = [];
                 FileManager.isFileAlreadySaved = false;
                 ReplayState.rMemoryDataReadON = true;
@@ -178,19 +178,19 @@ package Modules
         private static function discardRedoData():void
         {
             ReplayState.rMemoryData.splice(_undoDataIndex + 1);
-            ReplayState.rMemoryDataFrame.splice(_undoDataIndex + 1);
+            ReplayState.rMemoryDataFrames.splice(_undoDataIndex + 1);
             ReplayState.rMemoryDataTimingSheet.splice(_undoDataIndex + 1);
         }
 
         // 가장 오래된 undo 뭉치를 리플레이 파일 끝에 붙이고, 기준 이미지를 그 뭉치까지 그린 이미지로 옮김
-        private static function moveOldestToReplayFile():void
+        private static function moveOldestUndoDataToReplayFile():void
         {
             var oldData:Array = ReplayState.rMemoryData[0];
 
             if (oldData.length > 0)
             {
                 const fs:FileStream = new FileStream();
-                const firstElementFrameCount:uint = ReplayState.rMemoryDataFrame[0];
+                const firstElementFrameCount:uint = ReplayState.rMemoryDataFrames[0];
                 const rf:File = AppStateManager.replayDataFilePath;
                 const lastRDataTotalFrame:Number = ReplayState.getRFileDataTotalFrame();
 
@@ -230,8 +230,8 @@ package Modules
             ReplayState.rMemoryData[0].length = 0;
             ReplayState.rMemoryData[0] = null;
             ReplayState.rMemoryData.shift();
-            ReplayState.rMemoryDataFrame[0] = null;
-            ReplayState.rMemoryDataFrame.shift();
+            ReplayState.rMemoryDataFrames[0] = null;
+            ReplayState.rMemoryDataFrames.shift();
             ReplayState.rMemoryDataTimingSheet.shift();
         }
 

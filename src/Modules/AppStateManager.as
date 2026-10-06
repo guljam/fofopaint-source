@@ -834,7 +834,7 @@ package Modules
             ReplayState.setRFileDataTotalFrame(arr[6]);
 
             ReplayState.rMemoryData = (fs.readObject() as Array).concat();
-            ReplayState.rMemoryDataFrame = (fs.readObject() as Array).concat();
+            ReplayState.rMemoryDataFrames = (fs.readObject() as Array).concat();
             restoreMemoryDataTimingSheet(fs);
             fs.close();
 
@@ -939,7 +939,7 @@ package Modules
             fs.writeInt(UndoHistory.undoDataIndex);
             fs.writeObject(newArr);
             fs.writeObject(ReplayState.rMemoryData);
-            fs.writeObject(ReplayState.rMemoryDataFrame);
+            fs.writeObject(ReplayState.rMemoryDataFrames);
             // 명령별 시각과 저장 시점의 getTimer, 시간 간격 파일의 마지막 시각 (불러올때 이 값을 새 getTimer 기준으로 옮김)
             const timingLast:Object = TimingSheetFile.getLastStamp();
             fs.writeObject(ReplayState.rMemoryDataTimingSheet);

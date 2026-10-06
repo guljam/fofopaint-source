@@ -95,6 +95,7 @@ package Modules.ReplayEngine
             ReferenceLayerController.resetRefLayerImageTransform();
         }
 
+        //리플레이 배속을 끝까지 올렸을때 총 프레임수을 고려해서 10초가 걸리도록 갱신해줌
         public static function updateTotalFrameAndReplayMaxSpeedFor10Sec(totalframe:Number):void
         {
             ReplayState.TOTAL_FRAME = totalframe;
@@ -194,7 +195,7 @@ package Modules.ReplayEngine
                 ReplayState.setRFileDataTotalFrame(0);
                 TimingSheetFile.reset();
                 ReplayState.rMemoryData.splice(0, ReplayState.rMemoryDataIndex + 1);
-                ReplayState.rMemoryDataFrame.splice(0, ReplayState.rMemoryDataIndex + 1);
+                ReplayState.rMemoryDataFrames.splice(0, ReplayState.rMemoryDataIndex + 1);
                 ReplayState.rMemoryDataTimingSheet.splice(0, ReplayState.rMemoryDataIndex + 1);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
                 updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
@@ -275,7 +276,7 @@ package Modules.ReplayEngine
                 // 실제 undo해줘야할 인덱스는 -1해줘야하는거임
                 UndoController.undoToIndex(ReplayState.rMemoryDataIndex);
                 ReplayState.rMemoryData.splice(ReplayState.rMemoryDataIndex + 1);
-                ReplayState.rMemoryDataFrame.splice(ReplayState.rMemoryDataIndex + 1);
+                ReplayState.rMemoryDataFrames.splice(ReplayState.rMemoryDataIndex + 1);
                 ReplayState.rMemoryDataTimingSheet.splice(ReplayState.rMemoryDataIndex + 1);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
                 resetReplayTime();
