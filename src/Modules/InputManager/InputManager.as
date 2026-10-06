@@ -23,10 +23,9 @@ package Modules.InputManager
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
-    import flash.system.IME;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.ReplayEngine.ReplayDrawer;
-    import Modules.ReplayEngine.ReplayController;
+    import Modules.DrawEngine.StrokeBuffer;
+    import Modules.DrawEngine.HandDrawnLine;
 
     public class InputManager
     {
@@ -541,9 +540,10 @@ package Modules.InputManager
         public static function onKeyUpStage(e:KeyboardEvent):void
         {
             // 디버그 확인용
-            // if(isPressedKey(KEY.f12))
-            // {
-            // }
+            if(isPressedKey(KEY.f12))
+            {
+                HandDrawnLine.drawRect(StrokeBuffer.canvasDrawLayerChild.graphics,2,0,1.0,150,150,300,300,0xcccccc,0.5);
+            }
 
             checkInvalidKey();
             ImeController.logKeyUp(e);

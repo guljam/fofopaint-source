@@ -17,6 +17,7 @@
 	import flash.text.TextFieldType;
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
+	import Modules.DrawEngine.HandDrawnLine;
 
 	public class ColorPickerSet extends Sprite
 	{
@@ -320,11 +321,13 @@
 			const borderColor:uint = getRGBInfoBorderColor(color);
 
 			rgbInfoBG.graphics.clear();
-			rgbInfoBG.graphics.beginFill(color);
-			rgbInfoBG.graphics.drawRect(0,0,rgbInfoBGwidth,rgbInfoHeight);
-			rgbInfoBG.graphics.endFill();
-			rgbInfoBG.graphics.lineStyle(1, (borderColor === 0) ? color:borderColor);
-			rgbInfoBG.graphics.drawRect(0,0, rgbInfoBGwidth,19);
+			// rgbInfoBG.graphics.beginFill(color);
+			// rgbInfoBG.graphics.drawRect(0,0,rgbInfoBGwidth,rgbInfoHeight);
+			// rgbInfoBG.graphics.endFill();
+			// rgbInfoBG.graphics.lineStyle(1, (borderColor === 0) ? color:borderColor);
+			// rgbInfoBG.graphics.drawRect(0,0, rgbInfoBGwidth,rgbInfoHeight);
+
+			HandDrawnLine.drawRect(rgbInfoBG.graphics,1.8,(borderColor === 0) ? color:borderColor,1.0,1,1,rgbInfoBGwidth-1,rgbInfoHeight-1,color,1.0,0.8);
 
 			rgbInfoBGColor = color;
 			rgbInfoBGBorderColor = borderColor;
@@ -549,6 +552,7 @@
 			svBox.addChild(svCursor);
 			svBox.y = Math.floor(hueColor.y+hueColor.height+4);
 			svBox.scrollRect = new Rectangle(0,0,svBoxWidth,svBoxHeight);
+			svBox.graphics.lineStyle(2,0);
 
 			mainColorPickerBox.addChild(svBox); //mainColorPickerBox svBox안에 svColor안에 svCursor
 			mainColorPickerBox.addChild(hueColor);
