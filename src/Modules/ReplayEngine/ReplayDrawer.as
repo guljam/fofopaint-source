@@ -315,8 +315,8 @@ package Modules.ReplayEngine
             if(!ReplayState.isReplaySlideShowMode)
             {
                 CursorAfkAnimation.stop();
-                anim.clear();
             }
+            anim.clear();
 
             rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
@@ -695,7 +695,10 @@ package Modules.ReplayEngine
         {
             if (!isRealtimePlay || !ReplayDrawCommands.data || ReplayDrawCommands.index >= ReplayDrawCommands.data.length)
             {
-                anim.disarm();
+                if(anim.isArmed)
+                {
+                    anim.disarm();
+                }
                 return;
             }
 
@@ -703,7 +706,10 @@ package Modules.ReplayEngine
 
             if (name !== "fill5" && name !== "lasso2" && name !== "line4" && name !== "move" && name !== "move1" && name !== "move2")
             {
-                anim.disarm();
+                if(anim.isArmed)
+                {
+                    anim.disarm();
+                }
                 return;
             }
 
@@ -714,7 +720,7 @@ package Modules.ReplayEngine
             {
                 anim.arm(animMs, startRecorded, ReplayState.rNowFrame);
             }
-            else
+            else if(anim.isArmed)
             {
                 anim.disarm();
             }

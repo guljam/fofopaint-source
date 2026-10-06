@@ -993,6 +993,7 @@ package Modules.ReplayEngine
                     if (shouldUseReplaySlideShowMode())
                     {
                         ReplayState.isReplaySlideShowMode = true;
+                        ReplayController.clearAfkState(); 
                         ReplayDrawer.rFileStream.close();
                     }
                     else
