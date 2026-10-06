@@ -18,7 +18,11 @@
 		private var spinCenterY:Number = 0;
 		private var spinRadius:Number = 0;
 		// 리플레이가 쉬는(AFK) 구간을 기다리는 동안 커서 위에 띄우는 검정 배경, 흰 테두리, 흰 글씨의 "afk" 상자. 회전 레이어 바깥이라 같이 돌지 않음
-		private static const AFK_BOX_GAP:Number = 3;
+		private static const AFK_BOX_GAP:Number = 3; // 상자와 몸통 회전 반경 사이 간격
+		private static const AFK_BOX_BORDER:Number = 2; // 흰색 테두리 두께
+		private static const AFK_BOX_RADIUS:Number = 4; // 모서리 둥글기 (반지름)
+		private static const AFK_BOX_PAD_X:Number = 3; // 테두리 안쪽 글자 여백
+		private static const AFK_BOX_PAD_Y:Number = 1;
 		private var afkBox:Sprite = new Sprite();
 		private var afkText:TextField = new TextField();
 		private var isAfkBoxConfigured:Boolean = false;
@@ -50,13 +54,15 @@
 			afkText.autoSize = TextFieldAutoSize.LEFT;
 			afkText.textColor = 0xFFFFFF;
 			afkText.text = "afk";
-			afkText.x = 3;
-			afkText.y = 1;
+			afkText.x = AFK_BOX_BORDER + AFK_BOX_PAD_X;
+			afkText.y = AFK_BOX_BORDER + AFK_BOX_PAD_Y;
+			// 검정 배경에 흰색 테두리, 모서리는 약간 둥글게. 테두리 선이 상자 바깥 크기 안에 들어오도록 반 두께만큼 안쪽으로 그림
+			const boxW:Number = afkText.width + (AFK_BOX_BORDER + AFK_BOX_PAD_X) * 2;
+			const boxH:Number = afkText.height + (AFK_BOX_BORDER + AFK_BOX_PAD_Y) * 2;
 			afkBox.graphics.clear();
-			// 검정 배경에 흰색 1px 테두리 (선이 안쪽 가장자리에 걸리도록 반 픽셀 안으로 그림)
-			afkBox.graphics.lineStyle(1, 0xFFFFFF, 1, true);
+			afkBox.graphics.lineStyle(AFK_BOX_BORDER, 0xFFFFFF, 1, true);
 			afkBox.graphics.beginFill(0x000000);
-			afkBox.graphics.drawRect(0.5, 0.5, afkText.width + 5, afkText.height + 1);
+			afkBox.graphics.drawRoundRect(AFK_BOX_BORDER / 2, AFK_BOX_BORDER / 2, boxW - AFK_BOX_BORDER, boxH - AFK_BOX_BORDER, AFK_BOX_RADIUS * 2, AFK_BOX_RADIUS * 2);
 			afkBox.graphics.endFill();
 			afkBox.addChild(afkText);
 		}
