@@ -47,10 +47,10 @@
 		public function setReplayWaitingRanges(ranges:Vector.<Number>):void
 		{
 			replayWaitingList = ranges;
-			redrawAfkRanges();
+			redrawReplayWaitingRanges();
 		}
 
-		private function redrawAfkRanges():void
+		private function redrawReplayWaitingRanges():void
 		{
 			const g:Graphics = replayWaitingRangeBar.graphics;
 			g.clear();
@@ -65,13 +65,13 @@
 				if (width >= 1)
 				{
 					// 줄어든 폭이 1px 이상이면 그 폭 그대로(실수값) 어둡게 칠함
-					g.beginFill(0x000000, 0.28);
+					g.beginFill(0x000000, 0.2);
 					g.drawRect(x0, 0, width, h);
 				}
 				else
 				{
 					// 폭이 1px 미만이면 축 위치는 그대로 두고 그 자리에 조금 진한 1px 눈금만 덧그림
-					g.beginFill(0x000000, 0.55);
+					g.beginFill(0x000000, 0.5);
 					g.drawRect(x0, 0, 1, h);
 				}
 
@@ -145,7 +145,7 @@
 			replayBGBar.width = Math.floor(stw / scale) + 1;
 			prograssBar.x = startX;
 			prograssBar.width = prograssBar.width * scaleFactor;
-			redrawAfkRanges();
+			redrawReplayWaitingRanges();
 			prograssInfo.x = startX;
 			prograssInfo.width = Math.floor(maxWidth / scale);
 		}
