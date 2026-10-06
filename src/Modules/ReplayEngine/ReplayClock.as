@@ -355,7 +355,7 @@ package Modules.ReplayEngine
             {
                 const memory:Array = memoryPoints[String(frame)];
 
-                if (memory === null || memory === undefined)
+                if (memory === null)
                 {
                     return null;
                 }
