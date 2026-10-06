@@ -1033,14 +1033,18 @@ package Modules.ReplayEngine
 
             if (!isAfkBoxShown || !CursorAfkAnimation.isRunning)
             {
+                // 연출이 취소됐다가 다시 시작하면 종류가 바뀔 수 있으므로 상자 위치도 새 범위로 다시 잡음
                 const extents:Object = CursorAfkAnimation.start();
+
                 if (!isAfkBoxShown)
                 {
                     isAfkBoxShown = true;
-                    // 연출이 몸통을 키우거나 올리는 범위 바깥에 상자를 놓음. 상자 글꼴은 시크바 글자와 같은 것을 씀
+                    // 상자 글꼴은 시크바 글자와 같은 것을 씀
                     ReplayDrawer.rReplayFOFOCursor.configureAfkBox(seekBarBox.prograssInfo.defaultTextFormat, seekBarBox.prograssInfo.embedFonts);
-                    ReplayDrawer.rReplayFOFOCursor.showAfkBox(ReplayDrawer.rCanvasPanel, new Rectangle(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT), extents.scaleFactor, extents.extraUp);
                 }
+
+                // 연출이 몸통을 키우거나 올리는 범위 바깥에 상자를 놓음
+                ReplayDrawer.rReplayFOFOCursor.showAfkBox(ReplayDrawer.rCanvasPanel, new Rectangle(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT), extents.scaleFactor, extents.extraUp);
             }
         }
 

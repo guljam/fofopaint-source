@@ -73,6 +73,7 @@ package Modules.ReplayEngine
         {
             fileFrames = ReplayState.getRFileDataTotalFrame();
             rememberedFrame = -1;
+            TimingSheetFile.alignTo(fileFrames);
             cachedSegment = -1;
             cachedTimes = null;
             cachedAnims = null;
@@ -84,68 +85,38 @@ package Modules.ReplayEngine
             var sum:Number = 0;
             var prevAnim:uint = 0; // 앞 프레임의 연출 길이
             const file:File = AppStateManager.replayTimingSheetFilePath;
-            var isFileRead:Boolean = false;
 
-            if (fileFrames > 0)
+            if (fileFrames > 0 && file.exists)
             {
-                try
+                const fs:FileStream = new FileStream();
+                const chunk:ByteArray = new ByteArray();
+                fs.open(file, FileMode.READ);
+
+                for (var first:Number = 0; first < fileFrames; first += TimingSheet.SEGMENT_FRAMES)
                 {
-                    TimingSheetFile.alignTo(fileFrames); // repdata와 길이가 어긋나면 맞춤 (모자라면 옛 기본 간격으로 채움)
+                    segmentStart.push(sum);
+                    const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES, fileFrames - first));
+                    chunk.clear();
+                    fs.readBytes(chunk, 0, count * TimingSheetFile.RECORD_BYTES);
+                    chunk.position = 0;
 
-                    if (file.exists)
+                    for (var i:int = 0; i < count; i++)
                     {
-                        const fs:FileStream = new FileStream();
-                        const chunk:ByteArray = new ByteArray();
-                        fs.open(file, FileMode.READ);
+                        const delta:uint = chunk.readUnsignedInt();
+                        const anim:uint = chunk.readUnsignedInt();
 
-                        for (var first:Number = 0; first < fileFrames; first += TimingSheet.SEGMENT_FRAMES)
+                        // 쉬는 구간은 앞 프레임의 연출이 끝난 시각부터 이 프레임까지
+                        if (delta > prevAnim && delta - prevAnim >= ENTRY_MS)
                         {
-                            segmentStart.push(sum);
-                            const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES, fileFrames - first));
-                            chunk.clear();
-                            fs.readBytes(chunk, 0, count * TimingSheetFile.RECORD_BYTES);
-                            chunk.position = 0;
-
-                            for (var i:int = 0; i < count; i++)
-                            {
-                                const delta:uint = chunk.readUnsignedInt();
-                                const anim:uint = chunk.readUnsignedInt();
-
-                                // 쉬는 구간은 앞 프레임의 연출이 끝난 시각부터 이 프레임까지
-                                if (delta > prevAnim && delta - prevAnim >= ENTRY_MS)
-                                {
-                                    gapRanges.push(sum + prevAnim, sum + delta);
-                                }
-
-                                sum += delta;
-                                prevAnim = anim;
-                            }
+                            gapRanges.push(sum + prevAnim, sum + delta);
                         }
 
-                        fs.close();
-                        isFileRead = true;
+                        sum += delta;
+                        prevAnim = anim;
                     }
                 }
-                catch (error:Error)
-                {
-                    // 시간 파일을 만들거나 읽지 못했을때(디스크 오류, 잠김 등) 예외를 밖으로 던지지 않는다. 아래에서 옛 기본 간격으로 채움
-                    trace("Replay timing sheet read failed: " + error);
-                }
-            }
 
-            if (fileFrames > 0 && !isFileRead)
-            {
-                // 시간을 못 읽은 파일 구간은 프레임마다 옛 기본 간격으로 본다 (시계와 재생 루프가 멈추지 않게)
-                segmentStart = new Vector.<Number>();
-                gapRanges = new Vector.<Number>();
-
-                for (var segmentFirst:Number = 0; segmentFirst < fileFrames; segmentFirst += TimingSheet.SEGMENT_FRAMES)
-                {
-                    segmentStart.push(segmentFirst * TimingSheetFile.LEGACY_FRAME_DELTA);
-                }
-
-                sum = fileFrames * TimingSheetFile.LEGACY_FRAME_DELTA;
-                prevAnim = 0;
+                fs.close();
             }
 
             fileEndTime = sum;
@@ -433,27 +404,9 @@ package Modules.ReplayEngine
             const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES, fileFrames - first));
             const deltas:Vector.<uint> = new Vector.<uint>(count, true);
             const anims:Vector.<uint> = new Vector.<uint>(count, true);
-            var readCount:int = 0;
-
-            try
-            {
-                readCount = TimingSheetFile.readRange(first, count, deltas, anims);
-            }
-            catch (error:Error)
-            {
-                // 구간을 읽지 못했으면 기록이 없는 것으로 보고 아래에서 옛 기본 간격으로 채움 (시계가 예외로 멈추지 않게)
-                trace("Replay timing segment read failed: " + error);
-            }
-
-            // 기록이 없는 프레임(파일을 못 읽었거나 모자란 경우)은 옛 기본 간격으로 봄. 첫 프레임의 간격은 0
-            for (var missing:int = readCount; missing < count; missing++)
-            {
-                deltas[missing] = (first + missing === 0) ? 0 : TimingSheetFile.LEGACY_FRAME_DELTA;
-            }
-
+            TimingSheetFile.readRange(first, count, deltas, anims);
             const times:Vector.<Number> = new Vector.<Number>(count, true);
-            // 구간 시작 시각은 rebuild가 채워둔 값을 씀. 범위 밖이면(시간 파일을 못 읽은 경우) 마지막 시각으로 맞춤
-            var sum:Number = (segment >= 0 && segment < segmentStart.length) ? segmentStart[segment] : fileEndTime;
+            var sum:Number = segmentStart[segment];
 
             for (var i:int = 0; i < count; i++)
             {
@@ -480,7 +433,7 @@ package Modules.ReplayEngine
                 return totalFrames;
             }
 
-            if (fileFrames > 0 && segmentStart.length > 0 && time >= segmentStart[0])
+            if (fileFrames > 0 && time >= segmentStart[0])
             {
                 var low:int = 0;
                 var high:int = segmentStart.length - 1;

@@ -695,10 +695,7 @@ package Modules.ReplayEngine
         {
             if (!isRealtimePlay || !ReplayDrawCommands.data || ReplayDrawCommands.index >= ReplayDrawCommands.data.length)
             {
-                if(anim.isArmed)
-                {
-                    anim.disarm();
-                }
+                anim.disarm();
                 return;
             }
 
@@ -706,10 +703,7 @@ package Modules.ReplayEngine
 
             if (name !== "fill5" && name !== "lasso2" && name !== "line4" && name !== "move" && name !== "move1" && name !== "move2")
             {
-                if(anim.isArmed)
-                {
-                    anim.disarm();
-                }
+                anim.disarm();
                 return;
             }
 
@@ -720,7 +714,7 @@ package Modules.ReplayEngine
             {
                 anim.arm(animMs, startRecorded, ReplayState.rNowFrame);
             }
-            else if(anim.isArmed)
+            else
             {
                 anim.disarm();
             }

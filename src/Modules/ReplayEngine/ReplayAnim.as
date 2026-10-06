@@ -31,6 +31,7 @@ package Modules.ReplayEngine
         private var armedFrame:Number = -1; // 연출할 명령의 프레임 번호 (점별 시각을 찾는데 씀)
 
         private var active:Boolean = false;
+        private var endFrameShown:Boolean = false; // 이동 연출이 끝난 프레임(진행률 1)을 이미 보여줬는지 (그 다음 틱에 clear)
         private var mode:int = 0; // 1 = 스캔라인 덮개, 2 = 이동, 3 = 선 도구 (점 순서대로 그려짐)
         private var startTime:Number = 0;
         private var totalMs:Number = 0;
@@ -69,11 +70,6 @@ package Modules.ReplayEngine
         public function get isActive():Boolean
         {
             return active;
-        }
-
-        public function get isArmed():Boolean
-        {
-            return armedMs > 0;
         }
 
         // 연출 길이가 있는 명령을 실행하기 직전에 부름. 연출을 하지 않을 명령이면 disarm
@@ -392,21 +388,16 @@ package Modules.ReplayEngine
 
             if (elapsed >= totalMs)
             {
-                if (mode === 2)
+                if (mode === 2 && !endFrameShown)
                 {
-                    // 마지막 틱에서 목표 위치를 정확히 맞추고 커서도 그 위치로
-                    if (ref1 && moveLayer1)
-                    {
-                        ref1.x = distX;
-                        ref1.y = distY;
-                    }
-                    if (ref2 && moveLayer2)
-                    {
-                        ref2.x = distX;
-                        ref2.y = distY;
-                    }
+                    // 마지막 위치(진행률 1)를 한 프레임 실제로 보여준 뒤 다음 틱에 덮개를 치운다
+                    // (바로 clear하면 방금 맞춘 위치가 화면에 그려지지 않아 남은 오차만큼 튐)
+                    endFrameShown = true;
+                    applyMoveOffset(distX, distY);
                     ReplayDrawCommands.setRCursorPos(ReplayState.RCANVAS_WIDTH / 2 + distX, ReplayState.RCANVAS_HEIGHT / 2 + distY);
+                    return;
                 }
+
                 clear();
                 return;
             }
@@ -437,19 +428,24 @@ package Modules.ReplayEngine
                 const offsetX:int = Math.round(distX * (1 - remainingRatio));
                 const offsetY:int = Math.round(distY * (1 - remainingRatio));
 
-                if (ref1 && moveLayer1)
-                {
-                    ref1.x = offsetX;
-                    ref1.y = offsetY;
-                }
-
-                if (ref2 && moveLayer2)
-                {
-                    ref2.x = offsetX;
-                    ref2.y = offsetY;
-                }
-
+                applyMoveOffset(offsetX, offsetY);
                 ReplayDrawCommands.setRCursorPos(ReplayState.RCANVAS_WIDTH / 2 + offsetX, ReplayState.RCANVAS_HEIGHT / 2 + offsetY);
+            }
+        }
+
+        // 이동 연출의 복제 레이어를 (dx, dy)만큼 옮김 (진행 중 틱과 마지막 프레임에서 같이 씀)
+        private function applyMoveOffset(dx:Number, dy:Number):void
+        {
+            if (ref1 && moveLayer1)
+            {
+                ref1.x = dx;
+                ref1.y = dy;
+            }
+
+            if (ref2 && moveLayer2)
+            {
+                ref2.x = dx;
+                ref2.y = dy;
             }
         }
 
@@ -511,6 +507,7 @@ package Modules.ReplayEngine
         {
             armedMs = 0;
             active = false;
+            endFrameShown = false;
             mode = 0;
 
             try
