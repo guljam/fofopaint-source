@@ -28,7 +28,7 @@
 | R2 | **수정 완료** (`560728f` + `15f4242`) — 검토 통과 | 슬라이드쇼 경로 정리 + `anim.clear()`를 가드 밖으로 + 전환 시 `clearAfkState()` (2장 R2) |
 | R3 | **제외**(반증 성공) | 호출 2곳 모두 직후 버퍼를 비움 (5장 14번) |
 | R4 | 미반영(방어 코드는 선택 사항) | 2장 R4 |
-| R5 | **적용 완료**(작업 트리, 미커밋) — 실측 400회 47ms vs 213ms | 점 시각 파일 위치 색인 (2장 R5) |
+| R5 | **적용 완료**(R5 커밋) — 실측 400회 47ms vs 213ms | 점 시각 파일 위치 색인 (2장 R5) |
 | R6 | **적용 완료**(작업 트리, 미커밋) | 중복 `refreshAfkRanges()` 제거, 갱신 1회 (2장 R6) |
 | R7 | **수정 완료** (`e1c7aa2`) — 검토 통과 | `memory === null`, 컴파일 경고 0 (2장 R7) |
 | R8 | 미반영(주석 4건) | 2장 R8 |
@@ -179,7 +179,7 @@ updateAfkState(); // renderReplayFrame(내부에서 CursorAfkAnimation.stop) 뒤
 
 ### R5. `readPoints`가 재생 중 매 선 명령마다 파일을 선형 탐색 (하, 성능)
 
-**적용 완료(작업 트리, 미커밋) — 검토 요청 대기.** 파일을 소유한 `TimingSheetFile` 안에 점 레코드 색인을 두는 형태로 구현했습니다(`ReplayClock` 인덱스 대신 → 무효화 지점을 한 클래스에 모음).
+**적용 완료(R5 커밋).** 파일을 소유한 `TimingSheetFile` 안에 점 레코드 색인을 두는 형태로 구현했습니다(`ReplayClock` 인덱스 대신 → 무효화 지점을 한 클래스에 모음).
 
 - `pointsIndex:Object`(프레임 번호 → 레코드 시작 위치, `:33`), `buildPointsIndex()`(`:313`), `readPoints()`(`:347`)가 위치로 바로 이동해 그 레코드만 읽음(값은 저장하지 않아 메모리 증가 최소).
 - 점 파일을 쓰는 **4곳 전부**에서 `invalidatePointsIndex()` 호출: `reset()`(`:90`), `appendPointsRecord()`(`:248`), `rewritePoints()`(`:300`), `loadFileObject()`의 직접 쓰기(`:558`). 점 파일을 건드리는 코드는 이 클래스 4곳뿐임을 grep으로 전수 확인(읽기만 하는 `buildPointsBlob`은 영향 없음).

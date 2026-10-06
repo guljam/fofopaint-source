@@ -28,6 +28,9 @@ package Modules.ReplayEngine
 
         private static var lastStamp:int = 0; // 마지막으로 파일에 쓴 프레임의 getTimer 값
         private static var hasLastStamp:Boolean = false;
+        // 점 레코드를 프레임 번호로 바로 찾기 위한 파일 위치 색인 (프레임 번호 문자열 -> 레코드 시작 위치). 점 파일 내용이 바뀌면 버림
+        // 예전에는 조회할 때마다 파일을 앞에서부터 훑었는데, 재생 중에는 선 도구 명령마다 조회하므로 비용이 명령 수 x 레코드 수로 늘어남
+        private static var pointsIndex:Object = null;
 
         // 연출 길이를 getTimer 값과 합쳐서 메모리 기록 한 칸으로 만듬. animMs가 0이면 getTimer 값만 있는 것과 같음
         public static function packStamp(stamp:int, animMs:Number):Number
@@ -85,6 +88,7 @@ package Modules.ReplayEngine
             fs.close();
             fs.open(AppStateManager.replayTimingPointsFilePath, FileMode.WRITE);
             fs.close();
+            invalidatePointsIndex();
             hasLastStamp = false;
         }
 
@@ -242,6 +246,7 @@ package Modules.ReplayEngine
             }
 
             fs.close();
+            invalidatePointsIndex();
         }
 
         // 점별 시각 파일에서 프레임 번호가 [minFrame, maxFrame)인 레코드만 남기고 번호를 shift만큼 옮겨서 다시 씀 (자르기)
@@ -292,9 +297,53 @@ package Modules.ReplayEngine
             fs.writeBytes(kept, 0, kept.length);
             fs.close();
             kept.clear();
+            invalidatePointsIndex();
         }
 
-        // 프레임 frame의 점별 시각(도구 시작 기준 ms). 없으면 null. 파일을 앞에서부터 읽으며 찾음 (레코드는 프레임 번호 오름차순)
+        // 점 파일 내용이 바뀌었으니 색인을 버림 (reset, 이어 붙이기, 자르기, .fofo 불러오기에서 부름)
+        private static function invalidatePointsIndex():void
+        {
+            pointsIndex = null;
+        }
+
+        // 점 파일을 한 번 훑어서 프레임 번호 -> 레코드 시작 위치 색인을 만듬
+        // 예전 선형 탐색과 결과가 같도록, 레코드가 프레임 번호 오름차순이 아니거나 끝이 잘렸으면 거기서 멈춤
+        private static function buildPointsIndex():void
+        {
+            const index:Object = {};
+            pointsIndex = index;
+            const file:File = AppStateManager.replayTimingPointsFilePath;
+
+            if (!file.exists || file.size === 0)
+            {
+                return;
+            }
+
+            const fs:FileStream = new FileStream();
+            fs.open(file, FileMode.READ);
+            var lastFrame:Number = -1;
+
+            while (fs.bytesAvailable >= 8)
+            {
+                const position:Number = fs.position;
+                const frame:uint = fs.readUnsignedInt();
+                const count:uint = fs.readUnsignedInt();
+
+                if (frame <= lastFrame || fs.bytesAvailable < count * 4)
+                {
+                    break;
+                }
+
+                index[String(frame)] = position;
+                lastFrame = frame;
+                fs.position += count * 4;
+            }
+
+            fs.close();
+        }
+
+        // 프레임 frame의 점별 시각(도구 시작 기준 ms). 없으면 null
+        // 프레임 번호 -> 파일 위치 색인을 한 번 만들어 두고 그 위치로 바로 이동함 (레코드는 프레임 번호 오름차순)
         public static function readPoints(frame:Number):Vector.<uint>
         {
             const file:File = AppStateManager.replayTimingPointsFilePath;
@@ -304,33 +353,33 @@ package Modules.ReplayEngine
                 return null;
             }
 
+            if (pointsIndex === null)
+            {
+                buildPointsIndex();
+            }
+
+            const position:* = pointsIndex[String(frame)];
+
+            if (position === undefined)
+            {
+                return null; // 이 프레임에는 점 시각 기록이 없음
+            }
+
             const fs:FileStream = new FileStream();
             fs.open(file, FileMode.READ);
+            fs.position = position;
+            fs.readUnsignedInt(); // 프레임 번호
+            const count:uint = fs.readUnsignedInt();
             var result:Vector.<uint> = null;
 
-            while (fs.bytesAvailable >= 8)
+            if (fs.bytesAvailable >= count * 4) // 끝이 잘린 레코드는 없는 것으로 봄 (색인에서도 걸러짐)
             {
-                const recordFrame:uint = fs.readUnsignedInt();
-                const count:uint = fs.readUnsignedInt();
+                result = new Vector.<uint>(count, true);
 
-                if (recordFrame > frame || fs.bytesAvailable < count * 4)
+                for (var i:uint = 0; i < count; i++)
                 {
-                    break;
+                    result[i] = fs.readUnsignedInt();
                 }
-
-                if (recordFrame === frame)
-                {
-                    result = new Vector.<uint>(count, true);
-
-                    for (var i:uint = 0; i < count; i++)
-                    {
-                        result[i] = fs.readUnsignedInt();
-                    }
-
-                    break;
-                }
-
-                fs.position += count * 4;
             }
 
             fs.close();
@@ -549,6 +598,7 @@ package Modules.ReplayEngine
                         pfs.open(AppStateManager.replayTimingPointsFilePath, FileMode.WRITE);
                         pfs.writeBytes(points, 0, points.length);
                         pfs.close();
+                        invalidatePointsIndex();
                         points.clear();
                     }
                     catch (pointsError:Error)
