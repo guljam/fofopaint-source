@@ -48,8 +48,8 @@ package Modules.ReplayEngine
         public static const JUMP_FRAME_PREV:int = (1 << 2); // 이전 프레임으로 이동 (프레임 감소)
         public static const JUMP_FRAME_NEXT:int = (1 << 3); // 이후 프레임으로 이동 (프레임 증가)
 
-        public static const REPLAY_CURSOR_SPIN_TURN_MS:Number = 1800; // 오래 쉬는(AFK) 동안 리플레이 커서가 한바퀴 도는 시간 (시계 방향)
-        public static const REPLAY_CURSOR_SPIN_RETURN_MS:Number = 400; // 쉬는 구간이 끝나고 원래 각도로 부드럽게 돌아가는 시간, 0이면 바로 돌아감
+        public static const REPLAY_CURSOR_SPIN_TURN_MS:Number = 100; // 오래 쉬는(AFK) 동안 리플레이 커서가 한바퀴 도는 시간 (시계 방향)
+        public static const REPLAY_CURSOR_SPIN_RETURN_MS:Number = 500; // 쉬는 구간이 끝나고 원래 각도로 부드럽게 돌아가는 시간, 0이면 바로 돌아감
         private static const REPLAY_CURSOR_SPIN_TIMER:String = "replayCursorSpinTimer";
         private static var isReplayCursorSpinning:Boolean = false; // 쉬는 구간이라 커서가 도는 중인지 (되돌아가는 중은 false)
         public static const anim:ReplayAnim = new ReplayAnim(); // 채우기, 올가미, 이동 연출
