@@ -70,6 +70,7 @@ package Modules.ReplayEngine
         private static var frameOnEnterReplayMode:Number = -1; // 리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼줄때 이 프레임으로 되돌림
         public static var lastReplayTimeBoxYPos:Number = 0; // 리플레이 재생해줄때 WorkspaceView.topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
         public static const seekBarBox:SeekBarSet = new SeekBarSet();
+        private static var isAfkBoxShown:Boolean = false;
 
         public static function setMainInstance(instance:Main):void
         {
@@ -535,6 +536,7 @@ package Modules.ReplayEngine
                 {
                     wasReplayRunning = true;
                     ReplayState.isReplayStarted = false;
+                    ReplayController.clearAfkState();
                     FOFOTimer.remove("replayDrawTimer");
                     ReplayDrawer.rFileStream.close();
                 }
@@ -1006,7 +1008,16 @@ package Modules.ReplayEngine
                 });
         }
 
-        private static var isAfkBoxShown:Boolean = false;
+        public static function clearAfkState():void
+        {
+            if (isAfkBoxShown)
+            {
+                isAfkBoxShown = false;
+                ReplayDrawer.rReplayFOFOCursor.hideAfkBox();
+            }
+
+            CursorAfkAnimation.stop();
+        }
 
         // 시계가 AFK(쉬는 구간을 기다리는 중)이면 커서에 AFK 연출(CursorAfkAnimation)을 주고 커서 위에 검정 배경, 흰 테두리의 "afk" 상자를 띄우고, 아니면 원래대로
         // 매 틱 부르지만 상태가 바뀔때만 갱신함
@@ -1014,23 +1025,20 @@ package Modules.ReplayEngine
         {
             if (!ReplayClock.isAfk)
             {
-                if (isAfkBoxShown)
-                {
-                    isAfkBoxShown = false;
-                    ReplayDrawer.rReplayFOFOCursor.hideAfkBox();
-                    CursorAfkAnimation.stop();
-                }
-
+                clearAfkState();
                 return;
             }
 
-            if (!isAfkBoxShown)
+            if (!isAfkBoxShown || !CursorAfkAnimation.isRunning)
             {
-                isAfkBoxShown = true;
-                // 연출이 몸통을 키우거나 올리는 범위 바깥에 상자를 놓음. 상자 글꼴은 시크바 글자와 같은 것을 씀
                 const extents:Object = CursorAfkAnimation.start();
-                ReplayDrawer.rReplayFOFOCursor.configureAfkBox(seekBarBox.prograssInfo.defaultTextFormat, seekBarBox.prograssInfo.embedFonts);
-                ReplayDrawer.rReplayFOFOCursor.showAfkBox(ReplayDrawer.rCanvasPanel, new Rectangle(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT), extents.scaleFactor, extents.extraUp);
+                if (!isAfkBoxShown)
+                {
+                    isAfkBoxShown = true;
+                    // 연출이 몸통을 키우거나 올리는 범위 바깥에 상자를 놓음. 상자 글꼴은 시크바 글자와 같은 것을 씀
+                    ReplayDrawer.rReplayFOFOCursor.configureAfkBox(seekBarBox.prograssInfo.defaultTextFormat, seekBarBox.prograssInfo.embedFonts);
+                    ReplayDrawer.rReplayFOFOCursor.showAfkBox(ReplayDrawer.rCanvasPanel, new Rectangle(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT), extents.scaleFactor, extents.extraUp);
+                }
             }
         }
 
@@ -1445,9 +1453,7 @@ package Modules.ReplayEngine
 
             FOFOTimer.remove("replayDrawTimer");
             ReplayDrawer.anim.clear();
-            isAfkBoxShown = false;
-            ReplayDrawer.rReplayFOFOCursor.hideAfkBox();
-            CursorAfkAnimation.stop();
+            ReplayController.clearAfkState();
 
             if (!ReplayState.isReplayFinished)
             {
@@ -1555,7 +1561,7 @@ package Modules.ReplayEngine
                 HintController.hideMouseHint();
             }
 
-            if(HintController.isHighlightBoxVisible())
+            if (HintController.isHighlightBoxVisible())
             {
                 HintController.hideBottomHint();
             }
