@@ -10,7 +10,7 @@
 
 | 등급 | 의미 |
 |---|---|
-| [실행] | AIR SDK(51.3.4)로 헤드리스 하네스를 컴파일/실행해 확인 (`test-output/rt2-review`, 164개 체크 전부 통과, 부록 A) |
+| [실행] | AIR SDK(51.3.4)로 헤드리스 하네스를 컴파일/실행해 확인 (`test-output/rt2-review`, 172개 체크 전부 통과, 부록 A) |
 | [근거] | 소스 코드 인용 (`파일:라인`). 라인 번호는 커밋 `17f255d` 기준 |
 | [추론] | 코드만으로 확정 불가(렌더/실기기 확인 필요) — 6장에 별도 정리 |
 
@@ -27,7 +27,7 @@
 | R1 | **수정 완료** (`404615e`) — 검토 통과 | `clearAfkState()` 단일화 + `updateAfkState` 재시작 조건. 전체 앱 컴파일 오류 0/경고 0 (2장 R1) |
 | R2 | **수정 완료** (`560728f` + `15f4242`) — 검토 통과 | 슬라이드쇼 경로 정리 + `anim.clear()`를 가드 밖으로 + 전환 시 `clearAfkState()` (2장 R2) |
 | R3 | **제외**(반증 성공) | 호출 2곳 모두 직후 버퍼를 비움 (5장 14번) |
-| R4 | 미반영(방어 코드는 선택 사항) | 2장 R4 |
+| R4 | **적용 완료**(R4 커밋) | 시간 파일 실패 시 옛 간격으로 계속 + 누락 프레임 기본값 (2장 R4) |
 | R5 | **적용 완료**(R5 커밋) — 실측 400회 47ms vs 213ms | 점 시각 파일 위치 색인 (2장 R5) |
 | R6 | **적용 완료**(작업 트리, 미커밋) | 중복 `refreshAfkRanges()` 제거, 갱신 1회 (2장 R6) |
 | R7 | **수정 완료** (`e1c7aa2`) — 검토 통과 | `memory === null`, 컴파일 경고 0 (2장 R7) |
@@ -171,10 +171,21 @@ updateAfkState(); // renderReplayFrame(내부에서 CursorAfkAnimation.stop) 뒤
 
 호출 지점은 `UndoHistory.as:134`(addContinue)와 `:162`(addNew) **2곳뿐**이고, 두 곳 모두 `:143` / `:165`에서 무조건 `rMemoryDataBuffer = []`로 비웁니다(early return `:125-126`은 take 이전). `take()`의 부작용은 시각 Dictionary 재생성(`ReplayState.as:209`)뿐이고, 버퍼를 `take()` 없이 비우는 `UndoHistory.as:104`는 딥 언두 경로에서 같은 객체로 복원됩니다(`DrawingFinish.as:29-33`). "소비된 뒤 버퍼가 남는" 도달 가능한 경로가 없습니다 → 상세 근거는 **5장 14번**.
 
-### R4. 타이밍 파일 부재 시 `segmentStart` 범위 밖 접근 가능성 (하) — 반증 성공
+### R4. 타이밍 파일 부재 시 `segmentStart` 범위 밖 접근 가능성 (하) — 반증 성공 + 방어 적용
+
+**적용 완료(R4 커밋).** 반증(아래)으로 실질 위험은 낮지만, 잔여 실패 경로(경로가 디렉터리로 점유됨, 권한 거부, 디스크 오류 등)에서 시계가 예외로 멈추지 않도록 방어를 넣었습니다.
+
+- `rebuild()`(`ReplayClock.as:70-148`): `alignTo` + 파일 스캔을 try/catch로 감싸고(실패 시 `trace`), 실패/파일 없음이면 `segmentStart`와 합계를 **옛 기본 간격(42ms/프레임)** 으로 채웁니다(`:134-147`). 상태 초기화(`segmentStart`/`gapRanges`/구간 캐시)를 try 앞으로 옮겨 예외 시에도 상태가 일관됩니다.
+- `loadSegment()`(`:423-467`): `segmentStart[segment]` 읽기에 범위 검사, `readRange` try/catch, **읽지 못한(모자란) 프레임을 옛 기본 간격으로 채움**(첫 프레임 간격 0). 예전에는 누락 구간이 간격 0으로 남아 그 프레임들이 즉시 재생됐습니다.
+- `framesDueAt()`(`:469-...`): `segmentStart.length > 0` 가드 추가.
+- `TimingSheetFile.readRange()`(`:622-655`)가 **읽은 개수를 반환**(`void → int`). 기존 호출부는 반환값을 무시하므로 동작 불변.
+- 검증(하네스, 실패 주입 = 시트 경로를 디렉터리로 교체): 예외 없이 `frames=12`, `total=504`(=12×42), `timeOfFrame(0)=0`, `step(0→5)=210`, `framesDueAt(210)=6`, 경로 복구 후 `total=7400`/`time(5)=200`로 즉시 회복 → `r4.*` 8건 통과.
+- 주의(시도 중 확인): "파일이 아예 없음"은 AIR의 `FileMode.APPEND`가 상위 폴더와 파일을 만들고 `alignTo`가 42ms로 패딩하므로 **원래도 예외가 나지 않았습니다**(R4를 반증으로 분류한 근거). 이번 방어는 그보다 드문 실패 경우를 덮습니다. `loadSegment`의 catch 블록 자체는 주입으로 도달시키지 못했습니다(이중 방어로 유지).
+
+아래는 최초 분석·반증 기록입니다(수정 전 기준).
 
 - 위치: `ReplayClock.as:394-420` (`loadSegment` → `var sum:Number = segmentStart[segment];`), `:422` (`framesDueAt`의 `segmentStart[0]`).
-- 반증: `rebuild()`(`:70-164`)가 먼저 `TimingSheetFile.alignTo(fileFrames)`(`:74`)를 호출하고, `alignTo`는 `frameCount`(= `file.exists ? size/8 : 0`)가 모자라면 `LEGACY_FRAME_DELTA`(42ms)로 채워 파일을 **항상 생성**합니다(`TimingSheetFile.as:110-141`). 따라서 `fileFrames > 0`이면 파일이 존재하고 `segmentStart`도 채워집니다(5.4 참고). 실질 위험 없음 → 문제 목록에서 제외.
+- 반증: `rebuild()`(`:70-164`)가 먼저 `TimingSheetFile.alignTo(fileFrames)`(`:74`)를 호출하고, `alignTo`는 `frameCount`(= `file.exists ? size/8 : 0`)가 모자라면 `LEGACY_FRAME_DELTA`(42ms)로 채워 파일을 **항상 생성**합니다(`TimingSheetFile.as:110-141`). 따라서 `fileFrames > 0`이면 파일이 존재하고 `segmentStart`도 채워집니다(5.4 참고). 실질 위험 없음 → 문제 목록에서 제외. (이후 잔여 실패 경로 방어를 R4 커밋으로 적용: `rebuild` try/catch + 옛 간격 채움, `loadSegment` 범위/읽기 방어, `readRange`가 읽은 개수 반환)
 - 참고 제안(선택): 디스크 오류 등으로 `alignTo`가 예외를 던지면 위로 전파되므로, 방어를 원하면 `rebuild()`를 try/catch로 감싸고 실패 시 `segmentStart`를 채운 뒤 진행하는 편이 안전합니다.
 
 ### R5. `readPoints`가 재생 중 매 선 명령마다 파일을 선형 탐색 (하, 성능)
@@ -368,7 +379,7 @@ sh /d/adobe_air_sdk_manager/AIRSDK_51.3.4/bin/amxmlc \
 cmd.exe /c "D:\adobe_air_sdk_manager\AIRSDK_51.3.4\bin\adl.exe -profile extendedDesktop rt2review-app.xml E:/fofopaint-source/test-output/rt2-review"
 ```
 
-- 결과: `RESULT pass=164 fail=0` (`test-output/rt2-review/report.txt`) — R5 색인 검증 12건(`idx.*`, `perf.hits`) + R6 경로 스모크 5건(`r6.*`) 포함
+- 결과: `RESULT pass=172 fail=0` (`test-output/rt2-review/report.txt`) — R5 색인 검증 12건(`idx.*`, `perf.hits`) + R6 경로 스모크 5건(`r6.*`) + R4 실패 주입 8건(`r4.*`) 포함
 - R5 성능 실측(같은 실행 로그, 실행마다 조금씩 다름): `PERF points read x400 over 3000 records: new(index)=29ms old(scan)=148ms` (직전 실행 47ms vs 213ms)
 - 전체 앱 컴파일 확인: `sh .../amxmlc -source-path+=E:/fofopaint-source/src ... src/Main.as` → 오류 0 / 경고 0 (`test-output/rt2-review/check-app.swf`)
 - 컴파일러 경고: R7 수정(`e1c7aa2`) 이후 0건 (수정 전에는 `ReplayClock.as:358` 1건).

@@ -21,6 +21,7 @@ package Modules.ReplayEngine
     public final class TimingSheetFile
     {
         // 시간 기록이 없는 프레임(옛 파일, 기록이 어긋난 부분)의 간격. 24fps에서 틱당 명령 1개로 재생하던 옛 1배속과 같은 속도
+        // todo LEGACY_FRAME_DELTA가 나중에 앱 fps가 바뀌어도 이 값을 유지해야하는지 ai에게 물어봐야함
         public static const LEGACY_FRAME_DELTA:uint = 42;
         public static const RECORD_BYTES:int = 8;
         private static const TWO_POW_32:Number = 4294967296;
@@ -617,21 +618,22 @@ package Modules.ReplayEngine
             return true;
         }
 
-        // firstFrame부터 count개의 간격과 연출 길이를 읽어서 deltas, anims(둘다 count 이상)에 채움. 파일에 모자란 부분은 0
-        public static function readRange(firstFrame:Number, count:int, deltas:Vector.<uint>, anims:Vector.<uint> = null):void
+        // firstFrame부터 count개의 간격과 연출 길이를 읽어서 deltas, anims(둘다 count 이상)에 채움
+        // 반환값: 실제로 읽은 개수 (파일이 없거나 모자라면 그만큼 적음. 호출부가 모자란 프레임을 기본값으로 채움)
+        public static function readRange(firstFrame:Number, count:int, deltas:Vector.<uint>, anims:Vector.<uint> = null):int
         {
             const file:File = AppStateManager.replayTimingSheetFilePath;
 
             if (!file.exists)
             {
-                return;
+                return 0;
             }
 
             const available:Number = Math.max(0, Math.min(count, frameCount - firstFrame));
 
             if (available === 0)
             {
-                return;
+                return 0;
             }
 
             const fs:FileStream = new FileStream();
@@ -650,6 +652,7 @@ package Modules.ReplayEngine
             }
 
             fs.close();
+            return int(available);
         }
     }
 }
