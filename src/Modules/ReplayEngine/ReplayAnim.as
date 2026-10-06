@@ -5,7 +5,9 @@ package Modules.ReplayEngine
     import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display.CapsStyle;
+    import flash.display.DisplayObjectContainer;
     import flash.display.JointStyle;
+    import flash.display.Graphics;
     import flash.display.LineScaleMode;
     import flash.display.Shape;
     import flash.display.Sprite;
@@ -26,9 +28,10 @@ package Modules.ReplayEngine
 
         private var armedMs:Number = 0;
         private var armedStart:Number = 0; // 연출이 시작하는 녹화 시각
+        private var armedFrame:Number = -1; // 연출할 명령의 프레임 번호 (점별 시각을 찾는데 씀)
 
         private var active:Boolean = false;
-        private var mode:int = 0; // 1 = 스캔라인 덮개, 2 = 이동
+        private var mode:int = 0; // 1 = 스캔라인 덮개, 2 = 이동, 3 = 선 도구 (점 순서대로 그려짐)
         private var startTime:Number = 0;
         private var totalMs:Number = 0;
 
@@ -53,6 +56,16 @@ package Modules.ReplayEngine
         private var distX:Number = 0;
         private var distY:Number = 0;
 
+        // 선 도구: 실제 선은 그리기 레이어의 Shape에 이미 전부 그려져 있어서 숨겨두고, 임시 Shape에 지금까지의 경로만 다시 그림
+        private var lineTemp:Shape = null;
+        private var lineHost:Shape = null; // 숨긴 실제 선 Shape
+        private var lineHostVisible:Boolean = true;
+        private var lineXY:Vector.<Number> = null;
+        private var lineOffsets:Vector.<Number> = null; // 꼭짓점마다 그려지기 시작하는 시각 (연출 시작 기준 ms)
+        private var lineShape:Boolean = false;
+        private var lineSize:uint = 0;
+        private var lineColor:uint = 0;
+
         public function get isActive():Boolean
         {
             return active;
@@ -64,10 +77,11 @@ package Modules.ReplayEngine
         }
 
         // 연출 길이가 있는 명령을 실행하기 직전에 부름. 연출을 하지 않을 명령이면 disarm
-        public function arm(animMs:Number, startRecorded:Number):void
+        public function arm(animMs:Number, startRecorded:Number, frame:Number):void
         {
             armedMs = animMs;
             armedStart = startRecorded;
+            armedFrame = frame;
         }
 
         public function disarm():void
@@ -194,6 +208,99 @@ package Modules.ReplayEngine
             showOverlay();
         }
 
+        // line4가 선을 그린 직후에 부름. 점(꼭짓점) 순서대로 선이 자라는 연출을 시작함
+        // 점마다 찍은 시각이 있으면 그 시각대로, 없거나 맞지 않으면 경로 길이에 비례해서 연출 길이 안에 그림
+        public function startLine(command:Vector.<int>, xyData:Vector.<Number>, shape:Boolean, size:uint, color:uint):void
+        {
+            const frame:Number = armedFrame;
+
+            if (!takeArmed())
+            {
+                return;
+            }
+
+            const vertexCount:int = xyData.length / 2;
+
+            if (vertexCount < 2 || command.length !== vertexCount)
+            {
+                clear();
+                return;
+            }
+
+            // 선 도구는 moveTo(1)와 lineTo(2)만 씀. 다른 명령이 섞여 있으면 연출 없이 지나감
+            for (var c:int = 0; c < command.length; c++)
+            {
+                if (command[c] !== 1 && command[c] !== 2)
+                {
+                    clear();
+                    return;
+                }
+            }
+
+            lineOffsets = new Vector.<Number>(vertexCount, true);
+            const recorded:Vector.<uint> = ReplayClock.pointOffsetsOfFrame(frame);
+            var useRecorded:Boolean = recorded !== null && recorded.length === vertexCount;
+
+            // 기록된 시각은 앞에서부터 줄어들지 않아야 하고 연출 길이를 넘지 않아야 씀
+            for (var i:int = 0; useRecorded && i < vertexCount; i++)
+            {
+                if ((i > 0 && recorded[i] < recorded[i - 1]) || recorded[i] > totalMs)
+                {
+                    useRecorded = false;
+                }
+            }
+
+            if (useRecorded)
+            {
+                for (i = 0; i < vertexCount; i++)
+                {
+                    lineOffsets[i] = recorded[i];
+                }
+            }
+            else
+            {
+                // 경로 길이에 비례
+                var total:Number = 0;
+
+                for (i = 1; i < vertexCount; i++)
+                {
+                    total += Math.sqrt(Math.pow(xyData[i * 2] - xyData[i * 2 - 2], 2) + Math.pow(xyData[i * 2 + 1] - xyData[i * 2 - 1], 2));
+                }
+
+                var walked:Number = 0;
+                lineOffsets[0] = 0;
+
+                for (i = 1; i < vertexCount; i++)
+                {
+                    walked += Math.sqrt(Math.pow(xyData[i * 2] - xyData[i * 2 - 2], 2) + Math.pow(xyData[i * 2 + 1] - xyData[i * 2 - 1], 2));
+                    lineOffsets[i] = total > 0 ? totalMs * walked / total : totalMs * i / (vertexCount - 1);
+                }
+            }
+
+            lineHost = ReplayDrawer.rCanvasDrawShape;
+
+            if (lineHost.parent === null)
+            {
+                clear();
+                return;
+            }
+
+            lineXY = xyData.concat();
+            lineShape = shape;
+            lineSize = size;
+            lineColor = color;
+            lineTemp = new Shape();
+            lineTemp.filters = lineHost.filters;
+            lineTemp.blendMode = lineHost.blendMode;
+            const parent:DisplayObjectContainer = lineHost.parent;
+            parent.addChildAt(lineTemp, parent.getChildIndex(lineHost) + 1);
+            lineHostVisible = lineHost.visible;
+            lineHost.visible = false;
+            mode = 3;
+            active = true;
+            update(startTime);
+        }
+
         // move 명령이 레이어를 옮기기 전에 부름. 옮기기 전 레이어 이미지를 복사해서 목표 위치까지 움직이는 덮개로 보여줌
         public function startMove(dx:Number, dy:Number, layer1:Boolean, layer2:Boolean):void
         {
@@ -304,6 +411,10 @@ package Modules.ReplayEngine
                 // 리플레이 커서는 영역 가운데 x에 두고 y만 지운 위치로 내려옴
                 ReplayDrawCommands.setRCursorPos(area.x + area.width / 2, area.y + rows);
             }
+            else if (mode === 3)
+            {
+                drawLinePartial(elapsed);
+            }
             else if (mode === 2)
             {
                 // 감속 이동 (ease-out): 남은 거리 비율은 남은 시간 비율의 제곱, 정수 픽셀 위치
@@ -325,6 +436,59 @@ package Modules.ReplayEngine
 
                 ReplayDrawCommands.setRCursorPos(ReplayState.RCANVAS_WIDTH / 2 + offsetX, ReplayState.RCANVAS_HEIGHT / 2 + offsetY);
             }
+        }
+
+        // 연출 시작 후 elapsed ms 시점까지의 경로를 임시 Shape에 다시 그림: 이미 찍힌 점까지의 선분 + 다음 점을 향해 자라는 선분
+        private function drawLinePartial(elapsed:Number):void
+        {
+            const vertexCount:int = lineOffsets.length;
+            var reached:int = 0; // elapsed 이하의 시각을 가진 마지막 꼭짓점
+
+            while (reached + 1 < vertexCount && lineOffsets[reached + 1] <= elapsed)
+            {
+                reached++;
+            }
+
+            const commands:Vector.<int> = new Vector.<int>();
+            const coords:Vector.<Number> = new Vector.<Number>();
+
+            for (var i:int = 0; i <= reached; i++)
+            {
+                commands.push(i === 0 ? 1 : 2);
+                coords.push(lineXY[i * 2], lineXY[i * 2 + 1]);
+            }
+
+            var tipX:Number = lineXY[reached * 2];
+            var tipY:Number = lineXY[reached * 2 + 1];
+
+            if (reached + 1 < vertexCount)
+            {
+                const span:Number = lineOffsets[reached + 1] - lineOffsets[reached];
+                const t:Number = span > 0 ? Math.max(0, Math.min(1, (elapsed - lineOffsets[reached]) / span)) : 1;
+                tipX += (lineXY[reached * 2 + 2] - tipX) * t;
+                tipY += (lineXY[reached * 2 + 3] - tipY) * t;
+                commands.push(2);
+                coords.push(tipX, tipY);
+            }
+
+            const g:Graphics = lineTemp.graphics;
+            g.clear();
+
+            if (lineShape)
+            {
+                g.lineStyle(lineSize, lineColor, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
+            }
+            else
+            {
+                g.lineStyle(lineSize, lineColor);
+            }
+
+            if (commands.length > 1)
+            {
+                g.drawPath(commands, coords);
+            }
+
+            ReplayDrawCommands.setRCursorPos(tipX, tipY);
         }
 
         // 덮개를 치우고 숨긴 레이어를 복구함 (끝났을때, 일시정지, 탐색, 모드 탈출). 쉬고 있어도 불러도 됨
@@ -353,7 +517,27 @@ package Modules.ReplayEngine
             }
             finally
             {
-                // 예외가 나도 실제 레이어는 반드시 복구함
+                // 예외가 나도 실제 레이어(과 선 Shape)는 반드시 복구함
+                if (lineTemp)
+                {
+                    if (lineTemp.parent)
+                    {
+                        lineTemp.parent.removeChild(lineTemp);
+                    }
+
+                    lineTemp.graphics.clear();
+                    lineTemp = null;
+                }
+
+                if (lineHost)
+                {
+                    lineHost.visible = lineHostVisible;
+                    lineHost = null;
+                }
+
+                lineXY = null;
+                lineOffsets = null;
+
                 if (hidden1)
                 {
                     ReplayDrawer.rCanvasLayer1Bitmap.visible = savedVisible1;

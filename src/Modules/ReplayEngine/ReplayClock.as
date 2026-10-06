@@ -29,10 +29,15 @@ package Modules.ReplayEngine
         private static var cachedTimes:Vector.<Number> = null; // 그 구간 안 프레임별 녹화 시각 (구간 시작 시각 포함한 절대값)
         private static var cachedAnims:Vector.<uint> = null; // 그 구간 안 프레임별 연출 길이(ms)
         private static var memoryAnims:Vector.<uint> = new Vector.<uint>(); // 파일 뒤 메모리 프레임의 연출 길이
+        private static var memoryPoints:Object = {}; // 파일 뒤 메모리 프레임 번호(문자열 키) -> 점별 시각(도구 시작 기준 ms) 배열
 
         private static var anchorRecorded:Number = 0; // R0
         private static var anchorReal:int = 0; // T0
         private static var anchorSpeed:Number = 1;
+
+        // 일시정지하거나 시크바를 클릭한 위치. 프레임이 같다면 다시 재생할때 그 녹화 시각에서 이어감 (쉬는 구간 중간 등)
+        private static var rememberedFrame:Number = -1;
+        private static var rememberedRecorded:Number = 0;
 
         private static var afkEnd:Number = -1; // AFK 중이면 공백이 끝나는 녹화 시각, 아니면 -1
 
@@ -50,6 +55,7 @@ package Modules.ReplayEngine
         public static function rebuild():void
         {
             fileFrames = ReplayState.getRFileDataTotalFrame();
+            rememberedFrame = -1;
             TimingSheetFile.alignTo(fileFrames);
             cachedSegment = -1;
             cachedTimes = null;
@@ -115,6 +121,27 @@ package Modules.ReplayEngine
                 memoryCumulative[i] = sum;
             }
 
+            // 메모리 프레임의 점별 시각 (점 시각이 필요한 명령만 가짐)
+            memoryPoints = {};
+            var position:Number = fileFrames;
+
+            for (var g:int = 0; g < ReplayState.rMemoryData.length; g++)
+            {
+                const stamps:Array = ReplayState.rMemoryDataTimingSheet[g];
+
+                for (var j:int = 0; j < stamps.length; j++)
+                {
+                    const points:Array = TimingSheetFile.pointsOf(stamps[j]);
+
+                    if (points !== null)
+                    {
+                        memoryPoints[String(position)] = points;
+                    }
+
+                    position++;
+                }
+            }
+
             totalTime = sum;
             totalFrames = fileFrames + memoryDeltas.length;
         }
@@ -140,6 +167,36 @@ package Modules.ReplayEngine
             const segment:int = int(frame / TimingSheet.SEGMENT_FRAMES);
             loadSegment(segment);
             return cachedTimes[int(frame - segment * TimingSheet.SEGMENT_FRAMES)];
+        }
+
+        // 프레임 frame(0부터)의 점별 시각(그 명령의 시각 기준 ms), 기록이 없으면 null (선 도구의 점 순서 연출에 씀)
+        public static function pointOffsetsOfFrame(frame:Number):Vector.<uint>
+        {
+            if (frame < 0 || frame >= totalFrames)
+            {
+                return null;
+            }
+
+            if (frame >= fileFrames)
+            {
+                const memory:Array = memoryPoints[String(frame)];
+
+                if (memory === null || memory === undefined)
+                {
+                    return null;
+                }
+
+                const copy:Vector.<uint> = new Vector.<uint>(memory.length, true);
+
+                for (var i:int = 0; i < memory.length; i++)
+                {
+                    copy[i] = memory[i];
+                }
+
+                return copy;
+            }
+
+            return TimingSheetFile.readPoints(frame);
         }
 
         // 프레임 frame(0부터)의 연출 길이(ms), 연출이 없는 명령은 0
@@ -261,9 +318,24 @@ package Modules.ReplayEngine
         public static function anchorAtFrame(frame:Number, speed:Number):void
         {
             anchorRecorded = timeOfFrame(frame - 1);
+
+            // 기억해둔 위치가 같은 프레임에서 다음 프레임 직전 사이(쉬는 구간이나 대기 중간)면 그 시각에서 이어감
+            if (rememberedFrame === frame && rememberedRecorded > anchorRecorded && rememberedRecorded < timeOfFrame(frame))
+            {
+                anchorRecorded = rememberedRecorded;
+            }
+
+            rememberedFrame = -1;
             anchorReal = getTimer();
             anchorSpeed = speed;
             afkEnd = -1;
+        }
+
+        // 일시정지하거나 시크바를 클릭한 때 frame개를 그린 상태와 그 녹화 시각을 기억해둠. 프레임이 바뀌면 anchorAtFrame이 무시함
+        public static function rememberPosition(frame:Number, recorded:Number):void
+        {
+            rememberedFrame = frame;
+            rememberedRecorded = recorded;
         }
 
         // 지금 녹화 시각 R. 배속이 바뀌면 그 순간부터 새 배속으로 이어지게 기준점을 옮김

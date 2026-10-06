@@ -119,9 +119,22 @@ package Modules.ReplayEngine
 
         // 채우기, 올가미, 이동처럼 도구를 시작해서 끝낼때까지의 시간을 연출로 보여주는 명령에 씀 (명령을 버퍼에 넣는 끝낼 때 부름)
         // 명령의 시각은 도구를 시작한 startStamp(getTimer 값)이고, 지금까지 걸린 시간이 연출 길이로 기록됨
-        public static function stampTimingSheetToolCommand(command:Array, startStamp:int):Array
+        // pointStamps는 도구 안에서 점을 찍은 때마다의 getTimer 값 (선 도구처럼 점별 시각이 연출에 필요한 명령에만 넘김, 점 개수는 명령의 꼭짓점 수와 같아야 함)
+        public static function stampTimingSheetToolCommand(command:Array, startStamp:int, pointStamps:Array = null):Array
         {
-            rTimingSheetBufferStamps[command] = TimingSheetFile.packStamp(startStamp, (getTimer() - startStamp) | 0);
+            var points:Array = null;
+
+            if (pointStamps !== null && pointStamps.length > 0)
+            {
+                points = new Array(pointStamps.length);
+
+                for (var i:int = 0;i < pointStamps.length;i++)
+                {
+                    points[i] = Math.max(0, (pointStamps[i] - startStamp) | 0); // 도구 시작 기준 ms
+                }
+            }
+
+            rTimingSheetBufferStamps[command] = TimingSheetFile.makeElement(startStamp, (getTimer() - startStamp) | 0, points);
             return command;
         }
 
@@ -135,6 +148,7 @@ package Modules.ReplayEngine
             const count:int = rMemoryDataBuffer.length;
             const times:Array = new Array(count);
             const anims:Array = new Array(count);
+            const pointLists:Array = new Array(count); // 점별 시각이 있는 명령의 점 시각 목록, 없으면 null
             var firstStamped:int = -1;
             var lastStamped:int = -1;
 
@@ -142,11 +156,13 @@ package Modules.ReplayEngine
             {
                 const stamp:* = rTimingSheetBufferStamps[rMemoryDataBuffer[i]];
                 anims[i] = 0;
+                pointLists[i] = null;
 
                 if (stamp !== undefined)
                 {
                     times[i] = TimingSheetFile.unpackStamp(stamp);
                     anims[i] = TimingSheetFile.unpackAnimMs(stamp);
+                    pointLists[i] = TimingSheetFile.pointsOf(stamp);
                     lastStamped = i;
 
                     if (firstStamped < 0)
@@ -187,7 +203,7 @@ package Modules.ReplayEngine
 
             for (i = 0;i < count;i++)
             {
-                times[i] = TimingSheetFile.packStamp(times[i], anims[i]);
+                times[i] = TimingSheetFile.makeElement(times[i], anims[i], pointLists[i]);
             }
 
             rTimingSheetBufferStamps = new Dictionary(true);

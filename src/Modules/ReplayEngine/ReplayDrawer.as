@@ -767,7 +767,7 @@ package Modules.ReplayEngine
 
             const name:String = ReplayDrawCommands.data[ReplayDrawCommands.index][0];
 
-            if (name !== "fill5" && name !== "lasso2" && name !== "move" && name !== "move1" && name !== "move2")
+            if (name !== "fill5" && name !== "lasso2" && name !== "line4" && name !== "move" && name !== "move1" && name !== "move2")
             {
                 anim.disarm();
                 return;
@@ -778,7 +778,7 @@ package Modules.ReplayEngine
 
             if (animMs / ReplayState.rReplaySpeedMultipler >= ReplayAnim.MIN_REAL_MS && ReplayClock.recordedPeek() - startRecorded < animMs)
             {
-                anim.arm(animMs, startRecorded);
+                anim.arm(animMs, startRecorded, ReplayState.rNowFrame);
             }
             else
             {

@@ -20,6 +20,7 @@ package Modules.Tools
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.geom.Point;
+    import flash.utils.getTimer;
 
     public class LineTool
     {
@@ -41,6 +42,8 @@ package Modules.Tools
         private static var xAlpha:Number;
         private static var xShape:Boolean;
         private static var xBlendMode:String;
+        private static var toolStartStamp:int = 0; // 선 도구를 시작한 getTimer 값, 적용할때 타이밍 시트에 연출 시간으로 기록함
+        private static var pointStamps:Array = []; // 꼭짓점마다 찍은 getTimer 값 (첫 점은 도구 시작), 재생에서 점 순서대로 선을 그리는 연출에 씀
         private static var subLayerFlag:Boolean;
         private static var command:Vector.<int> = new Vector.<int>();
         private static var data:Vector.<Number> = new Vector.<Number>();
@@ -250,7 +253,7 @@ package Modules.Tools
                 drawLine();
                 hasLineTouchedCanvas = false;
                 UndoHistory.canAddUndoData = true;
-                ReplayState.rMemoryDataBuffer.push(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenSettings.airBrushSizeDrawMode]);
+                ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenSettings.airBrushSizeDrawMode], toolStartStamp, pointStamps));
             }
 
             StrokeBuffer.resetCanvasDrawLayerClipRect();
@@ -294,6 +297,7 @@ package Modules.Tools
                     }
                 }
                 inputLineToData(mx, my);
+                pointStamps.push(getTimer()); // 점을 찍은 시각 (적용할때 임시로 따라다니던 마지막 점은 지워지므로 찍은 점 수와 맞음)
             }
         }
 
@@ -341,6 +345,8 @@ package Modules.Tools
                 const mx:Number = StrokeBuffer.canvasDrawLayerChild.mouseX;
                 const my:Number = StrokeBuffer.canvasDrawLayerChild.mouseY;
 
+                toolStartStamp = getTimer();
+                pointStamps = [toolStartStamp]; // 첫 점은 도구를 시작한 때
                 inputMoveToData(mx, my);
                 inputLineToData(mx, my);
 

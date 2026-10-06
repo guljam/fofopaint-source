@@ -729,6 +729,8 @@ package Modules.ReplayEngine
             {
                 setRCursorPos(xydata[xydata.length - 2], xydata[xydata.length - 1]);
             }
+
+            ReplayDrawer.anim.startLine(command, xydata, shape, size, color); // 연출이 준비된 명령이면 점 순서대로 그려지는 임시 선을 올림
         }
 
         public static function line3(data:Array):void

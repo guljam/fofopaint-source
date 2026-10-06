@@ -16,6 +16,8 @@ package Modules.ReplayEngine
     //
     // 메모리 undo 묶음의 명령별 값(rMemoryDataTimingSheet)은 Number 하나에 합쳐서 가짐
     //   값 = 연출 길이 * 2^32 + getTimer 값(uint로 본 것)
+    // 점마다 시각이 필요한 명령(line4)은 [위 Number, [점별 시각 ms]] 배열이 값이 됨 (점 시각은 명령의 시각(도구 시작) 기준)
+    // 점별 시각은 프레임 크기가 가변이라 따로 reptimingpoints 파일에 [프레임 번호, 개수, 값...] 레코드로 이어 씀 (프레임 번호 오름차순)
     public final class TimingSheetFile
     {
         // 시간 기록이 없는 프레임(옛 파일, 기록이 어긋난 부분)의 간격. 24fps에서 틱당 명령 1개로 재생하던 옛 1배속과 같은 속도
@@ -34,14 +36,39 @@ package Modules.ReplayEngine
             return clamped * TWO_POW_32 + uint(stamp);
         }
 
-        public static function unpackStamp(packed:Number):int
+        // 아래 unpack 함수들은 메모리 기록 한 칸(Number, 또는 점별 시각이 붙은 [Number, Array])을 그대로 받음
+        private static function packedOf(element:*):Number
         {
-            return int(uint(packed % TWO_POW_32));
+            return (element is Array) ? element[0] : element;
         }
 
-        public static function unpackAnimMs(packed:Number):Number
+        public static function unpackStamp(element:*):int
         {
-            return Math.floor(packed / TWO_POW_32);
+            return int(uint(packedOf(element) % TWO_POW_32));
+        }
+
+        public static function unpackAnimMs(element:*):Number
+        {
+            return Math.floor(packedOf(element) / TWO_POW_32);
+        }
+
+        // 점별 시각(도구 시작 기준 ms)이 붙어 있으면 그 배열, 아니면 null
+        public static function pointsOf(element:*):Array
+        {
+            return (element is Array) ? element[1] : null;
+        }
+
+        // 메모리 기록 한 칸을 만듬. points가 없으면 Number 그대로
+        public static function makeElement(stamp:int, animMs:Number, points:Array):*
+        {
+            const packed:Number = packStamp(stamp, animMs);
+            return (points !== null && points.length > 0) ? [packed, points] : packed;
+        }
+
+        // 기록 한 칸의 getTimer 값을 offset만큼 옮긴 새 칸 (앱을 다시 켜서 getTimer 기준이 바뀔때)
+        public static function shiftElement(element:*, offset:int):*
+        {
+            return makeElement((unpackStamp(element) + offset) | 0, unpackAnimMs(element), pointsOf(element));
         }
 
         // 파일이 없으면 만들지 않고 비어있는 것으로 봄
@@ -55,6 +82,8 @@ package Modules.ReplayEngine
         {
             const fs:FileStream = new FileStream();
             fs.open(AppStateManager.replayTimingSheetFilePath, FileMode.WRITE);
+            fs.close();
+            fs.open(AppStateManager.replayTimingPointsFilePath, FileMode.WRITE);
             fs.close();
             hasLastStamp = false;
         }
@@ -96,6 +125,7 @@ package Modules.ReplayEngine
                 fs.position = frame * RECORD_BYTES;
                 fs.truncate();
                 fs.close();
+                rewritePoints(0, frame, 0);
                 return;
             }
 
@@ -140,6 +170,16 @@ package Modules.ReplayEngine
             }
 
             fs.close();
+
+            for (i = 0; i < stamps.length; i++)
+            {
+                const points:Array = pointsOf(stamps[i]);
+
+                if (points !== null)
+                {
+                    appendPointsRecord(firstFrame + i, points);
+                }
+            }
         }
 
         // frame개 이후를 자름 (뒤 자르기)
@@ -170,6 +210,8 @@ package Modules.ReplayEngine
                 return;
             }
 
+            rewritePoints(frame, Number.MAX_VALUE, -frame);
+
             const fs:FileStream = new FileStream();
             const rest:ByteArray = new ByteArray();
             fs.open(file, FileMode.READ);
@@ -184,6 +226,115 @@ package Modules.ReplayEngine
             fs.writeBytes(rest, 0, rest.length);
             fs.close();
             rest.clear();
+        }
+
+        // 점별 시각 레코드 하나를 파일 끝에 이어 붙임
+        private static function appendPointsRecord(frame:Number, points:Array):void
+        {
+            const fs:FileStream = new FileStream();
+            fs.open(AppStateManager.replayTimingPointsFilePath, FileMode.APPEND);
+            fs.writeUnsignedInt(uint(frame));
+            fs.writeUnsignedInt(uint(points.length));
+
+            for (var i:int = 0; i < points.length; i++)
+            {
+                fs.writeUnsignedInt(uint(points[i]));
+            }
+
+            fs.close();
+        }
+
+        // 점별 시각 파일에서 프레임 번호가 [minFrame, maxFrame)인 레코드만 남기고 번호를 shift만큼 옮겨서 다시 씀 (자르기)
+        private static function rewritePoints(minFrame:Number, maxFrame:Number, shift:Number):void
+        {
+            const file:File = AppStateManager.replayTimingPointsFilePath;
+
+            if (!file.exists || file.size === 0)
+            {
+                return;
+            }
+
+            const fs:FileStream = new FileStream();
+            const kept:ByteArray = new ByteArray();
+            fs.open(file, FileMode.READ);
+
+            while (fs.bytesAvailable >= 8)
+            {
+                const frame:uint = fs.readUnsignedInt();
+                const count:uint = fs.readUnsignedInt();
+
+                if (fs.bytesAvailable < count * 4)
+                {
+                    break; // 끝이 잘린 레코드는 버림
+                }
+
+                const keep:Boolean = frame >= minFrame && frame < maxFrame;
+
+                if (keep)
+                {
+                    kept.writeUnsignedInt(uint(frame + shift));
+                    kept.writeUnsignedInt(count);
+                }
+
+                for (var i:uint = 0; i < count; i++)
+                {
+                    const value:uint = fs.readUnsignedInt();
+
+                    if (keep)
+                    {
+                        kept.writeUnsignedInt(value);
+                    }
+                }
+            }
+
+            fs.close();
+            fs.open(file, FileMode.WRITE);
+            fs.writeBytes(kept, 0, kept.length);
+            fs.close();
+            kept.clear();
+        }
+
+        // 프레임 frame의 점별 시각(도구 시작 기준 ms). 없으면 null. 파일을 앞에서부터 읽으며 찾음 (레코드는 프레임 번호 오름차순)
+        public static function readPoints(frame:Number):Vector.<uint>
+        {
+            const file:File = AppStateManager.replayTimingPointsFilePath;
+
+            if (!file.exists || file.size === 0)
+            {
+                return null;
+            }
+
+            const fs:FileStream = new FileStream();
+            fs.open(file, FileMode.READ);
+            var result:Vector.<uint> = null;
+
+            while (fs.bytesAvailable >= 8)
+            {
+                const recordFrame:uint = fs.readUnsignedInt();
+                const count:uint = fs.readUnsignedInt();
+
+                if (recordFrame > frame || fs.bytesAvailable < count * 4)
+                {
+                    break;
+                }
+
+                if (recordFrame === frame)
+                {
+                    result = new Vector.<uint>(count, true);
+
+                    for (var i:uint = 0; i < count; i++)
+                    {
+                        result[i] = fs.readUnsignedInt();
+                    }
+
+                    break;
+                }
+
+                fs.position += count * 4;
+            }
+
+            fs.close();
+            return result;
         }
 
         // 간격과 연출 길이를 파일 끝에 이어 붙임 (.fofo에서 불러올때 씀)
@@ -275,7 +426,84 @@ package Modules.ReplayEngine
                 blobs.push(TimingSheet.encodeSegment(deltas, anims, count));
             }
 
-            return ["rTimingSheet", 2, total, TimingSheet.SEGMENT_FRAMES, blobs];
+            return ["rTimingSheet", 2, total, TimingSheet.SEGMENT_FRAMES, blobs, buildPointsBlob(fileFrames, memoryStamps, memoryGroupCount)];
+        }
+
+        // 점별 시각 레코드를 압축한 데이터. 파일 부분(프레임 번호 < fileFrames)은 파일에서 그대로 옮기고, 메모리 묶음은 그 뒤 번호로 붙임. 없으면 null
+        private static function buildPointsBlob(fileFrames:Number, memoryStamps:Array, memoryGroupCount:int):ByteArray
+        {
+            const raw:ByteArray = new ByteArray();
+            const file:File = AppStateManager.replayTimingPointsFilePath;
+
+            if (file.exists && file.size > 0)
+            {
+                const fs:FileStream = new FileStream();
+                fs.open(file, FileMode.READ);
+
+                while (fs.bytesAvailable >= 8)
+                {
+                    const frame:uint = fs.readUnsignedInt();
+                    const count:uint = fs.readUnsignedInt();
+
+                    if (fs.bytesAvailable < count * 4)
+                    {
+                        break;
+                    }
+
+                    const keep:Boolean = frame < fileFrames;
+
+                    if (keep)
+                    {
+                        raw.writeUnsignedInt(frame);
+                        raw.writeUnsignedInt(count);
+                    }
+
+                    for (var i:uint = 0; i < count; i++)
+                    {
+                        const value:uint = fs.readUnsignedInt();
+
+                        if (keep)
+                        {
+                            raw.writeUnsignedInt(value);
+                        }
+                    }
+                }
+
+                fs.close();
+            }
+
+            var position:Number = fileFrames;
+
+            for (var g:int = 0; g < memoryGroupCount; g++)
+            {
+                const group:Array = memoryStamps[g];
+
+                for (var j:int = 0; j < group.length; j++)
+                {
+                    const points:Array = pointsOf(group[j]);
+
+                    if (points !== null)
+                    {
+                        raw.writeUnsignedInt(uint(position));
+                        raw.writeUnsignedInt(uint(points.length));
+
+                        for (var k:int = 0; k < points.length; k++)
+                        {
+                            raw.writeUnsignedInt(uint(points[k]));
+                        }
+                    }
+
+                    position++;
+                }
+            }
+
+            if (raw.length === 0)
+            {
+                return null;
+            }
+
+            raw.compress();
+            return raw;
         }
 
         // buildFileObject로 만든 객체를 읽어서 파일 내용으로 되돌림. 모양이 틀리거나 풀 수 없으면 비워두고 false
@@ -307,6 +535,26 @@ package Modules.ReplayEngine
                 {
                     reset();
                     return false;
+                }
+
+                // 점별 시각은 없을 수도 있음. 풀 수 없으면 점 시각만 포기하고 나머지는 그대로 씀
+                if (d.length > 5 && d[5] is ByteArray)
+                {
+                    try
+                    {
+                        const points:ByteArray = new ByteArray();
+                        points.writeBytes(d[5] as ByteArray, 0, (d[5] as ByteArray).length);
+                        points.uncompress();
+                        const pfs:FileStream = new FileStream();
+                        pfs.open(AppStateManager.replayTimingPointsFilePath, FileMode.WRITE);
+                        pfs.writeBytes(points, 0, points.length);
+                        pfs.close();
+                        points.clear();
+                    }
+                    catch (pointsError:Error)
+                    {
+                        trace("Timing points load failed: " + pointsError);
+                    }
                 }
             }
             catch (error:Error)

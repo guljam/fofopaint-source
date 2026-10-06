@@ -500,7 +500,8 @@ package Modules.ReplayEngine
             // 리플레이 플레이 중인지 아닌지 플래그 미리 저장해둠
             var wasReplayRunning:Boolean = false;
             var clickX:Number = ReplayController.seekBarBox.trackBar.mouseX * ReplayController.seekBarBox.trackBar.scaleX;
-            var finalFrame:Number = ReplayClock.ratioToFrame(clickX / ReplayController.seekBarBox.trackBar.width);
+            var clickedRatio:Number = clickX / ReplayController.seekBarBox.trackBar.width; // 마지막으로 가리킨 시크바 위치(0~1), 쉬는 구간 중간을 클릭했을때 그 시각에서 이어 재생하는데 씀
+            var finalFrame:Number = ReplayClock.ratioToFrame(clickedRatio);
 
             function clampFrame():void
             {
@@ -521,7 +522,8 @@ package Modules.ReplayEngine
                     ReplayController.seekBarBox.setReplayPrograssBarWidth(mx);
                 }
 
-                finalFrame = ReplayClock.ratioToFrame(mx / ReplayController.seekBarBox.trackBar.width);
+                clickedRatio = mx / ReplayController.seekBarBox.trackBar.width;
+                finalFrame = ReplayClock.ratioToFrame(clickedRatio);
                 updateReplayPrograssText(false, finalFrame);
             }
 
@@ -563,6 +565,8 @@ package Modules.ReplayEngine
                 clampFrame();
                 // jumpframe함수 이후에 실행
                 updateDeleteReplayDataButtonsState();
+                // 클릭한 시각을 기억해둠. 클릭한 곳이 쉬는 구간 중간이면 재생을 시작할때 구간 처음이 아니라 그 시각부터 이어감
+                ReplayClock.rememberPosition(ReplayState.rNowFrame, clickedRatio * ReplayClock.totalMs);
                 // 재생중에 스킵하고 있었으면 다시 시작
 
                 if (wasReplayRunning && !ReplayState.isReplayFinished)
@@ -910,7 +914,8 @@ package Modules.ReplayEngine
                         return false;
                     }
 
-                    if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
+                    // 마지막 명령의 연출(채우기, 올가미, 이동, 선)이 아직 진행 중이면 끝날때까지 완료 처리를 미룸
+                    if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME && !ReplayDrawer.anim.isActive)
                     {
                         ReplayController.seekBarBox.setReplayPrograssBarMaxWidth();
                         updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
@@ -1463,6 +1468,12 @@ package Modules.ReplayEngine
 
         public static function stopReplay():void
         {
+            // 재생 중이었다면 멈춘 시각을 기억해서 다시 재생할때 같은 곳에서 이어감 (쉬는 구간 처음부터 다시 세지 않게)
+            if (ReplayState.isReplayStarted && ReplayState.rNowFrame < ReplayState.TOTAL_FRAME)
+            {
+                ReplayClock.rememberPosition(ReplayState.rNowFrame, ReplayClock.recordedPeek());
+            }
+
             FOFOTimer.remove("replayDrawTimer");
             ReplayDrawer.anim.clear();
             afkHintSecond = -1;
