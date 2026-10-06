@@ -10,7 +10,7 @@
 
 | 등급 | 의미 |
 |---|---|
-| [실행] | AIR SDK(51.3.4)로 헤드리스 하네스를 컴파일/실행해 확인 (`test-output/rt2-review`, 147개 체크 전부 통과, 부록 A) |
+| [실행] | AIR SDK(51.3.4)로 헤드리스 하네스를 컴파일/실행해 확인 (`test-output/rt2-review`, 159개 체크 전부 통과, 부록 A) |
 | [근거] | 소스 코드 인용 (`파일:라인`). 라인 번호는 커밋 `17f255d` 기준 |
 | [추론] | 코드만으로 확정 불가(렌더/실기기 확인 필요) — 6장에 별도 정리 |
 
@@ -20,25 +20,45 @@
 
 ## 1. 결론 요약
 
+### 1.1 수정 반영 상태 (2026-10-06 갱신)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| R1 | **수정 완료** (`404615e`) — 검토 통과 | `clearAfkState()` 단일화 + `updateAfkState` 재시작 조건. 전체 앱 컴파일 오류 0/경고 0 (2장 R1) |
+| R2 | **부분 수정** (`560728f`) — 잔여 회귀 R2-a/R2-b | 슬라이드쇼 경로 정리. 가드가 `anim.clear()`까지 감싸 연출 덮개가 남을 수 있음 (2장 R2) |
+| R3 | **제외**(반증 성공) | 호출 2곳 모두 직후 버퍼를 비움 (5장 14번) |
+| R4 | 미반영(방어 코드는 선택 사항) | 2장 R4 |
+| R5 | **적용 완료**(작업 트리, 미커밋) — 실측 400회 47ms vs 213ms | 점 시각 파일 위치 색인 (2장 R5) |
+| R6 | 미반영(수정 시도 예정) | 2장 R6 |
+| R7 | **수정 완료** (`e1c7aa2`) — 검토 통과 | `memory === null`, 컴파일 경고 0 (2장 R7) |
+| R8 | 미반영(주석 4건) | 2장 R8 |
+| R9 | 미반영 | 2장 R9 |
+| B | B4만 해소(작업 트리 변경으로 `isArmed` 사용) | 3장 |
+
+### 1.2 검토 시점(`17f255d`) 결론 요약
+
 | ID | 심각도 | 위치 | 요약 | 상태 |
 |---|---|---|---|---|
-| R1 | 중 | `ReplayController.as:532` `:1013` `:1438` | 시크바 드래그로 AFK(쉬는 구간) 중단 시 `isAfkBoxShown` 상태가 어긋나, 같은 구간으로 되돌아오면 afk 상자만 뜨고 커서 연출이 재개되지 않음 | 코드 근거 확정 |
-| R2 | 하 | `ReplayController.as:356` + `ReplayDrawer.as:315` | 슬라이드쇼 모드에서 AFK 연출을 시작하자마자 매 틱 취소(상자는 남음) | 코드 근거 확정, 도달 조건 극히 좁음 |
-| R3 | 하(설계) | `ReplayState.as:145` | `takeTimingSheetBufferTimes()`가 버퍼를 비우지 않고 시각 기록(Dictionary)만 리셋 → 두 번 호출하면 조용히 타이밍이 0으로 오염 | [실행] 확인, 현재 호출부는 안전 |
+| R1 | 중 | `ReplayController.as:532` `:1013` `:1438` | 시크바 드래그로 AFK(쉬는 구간) 중단 시 `isAfkBoxShown` 상태가 어긋나, 같은 구간으로 되돌아오면 afk 상자만 뜨고 커서 연출이 재개되지 않음 | 수정 완료(404615e) |
+| R2 | 하 | `ReplayController.as:356` + `ReplayDrawer.as:315` | 슬라이드쇼 모드에서 AFK 연출을 시작하자마자 매 틱 취소(상자는 남음) | 부분 수정(560728f) + 회귀 R2-a |
 | R4 | 하 | `ReplayClock.as:394` (`loadSegment`) | 타이밍 파일이 없을 때 `segmentStart[segment]` 범위 밖 접근 가능성 | 반증 성공(5.4) — 방어 코드만 제안 |
-| R5 | 하(성능) | `ReplayClock.as:347` → `TimingSheetFile.as:298` | 재생 중 line4(선 도구) 명령마다 점 시각 파일을 처음부터 선형 탐색 | 코드 경로 확정 |
+| R5 | 하(성능) | `ReplayClock.as:347` → `TimingSheetFile.as:298` | 재생 중 line4(선 도구) 명령마다 점 시각 파일을 처음부터 선형 탐색 | 적용 완료(미커밋) — 47ms vs 213ms |
 | R6 | 하(중복) | `ReplayController.as:97-121` | 배속 클램프 시 `refreshAfkRanges()`가 시크바를 두 번 다시 그림 | 코드 경로 확정 |
-| R7 | 정보 | `ReplayClock.as:358` | `memory === undefined`는 타입상 항상 거짓(컴파일러 경고 확인) | 컴파일 경고로 확인 |
+| R7 | 정보 | `ReplayClock.as:358` | `memory === undefined`는 타입상 항상 거짓(컴파일러 경고 확인) | 수정 완료(e1c7aa2) |
 | R8 | 정보 | `prepareFrameAnim` 주석 등 4건 | 주석/문서가 코드와 불일치 | 코드 근거 확정 |
 | R9 | 하 | `ReplayAnim.as:384` `:495` | 이동 연출이 끝날 때 최종 오프셋을 적용하지 않고 `clear()` → 짧은 연출에서 커서/복제 이미지가 몇 px 어긋난 상태로 사라짐 | 코드 근거 + 계산 |
 | B | 정보 | 3장 표 | 데드 코드 16건 | 참조 0회 grep |
-| — | — | 5장 | 반증 성공(문제 아님) 13건 | [실행]/[근거] |
+| — | — | 5장 | 반증 성공(문제 아님) 14건 (R3 포함) | [실행]/[근거] |
 
 데이터 손상·예외로 이어지는 버그는 발견하지 못했습니다. 새로 들어온 타이밍 시트 저장/불러오기, AFK 시간 계산, 축(시크바) 변환은 실행 검증까지 통과했습니다(부록 A).
 
 ## 2. 버그 위험 상세
 
 ### R1. 시크바 드래그 경로에서 AFK 상자/연출 상태 불일치 (중)
+
+**수정 반영(커밋 `404615e`) — 검토 통과.** `clearAfkState()`(`ReplayController.as:1010-1020`)로 정리를 단일화하고 `onDragStart`(`:538`)·`stopReplay`(`:1455`)에서 부르며, `updateAfkState`는 `!isAfkBoxShown || !CursorAfkAnimation.isRunning`(`:1031`)일 때 연출을 (재)시작합니다. 제안한 형태와 같고, 전체 앱 컴파일(`src/Main.as`, strict+warnings)은 오류 0 / 경고 0입니다. 보강 관찰 2건(문제 아님): ① `onDragStart`의 호출은 재생 중일 때만 실행되는데 상자는 재생 중에만 표시되므로 미정리 상태가 도달하지 않음. ② `isAfk`가 참인데 커서가 숨겨진 상태가 되면 `tick()`이 `reset()`(mode=IDLE) 하므로 `updateAfkState`가 매 틱 `start()`를 다시 부를 수 있음 — 현재 흐름에서는 도달하지 않지만, 원하면 조건에 커서 표시 여부를 하나 더 두면 안전합니다.
+
+아래는 수정 전 분석 기록입니다.
 
 증상: 재생 중 AFK 대기에서 시크바를 잡아 끌었다가 **같은 쉬는 구간 안**으로 놓으면, "afk" 상자는 보이는데 커서 연출(회전/흔들림 등)은 이미 복귀한 자세로 굳어 있고 그 구간이 끝날 때까지 다시 시작되지 않습니다.
 
@@ -101,7 +121,39 @@ ReplayController.clearAfkState();
 
 참고: 여기서 쓰는 `CursorAfkAnimation.isRunning`은 현재 아무도 호출하지 않는 데드 getter입니다(3장 B3). 이 수정을 적용하면 살아납니다.
 
+※ 위 R1 수정 제안은 커밋 `404615e`로 반영되었습니다(적용됨).
+
 ### R2. 슬라이드쇼 모드에서 AFK 연출이 시작 즉시 취소됨 (하)
+
+**수정 반영(커밋 `560728f`) — 부분 수정.** 의도(매 틱 취소 방지)는 달성했으나 가드 범위가 넓어 회귀 1건이 생겼습니다.
+
+- 적용 형태: ① 슬라이드쇼 경로에서 `updateAfkState()` 호출 제거(`ReplayController.as:365` 부근), ② `renderReplayFrame`에서 `CursorAfkAnimation.stop(); anim.clear();`를 `if (!ReplayState.isReplaySlideShowMode)`로 감쌈(`ReplayDrawer.as:315-320`).
+- 좋아진 점: 슬라이드쇼 중 AFK 연출이 매 틱 취소되지 않고 자체 타이머로 계속 진행됩니다.
+- **잔여 회귀 R2-a(하)**: 같은 가드가 `anim.clear()`까지 감싸므로 **연출(채우기/올가미/이동/선) 진행 중에 배속이 60을 넘겨 슬라이드쇼로 전환되면 연출의 덮개 Bitmap · 숨긴 레이어 · 숨긴 선 Shape가 정리되지 않습니다.** `anim.update()`는 `drawDueFrames()`에서만 불리므로 슬라이드쇼에서는 연출이 스스로 끝나지 못하고, 정리 시점은 배속을 ≤60으로 내려 `update()`→`clear()`가 불릴 때나 재생 정지(`stopReplay`)뿐입니다. 수정 전에는 슬라이드쇼 틱마다 `clear()`가 실행되어 정리됐으므로 이번 변경으로 생긴 회귀입니다. 도달 조건: 슬라이드쇼가 가능한 긴 녹화(1배속 축 ≥ 약 10분) + 전환 순간 연출 진행 중.
+- **부수 관찰 R2-b(하)**: 슬라이드쇼에서는 AFK 상자도 정리 주체가 없어, 슬라이드쇼 진행으로 AFK가 아니게 되어도 배속을 내리거나 재생이 끝날 때까지 상자가 남습니다(연출 자체는 계속 돌아 상태는 일관).
+
+최소 수정 제안(적용 안 함) — 가드 범위를 AFK 정지에만 좁히고, 슬라이드쇼 전환 시 AFK 표시를 정리:
+
+```as
+if (!ReplayState.isReplaySlideShowMode)
+{
+    CursorAfkAnimation.stop();   // 슬라이드쇼에서는 AFK 연출만 건드리지 않음
+}
+
+anim.clear();                    // 연출 정리는 슬라이드쇼에서도 필요
+```
+
+```as
+// startReplayDrawTimer()의 슬라이드쇼 전환 분기
+if (shouldUseReplaySlideShowMode())
+{
+    ReplayState.isReplaySlideShowMode = true;
+    ReplayController.clearAfkState();   // 슬라이드쇼에서는 AFK 표시를 쓰지 않음
+    ReplayDrawer.rFileStream.close();
+}
+```
+
+아래는 수정 전 분석 기록입니다.
 
 - 경로: `drawCanvasFromReplayDataSlideShowMode()`(`ReplayController.as:356-378`)가 `ReplayClock.frameCountDue` → `updateAfkState()`(`:361-363`)로 연출을 시작한 뒤 같은 틱에 `ReplayDrawer.renderReplayFrame(...)` → `CursorAfkAnimation.stop()`(`ReplayDrawer.as:315`) → 항상 복귀 모드로 취소됩니다. 상자(`hideAfkBox`)는 `isAfk`가 거짓이 될 때만 정리되므로 남습니다.
 - 도달 조건: `shouldUseReplaySlideShowMode()`(배속 > 60) **그리고** 녹화 공간 ≥ `ENTRY_MS * 배속` (60배속이면 360초 공백) → 사실상 도달 어려움. 그래서 심각도 하.
@@ -114,18 +166,9 @@ const shouldStop:Boolean = ReplayDrawer.renderReplayFrame(dueFrame, ReplayDrawer
 updateAfkState(); // renderReplayFrame(내부에서 CursorAfkAnimation.stop) 뒤로 이동
 ```
 
-### R3. `takeTimingSheetBufferTimes()` 계약 위험 (하, 설계)
+### R3. ~~`takeTimingSheetBufferTimes()` 계약 위험~~ → **반증 성공, 문제 목록에서 제외**
 
-- 위치: `ReplayState.as:145-204` (호출부 `UndoHistory.as:135` `:162`).
-- [실행] 하네스로 확인한 실제 동작: 이 함수는 `rMemoryDataBuffer`를 비우지 않고 `rTimingSheetBufferStamps`(Dictionary)만 리셋합니다. 따라서 **같은 버퍼로 두 번 호출하면 두 번째 호출은 모든 시각이 같은 값(간격 0)** 이 됩니다(`buf.notCleared`, `buf.secondCallLosesStamp` 통과).
-- 현재 호출부 2곳은 모두 호출 직후 버퍼를 비우므로 실제 버그는 아닙니다. 다만 새 호출부가 하나 추가되면 조용히 타이밍이 사라집니다(예외도 경고도 없음).
-- 수정 제안(적용 안 함): 주석으로 계약을 명시하거나(권장, 안전), 함수가 버퍼를 직접 비우게 변경. 후자는 `addContinue`가 `take()` 이후에도 `rMemoryDataBuffer[i]`를 읽으므로(`UndoHistory.as:136-140`) 그 루프를 먼저 고쳐야 합니다.
-
-```as
-// ReplayState.takeTimingSheetBufferTimes() 상단 주석에 계약 추가 (권장)
-// 계약: 이 함수는 버퍼(rMemoryDataBuffer)를 비우지 않는다. 호출부가 반드시 비운다.
-//       같은 버퍼로 다시 부르면 시각 기록이 없어져 모든 간격이 0이 된다.
-```
+호출 지점은 `UndoHistory.as:134`(addContinue)와 `:162`(addNew) **2곳뿐**이고, 두 곳 모두 `:143` / `:165`에서 무조건 `rMemoryDataBuffer = []`로 비웁니다(early return `:125-126`은 take 이전). `take()`의 부작용은 시각 Dictionary 재생성(`ReplayState.as:209`)뿐이고, 버퍼를 `take()` 없이 비우는 `UndoHistory.as:104`는 딥 언두 경로에서 같은 객체로 복원됩니다(`DrawingFinish.as:29-33`). "소비된 뒤 버퍼가 남는" 도달 가능한 경로가 없습니다 → 상세 근거는 **5장 14번**.
 
 ### R4. 타이밍 파일 부재 시 `segmentStart` 범위 밖 접근 가능성 (하) — 반증 성공
 
@@ -134,6 +177,16 @@ updateAfkState(); // renderReplayFrame(내부에서 CursorAfkAnimation.stop) 뒤
 - 참고 제안(선택): 디스크 오류 등으로 `alignTo`가 예외를 던지면 위로 전파되므로, 방어를 원하면 `rebuild()`를 try/catch로 감싸고 실패 시 `segmentStart`를 채운 뒤 진행하는 편이 안전합니다.
 
 ### R5. `readPoints`가 재생 중 매 선 명령마다 파일을 선형 탐색 (하, 성능)
+
+**적용 완료(작업 트리, 미커밋) — 검토 요청 대기.** 파일을 소유한 `TimingSheetFile` 안에 점 레코드 색인을 두는 형태로 구현했습니다(`ReplayClock` 인덱스 대신 → 무효화 지점을 한 클래스에 모음).
+
+- `pointsIndex:Object`(프레임 번호 → 레코드 시작 위치, `:33`), `buildPointsIndex()`(`:313`), `readPoints()`(`:347`)가 위치로 바로 이동해 그 레코드만 읽음(값은 저장하지 않아 메모리 증가 최소).
+- 점 파일을 쓰는 **4곳 전부**에서 `invalidatePointsIndex()` 호출: `reset()`(`:90`), `appendPointsRecord()`(`:248`), `rewritePoints()`(`:300`), `loadFileObject()`의 직접 쓰기(`:558`). 점 파일을 건드리는 코드는 이 클래스 4곳뿐임을 grep으로 전수 확인(읽기만 하는 `buildPointsBlob`은 영향 없음).
+- 예전 선형 탐색과 결과가 같도록 색인 구축도 ① 프레임 번호가 비오름차순이면 중단 ② 끝이 잘린 레코드에서 중단.
+- 실측(하네스, 3000개 레코드에서 400회 조회): **새 색인 47ms vs 예전 선형 탐색 213ms (약 4.5배)**. 색인 구축은 점 파일이 바뀔 때마다 1회이므로 재생처럼 반복 조회할 때 상각됩니다(조회가 1회뿐이면 비용은 기존과 동일).
+- 등가성·무효화 검증 12건 추가(부록 A): 레코드 프레임 값 일치 · 없는 프레임 null · 123개 혼합 질의에서 선형 탐색과 100% 동일 · 이어 붙이기/자르기/reset 뒤 새 색인으로 정확 조회 · 잘린 레코드/비정렬 레코드에서도 예전과 동일. 전체 앱 컴파일 오류 0/경고 0.
+
+아래는 최초 분석·제안 기록입니다.
 
 - 경로: `ReplayDrawer.prepareFrameAnim()`(`ReplayDrawer.as:690-716`) → 프레임 그리기 → `ReplayAnim.startLine()`(`ReplayAnim.as:213`) → `ReplayClock.pointOffsetsOfFrame()`(`ReplayClock.as:347`) → `TimingSheetFile.readPoints()`(`TimingSheetFile.as:298-333`).
 - 근거: 메모리(파일 뒤) 구간의 점 시각은 `ReplayClock.memoryPoints`로 캐시하지만(`:144-158`), **파일 구간은 매 조회마다 파일을 열고 프레임 번호가 나올 때까지 앞에서부터 훑습니다**(`TimingSheetFile.as:316-330`). 점 레코드는 line4(선 도구) 명령마다 1개씩 생기므로, 선 도구를 많이 쓴 긴 녹화에서 전체 비용이 O(line4 개수 × 점 레코드 수)가 됩니다.
@@ -176,7 +229,7 @@ ReplayClock.as:358 Warning: Illogical comparison with undefined. Only untyped va
 ```
 
 - 타입이 `Array`인 지역 변수는 `undefined`가 될 수 없으므로(대입 시 null로 강제) 조건의 뒤쪽 절반은 죽은 코드입니다.
-- 수정 제안(적용 안 함): `if (memory === null)`.
+- **수정 완료**(커밋 `e1c7aa2`): `if (memory === null)` — 검토 결과 정확(타입상 `undefined` 불가). 전체 앱 컴파일에서 경고 0/오류 0 확인.
 
 ### R8. 주석/문서 불일치 (정보)
 
@@ -211,7 +264,7 @@ if (elapsed >= totalMs)
 
 ### 2.6 작업 트리 변경(미커밋) 관련 메모
 
-`CursorAfkAnimation.GROW_MAX`가 2.2 → 5.0으로 바뀌어 있습니다. 커밋 `2c60113`("커짐 연출에서도 AFK 상자 위치를 기본 간격에 고정")에 따라 커짐/늘어짐 연출은 `extentsOf()`에서 `scaleFactor = 1`을 돌려주고 상자를 기본 간격에 두므로(`CursorAfkAnimation.as:172-186`), 몸통이 최대 5배까지 커지면 AFK 상자와 겹칠 수 있습니다(의도된 트레이드오프로 보이나, `GROW_MAX`를 키우면 겹침 폭도 같이 커짐). 상자를 겹치지 않게 하려면 `extentsOf`의 `KIND_GROW` 분기에 `Math.min(GROW_MAX, 1 + GROW_RATE_PER_SEC[forVariant] * MAX_AFK_SECONDS)`를 넣는 방법이 있습니다(현재 `MAX_AFK_SECONDS`가 데드인 이유이기도 함).
+`CursorAfkAnimation.GROW_MAX`가 2.2 → 5.0으로 바뀌어 있습니다. (커밋 `2bd648a`) 커밋 `2c60113`("커짐 연출에서도 AFK 상자 위치를 기본 간격에 고정")에 따라 커짐/늘어짐 연출은 `extentsOf()`에서 `scaleFactor = 1`을 돌려주고 상자를 기본 간격에 두므로(`CursorAfkAnimation.as:172-186`), 몸통이 최대 5배까지 커지면 AFK 상자와 겹칠 수 있습니다(의도된 트레이드오프로 보이나, `GROW_MAX`를 키우면 겹침 폭도 같이 커짐). 상자를 겹치지 않게 하려면 `extentsOf`의 `KIND_GROW` 분기에 `Math.min(GROW_MAX, 1 + GROW_RATE_PER_SEC[forVariant] * MAX_AFK_SECONDS)`를 넣는 방법이 있습니다(현재 `MAX_AFK_SECONDS`가 데드인 이유이기도 함).
 
 ## 3. 데드 코드 (메서드/변수)
 
@@ -221,8 +274,8 @@ if (elapsed >= totalMs)
 |---|---|---|---|
 | B1 | `MAX_AFK_SECONDS` | `CursorAfkAnimation.as:18` | 선언만 존재. 주석은 "상자 위치 계산에 씀"이라지만 `extentsOf`(`:170`)가 쓰지 않음 |
 | B2 | `get currentPose()` | `CursorAfkAnimation.as:120` | 호출 0회 |
-| B3 | `get isRunning()` | `CursorAfkAnimation.as:125` | 호출 0회 (R1 수정안에서 재사용 가능) |
-| B4 | `get isArmed()` | `ReplayAnim.as:74` | 호출 0회 (`armedMs`는 내부에서 직접 검사) |
+| B3 | `get isRunning()` | `CursorAfkAnimation.as:125` | ~~호출 0회~~ → **R1 수정(`404615e`)에서 사용됨(해소)** |
+| B4 | `get isArmed()` | `ReplayAnim.as:74` | ~~호출 0회~~ → 작업 트리 변경(`if (anim.isArmed) anim.disarm();`)으로 **사용됨(해소)**. 동작 변화는 없음(2.6 참고) |
 | B5 | `get totalMs()` | `ReplayClock.as:59` | 앱 코드 호출 0회 (하네스만 사용) |
 | B6 | `get frameCount()` | `ReplayClock.as:64` | 앱 코드 호출 0회 (하네스만 사용) |
 | B7 | `afkRemainingMs()` | `ReplayClock.as:579` | 호출 0회. 커밋 `0287d01`에서 시크바 AFK 카운트다운을 삭제한 뒤 남은 함수 |
@@ -274,6 +327,7 @@ if (elapsed >= totalMs)
 11. **`rMemoryDataTimingSheet` 동기화 누락**: `rMemoryData`를 변형하는 5곳(`ReplayController.as:195` `:276`, `UndoHistory.as:139` `:162` `:182` `:235`, `UndoHistory.as:103` 초기화)에 모두 대응하는 타이밍 배열 조작이 있습니다. 형태 불일치 시 `AppStateManager.restoreMemoryDataTimingSheet`(`:868-917`)가 전체를 현재 시각으로 채우는 방어도 있어, 어긋나도 예외 없이 안전한 방향으로 수렴합니다.
 12. **getTimer 32비트 랩(앱 연속 실행 24.8일)**: 간격은 `(stamp - last) | 0`로 차이가 보존되고(`TimingSheetFile.as:144-180`의 `appendGroup`, `:197-222`의 `cutBefore`), 음수로 감긴 연출 길이는 `packStamp`가 0으로 클램프합니다(`:33-43`). 예외/오염 경로 없음.
 13. **`loadFileObject` 손상 입력 방어**: 버전 불일치/풀기 실패/남는 바이트 검출 시 `false` 반환 + 파일 리셋(빈 시트로 취급)이며, 이후 `rebuild()`가 `alignTo`로 42ms 기본 간격을 채웁니다. [실행] `buildLoad(...).badVersion`, `segment.trailing`.
+14. **`takeTimingSheetBufferTimes()`의 버퍼 비우기 계약(R3)**: 호출 지점은 `UndoHistory.as:134`(addContinue)와 `:162`(addNew) 2곳뿐이고, 두 곳 모두 `:143`/`:165`에서 무조건 `rMemoryDataBuffer = []`로 비웁니다(early return은 `:125-126`으로 take 이전). `take()`의 부작용은 시각 Dictionary 재생성(`ReplayState.as:209`)뿐이며, 버퍼를 `take()` 없이 비우는 `UndoHistory.as:104`는 딥 언두 경로에서 같은 객체로 복원됩니다(`DrawingFinish.as:29-33`). 도달 가능한 결함 없음 → 문제 아님. (참고: 하네스가 같은 버퍼로 일부러 두 번 호출한 실험 `buf.notCleared`/`buf.secondCallLosesStamp`에서만 시각이 0으로 오염되며 이는 앱 경로가 아님. 선택: 함수 상단에 "호출부가 버퍼를 비운다" 주석 한 줄)
 
 ## 6. 정적으로 확정하지 못한 항목 (실기기/시각 확인 필요)
 
@@ -284,6 +338,8 @@ if (elapsed >= totalMs)
 3. **채우기/올가미 스캔라인**: 참고 레이어 이미지가 켜져 있거나 배경색이 캔버스와 다를 때 덮개 색(`RCANVAS_BG_COLOR`)이 어색하지 않은지.
 4. **이동 연출 좌표**: `ReplayAnim.startMove`가 클론을 `rCanvasPanel` 좌표에 붙이므로 레이어 비트맵이 (0,0) 기준이라는 전제에 의존합니다(초기화 코드 `ReplayController.as:1846-1866`에서 확인했으나, 확대/회전 중 실제 오차는 육안 확인 권장). R9의 종료 오차도 함께 확인.
 5. **AFK 연출 6종의 체감**: `MAX_AFK_SECONDS`(현재 5초)와 상수 조합에서 늘어짐(최대 3.5배)·커짐(최대 2.2/5.0배)이 5초 캡 안에 자연스럽게 끝나는지.
+
+6. **R5 색인 적용 뒤 선 도구 연출**: 값 등가성은 하네스로 검증했지만, 재생 중 직선 연출(점 순서대로 자라는 선)이 이전과 동일하게 보이는지는 실기기 육안 확인이 필요합니다.
 
 ## 7. 부록
 
@@ -308,7 +364,9 @@ sh /d/adobe_air_sdk_manager/AIRSDK_51.3.4/bin/amxmlc \
 cmd.exe /c "D:\adobe_air_sdk_manager\AIRSDK_51.3.4\bin\adl.exe -profile extendedDesktop rt2review-app.xml E:/fofopaint-source/test-output/rt2-review"
 ```
 
-- 결과: `RESULT pass=147 fail=0` (`test-output/rt2-review/report.txt`)
+- 결과: `RESULT pass=159 fail=0` (`test-output/rt2-review/report.txt`) — R5 색인 검증 12건(`idx.*`, `perf.hits`) 포함
+- R5 성능 실측(같은 실행 로그): `PERF points read x400 over 3000 records: new(index)=47ms old(scan)=213ms`
+- 전체 앱 컴파일 확인: `sh .../amxmlc -source-path+=E:/fofopaint-source/src ... src/Main.as` → 오류 0 / 경고 0 (`test-output/rt2-review/check-app.swf`)
 - 컴파일러 경고: `ReplayClock.as:358` 1건(R7). 그 외 경고/오류 없음.
 - 이 하네스는 `src/`를 건드리지 않는 별도 테스트 스크립트이며, 필요 없으면 폴더째 삭제해도 됩니다.
 
@@ -321,3 +379,7 @@ cmd.exe /c "D:\adobe_air_sdk_manager\AIRSDK_51.3.4\bin\adl.exe -profile extended
 
 - 커밋 이전부터 존재하던 코드(리플레이 그리기 파이프라인, 캐시 이미지 워커, 도구 로직 전반)는 이 범위의 변경과 상호작용이 있는 부분만 확인했습니다.
 - 커서/캔버스의 최종 렌더 품질(6장)과 실기기 성능(프레임 드랍)은 실행 검증 범위 밖입니다.
+
+### 2.7 미커밋 `ReplayDrawer` 변경(`if (anim.isArmed) anim.disarm();`) 관련 메모
+
+작업 트리에는 `prepareFrameAnim()`의 `anim.disarm()` 호출 3곳(`ReplayDrawer.as:698` `:709` `:723`)을 `if (anim.isArmed)`로 감싼 변경이 있습니다. `disarm()`은 `armedMs = 0` 한 줄이고 `isArmed`는 `armedMs > 0`이므로 **동작은 원래와 완전히 동일**합니다(미arm 상태에서의 호출은 어차피 no-op). 효과는 ① `isArmed`가 사용되면서 데드 코드 B4가 해소된 것뿐이고, R2 회귀를 이 변경으로 막으려던 의도라면 목적을 달성하지 못합니다(슬라이드쇼/점프 경로는 `isRealtimePlay=false`라 arm 자체가 만들어지지 않음). 되돌려도 무해, 남겨도 무해입니다.
