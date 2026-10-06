@@ -538,7 +538,7 @@ package Modules.ReplayEngine
 
         // 지금 그려야 하는 프레임 수. Replay Waiting 중이면 그리지 않고 현재 프레임 수 그대로
         // drawnFrames: 지금까지 그린 프레임 수
-        public static function frameCountDue(drawnFrames:Number, speed:Number):Number
+        public static function getRemaingFrameCount(drawnFrames:Number, speed:Number):Number
         {
             const recorded:Number = recordedNow(speed);
 
@@ -572,7 +572,7 @@ package Modules.ReplayEngine
             return Math.max(drawnFrames, framesDueAt(recorded));
         }
 
-        public static function get isAfk():Boolean
+        public static function get isWaitingNextReplayCommand():Boolean
         {
             return replayWaitingEnd >= 0;
         }

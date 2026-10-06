@@ -70,7 +70,7 @@ package Modules.ReplayEngine
         private static var frameOnEnterReplayMode:Number = -1; // 리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼줄때 이 프레임으로 되돌림
         public static var lastReplayTimeBoxYPos:Number = 0; // 리플레이 재생해줄때 WorkspaceView.topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
         public static const seekBarBox:SeekBarSet = new SeekBarSet();
-        private static var isAfkBoxShown:Boolean = false;
+        private static var isReplayWaitingBoxShown:Boolean = false;
 
         public static function setMainInstance(instance:Main):void
         {
@@ -121,14 +121,14 @@ package Modules.ReplayEngine
             }
 
             // 배속이 바뀌지 않았어도 축(쉬는 구간) 표시는 갱신해야 함
-            // onReplaySpeedChanged가 refreshAfkRanges를 포함하므로 여기서 한 번만 부름 (예전에는 클램프 때 두 번 그림)
+            // onReplaySpeedChanged가 refresh replay waiting ranges를 포함하므로 여기서 한 번만 부름 (예전에는 클램프 때 두 번 그림)
             onReplaySpeedChanged();
         }
 
         // 배속이 바뀌면 시크바 축(쉬는 구간의 유지 길이)이 달라지므로 표시와 위치를 다시 맞춤. 멈춰 있을때만 위치를 직접 갱신함 (재생 중에는 매 프레임 갱신됨)
         private static function onReplaySpeedChanged():void
         {
-            refreshAfkRanges();
+            refreshReplayWaitingRanges();
 
             if (seekBarBox && !ReplayState.isReplayStarted)
             {
@@ -137,14 +137,14 @@ package Modules.ReplayEngine
         }
 
         // 시크바의 쉬는 구간 표시를 다시 그림. 프레임 수나 배속이 바뀔때 부름
-        public static function refreshAfkRanges():void
+        public static function refreshReplayWaitingRanges():void
         {
             if (!seekBarBox)
             {
                 return;
             }
 
-            seekBarBox.setAfkRanges(ReplayClock.getIdleMarks());
+            seekBarBox.setReplayWaitingRanges(ReplayClock.getIdleMarks());
         }
 
         public static function onDragEnterStage(e:NativeDragEvent):void
@@ -366,7 +366,7 @@ package Modules.ReplayEngine
             {
                 rSeekbarTextUpdateTime = nowTime;
                 // 시계 기준으로 지금 그려야 하는 프레임까지 한번에 그림
-                const dueFrame:Number = ReplayClock.frameCountDue(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
+                const dueFrame:Number = ReplayClock.getRemaingFrameCount(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
                 const shouldStop:Boolean = ReplayDrawer.renderReplayFrame(dueFrame, ReplayDrawer.JUMP_FRAME_MANUAL);
 
                 if (shouldStop)
@@ -539,7 +539,7 @@ package Modules.ReplayEngine
                 {
                     wasReplayRunning = true;
                     ReplayState.isReplayStarted = false;
-                    ReplayController.clearAfkState();
+                    ReplayController.clearReplayWaitingState();
                     FOFOTimer.remove("replayDrawTimer");
                     ReplayDrawer.rFileStream.close();
                 }
@@ -997,12 +997,12 @@ package Modules.ReplayEngine
                     if (shouldUseReplaySlideShowMode())
                     {
                         ReplayState.isReplaySlideShowMode = true;
-                        ReplayController.clearAfkState(); 
+                        ReplayController.clearReplayWaitingState(); 
                         ReplayDrawer.rFileStream.close();
                     }
                     else
                     {
-                        if (drawDueFrames())
+                        if (drawRemaingFrames())
                         {
                             stopReplay();
                         }
@@ -1012,44 +1012,36 @@ package Modules.ReplayEngine
                 });
         }
 
-        public static function clearAfkState():void
+        public static function clearReplayWaitingState():void
         {
-            if (isAfkBoxShown)
+            if (isReplayWaitingBoxShown)
             {
-                isAfkBoxShown = false;
-                ReplayDrawer.rReplayFOFOCursor.hideAfkBox();
+                isReplayWaitingBoxShown = false;
+                ReplayDrawer.rReplayFOFOCursor.hideReplaWaitingBox();
             }
         }
 
-        // 시계가 Replay Waiting(쉬는 구간을 기다리는 중)이면 커서에 Replay Waiting 연출(CursorAfkAnimation)을 주고 커서 위에 검정 배경, 흰 테두리의 "Replay Waiting" 상자를 띄우고, 아니면 원래대로
         // 매 틱 부르지만 상태가 바뀔때만 갱신함
         private static function updateAfkState():void
         {
-            if (!ReplayClock.isAfk)
+            if (!ReplayClock.isWaitingNextReplayCommand)
             {
-                clearAfkState();
+                clearReplayWaitingState();
                 return;
             }
 
-            if (!isAfkBoxShown)
+            if (!isReplayWaitingBoxShown)
             {
-                // 연출이 취소됐다가 다시 시작하면 종류가 바뀔 수 있으므로 상자 위치도 새 범위로 다시 잡음
-
-                if (!isAfkBoxShown)
-                {
-                    isAfkBoxShown = true;
-                }
-
-                // 연출이 몸통을 키우거나 올리는 범위 바깥에 상자를 놓음
-                ReplayDrawer.rReplayFOFOCursor.showAfkBox();
+                isReplayWaitingBoxShown = true;
+                ReplayDrawer.rReplayFOFOCursor.showReplayWaitingBox();
             }
         }
 
         // 시계 기준으로 지금까지 그려야 하는 만큼 그림. 한 틱에 쓰는 시간에 상한을 둬서 못 따라가면 다음 틱에 이어서 그림
         // 반환값: 리플레이를 정지해야 하면 true
-        private static function drawDueFrames():Boolean
+        private static function drawRemaingFrames():Boolean
         {
-            var remaining:Number = ReplayClock.frameCountDue(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler) - ReplayState.rNowFrame;
+            var remaining:Number = ReplayClock.getRemaingFrameCount(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler) - ReplayState.rNowFrame;
             const startTime:int = getTimer();
             updateAfkState();
             ReplayDrawer.anim.update(ReplayClock.recordedPeek()); // 진행 중인 연출(채우기, 올가미, 이동)을 시계에 맞춰 진행
@@ -1456,7 +1448,7 @@ package Modules.ReplayEngine
 
             FOFOTimer.remove("replayDrawTimer");
             ReplayDrawer.anim.clear();
-            ReplayController.clearAfkState();
+            ReplayController.clearReplayWaitingState();
 
             if (!ReplayState.isReplayFinished)
             {
