@@ -19,7 +19,9 @@ package Modules.ReplayEngine
         //   녹화 길이로는 공백 g가 ENTRY_MS * 배속 이상이면 캡 대상
         public static const CAP_MS:Number = 5000;
         public static const ENTRY_MS:Number = 6000;
-        // 시크바에서는 ENTRY_MS(1배속 기준) 이상 쉰 구간을 모두 녹화 CAP_MS 길이로 줄여서 그림 (배속과 상관없는 고정 기준)
+        // 시크바 축은 지금 배속(ReplayState.rReplaySpeedMultipler)의 규칙을 그대로 따름
+        //   쉬는 구간(g >= ENTRY_MS * 배속)은 실제로 기다리는 앞부분(녹화 CAP_MS * 배속)만 남기고 그 뒤 건너뛰는 부분은 폭 0으로 줄임
+        //   그래서 시크바는 언제나 같은 속도로 차오르고, 축 길이 / 배속 = 예상 재생 시간
 
         private static var fileFrames:Number = 0;
         private static var segmentStart:Vector.<Number> = new Vector.<Number>(); // 파일 구간별 첫 프레임의 녹화 시각
@@ -30,8 +32,12 @@ package Modules.ReplayEngine
 
         // 쉬는 구간(간격이 ENTRY_MS 이상인 곳)의 [시작 시각, 끝 시각] 쌍을 이어붙인 목록. 시간순
         private static var gapRanges:Vector.<Number> = new Vector.<Number>();
-        // gapPrefix[i] = 앞쪽 쉬는 구간 i개가 줄어든 시간의 합 (시크바 축 길이 = 전체 - gapPrefix[개수]). 길이는 gap 수 + 1
-        private static var gapPrefix:Vector.<Number> = new Vector.<Number>();
+        // 지금 배속에서 건너뛰기 대상인 쉬는 구간만 추린 [시작, 끝] 쌍 목록과 줄어든 시간의 앞쪽 합 (ensureAxis가 배속이 바뀔때 만듬)
+        // idlePrefix[i] = 앞쪽 구간 i개가 줄어든 시간 sum(g - 유지 길이), 길이는 구간 수 + 1
+        private static var axisSpeed:Number = -1;
+        private static var idleRanges:Vector.<Number> = new Vector.<Number>();
+        private static var idlePrefix:Vector.<Number> = new Vector.<Number>();
+        private static var keepMs:Number = CAP_MS; // 쉬는 구간에서 시크바에 남기는 녹화 길이(CAP_MS * 배속)
 
         private static var cachedSegment:int = -1; // 풀어둔 파일 구간 번호
         private static var cachedTimes:Vector.<Number> = null; // 그 구간 안 프레임별 녹화 시각 (구간 시작 시각 포함한 절대값)
@@ -48,7 +54,7 @@ package Modules.ReplayEngine
         private static var rememberedRecorded:Number = 0;
 
         private static var afkEnd:Number = -1; // AFK 중이면 공백이 끝나는 녹화 시각, 아니면 -1
-        private static var afkDeadline:int = 0; // AFK에 들어간 getTimer + CAP_MS, 이 시각이 되면 자동으로 건너뜀
+        private static var afkSkipAt:Number = 0; // AFK 중이면 자동으로 건너뛰는 녹화 시각 (공백 시작 + CAP_MS * 배속)
 
         public static function get totalMs():Number
         {
@@ -70,6 +76,7 @@ package Modules.ReplayEngine
             cachedTimes = null;
             cachedAnims = null;
             afkEnd = -1;
+            axisSpeed = -1;
 
             segmentStart = new Vector.<Number>();
             gapRanges = new Vector.<Number>();
@@ -153,35 +160,78 @@ package Modules.ReplayEngine
 
             totalTime = sum;
             totalFrames = fileFrames + memoryDeltas.length;
-
-            gapPrefix = new Vector.<Number>(gapRanges.length / 2 + 1, true);
-            gapPrefix[0] = 0;
-
-            for (var k:int = 0; k < gapRanges.length; k += 2)
-            {
-                gapPrefix[k / 2 + 1] = gapPrefix[k / 2] + (gapRanges[k + 1] - gapRanges[k]) - CAP_MS;
-            }
         }
 
-        // 시크바 축의 전체 길이(ms): 전체 녹화 시간에서 쉬는 구간을 CAP_MS로 줄인 값. 최대 속도, 예상 시간 기준에 씀
+        // 배속이 바뀌었으면 건너뛰기 대상 쉬는 구간 목록과 줄어든 시간의 합을 다시 만듬
+        private static function ensureAxis():void
+        {
+            const speed:Number = ReplayState.rReplaySpeedMultipler;
+
+            if (speed === axisSpeed)
+            {
+                return;
+            }
+
+            axisSpeed = speed;
+            keepMs = CAP_MS * speed;
+            idleRanges = new Vector.<Number>();
+            const prefix:Array = [0];
+            var removed:Number = 0;
+
+            for (var i:int = 0; i < gapRanges.length; i += 2)
+            {
+                const length:Number = gapRanges[i + 1] - gapRanges[i];
+
+                if (length >= ENTRY_MS * speed)
+                {
+                    idleRanges.push(gapRanges[i], gapRanges[i + 1]);
+                    removed += length - keepMs;
+                    prefix.push(removed);
+                }
+            }
+
+            idlePrefix = Vector.<Number>(prefix);
+        }
+
+        // 지금 배속에서 시크바 축의 전체 길이(ms) = 전체 녹화 시간 - 건너뛰는 부분. 이 값 / 배속 = 예상 재생 시간
         public static function get axisMs():Number
         {
-            return Math.max(0, totalTime - gapPrefix[gapPrefix.length - 1]);
+            ensureAxis();
+            return Math.max(0, totalTime - idlePrefix[idlePrefix.length - 1]);
         }
 
-        // 녹화 시각 t(ms)를 시크바 축 위치(ms)로 바꿈. 쉬는 구간 안에서는 그 구간의 줄어든 길이 안에서 선형으로 움직임
+        // 배속 speed에서의 축 길이. 현재 배속과 상관없이 계산할 수 있음 (최대 배속은 1배속 기준으로 정함)
+        public static function axisMsAtSpeed(speed:Number):Number
+        {
+            var removed:Number = 0;
+
+            for (var i:int = 0; i < gapRanges.length; i += 2)
+            {
+                const length:Number = gapRanges[i + 1] - gapRanges[i];
+
+                if (length >= ENTRY_MS * speed)
+                {
+                    removed += length - CAP_MS * speed;
+                }
+            }
+
+            return Math.max(0, totalTime - removed);
+        }
+
+        // 녹화 시각 t(ms)를 시크바 축 위치(ms)로 바꿈. 쉬는 구간에서는 앞부분(유지 길이)만 1:1로 움직이고 그 뒤는 폭 0
         private static function toAxis(t:Number):Number
         {
-            const gapCount:int = gapRanges.length / 2;
+            ensureAxis();
+            const count:int = idleRanges.length / 2;
             var low:int = 0;
-            var high:int = gapCount - 1;
+            var high:int = count - 1;
             var index:int = -1; // 시작 시각이 t 이하인 마지막 쉬는 구간
 
             while (low <= high)
             {
                 const mid:int = (low + high) >> 1;
 
-                if (gapRanges[mid * 2] <= t)
+                if (idleRanges[mid * 2] <= t)
                 {
                     index = mid;
                     low = mid + 1;
@@ -197,31 +247,32 @@ package Modules.ReplayEngine
                 return t;
             }
 
-            const start:Number = gapRanges[index * 2];
-            const end:Number = gapRanges[index * 2 + 1];
-            const axisAtStart:Number = start - gapPrefix[index];
+            const start:Number = idleRanges[index * 2];
+            const end:Number = idleRanges[index * 2 + 1];
+            const axisAtStart:Number = start - idlePrefix[index];
 
             if (t >= end)
             {
-                return axisAtStart + CAP_MS + (t - end);
+                return axisAtStart + keepMs + (t - end);
             }
 
-            return axisAtStart + CAP_MS * (t - start) / (end - start);
+            return axisAtStart + Math.min(t - start, keepMs);
         }
 
-        // toAxis의 반대. 쉬는 구간의 줄어든 폭 안이면 그 구간 안의 비례한 녹화 시각
+        // toAxis의 반대. 쉬는 구간의 유지 길이 안이면 그 위치의 녹화 시각, 유지 길이의 끝 위치는 건너뛴 뒤인 공백 끝으로 봄
         private static function fromAxis(u:Number):Number
         {
-            const gapCount:int = gapRanges.length / 2;
+            ensureAxis();
+            const count:int = idleRanges.length / 2;
             var low:int = 0;
-            var high:int = gapCount - 1;
+            var high:int = count - 1;
             var index:int = -1; // 축 시작 위치가 u 이하인 마지막 쉬는 구간
 
             while (low <= high)
             {
                 const mid:int = (low + high) >> 1;
 
-                if (gapRanges[mid * 2] - gapPrefix[mid] <= u)
+                if (idleRanges[mid * 2] - idlePrefix[mid] <= u)
                 {
                     index = mid;
                     low = mid + 1;
@@ -237,21 +288,21 @@ package Modules.ReplayEngine
                 return u;
             }
 
-            const start:Number = gapRanges[index * 2];
-            const end:Number = gapRanges[index * 2 + 1];
-            const axisAtStart:Number = start - gapPrefix[index];
+            const start:Number = idleRanges[index * 2];
+            const axisAtStart:Number = start - idlePrefix[index];
 
-            if (u >= axisAtStart + CAP_MS)
+            if (u >= axisAtStart + keepMs)
             {
-                return u + gapPrefix[index + 1];
+                return u + idlePrefix[index + 1];
             }
 
-            return start + (u - axisAtStart) * (end - start) / CAP_MS;
+            return start + (u - axisAtStart);
         }
 
-        // 시크바의 쉬는 구간 표시용: [시작 비율, 끝 비율] 쌍(0~1, 줄어든 폭 기준)을 이어붙인 목록
+        // 시크바의 쉬는 구간 표시용: [시작 비율, 끝 비율] 쌍(0~1)을 이어붙인 목록. 지금 배속에서 건너뛰기 대상인 구간의 유지 길이만 표시됨
         public static function getIdleMarks():Vector.<Number>
         {
+            ensureAxis();
             const result:Vector.<Number> = new Vector.<Number>();
             const length:Number = axisMs;
 
@@ -260,10 +311,10 @@ package Modules.ReplayEngine
                 return result;
             }
 
-            for (var i:int = 0; i < gapRanges.length; i += 2)
+            for (var i:int = 0; i < idleRanges.length; i += 2)
             {
-                const axisStart:Number = gapRanges[i] - gapPrefix[i / 2];
-                result.push(axisStart / length, (axisStart + CAP_MS) / length);
+                const axisStart:Number = idleRanges[i] - idlePrefix[i / 2];
+                result.push(axisStart / length, (axisStart + keepMs) / length);
             }
 
             return result;
@@ -498,14 +549,11 @@ package Modules.ReplayEngine
 
                 if (recorded >= gapStart && gapEnd - gapStart >= ENTRY_MS * speed && recorded < gapEnd)
                 {
-                    // 이 공백에 처음 들어왔으면 건너뛰기 시한을 정함 (중간에서 이어 재생해도 항상 CAP_MS부터 셈)
-                    if (afkEnd !== gapEnd)
-                    {
-                        afkEnd = gapEnd;
-                        afkDeadline = getTimer() + int(CAP_MS);
-                    }
+                    // 공백 시작부터 유지 길이(CAP_MS * 배속)까지만 기다리고 그 뒤는 건너뜀. 중간에서 이어 재생하면 남은 만큼만 기다림
+                    afkEnd = gapEnd;
+                    afkSkipAt = gapStart + CAP_MS * speed;
 
-                    if (getTimer() < afkDeadline)
+                    if (recorded < afkSkipAt)
                     {
                         return drawnFrames;
                     }
@@ -527,7 +575,7 @@ package Modules.ReplayEngine
             return afkEnd >= 0;
         }
 
-        // 자동으로 건너뛰기까지 남은 실제 시간(ms), AFK에 들어가면 CAP_MS에서 시작해서 줄어듬
+        // 자동으로 건너뛰기까지 남은 실제 시간(ms). 공백 처음에서 시작하면 CAP_MS이고, 중간에서 이어 재생하면 그만큼 줄어든 값
         public static function afkRemainingMs(speed:Number):Number
         {
             if (afkEnd < 0)
@@ -535,7 +583,7 @@ package Modules.ReplayEngine
                 return 0;
             }
 
-            return Math.max(0, afkDeadline - getTimer());
+            return Math.max(0, (Math.min(afkSkipAt, afkEnd) - recordedPeek()) / speed);
         }
 
         // AFK 공백을 건너뜀
@@ -593,11 +641,11 @@ package Modules.ReplayEngine
             return length > 0 ? Math.min(1, toAxis(recordedNow(speed)) / length) : 0;
         }
 
-        // frame개를 그린 상태에서 끝까지 재생하는데 걸리는 예상 실제 시간(ms). 쉬는 구간은 캡 규칙을 적용함
-        // 공백 g가 ENTRY_MS * speed 이상이면 최대 CAP_MS(공백 중간에서 시작하면 남은 부분이 더 짧을 수 있음), 아니면 g / speed
-        public static function remainingRealMs(frame:Number, speed:Number):Number
+        // 녹화 시각 recorded에서 끝까지 재생하는데 걸리는 예상 실제 시간(ms). 쉬는 구간은 캡 규칙을 적용함
+        // 공백 g가 ENTRY_MS * speed 이상이면 앞부분 CAP_MS 실제 시간만(공백 중간에서 시작하면 그 앞부분의 남은 만큼만), 아니면 g / speed
+        public static function remainingRealMsAt(recorded:Number, speed:Number):Number
         {
-            var current:Number = timeOfFrame(frame - 1);
+            var current:Number = recorded;
             var real:Number = 0;
 
             for (var i:int = 0; i < gapRanges.length; i += 2)
@@ -616,12 +664,43 @@ package Modules.ReplayEngine
                     current = start;
                 }
 
-                const remaining:Number = end - current;
-                real += ((end - start) >= ENTRY_MS * speed) ? Math.min(CAP_MS, remaining / speed) : remaining / speed;
+                if ((end - start) >= ENTRY_MS * speed)
+                {
+                    // 유지 길이(start + CAP_MS * speed)까지 남은 만큼만 기다리고 나머지는 건너뜀
+                    real += Math.max(0, Math.min(end, start + CAP_MS * speed) - current) / speed;
+                }
+                else
+                {
+                    real += (end - current) / speed;
+                }
+
                 current = end;
             }
 
             return real + Math.max(0, totalTime - current) / speed;
+        }
+
+        // frame개를 그린 상태에서의 예상 남은 실제 시간(ms)
+        public static function remainingRealMs(frame:Number, speed:Number):Number
+        {
+            return remainingRealMsAt(timeOfFrame(frame - 1), speed);
+        }
+
+        // 남은 시간 표시에 쓸 현재 녹화 시각. 재생 중이면 시계 시각(쉬는 구간을 기다리는 동안에도 줄어듬),
+        // 멈춰 있으면 기억해둔 위치(같은 프레임일 때) 또는 frame개를 그린 시각
+        public static function displayRecorded(frame:Number, playing:Boolean):Number
+        {
+            if (playing)
+            {
+                return Math.min(totalTime, recordedPeek());
+            }
+
+            if (rememberedFrame === frame && rememberedRecorded >= timeOfFrame(frame - 1))
+            {
+                return rememberedRecorded;
+            }
+
+            return timeOfFrame(frame - 1);
         }
 
         // frame개를 그린 상태에서 남은 녹화 시간(ms). 표시용

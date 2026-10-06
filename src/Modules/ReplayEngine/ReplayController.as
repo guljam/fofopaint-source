@@ -98,7 +98,7 @@ package Modules.ReplayEngine
         {
             ReplayState.TOTAL_FRAME = totalframe;
             ReplayClock.rebuild(); // 프레임 수가 바뀌는 곳마다 부르므로 여기서 시계의 시간 색인도 새로 만듬
-            var maxSpeed:Number = Math.floor(ReplayClock.axisMs / 10000); // 쉬는 구간이 줄어든 길이 기준
+            var maxSpeed:Number = Math.floor(ReplayClock.axisMsAtSpeed(1) / 10000); // 1배속 기준으로 쉬는 구간을 줄인 길이 (배속에 따라 길이가 바뀌는 순환을 피함)
 
             if (maxSpeed < 1.0)
             {
@@ -116,10 +116,22 @@ package Modules.ReplayEngine
             if (ReplayState.rReplaySpeedMultipler > maxSpeed)
             {
                 ReplayState.rReplaySpeedMultipler = maxSpeed;
+                onReplaySpeedChanged();
             }
         }
 
-        // 시크바의 쉬는 구간 표시를 다시 그림. 프레임 수가 바뀔때 부름 (배속과 상관없는 고정 기준이라 배속이 바뀌어도 다시 그릴 필요가 없음)
+        // 배속이 바뀌면 시크바 축(쉬는 구간의 유지 길이)이 달라지므로 표시와 위치를 다시 맞춤. 멈춰 있을때만 위치를 직접 갱신함 (재생 중에는 매 프레임 갱신됨)
+        private static function onReplaySpeedChanged():void
+        {
+            refreshAfkRanges();
+
+            if (seekBarBox && !ReplayState.isReplayStarted)
+            {
+                seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
+            }
+        }
+
+        // 시크바의 쉬는 구간 표시를 다시 그림. 프레임 수나 배속이 바뀔때 부름
         public static function refreshAfkRanges():void
         {
             if (!seekBarBox)
@@ -845,6 +857,7 @@ package Modules.ReplayEngine
         public static function resetReplaySpeedBar():void
         {
             ReplayState.rReplaySpeedMultipler = 1.0; // 속도 리셋
+            onReplaySpeedChanged();
             UIController.topBar.replaySpeedSliderCursor.x = UIController.topBar.replaySpeedSlider.x + 1.5;
         }
 
@@ -1112,7 +1125,7 @@ package Modules.ReplayEngine
         // keyfunc
         public static function adjustReplaySpeedByShortcut(increaseFlag:Boolean):void
         {
-            const clacMax:Number = Math.floor(ReplayClock.axisMs / 3000);
+            const clacMax:Number = Math.floor(ReplayClock.axisMsAtSpeed(1) / 3000);
 
             if (clacMax <= 0)
             {
@@ -1142,6 +1155,7 @@ package Modules.ReplayEngine
             }
 
             ReplayState.rReplaySpeedMultipler = _rSpeed;
+            onReplaySpeedChanged();
             UIController.topBar.setSpeedButtonPosByValue(_rSpeed, maxSpeed);
             showReplaySpeedMouseHint();
         }
@@ -1153,7 +1167,7 @@ package Modules.ReplayEngine
 
         public static function adjutReplaySpeedByMouse():void
         {
-            if (ReplayClock.axisMs <= 3000) // 3초 이내면 안함
+            if (ReplayClock.axisMsAtSpeed(1) <= 3000) // 3초 이내면 안함
             {
                 return;
             }
@@ -1190,6 +1204,7 @@ package Modules.ReplayEngine
                     }
 
                     ReplayState.rReplaySpeedMultipler = nowSpeed;
+                    onReplaySpeedChanged();
                 }
             }
 
@@ -1284,6 +1299,7 @@ package Modules.ReplayEngine
                     // floor 오차로 59가 되지 않도록 스냅 속도를 직접 지정
                     oldSpeed = REPLAY_SLIDESHOW_ACTIVE_SPEED;
                     ReplayState.rReplaySpeedMultipler = REPLAY_SLIDESHOW_ACTIVE_SPEED;
+                    onReplaySpeedChanged();
                 }
                 updateReplayPrograssText(); // 드래그 중에는 속도 힌트가 seekbar 텍스트에 표시됨
             }
@@ -1991,7 +2007,10 @@ package Modules.ReplayEngine
         public static function getReplayRemainingTimeString(speed:Number, totalFrame:Number, isSlideShowMode:Boolean = false):String
         {
             // totalFrame은 남은 프레임 수, 시계에서 그 지점부터 끝까지의 녹화 시간을 배속으로 나눠 실제 남은 시간을 구함
-            const totalSec:Number = ReplayClock.remainingRealMs(ReplayState.TOTAL_FRAME - totalFrame, speed) / 1000;
+            // 지금 위치의 남은 시간은 마지막으로 그린 프레임이 아니라 시계 시각 기준 (쉬는 구간을 기다리는 동안에도 줄어들도록)
+            const fromFrame:Number = ReplayState.TOTAL_FRAME - totalFrame;
+            const fromRecorded:Number = (fromFrame === ReplayState.rNowFrame) ? ReplayClock.displayRecorded(fromFrame, ReplayState.isReplayStarted) : ReplayClock.timeOfFrame(fromFrame - 1);
+            const totalSec:Number = ReplayClock.remainingRealMsAt(fromRecorded, speed) / 1000;
 
             if (totalSec === 0)
                 return "";
