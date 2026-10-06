@@ -107,7 +107,7 @@ package Modules.ReplayEngine
 
         // 파일이 frame개의 프레임만 가지도록 모자라면 LEGACY_FRAME_DELTA로 채우고 남으면 자름
         // repdata와 길이가 어긋난 채로 이어 붙이지 않게 붙이기 직전에 부름
-        public static function alignTo(frame:Number):void
+        public static function resizeToFrameCount(frame:Number):void
         {
             const now:Number = frameCount;
             if (now === frame)
@@ -141,7 +141,7 @@ package Modules.ReplayEngine
         // 묶음 하나의 명령들의 기록(packStamp 값)을 간격과 연출 길이로 바꿔서 이어 붙임. 앞 프레임까지 길이를 맞춘 다음에 씀
         public static function appendGroupAtFrame(stamps:Array, firstFrame:Number):void
         {
-            alignTo(firstFrame);
+            resizeToFrameCount(firstFrame);
 
             const fs:FileStream = new FileStream();
             fs.open(AppStateManager.replayTimingSheetFilePath, FileMode.APPEND);
@@ -185,7 +185,7 @@ package Modules.ReplayEngine
         {
             if (frameCount > frame)
             {
-                alignTo(frame);
+                resizeToFrameCount(frame);
             }
 
             hasLastStamp = false;

@@ -598,7 +598,7 @@ package Modules.ReplayEngine
             stopGeneratingCacheImageFunc = null;
             ReplayDrawCommands.clearData();
             ReplayState.setRFileDataTotalFrame(_frameSum);
-            TimingSheetFile.alignTo(_frameSum); // 시트가 없거나 길이가 다르면 repdata 프레임 수에 맞춤
+            TimingSheetFile.resizeToFrameCount(_frameSum); // 시트가 없거나 길이가 다르면 repdata 프레임 수에 맞춤
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReplayFileCache.deleteCacheProgress();
             resetReplayTime();

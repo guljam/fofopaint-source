@@ -73,7 +73,7 @@ package Modules.ReplayEngine
         {
             fileFrames = ReplayState.getRFileDataTotalFrame();
             rememberedFrame = -1;
-            TimingSheetFile.alignTo(fileFrames);
+            TimingSheetFile.resizeToFrameCount(fileFrames);
             cachedSegment = -1;
             cachedTimes = null;
             cachedAnims = null;
