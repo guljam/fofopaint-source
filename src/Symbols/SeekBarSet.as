@@ -64,10 +64,22 @@
 
 			for (var i:int = 0; i < afkRanges.length; i += 2)
 			{
-				const x0:Number = Math.floor(w * afkRanges[i]);
-				const x1:Number = Math.max(x0 + 1, Math.ceil(w * afkRanges[i + 1])); // 아주 짧아도 1px는 보이게
-				g.beginFill(0x000000, 0.28);
-				g.drawRect(x0, 0, x1 - x0, h);
+				const x0:Number = w * afkRanges[i];
+				const width:Number = w * (afkRanges[i + 1] - afkRanges[i]);
+
+				if (width >= 1)
+				{
+					// 줄어든 폭이 1px 이상이면 그 폭 그대로(실수값) 어둡게 칠함
+					g.beginFill(0x000000, 0.28);
+					g.drawRect(x0, 0, width, h);
+				}
+				else
+				{
+					// 폭이 1px 미만이면 축 위치는 그대로 두고 그 자리에 조금 진한 1px 눈금만 덧그림
+					g.beginFill(0x000000, 0.55);
+					g.drawRect(x0, 0, 1, h);
+				}
+
 				g.endFill();
 			}
 

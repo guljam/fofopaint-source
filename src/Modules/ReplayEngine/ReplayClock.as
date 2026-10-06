@@ -13,7 +13,13 @@ package Modules.ReplayEngine
     // 시각은 파일 구간(10000프레임)을 하나씩만 풀어서 구하고, 파일 뒤의 메모리 undo 묶음은 기록해둔 시각에서 구함
     public final class ReplayClock
     {
-        public static const AFK_WAIT_MS:Number = 10000; // 이 시간(실제 대기) 이상 쉬었으면 AFK로 봄. 녹화 시간으로는 이 값 * 배속
+        // 쉬는(AFK) 구간 규칙
+        //   실제로 기다리는 시간이 CAP_MS를 넘으면 CAP_MS만 기다리고 다음 프레임으로 건너뜀 (자동 건너뛰기)
+        //   건너뛰기 직전에 어색하게 조금만 건너뛰지 않도록, 실제 대기가 ENTRY_MS(캡보다 약간 큼) 이상인 공백부터 캡을 적용함
+        //   녹화 길이로는 공백 g가 ENTRY_MS * 배속 이상이면 캡 대상
+        public static const CAP_MS:Number = 5000;
+        public static const ENTRY_MS:Number = 6000;
+        // 시크바에서는 ENTRY_MS(1배속 기준) 이상 쉰 구간을 모두 녹화 CAP_MS 길이로 줄여서 그림 (배속과 상관없는 고정 기준)
 
         private static var fileFrames:Number = 0;
         private static var segmentStart:Vector.<Number> = new Vector.<Number>(); // 파일 구간별 첫 프레임의 녹화 시각
@@ -22,8 +28,10 @@ package Modules.ReplayEngine
         private static var totalTime:Number = 0;
         private static var totalFrames:Number = 0;
 
-        // 쉬는 구간(간격이 AFK_WAIT_MS 이상인 곳)의 [시작 시각, 끝 시각] 쌍을 이어붙인 목록. 시크바의 어두운 구간 표시에 씀
+        // 쉬는 구간(간격이 ENTRY_MS 이상인 곳)의 [시작 시각, 끝 시각] 쌍을 이어붙인 목록. 시간순
         private static var gapRanges:Vector.<Number> = new Vector.<Number>();
+        // gapPrefix[i] = 앞쪽 쉬는 구간 i개가 줄어든 시간의 합 (시크바 축 길이 = 전체 - gapPrefix[개수]). 길이는 gap 수 + 1
+        private static var gapPrefix:Vector.<Number> = new Vector.<Number>();
 
         private static var cachedSegment:int = -1; // 풀어둔 파일 구간 번호
         private static var cachedTimes:Vector.<Number> = null; // 그 구간 안 프레임별 녹화 시각 (구간 시작 시각 포함한 절대값)
@@ -40,6 +48,7 @@ package Modules.ReplayEngine
         private static var rememberedRecorded:Number = 0;
 
         private static var afkEnd:Number = -1; // AFK 중이면 공백이 끝나는 녹화 시각, 아니면 -1
+        private static var afkDeadline:int = 0; // AFK에 들어간 getTimer + CAP_MS, 이 시각이 되면 자동으로 건너뜀
 
         public static function get totalMs():Number
         {
@@ -88,7 +97,7 @@ package Modules.ReplayEngine
                         const anim:uint = chunk.readUnsignedInt();
 
                         // 쉬는 구간은 앞 프레임의 연출이 끝난 시각부터 이 프레임까지
-                        if (delta > prevAnim && delta - prevAnim >= AFK_WAIT_MS)
+                        if (delta > prevAnim && delta - prevAnim >= ENTRY_MS)
                         {
                             gapRanges.push(sum + prevAnim, sum + delta);
                         }
@@ -111,7 +120,7 @@ package Modules.ReplayEngine
 
             for (i = 0; i < memoryDeltas.length; i++)
             {
-                if (memoryDeltas[i] > prevAnim && memoryDeltas[i] - prevAnim >= AFK_WAIT_MS)
+                if (memoryDeltas[i] > prevAnim && memoryDeltas[i] - prevAnim >= ENTRY_MS)
                 {
                     gapRanges.push(sum + prevAnim, sum + memoryDeltas[i]);
                 }
@@ -144,6 +153,120 @@ package Modules.ReplayEngine
 
             totalTime = sum;
             totalFrames = fileFrames + memoryDeltas.length;
+
+            gapPrefix = new Vector.<Number>(gapRanges.length / 2 + 1, true);
+            gapPrefix[0] = 0;
+
+            for (var k:int = 0; k < gapRanges.length; k += 2)
+            {
+                gapPrefix[k / 2 + 1] = gapPrefix[k / 2] + (gapRanges[k + 1] - gapRanges[k]) - CAP_MS;
+            }
+        }
+
+        // 시크바 축의 전체 길이(ms): 전체 녹화 시간에서 쉬는 구간을 CAP_MS로 줄인 값. 최대 속도, 예상 시간 기준에 씀
+        public static function get axisMs():Number
+        {
+            return Math.max(0, totalTime - gapPrefix[gapPrefix.length - 1]);
+        }
+
+        // 녹화 시각 t(ms)를 시크바 축 위치(ms)로 바꿈. 쉬는 구간 안에서는 그 구간의 줄어든 길이 안에서 선형으로 움직임
+        private static function toAxis(t:Number):Number
+        {
+            const gapCount:int = gapRanges.length / 2;
+            var low:int = 0;
+            var high:int = gapCount - 1;
+            var index:int = -1; // 시작 시각이 t 이하인 마지막 쉬는 구간
+
+            while (low <= high)
+            {
+                const mid:int = (low + high) >> 1;
+
+                if (gapRanges[mid * 2] <= t)
+                {
+                    index = mid;
+                    low = mid + 1;
+                }
+                else
+                {
+                    high = mid - 1;
+                }
+            }
+
+            if (index < 0)
+            {
+                return t;
+            }
+
+            const start:Number = gapRanges[index * 2];
+            const end:Number = gapRanges[index * 2 + 1];
+            const axisAtStart:Number = start - gapPrefix[index];
+
+            if (t >= end)
+            {
+                return axisAtStart + CAP_MS + (t - end);
+            }
+
+            return axisAtStart + CAP_MS * (t - start) / (end - start);
+        }
+
+        // toAxis의 반대. 쉬는 구간의 줄어든 폭 안이면 그 구간 안의 비례한 녹화 시각
+        private static function fromAxis(u:Number):Number
+        {
+            const gapCount:int = gapRanges.length / 2;
+            var low:int = 0;
+            var high:int = gapCount - 1;
+            var index:int = -1; // 축 시작 위치가 u 이하인 마지막 쉬는 구간
+
+            while (low <= high)
+            {
+                const mid:int = (low + high) >> 1;
+
+                if (gapRanges[mid * 2] - gapPrefix[mid] <= u)
+                {
+                    index = mid;
+                    low = mid + 1;
+                }
+                else
+                {
+                    high = mid - 1;
+                }
+            }
+
+            if (index < 0)
+            {
+                return u;
+            }
+
+            const start:Number = gapRanges[index * 2];
+            const end:Number = gapRanges[index * 2 + 1];
+            const axisAtStart:Number = start - gapPrefix[index];
+
+            if (u >= axisAtStart + CAP_MS)
+            {
+                return u + gapPrefix[index + 1];
+            }
+
+            return start + (u - axisAtStart) * (end - start) / CAP_MS;
+        }
+
+        // 시크바의 쉬는 구간 표시용: [시작 비율, 끝 비율] 쌍(0~1, 줄어든 폭 기준)을 이어붙인 목록
+        public static function getIdleMarks():Vector.<Number>
+        {
+            const result:Vector.<Number> = new Vector.<Number>();
+            const length:Number = axisMs;
+
+            if (length <= 0)
+            {
+                return result;
+            }
+
+            for (var i:int = 0; i < gapRanges.length; i += 2)
+            {
+                const axisStart:Number = gapRanges[i] - gapPrefix[i / 2];
+                result.push(axisStart / length, (axisStart + CAP_MS) / length);
+            }
+
+            return result;
         }
 
         // 프레임 frame(0부터)이 그려져야 하는 녹화 시각. 범위 밖이면 양끝으로 맞춤
@@ -373,10 +496,25 @@ package Modules.ReplayEngine
                 const gapStart:Number = timeOfFrame(drawnFrames - 1) + animMsOfFrame(drawnFrames - 1);
                 const gapEnd:Number = timeOfFrame(drawnFrames);
 
-                if (recorded >= gapStart && gapEnd - gapStart >= AFK_WAIT_MS * speed && recorded < gapEnd)
+                if (recorded >= gapStart && gapEnd - gapStart >= ENTRY_MS * speed && recorded < gapEnd)
                 {
-                    afkEnd = gapEnd;
-                    return drawnFrames;
+                    // 이 공백에 처음 들어왔으면 건너뛰기 시한을 정함 (중간에서 이어 재생해도 항상 CAP_MS부터 셈)
+                    if (afkEnd !== gapEnd)
+                    {
+                        afkEnd = gapEnd;
+                        afkDeadline = getTimer() + int(CAP_MS);
+                    }
+
+                    if (getTimer() < afkDeadline)
+                    {
+                        return drawnFrames;
+                    }
+
+                    // 시한이 지나면 자동으로 공백 끝까지 건너뜀
+                    anchorRecorded = gapEnd;
+                    anchorReal = getTimer();
+                    afkEnd = -1;
+                    return Math.max(drawnFrames, framesDueAt(gapEnd));
                 }
             }
 
@@ -389,7 +527,7 @@ package Modules.ReplayEngine
             return afkEnd >= 0;
         }
 
-        // AFK 공백이 끝날때까지 남은 실제 시간(ms)
+        // 자동으로 건너뛰기까지 남은 실제 시간(ms), AFK에 들어가면 CAP_MS에서 시작해서 줄어듬
         public static function afkRemainingMs(speed:Number):Number
         {
             if (afkEnd < 0)
@@ -397,7 +535,7 @@ package Modules.ReplayEngine
                 return 0;
             }
 
-            return Math.max(0, (afkEnd - recordedNow(speed)) / speed);
+            return Math.max(0, afkDeadline - getTimer());
         }
 
         // AFK 공백을 건너뜀
@@ -413,32 +551,23 @@ package Modules.ReplayEngine
             afkEnd = -1;
         }
 
-        // 현재 배속에서 AFK가 되는 쉬는 구간(녹화 길이가 AFK_WAIT_MS * 배속 이상)의 [시작 시각, 끝 시각] 쌍 목록
-        public static function getAfkRanges(speed:Number):Vector.<Number>
-        {
-            const result:Vector.<Number> = new Vector.<Number>();
-            const minLength:Number = AFK_WAIT_MS * speed;
-
-            for (var i:int = 0; i < gapRanges.length; i += 2)
-            {
-                if (gapRanges[i + 1] - gapRanges[i] >= minLength)
-                {
-                    result.push(gapRanges[i], gapRanges[i + 1]);
-                }
-            }
-
-            return result;
-        }
-
-        // 시크바 위치(0~1)는 프레임 수가 아니라 녹화 시간 기준. frame개를 그린 상태의 위치
+        // 시크바 위치(0~1). 프레임 수가 아니라 녹화 시간을 쉬는 구간이 줄어든 축에 놓은 값. frame개를 그린 상태의 위치
         public static function frameRatio(frame:Number):Number
         {
-            if (totalTime <= 0)
+            const length:Number = axisMs;
+
+            if (length <= 0)
             {
                 return totalFrames > 0 ? Math.min(1, frame / totalFrames) : 0;
             }
 
-            return Math.min(1, timeOfFrame(frame - 1) / totalTime);
+            return Math.min(1, toAxis(timeOfFrame(frame - 1)) / length);
+        }
+
+        // 시크바의 위치 ratio(0~1)에 해당하는 녹화 시각 (쉬는 구간의 줄어든 폭 안이면 그 구간 안의 비례한 시각)
+        public static function ratioToTime(ratio:Number):Number
+        {
+            return fromAxis(axisMs * Math.max(0, Math.min(1, ratio)));
         }
 
         // 시크바의 위치 ratio(0~1)에 해당하는 프레임 수 (시크바 클릭, 드래그)
@@ -449,18 +578,50 @@ package Modules.ReplayEngine
                 return totalFrames;
             }
 
-            if (totalTime <= 0)
+            if (axisMs <= 0)
             {
                 return Math.floor(totalFrames * Math.max(0, ratio));
             }
 
-            return Math.min(totalFrames, framesDueAt(totalTime * Math.max(0, ratio)));
+            return Math.min(totalFrames, framesDueAt(ratioToTime(ratio)));
         }
 
         // 재생 중 시크바 위치. 그린 프레임이 아니라 시계가 흐르는 대로 움직여서 쉬는 구간(AFK)에도 바가 계속 감
         public static function playRatio(speed:Number):Number
         {
-            return totalTime > 0 ? Math.min(1, recordedNow(speed) / totalTime) : 0;
+            const length:Number = axisMs;
+            return length > 0 ? Math.min(1, toAxis(recordedNow(speed)) / length) : 0;
+        }
+
+        // frame개를 그린 상태에서 끝까지 재생하는데 걸리는 예상 실제 시간(ms). 쉬는 구간은 캡 규칙을 적용함
+        // 공백 g가 ENTRY_MS * speed 이상이면 최대 CAP_MS(공백 중간에서 시작하면 남은 부분이 더 짧을 수 있음), 아니면 g / speed
+        public static function remainingRealMs(frame:Number, speed:Number):Number
+        {
+            var current:Number = timeOfFrame(frame - 1);
+            var real:Number = 0;
+
+            for (var i:int = 0; i < gapRanges.length; i += 2)
+            {
+                const start:Number = gapRanges[i];
+                const end:Number = gapRanges[i + 1];
+
+                if (end <= current)
+                {
+                    continue;
+                }
+
+                if (start > current)
+                {
+                    real += (start - current) / speed;
+                    current = start;
+                }
+
+                const remaining:Number = end - current;
+                real += ((end - start) >= ENTRY_MS * speed) ? Math.min(CAP_MS, remaining / speed) : remaining / speed;
+                current = end;
+            }
+
+            return real + Math.max(0, totalTime - current) / speed;
         }
 
         // frame개를 그린 상태에서 남은 녹화 시간(ms). 표시용

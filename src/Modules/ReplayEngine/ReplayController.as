@@ -98,7 +98,7 @@ package Modules.ReplayEngine
         {
             ReplayState.TOTAL_FRAME = totalframe;
             ReplayClock.rebuild(); // 프레임 수가 바뀌는 곳마다 부르므로 여기서 시계의 시간 색인도 새로 만듬
-            var maxSpeed:Number = Math.floor(ReplayClock.totalMs / 10000);
+            var maxSpeed:Number = Math.floor(ReplayClock.axisMs / 10000); // 쉬는 구간이 줄어든 길이 기준
 
             if (maxSpeed < 1.0)
             {
@@ -116,11 +116,10 @@ package Modules.ReplayEngine
             if (ReplayState.rReplaySpeedMultipler > maxSpeed)
             {
                 ReplayState.rReplaySpeedMultipler = maxSpeed;
-                refreshAfkRanges();
             }
         }
 
-        // 시크바의 쉬는 구간 표시를 지금 배속 기준으로 다시 그림. 프레임 수나 배속이 바뀔때 부름
+        // 시크바의 쉬는 구간 표시를 다시 그림. 프레임 수가 바뀔때 부름 (배속과 상관없는 고정 기준이라 배속이 바뀌어도 다시 그릴 필요가 없음)
         public static function refreshAfkRanges():void
         {
             if (!seekBarBox)
@@ -128,16 +127,7 @@ package Modules.ReplayEngine
                 return;
             }
 
-            const ranges:Vector.<Number> = ReplayClock.getAfkRanges(ReplayState.rReplaySpeedMultipler);
-            const ratios:Vector.<Number> = new Vector.<Number>(ranges.length, true);
-            const total:Number = ReplayClock.totalMs;
-
-            for (var i:int = 0; i < ranges.length; i++)
-            {
-                ratios[i] = total > 0 ? ranges[i] / total : 0;
-            }
-
-            seekBarBox.setAfkRanges(ratios);
+            seekBarBox.setAfkRanges(ReplayClock.getIdleMarks());
         }
 
         public static function onDragEnterStage(e:NativeDragEvent):void
@@ -566,7 +556,7 @@ package Modules.ReplayEngine
                 // jumpframe함수 이후에 실행
                 updateDeleteReplayDataButtonsState();
                 // 클릭한 시각을 기억해둠. 클릭한 곳이 쉬는 구간 중간이면 재생을 시작할때 구간 처음이 아니라 그 시각부터 이어감
-                ReplayClock.rememberPosition(ReplayState.rNowFrame, clickedRatio * ReplayClock.totalMs);
+                ReplayClock.rememberPosition(ReplayState.rNowFrame, ReplayClock.ratioToTime(clickedRatio));
                 // 재생중에 스킵하고 있었으면 다시 시작
 
                 if (wasReplayRunning && !ReplayState.isReplayFinished)
@@ -855,7 +845,6 @@ package Modules.ReplayEngine
         public static function resetReplaySpeedBar():void
         {
             ReplayState.rReplaySpeedMultipler = 1.0; // 속도 리셋
-            refreshAfkRanges();
             UIController.topBar.replaySpeedSliderCursor.x = UIController.topBar.replaySpeedSlider.x + 1.5;
         }
 
@@ -1123,7 +1112,7 @@ package Modules.ReplayEngine
         // keyfunc
         public static function adjustReplaySpeedByShortcut(increaseFlag:Boolean):void
         {
-            const clacMax:Number = Math.floor(ReplayClock.totalMs / 3000);
+            const clacMax:Number = Math.floor(ReplayClock.axisMs / 3000);
 
             if (clacMax <= 0)
             {
@@ -1153,7 +1142,6 @@ package Modules.ReplayEngine
             }
 
             ReplayState.rReplaySpeedMultipler = _rSpeed;
-            refreshAfkRanges();
             UIController.topBar.setSpeedButtonPosByValue(_rSpeed, maxSpeed);
             showReplaySpeedMouseHint();
         }
@@ -1165,7 +1153,7 @@ package Modules.ReplayEngine
 
         public static function adjutReplaySpeedByMouse():void
         {
-            if (ReplayClock.totalMs <= 3000) // 3초 이내면 안함
+            if (ReplayClock.axisMs <= 3000) // 3초 이내면 안함
             {
                 return;
             }
@@ -1202,7 +1190,6 @@ package Modules.ReplayEngine
                     }
 
                     ReplayState.rReplaySpeedMultipler = nowSpeed;
-                    refreshAfkRanges();
                 }
             }
 
@@ -1297,7 +1284,6 @@ package Modules.ReplayEngine
                     // floor 오차로 59가 되지 않도록 스냅 속도를 직접 지정
                     oldSpeed = REPLAY_SLIDESHOW_ACTIVE_SPEED;
                     ReplayState.rReplaySpeedMultipler = REPLAY_SLIDESHOW_ACTIVE_SPEED;
-                    refreshAfkRanges();
                 }
                 updateReplayPrograssText(); // 드래그 중에는 속도 힌트가 seekbar 텍스트에 표시됨
             }
@@ -2005,7 +1991,7 @@ package Modules.ReplayEngine
         public static function getReplayRemainingTimeString(speed:Number, totalFrame:Number, isSlideShowMode:Boolean = false):String
         {
             // totalFrame은 남은 프레임 수, 시계에서 그 지점부터 끝까지의 녹화 시간을 배속으로 나눠 실제 남은 시간을 구함
-            const totalSec:Number = ReplayClock.remainingMsFrom(ReplayState.TOTAL_FRAME - totalFrame) / 1000 / speed;
+            const totalSec:Number = ReplayClock.remainingRealMs(ReplayState.TOTAL_FRAME - totalFrame, speed) / 1000;
 
             if (totalSec === 0)
                 return "";
