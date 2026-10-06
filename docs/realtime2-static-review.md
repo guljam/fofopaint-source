@@ -31,9 +31,9 @@
 | R5 | **적용 완료**(R5 커밋) — 실측 400회 47ms vs 213ms | 점 시각 파일 위치 색인 (2장 R5) |
 | R6 | **적용 완료**(작업 트리, 미커밋) | 중복 `refreshAfkRanges()` 제거, 갱신 1회 (2장 R6) |
 | R7 | **수정 완료** (`e1c7aa2`) — 검토 통과 | `memory === null`, 컴파일 경고 0 (2장 R7) |
-| R8 | 미반영(주석 4건) | 2장 R8 |
+| R8 | **수정 완료** — 주석/문서 4건 정정 | 2장 R8 |
 | R9 | **수정 완료**(`793ab95`) — 검토 통과 | 연출 종료 시 목표 위치 확정 (2장 R9) |
-| B | B4만 해소(작업 트리 변경으로 `isArmed` 사용) | 3장 |
+| B | **정리 완료**: 앱 미사용 삭제(`MAX_AFK_SECONDS`, `toTimes`), 하네스가 쓰는 심볼은 '테스트 전용' 표시로 유지·복구 | 3장 |
 
 ### 1.2 검토 시점(`17f255d`) 결론 요약
 
@@ -248,6 +248,9 @@ ReplayClock.as:358 Warning: Illogical comparison with undefined. Only untyped va
 
 ### R8. 주석/문서 불일치 (정보)
 
+**반영 완료.** ① `ReplayDrawer.prepareFrameAnim` 주석에 `line4` 추가 ② `CursorAfkAnimation.MAX_AFK_SECONDS`의 "상자 위치 계산에 씀" 주석은 상수 자체가 데드라 **삭제** ③ `SeekBarSet.setAfkRanges` 주석을 "트랙 위에 어둡게 표시 + 폭 1px 미만은 눈금"으로 정정(시크바 AFK 안내 문구는 커밋 `0287d01`에서 삭제됨) ④ `AppStateManager`에서 `replayTimingSheetFilePath`(프레임 간격)와 `replayTimingPointsFilePath`(점별 시각) 설명을 분리. 부가로 `TimingSheet` 클래스 헤더의 "구간 정보(INFO_*)를 메모리에 둠" 설명을 현재 설계(구간 blob 저장 + `ReplayClock`이 한 구간씩 풀어 씀)로 정정하고, `INFO_*`·`findSegment*` 블록에는 "테스트 하네스 전용" 주석을 달았습니다.
+
+
 | 위치 | 현재 | 실제 코드 |
 |---|---|---|
 | `ReplayDrawer.as:686-688` | "연출이 있는 명령(fill5, lasso2, move*)" | `:700`에서 `line4`도 arm |
@@ -285,7 +288,7 @@ if (elapsed >= totalMs)
 
 ### 2.6 작업 트리 변경(미커밋) 관련 메모
 
-`CursorAfkAnimation.GROW_MAX`가 2.2 → 5.0으로 바뀌어 있습니다. (커밋 `2bd648a`) 커밋 `2c60113`("커짐 연출에서도 AFK 상자 위치를 기본 간격에 고정")에 따라 커짐/늘어짐 연출은 `extentsOf()`에서 `scaleFactor = 1`을 돌려주고 상자를 기본 간격에 두므로(`CursorAfkAnimation.as:172-186`), 몸통이 최대 5배까지 커지면 AFK 상자와 겹칠 수 있습니다(의도된 트레이드오프로 보이나, `GROW_MAX`를 키우면 겹침 폭도 같이 커짐). 상자를 겹치지 않게 하려면 `extentsOf`의 `KIND_GROW` 분기에 `Math.min(GROW_MAX, 1 + GROW_RATE_PER_SEC[forVariant] * MAX_AFK_SECONDS)`를 넣는 방법이 있습니다(현재 `MAX_AFK_SECONDS`가 데드인 이유이기도 함).
+`CursorAfkAnimation.GROW_MAX`가 2.2 → 5.0으로 바뀌어 있습니다. (커밋 `2bd648a`) 커밋 `2c60113`("커짐 연출에서도 AFK 상자 위치를 기본 간격에 고정")에 따라 커짐/늘어짐 연출은 `extentsOf()`에서 `scaleFactor = 1`을 돌려주고 상자를 기본 간격에 두므로(`CursorAfkAnimation.as:172-186`), 몸통이 최대 5배까지 커지면 AFK 상자와 겹칠 수 있습니다(의도된 트레이드오프로 보이나, `GROW_MAX`를 키우면 겹침 폭도 같이 커짐). 상자를 겹치지 않게 하려면 `extentsOf`의 `KIND_GROW` 분기에 `Math.min(GROW_MAX, 1 + GROW_RATE_PER_SEC[forVariant] * MAX_AFK_SECONDS)`를 넣는 방법이 있습니다(이런 계산에 쓸 상수는 없음 — `MAX_AFK_SECONDS`는 쓰이지 않아 이번 정리에서 삭제됨).
 
 ## 3. 데드 코드 (메서드/변수)
 
@@ -293,29 +296,31 @@ if (elapsed >= totalMs)
 
 | # | 심볼 | 위치 | 근거 |
 |---|---|---|---|
-| B1 | `MAX_AFK_SECONDS` | `CursorAfkAnimation.as:18` | 선언만 존재. 주석은 "상자 위치 계산에 씀"이라지만 `extentsOf`(`:170`)가 쓰지 않음 |
-| B2 | `get currentPose()` | `CursorAfkAnimation.as:120` | 호출 0회 |
-| B3 | `get isRunning()` | `CursorAfkAnimation.as:125` | ~~호출 0회~~ → **R1 수정(`404615e`)에서 사용됨(해소)** |
-| B4 | `get isArmed()` | `ReplayAnim.as:74` | ~~호출 0회~~ → 작업 트리 변경(`if (anim.isArmed) anim.disarm();`)으로 **사용됨(해소)**. 동작 변화는 없음(2.6 참고) |
-| B5 | `get totalMs()` | `ReplayClock.as:59` | 앱 코드 호출 0회 (하네스만 사용) |
-| B6 | `get frameCount()` | `ReplayClock.as:64` | 앱 코드 호출 0회 (하네스만 사용) |
-| B7 | `afkRemainingMs()` | `ReplayClock.as:579` | 호출 0회. 커밋 `0287d01`에서 시크바 AFK 카운트다운을 삭제한 뒤 남은 함수 |
-| B8 | `remainingRealMs()` | `ReplayClock.as:671` | 호출 0회. `getReplayRemainingTimeString`이 `remainingRealMsAt`으로 바뀌며 남은 래퍼 |
-| B9 | `remainingMsFrom()` | `ReplayClock.as:694` | 호출 0회 |
-| B10 | `INFO_DURATION` | `TimingSheet.as:17` | 선언만 존재 (구간 정보 배열은 `SEGMENT_FRAMES` 기반 재생으로 대체됨) |
-| B11 | `toTimes()` | `TimingSheet.as:99` | 호출 0회 (누적 시각은 `ReplayClock.loadSegment`가 직접 계산) |
-| B12 | `findSegmentByFrame()` | `TimingSheet.as:114` | 호출 0회 |
-| B13 | `findSegmentByTime()` | `TimingSheet.as:121` | 호출 0회 |
-| B14 | `findSegment()` (private) | `TimingSheet.as:148` | 위 B12에서만 호출 → 함께 데드 |
-| B15 | `get isAfkBoxVisible()` | `FOFOCursorSet.as:104` | 호출 0회 |
-| B16 | `getAfkBoxBounds()` | `FOFOCursorSet.as:110` | 호출 0회 |
+| B1 | `MAX_AFK_SECONDS` | (삭제) | **삭제 완료** — 앱·하네스 참조 0. 잘못된 주석도 함께 제거 |
+| B2 | `get currentPose()` | `CursorAfkAnimation.as` | 앱 호출 0회 → **테스트 전용 표시**(작성자 하네스가 AFK 자세 확인) |
+| B3 | `get isRunning()` | `CursorAfkAnimation.as` | → **R1 수정(`404615e`)에서 사용됨(해소)** |
+| B4 | `get isArmed()` | `ReplayAnim.as` | → R2 작업(`if (anim.isArmed) anim.disarm();`)으로 **사용됨(해소)**. 동작 변화 없음(2.6 참고) |
+| B5 | `get totalMs()` | `ReplayClock.as` | 앱 호출 0회 → **테스트 전용 표시** |
+| B6 | `get frameCount()` | `ReplayClock.as` | 앱 호출 0회 → **테스트 전용 표시** |
+| B7 | `afkRemainingMs()` | `ReplayClock.as` | 앱 호출 0회(시크바 AFK 카운트다운 삭제 후 잔존) → **테스트 전용 표시**(하네스가 AFK 남은 시간 검증) |
+| B8 | `remainingRealMs()` | `ReplayClock.as` | 앱 호출 0회(앱은 `remainingRealMsAt` 사용) → **테스트 전용 표시** |
+| B9 | `remainingMsFrom()` | `ReplayClock.as` | 앱 호출 0회 → **테스트 전용 표시** |
+| B10 | `INFO_FIRST_FRAME`/`INFO_FRAME_COUNT`/`INFO_START_TIME`/`INFO_DURATION` | `TimingSheet.as` | 앱 호출 0회 → **테스트 전용 표시로 유지**(B12/B13이 쓰는 구간 정보 배열 형식) |
+| B11 | `toTimes()` | `TimingSheet.as` (삭제) | **삭제 완료** (누적 시각은 `ReplayClock.loadSegment`가 계산) |
+| B12 | `findSegmentByFrame()` | `TimingSheet.as` | 앱 호출 0회 → **테스트 전용 표시로 복구**(낡은 하네스 `timing_sheet`가 5곳에서 사용) |
+| B13 | `findSegmentByTime()` | `TimingSheet.as` | 앱 호출 0회 → **테스트 전용 표시로 복구**(낡은 하네스가 4곳에서 사용) |
+| B14 | `findSegment()` (private) | `TimingSheet.as` | B12/B13 전용 이분 탐색 헬퍼 → **테스트 전용 표시로 복구** |
+| B15 | `get isAfkBoxVisible()` | `FOFOCursorSet.as` | 앱 호출 0회 → **테스트 전용 표시**(작성자 하네스가 AFK 상자 표시 확인) |
+| B16 | `getAfkBoxBounds()` | `FOFOCursorSet.as` | 앱 호출 0회 → **테스트 전용 표시**(작성자 하네스가 상자 위치/크기 검증) |
 
 추가 정리 대상(코드 데드는 아니지만 낡음):
 
-- `test-output/timing_sheet/TimingSheetTest.as`: `TimingSheet.decodeSegment(blob, n)`(2인자), `findSegmentByFrame(infos, frame)` 형태를 사용 → **현재 소스로는 컴파일 불가**. 하네스를 최신 API로 고치거나 삭제 필요.
+- `test-output/timing_sheet/TimingSheetTest.as`: `TimingSheet.decodeSegment(blob, n)`(2인자), `findSegmentByFrame(infos, frame)` 형태를 사용 → **현재 소스로는 컴파일 불가**(정리 전에도 이미 불가). 이번 정리로 `findSegment*`가 삭제되어 참조만 늘었으니, 최신 API로 고치거나 삭제 필요.
 - 반대로 `test-output/realtime_rec/RealtimeRecTest.as`(작성자 하네스, 1038줄)는 현재 API와 맞고 최근 실행 기록도 정상입니다(부록 A).
 
-삭제 시 주의: B5/B6/B15/B16은 기존 테스트 하네스가 사용합니다. 하네스 유지가 필요하면 삭제 대신 "테스트 전용" 주석을 남기는 편이 안전합니다. B1~B4, B7~B14는 앱/하네스 어디서도 쓰이지 않습니다.
+정리 결과: **앱 미사용 삭제는 2개**(B1 `MAX_AFK_SECONDS`, B11 `toTimes`), **나머지는 "테스트 전용" 표시로 유지/복구**(B2, B5~B9, B10, B12~B16 — 12개 심볼).
+초기 정리에서 B10/B12~B14도 삭제했으나, 하네스 `test-output/timing_sheet/TimingSheetTest.as`가 `findSegmentByFrame`(5곳)/`findSegmentByTime`(4곳)을 사용하고 있어 **복구 + 테스트 전용 주석**으로 되돌렸습니다(그 하네스는 `decodeSegment` 2인자 호출 때문에 정리 전/후 모두 컴파일 불가 — 복구로 원래 상태로 회귀).
+남은 하네스 사용처: `realtime_rec`(AFK 커서 자세·상자 위치·시계 총량·AFK 남은 시간), `timing_sheet`(구간 정보 배열 검색), `rt2-review`(시계 총량·AFK 남은 시간). 이 심볼들을 완전히 지우려면 하네스 3종의 호출부를 함께 고쳐야 합니다.
 
 ## 4. 중복 호출/성능 의심 검토 결과
 
@@ -390,6 +395,8 @@ cmd.exe /c "D:\adobe_air_sdk_manager\AIRSDK_51.3.4\bin\adl.exe -profile extended
 - R5 성능 실측(같은 실행 로그, 실행마다 조금씩 다름): `PERF points read x400 over 3000 records: new(index)=29ms old(scan)=148ms` (직전 실행 47ms vs 213ms)
 - 전체 앱 컴파일 확인: `sh .../amxmlc -source-path+=E:/fofopaint-source/src ... src/Main.as` → 오류 0 / 경고 0 (`test-output/rt2-review/check-app.swf`)
 - 컴파일러 경고: R7 수정(`e1c7aa2`) 이후 0건 (수정 전에는 `ReplayClock.as:358` 1건).
+- R8/데드 코드 정리 후 검증: 앱 컴파일 오류 0/경고 0 + 하네스 2종 컴파일 성공(`rt2-review` 181 pass / `realtime_rec` 컴파일 성공)
+- 낡은 하네스 `timing_sheet/TimingSheetTest.as`: 복구 덕분에 `findSegment*` 참조는 정상이고, `decodeSegment(blob, n)` 2인자 호출 때문에 정리 전과 동일하게 컴파일 불가(최신 API로 고치거나 삭제 필요)
 - 이 하네스는 `src/`를 건드리지 않는 별도 테스트 스크립트이며, 필요 없으면 폴더째 삭제해도 됩니다.
 
 ### B. 기존 하네스 산출물(작성자 실행 기록)

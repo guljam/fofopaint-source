@@ -101,12 +101,13 @@
 			afkBox.visible = false;
 		}
 
+		// AFK 상자가 보이는지 (테스트 하네스 test-output 전용, 앱 코드 호출 없음)
 		public function get isAfkBoxVisible():Boolean
 		{
 			return afkBox.visible;
 		}
 
-		// 상자 영역을 target 좌표계로 돌려줌 (위치 확인용)
+		// 상자 영역을 target 좌표계로 돌려줌 (테스트 하네스 전용, 앱 코드 호출 없음)
 		public function getAfkBoxBounds(target:DisplayObject):Rectangle
 		{
 			return afkBox.getBounds(target);

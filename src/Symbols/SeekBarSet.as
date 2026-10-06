@@ -42,8 +42,8 @@
 			updatePos(stage.stageWidth);
 		}
 
-		// AFK(오래 쉬는 구간) 안내를 시크바 아래 왼쪽에 보여줌. 글자는 prograssInfo와 같은 글꼴
-		// 쉬는 구간을 시크바 트랙 위에 어둡게 표시. ranges는 [시작 비율, 끝 비율] 쌍(0~1)을 이어붙인 목록
+		// 쉬는(AFK) 구간을 시크바 트랙 위에 어둡게 표시. ranges는 [시작 비율, 끝 비율] 쌍(0~1)을 이어붙인 목록
+		// 폭이 1px 이상이면 그 폭만큼, 1px 미만이면 그 자리에 1px 눈금만 그림
 		public function setAfkRanges(ranges:Vector.<Number>):void
 		{
 			afkRanges = ranges;

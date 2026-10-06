@@ -15,7 +15,6 @@ package Modules.ReplayEngine
         // ---- 공통
         public static const RETURN_MS:Number = 200; // AFK가 끝난 뒤 원래 모양으로 감속(ease-out)하며 돌아가는 시간, 0이면 바로 돌아감
         public static const BLEND_IN_MS:Number = 100; // 연출이 시작할때 직전 모양에서 연출 모양으로 이어지는 시간 (복귀 도중에 다시 시작해도 튀지 않게)
-        public static const MAX_AFK_SECONDS:Number = 5; // AFK가 가장 길게 이어지는 시간(초), 점점 변하는 연출의 최대 크기를 미리 계산해서 AFK 상자 위치를 정하는데 씀
 
         // ---- 시험용 고정 선택 (-1이면 무작위). Utils.testFoFoCursorAnim이 바꿈
         public static var forceKind:int = -1;
@@ -116,7 +115,7 @@ package Modules.ReplayEngine
             return true;
         }
 
-        // 지금 커서에 적용된 모양 (확인, 시험용)
+        // 지금 커서에 적용된 모양 (테스트 하네스 test-output 전용, 앱 코드 호출 없음)
         public static function get currentPose():Object
         {
             return {spin: spin, scaleX: scaleX, scaleY: scaleY, axis: axis, offsetX: offsetX, offsetY: offsetY, kind: kind, variant: variant, mode: mode};

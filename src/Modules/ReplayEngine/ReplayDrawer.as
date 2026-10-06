@@ -689,7 +689,7 @@ package Modules.ReplayEngine
         }
 
         // 반환값: 리플레이를 정지해야 하면 true
-        // 연출이 있는 명령(fill5, lasso2, move*)이면 실행하기 직전에 연출을 준비시킴. 실제 연출은 명령이 실행되면서 시작함
+        // 연출이 있는 명령(fill5, lasso2, line4, move, move1, move2)이면 실행하기 직전에 연출을 준비시킴. 실제 연출은 명령이 실행되면서 시작함
         // 실제 재생 시간이 너무 짧거나 이미 연출이 끝난 시각이면 준비하지 않음
         private static function prepareFrameAnim():void
         {

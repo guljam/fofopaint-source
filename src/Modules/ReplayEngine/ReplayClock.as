@@ -56,11 +56,13 @@ package Modules.ReplayEngine
         private static var afkEnd:Number = -1; // AFK 중이면 공백이 끝나는 녹화 시각, 아니면 -1
         private static var afkSkipAt:Number = 0; // AFK 중이면 자동으로 건너뛰는 녹화 시각 (공백 시작 + CAP_MS * 배속)
 
+        // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음 (지우려면 하네스 호출부도 함께 수정)
         public static function get totalMs():Number
         {
             return totalTime;
         }
 
+        // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음
         public static function get frameCount():Number
         {
             return totalFrames;
@@ -623,6 +625,7 @@ package Modules.ReplayEngine
         }
 
         // 자동으로 건너뛰기까지 남은 실제 시간(ms). 공백 처음에서 시작하면 CAP_MS이고, 중간에서 이어 재생하면 그만큼 줄어든 값
+        // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음 (시크바 AFK 카운트다운 삭제 후 남음)
         public static function afkRemainingMs(speed:Number):Number
         {
             if (afkEnd < 0)
@@ -715,6 +718,7 @@ package Modules.ReplayEngine
         }
 
         // frame개를 그린 상태에서의 예상 남은 실제 시간(ms)
+        // 테스트 하네스(test-output) 전용. 앱은 remainingRealMsAt를 직접 씀
         public static function remainingRealMs(frame:Number, speed:Number):Number
         {
             return remainingRealMsAt(timeOfFrame(frame - 1), speed);
@@ -738,6 +742,7 @@ package Modules.ReplayEngine
         }
 
         // frame개를 그린 상태에서 남은 녹화 시간(ms). 표시용
+        // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음
         public static function remainingMsFrom(frame:Number):Number
         {
             return Math.max(0, totalTime - timeOfFrame(frame - 1));

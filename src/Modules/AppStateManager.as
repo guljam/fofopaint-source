@@ -60,8 +60,8 @@ package Modules
         public static var undoDataFilePath:File;
         public static var myPaletteDataFilePath:File;
         public static var replayDataFilePath:File;
-        public static var replayTimingSheetFilePath:File;
-        public static var replayTimingPointsFilePath:File; // 점마다 시각이 필요한 명령(line4)의 점별 시각 (TimingSheetFile) // repdata 프레임마다의 시간 간격 (TimingSheetFile)
+        public static var replayTimingSheetFilePath:File; // repdata 프레임마다의 시간 간격 (TimingSheetFile)
+        public static var replayTimingPointsFilePath:File; // 점마다 시각이 필요한 명령(line4)의 점별 시각 (TimingSheetFile)
         private static var isRebuildFromReplayFileNeeded:Boolean = false; // loadUndoData에서 저장본이 리플레이 파일과 맞지 않아 쓰지 못했을때
         public static var replayCacheImageFolderPath:File;
         public static var replayCacheImageTempFolderPath:File; // worker가 캐시 이미지를 쓰는 곳, main이 확인 후 imagecache로 옮김
