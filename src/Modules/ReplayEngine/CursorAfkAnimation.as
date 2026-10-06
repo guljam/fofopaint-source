@@ -168,19 +168,16 @@ package Modules.ReplayEngine
             }
         }
 
-        // 연출이 몸통을 키우는 최대 배율과 위로 더 올라가는 최대 거리 (AFK는 MAX_AFK_SECONDS를 넘지 않으므로 그 시점의 값)
+        // 연출이 몸통을 키우는 최대 배율과 위로 더 올라가는 최대 거리 (AFK는 MAX_AFK_SECONDS를 넘지 않으므로 그 시점의 값). 늘어짐은 제외
         private static function extentsOf(forKind:int, forVariant:int):Object
         {
             var factor:Number = 1;
             var up:Number = 0;
 
+            // 늘어짐(KIND_STRETCH)은 상자를 옮기지 않고 기본 간격(AFK_BOX_GAP)에 고정함 (늘어나는 몸통이 상자와 겹쳐도 괜찮음)
             if (forKind === KIND_JUMP)
             {
                 up = JUMP_HEIGHT_PX[forVariant];
-            }
-            else if (forKind === KIND_STRETCH)
-            {
-                factor = Math.min(STRETCH_MAX, 1 + STRETCH_RATE_PER_SEC * MAX_AFK_SECONDS);
             }
             else if (forKind === KIND_GROW)
             {
