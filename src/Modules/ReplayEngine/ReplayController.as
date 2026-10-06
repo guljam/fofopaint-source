@@ -75,6 +75,7 @@ package Modules.ReplayEngine
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
+            ReplayDrawer.rReplayFOFOCursor.initWaitingTextBox(seekBarBox.prograssInfo.defaultTextFormat, seekBarBox.prograssInfo.embedFonts);
         }
 
         public static function createNewFileFromReplayCanvas():void
@@ -1018,11 +1019,9 @@ package Modules.ReplayEngine
                 isAfkBoxShown = false;
                 ReplayDrawer.rReplayFOFOCursor.hideAfkBox();
             }
-
-            CursorAfkAnimation.stop();
         }
 
-        // 시계가 AFK(쉬는 구간을 기다리는 중)이면 커서에 AFK 연출(CursorAfkAnimation)을 주고 커서 위에 검정 배경, 흰 테두리의 "afk" 상자를 띄우고, 아니면 원래대로
+        // 시계가 Replay Waiting(쉬는 구간을 기다리는 중)이면 커서에 Replay Waiting 연출(CursorAfkAnimation)을 주고 커서 위에 검정 배경, 흰 테두리의 "Replay Waiting" 상자를 띄우고, 아니면 원래대로
         // 매 틱 부르지만 상태가 바뀔때만 갱신함
         private static function updateAfkState():void
         {
@@ -1032,20 +1031,17 @@ package Modules.ReplayEngine
                 return;
             }
 
-            if (!isAfkBoxShown || !CursorAfkAnimation.isRunning)
+            if (!isAfkBoxShown)
             {
                 // 연출이 취소됐다가 다시 시작하면 종류가 바뀔 수 있으므로 상자 위치도 새 범위로 다시 잡음
-                const extents:Object = CursorAfkAnimation.start();
 
                 if (!isAfkBoxShown)
                 {
                     isAfkBoxShown = true;
-                    // 상자 글꼴은 시크바 글자와 같은 것을 씀
-                    ReplayDrawer.rReplayFOFOCursor.configureAfkBox(seekBarBox.prograssInfo.defaultTextFormat, seekBarBox.prograssInfo.embedFonts);
                 }
 
                 // 연출이 몸통을 키우거나 올리는 범위 바깥에 상자를 놓음
-                ReplayDrawer.rReplayFOFOCursor.showAfkBox(ReplayDrawer.rCanvasPanel, new Rectangle(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT), extents.scaleFactor, extents.extraUp);
+                ReplayDrawer.rReplayFOFOCursor.showAfkBox();
             }
         }
 

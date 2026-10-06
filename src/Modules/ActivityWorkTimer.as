@@ -96,6 +96,7 @@ package Modules
             UIController.topBar.timerAFkDot.visible = false;
             UIController.topBar.updateTimerPos(main.stage.stageWidth);
         }
+
         private static function onTimer(event:TimerEvent):Boolean
         {
             const nowTime:int = getTimer();

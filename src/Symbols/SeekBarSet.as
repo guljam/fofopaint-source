@@ -15,8 +15,8 @@
 	{
 		private var replayBGBar:Sprite = new Sprite();
 		private var deleteRangeBar:Sprite = new Sprite();
-		private var afkRangeBar:Sprite = new Sprite(); // 쉬는(AFK) 구간을 트랙 위에 어둡게 칠하는 층
-		private var afkRanges:Vector.<Number> = new Vector.<Number>(); // 마지막으로 받은 구간 비율 쌍 (0~1)
+		private var replayWaitingRangeBar:Sprite = new Sprite(); // 쉬는(Replay Waiting) 구간을 트랙 위에 어둡게 칠하는 층
+		private var replayWaitingList:Vector.<Number> = new Vector.<Number>(); // 마지막으로 받은 구간 비율 쌍 (0~1)
 		public var trackBar:Sprite = new Sprite();
 		public var prograssBar:Sprite = new Sprite();
 		public var prograssInfo:TextField;
@@ -42,25 +42,25 @@
 			updatePos(stage.stageWidth);
 		}
 
-		// 쉬는(AFK) 구간을 시크바 트랙 위에 어둡게 표시. ranges는 [시작 비율, 끝 비율] 쌍(0~1)을 이어붙인 목록
+		// 쉬는(Replay Waiting) 구간을 시크바 트랙 위에 어둡게 표시. ranges는 [시작 비율, 끝 비율] 쌍(0~1)을 이어붙인 목록
 		// 폭이 1px 이상이면 그 폭만큼, 1px 미만이면 그 자리에 1px 눈금만 그림
 		public function setAfkRanges(ranges:Vector.<Number>):void
 		{
-			afkRanges = ranges;
+			replayWaitingList = ranges;
 			redrawAfkRanges();
 		}
 
 		private function redrawAfkRanges():void
 		{
-			const g:Graphics = afkRangeBar.graphics;
+			const g:Graphics = replayWaitingRangeBar.graphics;
 			g.clear();
 			const w:Number = trackBar.width;
 			const h:Number = trackBar.height;
 
-			for (var i:int = 0; i < afkRanges.length; i += 2)
+			for (var i:int = 0; i < replayWaitingList.length; i += 2)
 			{
-				const x0:Number = w * afkRanges[i];
-				const width:Number = w * (afkRanges[i + 1] - afkRanges[i]);
+				const x0:Number = w * replayWaitingList[i];
+				const width:Number = w * (replayWaitingList[i + 1] - replayWaitingList[i]);
 
 				if (width >= 1)
 				{
@@ -78,8 +78,8 @@
 				g.endFill();
 			}
 
-			afkRangeBar.x = trackBar.x;
-			afkRangeBar.y = trackBar.y;
+			replayWaitingRangeBar.x = trackBar.x;
+			replayWaitingRangeBar.y = trackBar.y;
 		}
 
 		public function updateReplayPrograssBarWidthByNowFame(frameRaio:Number):void
@@ -298,15 +298,15 @@
 			addChild(replayBGBar);
 			addChild(trackBar);
 			addChild(prograssBar);
-			afkRangeBar.mouseEnabled = false;
-			afkRangeBar.mouseChildren = false;
+			replayWaitingRangeBar.mouseEnabled = false;
+			replayWaitingRangeBar.mouseChildren = false;
 			addChild(deleteRangeBar);
-			addChild(afkRangeBar);
+			addChild(replayWaitingRangeBar);
 			setChildIndex(replayBGBar, 0);
 			setChildIndex(trackBar, 1);
 			setChildIndex(prograssBar, 2);
 			setChildIndex(deleteRangeBar, 3);
-			setChildIndex(afkRangeBar, 2); // 트랙 위, 진행 막대 아래
+			setChildIndex(replayWaitingRangeBar, 2); // 트랙 위, 진행 막대 아래
 		}
 
 		[Embed(source="fofoPaint-animate-27.13.swf",symbol="seekBarSet")]

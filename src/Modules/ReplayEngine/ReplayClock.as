@@ -13,7 +13,7 @@ package Modules.ReplayEngine
     // 시각은 파일 구간(10000프레임)을 하나씩만 풀어서 구하고, 파일 뒤의 메모리 undo 묶음은 기록해둔 시각에서 구함
     public final class ReplayClock
     {
-        // 쉬는(AFK) 구간 규칙
+        // 쉬는(Replay Waiting) 구간 규칙
         //   실제로 기다리는 시간이 CAP_MS를 넘으면 CAP_MS만 기다리고 다음 프레임으로 건너뜀 (자동 건너뛰기)
         //   건너뛰기 직전에 어색하게 조금만 건너뛰지 않도록, 실제 대기가 ENTRY_MS(캡보다 약간 큼) 이상인 공백부터 캡을 적용함
         //   녹화 길이로는 공백 g가 ENTRY_MS * 배속 이상이면 캡 대상
@@ -53,8 +53,8 @@ package Modules.ReplayEngine
         private static var rememberedFrame:Number = -1;
         private static var rememberedRecorded:Number = 0;
 
-        private static var afkEnd:Number = -1; // AFK 중이면 공백이 끝나는 녹화 시각, 아니면 -1
-        private static var afkSkipAt:Number = 0; // AFK 중이면 자동으로 건너뛰는 녹화 시각 (공백 시작 + CAP_MS * 배속)
+        private static var replayWaitingEnd:Number = -1; // Replay Waiting 중이면 공백이 끝나는 녹화 시각, 아니면 -1
+        private static var replayWaitingSkipAt:Number = 0; // Replay Waiting 중이면 자동으로 건너뛰는 녹화 시각 (공백 시작 + CAP_MS * 배속)
 
         // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음 (지우려면 하네스 호출부도 함께 수정)
         public static function get totalMs():Number
@@ -77,7 +77,7 @@ package Modules.ReplayEngine
             cachedSegment = -1;
             cachedTimes = null;
             cachedAnims = null;
-            afkEnd = -1;
+            replayWaitingEnd = -1;
             axisSpeed = -1;
 
             segmentStart = new Vector.<Number>();
@@ -504,7 +504,7 @@ package Modules.ReplayEngine
             rememberedFrame = -1;
             anchorReal = getTimer();
             anchorSpeed = speed;
-            afkEnd = -1;
+            replayWaitingEnd = -1;
         }
 
         // 일시정지하거나 시크바를 클릭한 때 frame개를 그린 상태와 그 녹화 시각을 기억해둠. 프레임이 바뀌면 anchorAtFrame이 무시함
@@ -536,13 +536,13 @@ package Modules.ReplayEngine
             return anchorRecorded + (getTimer() - anchorReal) * anchorSpeed;
         }
 
-        // 지금 그려야 하는 프레임 수. AFK 중이면 그리지 않고 현재 프레임 수 그대로
+        // 지금 그려야 하는 프레임 수. Replay Waiting 중이면 그리지 않고 현재 프레임 수 그대로
         // drawnFrames: 지금까지 그린 프레임 수
         public static function frameCountDue(drawnFrames:Number, speed:Number):Number
         {
             const recorded:Number = recordedNow(speed);
 
-            // 다음 프레임이 AFK 공백 뒤에 있으면 공백이 끝날때까지 기다림
+            // 다음 프레임이 Replay Waiting 공백 뒤에 있으면 공백이 끝날때까지 기다림
             if (drawnFrames < totalFrames && drawnFrames > 0)
             {
                 // 앞 프레임의 연출(도구를 쓰던 시간)은 쉬는 시간이 아니라서 연출이 끝난 시각부터 셈
@@ -552,10 +552,10 @@ package Modules.ReplayEngine
                 if (recorded >= gapStart && gapEnd - gapStart >= ENTRY_MS * speed && recorded < gapEnd)
                 {
                     // 공백 시작부터 유지 길이(CAP_MS * 배속)까지만 기다리고 그 뒤는 건너뜀. 중간에서 이어 재생하면 남은 만큼만 기다림
-                    afkEnd = gapEnd;
-                    afkSkipAt = gapStart + CAP_MS * speed;
+                    replayWaitingEnd = gapEnd;
+                    replayWaitingSkipAt = gapStart + CAP_MS * speed;
 
-                    if (recorded < afkSkipAt)
+                    if (recorded < replayWaitingSkipAt)
                     {
                         return drawnFrames;
                     }
@@ -563,30 +563,30 @@ package Modules.ReplayEngine
                     // 시한이 지나면 자동으로 공백 끝까지 건너뜀
                     anchorRecorded = gapEnd;
                     anchorReal = getTimer();
-                    afkEnd = -1;
+                    replayWaitingEnd = -1;
                     return Math.max(drawnFrames, framesDueAt(gapEnd));
                 }
             }
 
-            afkEnd = -1;
+            replayWaitingEnd = -1;
             return Math.max(drawnFrames, framesDueAt(recorded));
         }
 
         public static function get isAfk():Boolean
         {
-            return afkEnd >= 0;
+            return replayWaitingEnd >= 0;
         }
 
         // 자동으로 건너뛰기까지 남은 실제 시간(ms). 공백 처음에서 시작하면 CAP_MS이고, 중간에서 이어 재생하면 그만큼 줄어든 값
-        // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음 (시크바 AFK 카운트다운 삭제 후 남음)
-        public static function afkRemainingMs(speed:Number):Number
+        // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음 (시크바 Replay Waiting 카운트다운 삭제 후 남음)
+        public static function replayWaitingRemainingMs(speed:Number):Number
         {
-            if (afkEnd < 0)
+            if (replayWaitingEnd < 0)
             {
                 return 0;
             }
 
-            return Math.max(0, (Math.min(afkSkipAt, afkEnd) - recordedPeek()) / speed);
+            return Math.max(0, (Math.min(replayWaitingSkipAt, replayWaitingEnd) - recordedPeek()) / speed);
         }
 
         // 시크바 위치(0~1). 프레임 수가 아니라 녹화 시간을 쉬는 구간이 줄어든 축에 놓은 값. frame개를 그린 상태의 위치
@@ -624,7 +624,7 @@ package Modules.ReplayEngine
             return Math.min(totalFrames, framesDueAt(ratioToTime(ratio)));
         }
 
-        // 재생 중 시크바 위치. 그린 프레임이 아니라 시계가 흐르는 대로 움직여서 쉬는 구간(AFK)에도 바가 계속 감
+        // 재생 중 시크바 위치. 그린 프레임이 아니라 시계가 흐르는 대로 움직여서 쉬는 구간(Replay Waiting)에도 바가 계속 감
         public static function playRatio(speed:Number):Number
         {
             const length:Number = axisMs;

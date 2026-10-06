@@ -312,10 +312,6 @@ package Modules.ReplayEngine
                 }
             }
 
-            if(!ReplayState.isReplaySlideShowMode)
-            {
-                CursorAfkAnimation.stop();
-            }
             anim.clear();
 
             rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);

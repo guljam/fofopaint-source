@@ -11,106 +11,76 @@
 	public class FOFOCursorSet extends Sprite
 	{
 		private var fofoCursor:SimpleButton;
-		// AFK 연출용 안쪽 레이어. 바깥(this)의 위치/회전/크기는 펜 위치, 캔버스 회전 상쇄, 줌 보정에 쓰이므로 건드리지 않음
-		// 모두 몸통(그림) 중심이 기준점이고 바깥에서 안쪽 순서: 이동(점프) > 늘어짐/커짐(축 방향 스케일) > 늘어짐 축 되돌림 > 회전 > 그림
-		private var moveLayer:Sprite = new Sprite();
-		private var scaleLayer:Sprite = new Sprite();
-		private var axisLayer:Sprite = new Sprite(); // 늘어지는 축만큼 돌린 scaleLayer를 되돌려서 회전, 그림 방향은 그대로 유지
-		private var spinLayer:Sprite = new Sprite();
-		// 몸통의 중심과 반경(중심에서 가장 먼 모서리까지), AFK 상자를 연출하는 몸통에 닿지 않는 자리에 놓는데 씀
-		private var spinCenterX:Number = 0;
-		private var spinCenterY:Number = 0;
-		private var spinRadius:Number = 0;
 		// 리플레이가 쉬는(AFK) 구간을 기다리는 동안 커서 위에 띄우는 검정 배경, 흰 테두리, 흰 글씨의 "afk" 상자. 회전 레이어 바깥이라 같이 돌지 않음
-		private static const AFK_BOX_GAP:Number = 3; // 상자와 몸통 회전 반경 사이 간격
-		private static const AFK_BOX_BORDER:Number = 2; // 흰색 테두리 두께
-		private static const AFK_BOX_RADIUS:Number = 4; // 모서리 둥글기 (반지름)
-		private static const AFK_BOX_PAD_X:Number = 3; // 테두리 안쪽 글자 여백
-		private static const AFK_BOX_PAD_Y:Number = 1;
-		private var afkBox:Sprite = new Sprite();
-		private var afkText:TextField = new TextField();
-		private var isAfkBoxConfigured:Boolean = false;
-
-		// 몸통 중심 기준으로 모양을 바꿈 (화면 기준이라 캔버스 회전과 상관없음)
-		//   spin: 회전각(도), scaleX, scaleY: axis 방향과 그 직각 방향의 배율, axis: 늘어지는 축 각도(도), offsetX, offsetY: 이동(커서 좌표 px)
-		//   모두 기본값(0, 1, 1, 0, 0, 0)이면 이전과 똑같이 보임
-		public function setPose(spin:Number, scaleX:Number, scaleY:Number, axis:Number, offsetX:Number, offsetY:Number):void
-		{
-			moveLayer.x = spinCenterX + offsetX;
-			moveLayer.y = spinCenterY + offsetY;
-			scaleLayer.rotation = axis;
-			scaleLayer.scaleX = scaleX;
-			scaleLayer.scaleY = scaleY;
-			axisLayer.rotation = -axis;
-			spinLayer.rotation = spin;
-		}
+		private static const WAITING_BOX_GAP:Number = 3; // 상자와 몸통 회전 반경 사이 간격
+		private static const WAITING_BOX_BORDER:Number = 2; // 흰색 테두리 두께
+		private static const WAITING_BOX_RADIUS:Number = 4; // 모서리 둥글기 (반지름)
+		private static const WAITING_BOX_PAD_X:Number = 3; // 테두리 안쪽 글자 여백
+		private static const WAITING_BOX_PAD_Y:Number = 1;
+		private var waitingBox:Sprite = new Sprite();
+		private var waitBoxText:TextField = new TextField();
+		private var isWaitingBoxInitialized:Boolean = false;
 
 		// AFK 상자의 글꼴을 정함 (앱의 다른 글자와 같은 글꼴을 쓰도록 이미 쓰는 TextFormat을 받음). 처음 한번만 하면 됨
-		public function configureAfkBox(format:TextFormat, embedFonts:Boolean):void
+		public function initWaitingTextBox(format:TextFormat, embedFonts:Boolean):void
 		{
-			if (isAfkBoxConfigured)
+			if (isWaitingBoxInitialized)
 			{
 				return;
 			}
-
-			isAfkBoxConfigured = true;
-			afkText.defaultTextFormat = format;
-			afkText.embedFonts = embedFonts;
-			afkText.selectable = false;
-			afkText.mouseEnabled = false;
-			afkText.autoSize = TextFieldAutoSize.LEFT;
-			afkText.textColor = 0xFFFFFF;
-			afkText.text = "afk";
-			afkText.x = AFK_BOX_BORDER + AFK_BOX_PAD_X;
-			afkText.y = AFK_BOX_BORDER + AFK_BOX_PAD_Y;
+			// 상자 글꼴은 시크바 글자와 같은 것을 씀
+			isWaitingBoxInitialized = true;
+			waitBoxText.defaultTextFormat = format;
+			waitBoxText.embedFonts = embedFonts;
+			waitBoxText.selectable = false;
+			waitBoxText.mouseEnabled = false;
+			waitBoxText.autoSize = TextFieldAutoSize.LEFT;
+			waitBoxText.textColor = 0xFFFFFF;
+			waitBoxText.text = "waiting...";
+			waitBoxText.x = WAITING_BOX_BORDER + WAITING_BOX_PAD_X;
+			waitBoxText.y = WAITING_BOX_BORDER + WAITING_BOX_PAD_Y;
 			// 검정 배경에 흰색 테두리, 모서리는 약간 둥글게. 테두리 선이 상자 바깥 크기 안에 들어오도록 반 두께만큼 안쪽으로 그림
-			const boxW:Number = afkText.width + (AFK_BOX_BORDER + AFK_BOX_PAD_X) * 2;
-			const boxH:Number = afkText.height + (AFK_BOX_BORDER + AFK_BOX_PAD_Y) * 2;
-			afkBox.graphics.clear();
-			afkBox.graphics.lineStyle(AFK_BOX_BORDER, 0xFFFFFF, 1, true);
-			afkBox.graphics.beginFill(0x000000);
-			afkBox.graphics.drawRoundRect(AFK_BOX_BORDER / 2, AFK_BOX_BORDER / 2, boxW - AFK_BOX_BORDER, boxH - AFK_BOX_BORDER, AFK_BOX_RADIUS * 2, AFK_BOX_RADIUS * 2);
-			afkBox.graphics.endFill();
-			afkBox.addChild(afkText);
+			const boxW:Number = waitBoxText.width + (WAITING_BOX_BORDER + WAITING_BOX_PAD_X) * 2;
+			const boxH:Number = waitBoxText.height + (WAITING_BOX_BORDER + WAITING_BOX_PAD_Y) * 2;
+			waitingBox.graphics.clear();
+			waitingBox.graphics.lineStyle(WAITING_BOX_BORDER, 0xFFFFFF, 1, true);
+			waitingBox.graphics.beginFill(0x000000);
+			waitingBox.graphics.drawRoundRect(WAITING_BOX_BORDER / 2, WAITING_BOX_BORDER / 2, boxW - WAITING_BOX_BORDER, boxH - WAITING_BOX_BORDER, WAITING_BOX_RADIUS * 2, WAITING_BOX_RADIUS * 2);
+			waitingBox.graphics.endFill();
+			waitingBox.x = -14;
+			waitingBox.y = -fofoCursor.height+2;
+			waitingBox.addChild(waitBoxText);
 		}
 
 		// 몸통이 연출로 닿는 범위 바깥, 커서 위쪽에 상자를 보임. 위쪽이 limit(target 좌표계의 보여지는 영역, 보통 캔버스)을 벗어나면 아래쪽에 보임
 		// scaleFactor: 몸통이 커지는 최대 배율, extraUp: 위로 더 올라가는 최대 거리(점프)
-		public function showAfkBox(target:DisplayObject, limit:Rectangle, scaleFactor:Number = 1, extraUp:Number = 0):void
+		public function showAfkBox():void
 		{
-			if (!isAfkBoxConfigured)
+			if (!isWaitingBoxInitialized)
 			{
 				return;
 			}
 
-			const w:Number = afkBox.width;
-			const h:Number = afkBox.height;
-			afkBox.x = spinCenterX - w / 2;
-			const reach:Number = spinRadius * scaleFactor;
-			afkBox.y = spinCenterY - reach - extraUp - AFK_BOX_GAP - h;
-			afkBox.visible = true;
-
-			if (limit !== null && target !== null && !limit.containsRect(afkBox.getBounds(target)))
-			{
-				afkBox.y = spinCenterY + reach + AFK_BOX_GAP;
-			}
+			fofoCursor.visible = true;
+			waitingBox.visible = true;
 		}
 
 		public function hideAfkBox():void
 		{
-			afkBox.visible = false;
+			waitingBox.visible = false;
+			fofoCursor.visible = true;
 		}
 
 		// AFK 상자가 보이는지 (테스트 하네스 test-output 전용, 앱 코드 호출 없음)
 		public function get isAfkBoxVisible():Boolean
 		{
-			return afkBox.visible;
+			return waitingBox.visible;
 		}
 
 		// 상자 영역을 target 좌표계로 돌려줌 (테스트 하네스 전용, 앱 코드 호출 없음)
 		public function getAfkBoxBounds(target:DisplayObject):Rectangle
 		{
-			return afkBox.getBounds(target);
+			return waitingBox.getBounds(target);
 		}
 
 		public function setScale(newScale:Number):void
@@ -127,31 +97,16 @@
 			fofoCursor = new EmbeddedClass() as SimpleButton;
 			// 등록점(0,0)이 그림 왼쪽 아래라서 그림 중심으로 회전축을 옮김, 회전이 0이면 이전과 똑같이 보임
 			const bounds:Rectangle = fofoCursor.getBounds(fofoCursor);
-			const centerX:Number = bounds.x + bounds.width / 2;
-			const centerY:Number = bounds.y + bounds.height / 2;
-			spinCenterX = centerX;
-			spinCenterY = centerY;
-			spinRadius = Math.sqrt(bounds.width * bounds.width + bounds.height * bounds.height) / 2;
-			moveLayer.x = centerX;
-			moveLayer.y = centerY;
-			fofoCursor.x = -centerX;
-			fofoCursor.y = -centerY;
-			spinLayer.addChild(fofoCursor);
-			axisLayer.addChild(spinLayer);
-			scaleLayer.addChild(axisLayer);
-			moveLayer.addChild(scaleLayer);
-			moveLayer.mouseEnabled = false;
-			moveLayer.mouseChildren = false;
-			this.addChild(moveLayer);
-			afkBox.visible = false;
-			afkBox.mouseEnabled = false;
-			afkBox.mouseChildren = false;
-			this.addChild(afkBox);
-			visible = false;
+			waitingBox.visible = false;
+			waitingBox.mouseEnabled = false;
+			waitingBox.mouseChildren = false;
 			fofoCursor.mouseEnabled = false;
 			fofoCursor.useHandCursor = false;
+			this.visible = false;
 			this.mouseEnabled = false;
 			this.useHandCursor = false;
+			this.addChild(fofoCursor);
+			this.addChild(waitingBox);
 		}
 	}
 }

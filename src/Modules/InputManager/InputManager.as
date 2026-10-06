@@ -25,6 +25,8 @@ package Modules.InputManager
     import flash.events.MouseEvent;
     import flash.system.IME;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayController;
 
     public class InputManager
     {
@@ -539,9 +541,13 @@ package Modules.InputManager
         public static function onKeyUpStage(e:KeyboardEvent):void
         {
             // 디버그 확인용
-            // if(isPressedKey(KEY.f12))
-            // {
-            // }
+            if(isPressedKey(KEY.f12))
+            {
+                ReplayDrawer.rReplayFOFOCursor.initWaitingTextBox(ReplayController.seekBarBox.prograssInfo.defaultTextFormat, ReplayController.seekBarBox.prograssInfo.embedFonts);
+                main.stage.addChild(ReplayDrawer.rReplayFOFOCursor);
+                ReplayDrawer.rReplayFOFOCursor.visible = true;
+                ReplayDrawer.rReplayFOFOCursor.showAfkBox();
+            }
 
             checkInvalidKey();
             ImeController.logKeyUp(e);
