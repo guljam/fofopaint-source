@@ -107,7 +107,6 @@ package Modules.ReplayEngine
             }
 
             ReplayState.REPLAY_MAX_SPEED = maxSpeed;
-            refreshAfkRanges();
 
             if (UIController.topBar)
             {
@@ -117,8 +116,11 @@ package Modules.ReplayEngine
             if (ReplayState.rReplaySpeedMultipler > maxSpeed)
             {
                 ReplayState.rReplaySpeedMultipler = maxSpeed;
-                onReplaySpeedChanged();
             }
+
+            // 배속이 바뀌지 않았어도 축(쉬는 구간) 표시는 갱신해야 함
+            // onReplaySpeedChanged가 refreshAfkRanges를 포함하므로 여기서 한 번만 부름 (예전에는 클램프 때 두 번 그림)
+            onReplaySpeedChanged();
         }
 
         // 배속이 바뀌면 시크바 축(쉬는 구간의 유지 길이)이 달라지므로 표시와 위치를 다시 맞춤. 멈춰 있을때만 위치를 직접 갱신함 (재생 중에는 매 프레임 갱신됨)

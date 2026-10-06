@@ -10,7 +10,7 @@
 
 | 등급 | 의미 |
 |---|---|
-| [실행] | AIR SDK(51.3.4)로 헤드리스 하네스를 컴파일/실행해 확인 (`test-output/rt2-review`, 159개 체크 전부 통과, 부록 A) |
+| [실행] | AIR SDK(51.3.4)로 헤드리스 하네스를 컴파일/실행해 확인 (`test-output/rt2-review`, 164개 체크 전부 통과, 부록 A) |
 | [근거] | 소스 코드 인용 (`파일:라인`). 라인 번호는 커밋 `17f255d` 기준 |
 | [추론] | 코드만으로 확정 불가(렌더/실기기 확인 필요) — 6장에 별도 정리 |
 
@@ -29,7 +29,7 @@
 | R3 | **제외**(반증 성공) | 호출 2곳 모두 직후 버퍼를 비움 (5장 14번) |
 | R4 | 미반영(방어 코드는 선택 사항) | 2장 R4 |
 | R5 | **적용 완료**(작업 트리, 미커밋) — 실측 400회 47ms vs 213ms | 점 시각 파일 위치 색인 (2장 R5) |
-| R6 | 미반영(수정 시도 예정) | 2장 R6 |
+| R6 | **적용 완료**(작업 트리, 미커밋) | 중복 `refreshAfkRanges()` 제거, 갱신 1회 (2장 R6) |
 | R7 | **수정 완료** (`e1c7aa2`) — 검토 통과 | `memory === null`, 컴파일 경고 0 (2장 R7) |
 | R8 | 미반영(주석 4건) | 2장 R8 |
 | R9 | 미반영 | 2장 R9 |
@@ -202,8 +202,10 @@ updateAfkState(); // renderReplayFrame(내부에서 CursorAfkAnimation.stop) 뒤
 
 ### R6. 프레임 수/배속 변경 시 AFK 표시를 두 번 그림 (하, 중복)
 
+**적용 완료(작업 트리, 미커밋).** `refreshAfkRanges()` 단독 호출을 지우고 `onReplaySpeedChanged()`를 클램프 여부와 무관하게 **한 번만** 호출하도록 정리했습니다 → `getIdleMarks()` 계산과 시크바 `afkRangeBar` redraw가 함수 1회당 1회로 줄었습니다(예전에는 클램프 때 2회). 배속이 그대로인 경우에도 축/시크바 위치가 갱신되며(`onReplaySpeedChanged`는 `seekBarBox && !ReplayState.isReplayStarted`일 때만 위치를 직접 씀), 전체 앱 컴파일 오류 0/경고 0 + 하네스 `r6.*` 5건 통과입니다.
 
-- 위치: `updateTotalFrameAndReplayMaxSpeedFor10Sec()`(`ReplayController.as:97-121`): `:109 refreshAfkRanges()` 후 `:119 onReplaySpeedChanged()` → `:126 refreshAfkRanges()`.
+
+- 위치(수정 전 기준): `updateTotalFrameAndReplayMaxSpeedFor10Sec()`(`ReplayController.as:97-121`): `:109 refreshAfkRanges()` 후 `:119 onReplaySpeedChanged()` → `:126 refreshAfkRanges()`. 수정 후에는 `:123`의 `onReplaySpeedChanged()` 1회뿐입니다.
 - 결과: 배속이 최대치로 클램프되는 경우 `ReplayClock.getIdleMarks()`(전 구간 순회 + Vector 생성)와 `SeekBarSet`의 `afkRangeBar` 그래픽 clear/redraw가 한 번의 갱신에 두 번 수행.
 - 수정 제안(적용 안 함): 클램프 분기에서만 `onReplaySpeedChanged()`가 갱신하도록 정리.
 
@@ -305,7 +307,7 @@ if (elapsed >= totalMs)
 | `updateReplayPrograssBarWidthByNowFame`가 매 프레임 AFK 그래픽까지 다시 그림 | **아님** | `SeekBarSet.as:85-96`은 `prograssBar.width`만 설정. `redrawAfkRanges()`는 `updatePos`(`:148`)와 `setAfkRanges`(`:47-50`)에서만 호출 |
 | 재생 중 시크바 텍스트 갱신이 무거움(전 구간 순회) | 낮음 | `getReplayRemainingTimeString` → `remainingRealMsAt`이 `gapRanges`를 전부 순회(`ReplayClock.as:633-668`). 1초에 1회(`:929-938`)이므로 무시 가능 |
 | `recordedNow()`가 두 타이머(재생 틱/시크바 틱)에서 각각 호출되어 앵커가 흔들림 | **아님** | 동일 배속이면 앵커 재설정이 없음(`ReplayClock.as:516-530`). 배속이 바뀐 직후의 첫 호출에서만 이동 |
-| `refreshAfkRanges()` 중복 호출(R6) | 맞음(하) | `:109`와 `:119`→`:126` |
+| `refreshAfkRanges()` 중복 호출(R6) | 맞음(하) → **수정 완료(미커밋)** | 수정 전: `:109`와 `:119`→`:126`. 수정 후: `onReplaySpeedChanged()` 1회 |
 | `pc.replacePoint`류 값 객체 중복 유틸 | 해당 없음 | 이 범위에 값 객체 없음 |
 | `TimingSheetFile.frameCount`가 매번 파일 `size` 조회 | 낮음 | `alignTo`/`cutBefore`/`readRange`에서만 호출(`:110` `:197` `:481`), 구간 로딩은 세그먼트가 바뀔 때만 |
 | `readPoints` 선형 탐색(R5) | 맞음(하, 성능) | 위 R5 |
@@ -366,8 +368,8 @@ sh /d/adobe_air_sdk_manager/AIRSDK_51.3.4/bin/amxmlc \
 cmd.exe /c "D:\adobe_air_sdk_manager\AIRSDK_51.3.4\bin\adl.exe -profile extendedDesktop rt2review-app.xml E:/fofopaint-source/test-output/rt2-review"
 ```
 
-- 결과: `RESULT pass=159 fail=0` (`test-output/rt2-review/report.txt`) — R5 색인 검증 12건(`idx.*`, `perf.hits`) 포함
-- R5 성능 실측(같은 실행 로그): `PERF points read x400 over 3000 records: new(index)=47ms old(scan)=213ms`
+- 결과: `RESULT pass=164 fail=0` (`test-output/rt2-review/report.txt`) — R5 색인 검증 12건(`idx.*`, `perf.hits`) + R6 경로 스모크 5건(`r6.*`) 포함
+- R5 성능 실측(같은 실행 로그, 실행마다 조금씩 다름): `PERF points read x400 over 3000 records: new(index)=29ms old(scan)=148ms` (직전 실행 47ms vs 213ms)
 - 전체 앱 컴파일 확인: `sh .../amxmlc -source-path+=E:/fofopaint-source/src ... src/Main.as` → 오류 0 / 경고 0 (`test-output/rt2-review/check-app.swf`)
 - 컴파일러 경고: R7 수정(`e1c7aa2`) 이후 0건 (수정 전에는 `ReplayClock.as:358` 1건).
 - 이 하네스는 `src/`를 건드리지 않는 별도 테스트 스크립트이며, 필요 없으면 폴더째 삭제해도 됩니다.
