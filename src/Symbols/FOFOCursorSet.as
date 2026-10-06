@@ -17,7 +17,7 @@
 		private var spinCenterX:Number = 0;
 		private var spinCenterY:Number = 0;
 		private var spinRadius:Number = 0;
-		// 리플레이가 쉬는(AFK) 구간을 기다리는 동안 커서 위에 띄우는 빨간 "afk" 상자. 회전 레이어 바깥이라 같이 돌지 않음
+		// 리플레이가 쉬는(AFK) 구간을 기다리는 동안 커서 위에 띄우는 검정 배경, 흰 테두리, 흰 글씨의 "afk" 상자. 회전 레이어 바깥이라 같이 돌지 않음
 		private static const AFK_BOX_GAP:Number = 3;
 		private var afkBox:Sprite = new Sprite();
 		private var afkText:TextField = new TextField();
@@ -53,8 +53,10 @@
 			afkText.x = 3;
 			afkText.y = 1;
 			afkBox.graphics.clear();
-			afkBox.graphics.beginFill(0xE03A3E);
-			afkBox.graphics.drawRect(0, 0, afkText.width + 6, afkText.height + 2);
+			// 검정 배경에 흰색 1px 테두리 (선이 안쪽 가장자리에 걸리도록 반 픽셀 안으로 그림)
+			afkBox.graphics.lineStyle(1, 0xFFFFFF, 1, true);
+			afkBox.graphics.beginFill(0x000000);
+			afkBox.graphics.drawRect(0.5, 0.5, afkText.width + 5, afkText.height + 1);
 			afkBox.graphics.endFill();
 			afkBox.addChild(afkText);
 		}

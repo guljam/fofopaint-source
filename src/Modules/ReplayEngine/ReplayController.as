@@ -1008,7 +1008,7 @@ package Modules.ReplayEngine
 
         private static var isAfkBoxShown:Boolean = false;
 
-        // 시계가 AFK(쉬는 구간을 기다리는 중)이면 커서를 돌리고 커서 위에 빨간 "afk" 상자를 띄우고, 아니면 원래대로
+        // 시계가 AFK(쉬는 구간을 기다리는 중)이면 커서를 돌리고 커서 위에 검정 배경, 흰 테두리의 "afk" 상자를 띄우고, 아니면 원래대로
         // 매 틱 부르지만 상태가 바뀔때만 상자를 갱신함
         private static function updateAfkState():void
         {
