@@ -139,7 +139,7 @@ package Modules.ReplayEngine
         }
 
         // 묶음 하나의 명령들의 기록(packStamp 값)을 간격과 연출 길이로 바꿔서 이어 붙임. 앞 프레임까지 길이를 맞춘 다음에 씀
-        public static function appendGroup(stamps:Array, firstFrame:Number):void
+        public static function appendGroupAtFrame(stamps:Array, firstFrame:Number):void
         {
             alignTo(firstFrame);
 
@@ -255,7 +255,7 @@ package Modules.ReplayEngine
             const fs:FileStream = new FileStream();
             const kept:ByteArray = new ByteArray();
             fs.open(file, FileMode.READ);
-var c:int = 0;
+
             while (fs.bytesAvailable >= 8)
             {
                 const frame:uint = fs.readUnsignedInt();
@@ -283,7 +283,6 @@ var c:int = 0;
                         kept.writeUnsignedInt(value);
                     }
                 }
-                c++;
             }
 
             fs.close();

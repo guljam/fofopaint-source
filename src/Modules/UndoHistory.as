@@ -197,11 +197,9 @@ package Modules
                 fs.open(rf, FileMode.APPEND);
                 fs.writeObject(oldData);
                 fs.close();
-                TimingSheetFile.appendGroup(ReplayState.rMemoryDataTimingSheet[0], lastRDataTotalFrame);
-
                 oldData = null;
+                TimingSheetFile.appendGroupAtFrame(ReplayState.rMemoryDataTimingSheet[0], lastRDataTotalFrame);
                 ReplayState.increaseRFileDataTotalFrame(firstElementFrameCount);
-
                 ReplayDrawer.updateReplayCanvasFromUndoBaseInfo();
 
                 if (ReplayState.rReplayImageCacheState === ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE)
