@@ -25,7 +25,7 @@
 | 항목 | 상태 | 근거 |
 |---|---|---|
 | R1 | **수정 완료** (`404615e`) — 검토 통과 | `clearAfkState()` 단일화 + `updateAfkState` 재시작 조건. 전체 앱 컴파일 오류 0/경고 0 (2장 R1) |
-| R2 | **부분 수정** (`560728f`) — 잔여 회귀 R2-a/R2-b | 슬라이드쇼 경로 정리. 가드가 `anim.clear()`까지 감싸 연출 덮개가 남을 수 있음 (2장 R2) |
+| R2 | **수정 완료** (`560728f` + `15f4242`) — 검토 통과 | 슬라이드쇼 경로 정리 + `anim.clear()`를 가드 밖으로 + 전환 시 `clearAfkState()` (2장 R2) |
 | R3 | **제외**(반증 성공) | 호출 2곳 모두 직후 버퍼를 비움 (5장 14번) |
 | R4 | 미반영(방어 코드는 선택 사항) | 2장 R4 |
 | R5 | **적용 완료**(작업 트리, 미커밋) — 실측 400회 47ms vs 213ms | 점 시각 파일 위치 색인 (2장 R5) |
@@ -56,7 +56,7 @@
 
 ### R1. 시크바 드래그 경로에서 AFK 상자/연출 상태 불일치 (중)
 
-**수정 반영(커밋 `404615e`) — 검토 통과.** `clearAfkState()`(`ReplayController.as:1010-1020`)로 정리를 단일화하고 `onDragStart`(`:538`)·`stopReplay`(`:1455`)에서 부르며, `updateAfkState`는 `!isAfkBoxShown || !CursorAfkAnimation.isRunning`(`:1031`)일 때 연출을 (재)시작합니다. 제안한 형태와 같고, 전체 앱 컴파일(`src/Main.as`, strict+warnings)은 오류 0 / 경고 0입니다. 보강 관찰 2건(문제 아님): ① `onDragStart`의 호출은 재생 중일 때만 실행되는데 상자는 재생 중에만 표시되므로 미정리 상태가 도달하지 않음. ② `isAfk`가 참인데 커서가 숨겨진 상태가 되면 `tick()`이 `reset()`(mode=IDLE) 하므로 `updateAfkState`가 매 틱 `start()`를 다시 부를 수 있음 — 현재 흐름에서는 도달하지 않지만, 원하면 조건에 커서 표시 여부를 하나 더 두면 안전합니다.
+**수정 반영(커밋 `404615e`) — 검토 통과.** `clearAfkState()`(`ReplayController.as:1013-1023`)로 정리를 단일화하고 `onDragStart`(`:540`)·`stopReplay`(`:1458`)에서 부르며, `updateAfkState`는 `!isAfkBoxShown || !CursorAfkAnimation.isRunning`(`:1034`)일 때 연출을 (재)시작합니다. 제안한 형태와 같고, 전체 앱 컴파일(`src/Main.as`, strict+warnings)은 오류 0 / 경고 0입니다. 보강 관찰 2건(문제 아님): ① `onDragStart`의 호출은 재생 중일 때만 실행되는데 상자는 재생 중에만 표시되므로 미정리 상태가 도달하지 않음. ② `isAfk`가 참인데 커서가 숨겨진 상태가 되면 `tick()`이 `reset()`(mode=IDLE) 하므로 `updateAfkState`가 매 틱 `start()`를 다시 부를 수 있음 — 현재 흐름에서는 도달하지 않지만, 원하면 조건에 커서 표시 여부를 하나 더 두면 안전합니다.
 
 아래는 수정 전 분석 기록입니다.
 
@@ -129,6 +129,7 @@ ReplayController.clearAfkState();
 
 - 적용 형태: ① 슬라이드쇼 경로에서 `updateAfkState()` 호출 제거(`ReplayController.as:365` 부근), ② `renderReplayFrame`에서 `CursorAfkAnimation.stop(); anim.clear();`를 `if (!ReplayState.isReplaySlideShowMode)`로 감쌈(`ReplayDrawer.as:315-320`).
 - 좋아진 점: 슬라이드쇼 중 AFK 연출이 매 틱 취소되지 않고 자체 타이머로 계속 진행됩니다.
+- **회귀 수정 완료(커밋 `15f4242`) — 검토 통과.** 아래 R2-a/R2-b 두 잔여를 정확히 제안한 형태로 고쳤습니다: ① `anim.clear()`를 `if (!ReplayState.isReplaySlideShowMode)` **밖으로** 이동(`ReplayDrawer.as:315-319`) ② 슬라이드쇼 전환 분기에 `ReplayController.clearAfkState()` 추가(`ReplayController.as:998`). 아래 R2-a/R2-b는 수정 전 분석 기록입니다.
 - **잔여 회귀 R2-a(하)**: 같은 가드가 `anim.clear()`까지 감싸므로 **연출(채우기/올가미/이동/선) 진행 중에 배속이 60을 넘겨 슬라이드쇼로 전환되면 연출의 덮개 Bitmap · 숨긴 레이어 · 숨긴 선 Shape가 정리되지 않습니다.** `anim.update()`는 `drawDueFrames()`에서만 불리므로 슬라이드쇼에서는 연출이 스스로 끝나지 못하고, 정리 시점은 배속을 ≤60으로 내려 `update()`→`clear()`가 불릴 때나 재생 정지(`stopReplay`)뿐입니다. 수정 전에는 슬라이드쇼 틱마다 `clear()`가 실행되어 정리됐으므로 이번 변경으로 생긴 회귀입니다. 도달 조건: 슬라이드쇼가 가능한 긴 녹화(1배속 축 ≥ 약 10분) + 전환 순간 연출 진행 중.
 - **부수 관찰 R2-b(하)**: 슬라이드쇼에서는 AFK 상자도 정리 주체가 없어, 슬라이드쇼 진행으로 AFK가 아니게 되어도 배속을 내리거나 재생이 끝날 때까지 상자가 남습니다(연출 자체는 계속 돌아 상태는 일관).
 
@@ -200,6 +201,7 @@ updateAfkState(); // renderReplayFrame(내부에서 CursorAfkAnimation.stop) 뒤
 ```
 
 ### R6. 프레임 수/배속 변경 시 AFK 표시를 두 번 그림 (하, 중복)
+
 
 - 위치: `updateTotalFrameAndReplayMaxSpeedFor10Sec()`(`ReplayController.as:97-121`): `:109 refreshAfkRanges()` 후 `:119 onReplaySpeedChanged()` → `:126 refreshAfkRanges()`.
 - 결과: 배속이 최대치로 클램프되는 경우 `ReplayClock.getIdleMarks()`(전 구간 순회 + Vector 생성)와 `SeekBarSet`의 `afkRangeBar` 그래픽 clear/redraw가 한 번의 갱신에 두 번 수행.
@@ -367,7 +369,7 @@ cmd.exe /c "D:\adobe_air_sdk_manager\AIRSDK_51.3.4\bin\adl.exe -profile extended
 - 결과: `RESULT pass=159 fail=0` (`test-output/rt2-review/report.txt`) — R5 색인 검증 12건(`idx.*`, `perf.hits`) 포함
 - R5 성능 실측(같은 실행 로그): `PERF points read x400 over 3000 records: new(index)=47ms old(scan)=213ms`
 - 전체 앱 컴파일 확인: `sh .../amxmlc -source-path+=E:/fofopaint-source/src ... src/Main.as` → 오류 0 / 경고 0 (`test-output/rt2-review/check-app.swf`)
-- 컴파일러 경고: `ReplayClock.as:358` 1건(R7). 그 외 경고/오류 없음.
+- 컴파일러 경고: R7 수정(`e1c7aa2`) 이후 0건 (수정 전에는 `ReplayClock.as:358` 1건).
 - 이 하네스는 `src/`를 건드리지 않는 별도 테스트 스크립트이며, 필요 없으면 폴더째 삭제해도 됩니다.
 
 ### B. 기존 하네스 산출물(작성자 실행 기록)
