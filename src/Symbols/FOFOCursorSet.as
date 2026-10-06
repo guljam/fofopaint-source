@@ -11,9 +11,13 @@
 	public class FOFOCursorSet extends Sprite
 	{
 		private var fofoCursor:SimpleButton;
-		// 몸통(그림 중심)을 축으로 도는 레이어, 바깥(this)의 위치/회전/크기는 펜 위치, 캔버스 회전 상쇄, 줌 보정에 쓰이므로 건드리지 않음
+		// AFK 연출용 안쪽 레이어. 바깥(this)의 위치/회전/크기는 펜 위치, 캔버스 회전 상쇄, 줌 보정에 쓰이므로 건드리지 않음
+		// 모두 몸통(그림) 중심이 기준점이고 바깥에서 안쪽 순서: 이동(점프) > 늘어짐/커짐(축 방향 스케일) > 늘어짐 축 되돌림 > 회전 > 그림
+		private var moveLayer:Sprite = new Sprite();
+		private var scaleLayer:Sprite = new Sprite();
+		private var axisLayer:Sprite = new Sprite(); // 늘어지는 축만큼 돌린 scaleLayer를 되돌려서 회전, 그림 방향은 그대로 유지
 		private var spinLayer:Sprite = new Sprite();
-		// 몸통 회전의 중심과 반경(중심에서 가장 먼 모서리까지), AFK 상자를 회전하는 몸통에 닿지 않는 자리에 놓는데 씀
+		// 몸통의 중심과 반경(중심에서 가장 먼 모서리까지), AFK 상자를 연출하는 몸통에 닿지 않는 자리에 놓는데 씀
 		private var spinCenterX:Number = 0;
 		private var spinCenterY:Number = 0;
 		private var spinRadius:Number = 0;
@@ -27,15 +31,18 @@
 		private var afkText:TextField = new TextField();
 		private var isAfkBoxConfigured:Boolean = false;
 
-		// 몸통 중심 기준 회전 각도 (화면 기준, 캔버스 회전과 상관없음)
-		public function get spinRotation():Number
+		// 몸통 중심 기준으로 모양을 바꿈 (화면 기준이라 캔버스 회전과 상관없음)
+		//   spin: 회전각(도), scaleX, scaleY: axis 방향과 그 직각 방향의 배율, axis: 늘어지는 축 각도(도), offsetX, offsetY: 이동(커서 좌표 px)
+		//   모두 기본값(0, 1, 1, 0, 0, 0)이면 이전과 똑같이 보임
+		public function setPose(spin:Number, scaleX:Number, scaleY:Number, axis:Number, offsetX:Number, offsetY:Number):void
 		{
-			return spinLayer.rotation;
-		}
-
-		public function set spinRotation(angle:Number):void
-		{
-			spinLayer.rotation = angle;
+			moveLayer.x = spinCenterX + offsetX;
+			moveLayer.y = spinCenterY + offsetY;
+			scaleLayer.rotation = axis;
+			scaleLayer.scaleX = scaleX;
+			scaleLayer.scaleY = scaleY;
+			axisLayer.rotation = -axis;
+			spinLayer.rotation = spin;
 		}
 
 		// AFK 상자의 글꼴을 정함 (앱의 다른 글자와 같은 글꼴을 쓰도록 이미 쓰는 TextFormat을 받음). 처음 한번만 하면 됨
@@ -67,8 +74,9 @@
 			afkBox.addChild(afkText);
 		}
 
-		// 몸통 회전 반경 바깥, 커서 위쪽에 상자를 보임. 위쪽이 limit(target 좌표계의 보여지는 영역, 보통 캔버스)을 벗어나면 아래쪽에 보임
-		public function showAfkBox(target:DisplayObject, limit:Rectangle):void
+		// 몸통이 연출로 닿는 범위 바깥, 커서 위쪽에 상자를 보임. 위쪽이 limit(target 좌표계의 보여지는 영역, 보통 캔버스)을 벗어나면 아래쪽에 보임
+		// scaleFactor: 몸통이 커지는 최대 배율, extraUp: 위로 더 올라가는 최대 거리(점프)
+		public function showAfkBox(target:DisplayObject, limit:Rectangle, scaleFactor:Number = 1, extraUp:Number = 0):void
 		{
 			if (!isAfkBoxConfigured)
 			{
@@ -78,12 +86,13 @@
 			const w:Number = afkBox.width;
 			const h:Number = afkBox.height;
 			afkBox.x = spinCenterX - w / 2;
-			afkBox.y = spinCenterY - spinRadius - AFK_BOX_GAP - h;
+			const reach:Number = spinRadius * scaleFactor;
+			afkBox.y = spinCenterY - reach - extraUp - AFK_BOX_GAP - h;
 			afkBox.visible = true;
 
 			if (limit !== null && target !== null && !limit.containsRect(afkBox.getBounds(target)))
 			{
-				afkBox.y = spinCenterY + spinRadius + AFK_BOX_GAP;
+				afkBox.y = spinCenterY + reach + AFK_BOX_GAP;
 			}
 		}
 
@@ -122,14 +131,17 @@
 			spinCenterX = centerX;
 			spinCenterY = centerY;
 			spinRadius = Math.sqrt(bounds.width * bounds.width + bounds.height * bounds.height) / 2;
-			spinLayer.x = centerX;
-			spinLayer.y = centerY;
+			moveLayer.x = centerX;
+			moveLayer.y = centerY;
 			fofoCursor.x = -centerX;
 			fofoCursor.y = -centerY;
 			spinLayer.addChild(fofoCursor);
-			spinLayer.mouseEnabled = false;
-			spinLayer.mouseChildren = false;
-			this.addChild(spinLayer);
+			axisLayer.addChild(spinLayer);
+			scaleLayer.addChild(axisLayer);
+			moveLayer.addChild(scaleLayer);
+			moveLayer.mouseEnabled = false;
+			moveLayer.mouseChildren = false;
+			this.addChild(moveLayer);
 			afkBox.visible = false;
 			afkBox.mouseEnabled = false;
 			afkBox.mouseChildren = false;

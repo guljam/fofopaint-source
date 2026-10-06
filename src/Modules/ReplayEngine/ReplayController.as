@@ -1008,8 +1008,8 @@ package Modules.ReplayEngine
 
         private static var isAfkBoxShown:Boolean = false;
 
-        // 시계가 AFK(쉬는 구간을 기다리는 중)이면 커서를 돌리고 커서 위에 검정 배경, 흰 테두리의 "afk" 상자를 띄우고, 아니면 원래대로
-        // 매 틱 부르지만 상태가 바뀔때만 상자를 갱신함
+        // 시계가 AFK(쉬는 구간을 기다리는 중)이면 커서에 AFK 연출(CursorAfkAnimation)을 주고 커서 위에 검정 배경, 흰 테두리의 "afk" 상자를 띄우고, 아니면 원래대로
+        // 매 틱 부르지만 상태가 바뀔때만 갱신함
         private static function updateAfkState():void
         {
             if (!ReplayClock.isAfk)
@@ -1018,20 +1018,19 @@ package Modules.ReplayEngine
                 {
                     isAfkBoxShown = false;
                     ReplayDrawer.rReplayFOFOCursor.hideAfkBox();
-                    ReplayDrawer.stopReplayFOFOCursorSpin();
+                    CursorAfkAnimation.stop();
                 }
 
                 return;
             }
 
-            ReplayDrawer.startReplayFOFOCursorSpin();
-
             if (!isAfkBoxShown)
             {
                 isAfkBoxShown = true;
-                // 상자 글꼴은 시크바 글자와 같은 것을 씀
+                // 연출이 몸통을 키우거나 올리는 범위 바깥에 상자를 놓음. 상자 글꼴은 시크바 글자와 같은 것을 씀
+                const extents:Object = CursorAfkAnimation.start();
                 ReplayDrawer.rReplayFOFOCursor.configureAfkBox(seekBarBox.prograssInfo.defaultTextFormat, seekBarBox.prograssInfo.embedFonts);
-                ReplayDrawer.rReplayFOFOCursor.showAfkBox(ReplayDrawer.rCanvasPanel, new Rectangle(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT));
+                ReplayDrawer.rReplayFOFOCursor.showAfkBox(ReplayDrawer.rCanvasPanel, new Rectangle(0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT), extents.scaleFactor, extents.extraUp);
             }
         }
 
@@ -1448,7 +1447,7 @@ package Modules.ReplayEngine
             ReplayDrawer.anim.clear();
             isAfkBoxShown = false;
             ReplayDrawer.rReplayFOFOCursor.hideAfkBox();
-            ReplayDrawer.stopReplayFOFOCursorSpin();
+            CursorAfkAnimation.stop();
 
             if (!ReplayState.isReplayFinished)
             {

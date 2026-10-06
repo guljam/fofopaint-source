@@ -13,6 +13,7 @@ package Modules
     import flash.display.SimpleButton;
     import avmplus.getQualifiedClassName;
     import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.CursorAfkAnimation;
 
     public class Utils
     {
@@ -201,6 +202,15 @@ package Modules
         }
 
         // 보여준후 천천히 알파값감소로 사라지게 하기
+        // 리플레이 커서의 AFK 연출을 직접 확인하는 시험용 함수 (리플레이 모드에서 부름). 값은 CursorAfkAnimation 상단의 상수를 고쳐서 조정함
+        //   kind: 0 회전, 1 흔들림, 2 점프, 3 늘어짐, 4 커짐, 5 심장 박동 (-1이면 무작위)
+        //   variant: 그 종류의 변형 번호 (-1이면 무작위, 회전 0~2 = 한바퀴 시간, 늘어짐 0~3 = 방향 등)
+        //   seconds: 보여주는 시간(초), 지나면 원래 모양으로 돌아감
+        public static function testFoFoCursorAnim(kind:int = -1, variant:int = -1, seconds:Number = 5):void
+        {
+            CursorAfkAnimation.test(kind, variant, seconds);
+        }
+
         public static function showDisplayTargetAndFadeOut(target:DisplayObject, startAlpha:Number = 1.0, waitDuration:Number = 0.0):void
         {
             target.alpha = startAlpha;
