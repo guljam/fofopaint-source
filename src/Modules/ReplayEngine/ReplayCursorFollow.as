@@ -40,6 +40,8 @@ package Modules.ReplayEngine
         private static const REGION_HIGH:Number = 0.9;
         private static const MAX_PATH_SAMPLES:int = 600; // 계산에 쓰는 경로 점 수 상한
 
+        private static const USER_OVERRIDE_MS:Number = 3000; // 수동 줌(휠, 키, 버튼) 뒤 이 시간 동안은 자동 줌아웃을 시작하지 않음. 위치 추적과 안전 구역은 계속 동작
+
         private static const REGION_CALM_RATIO:Number = 1.15; // 줌인(복원)은 영역이 이 비율만큼 여유 있게 더 큰 배율에 들어갈 때만 후보가 됨 (줌아웃 기준과 같은 값이면 경계에서 들락날락함)
 
         private static const ZOOM_FOLLOW:int = 0; // 사용자 줌
@@ -71,7 +73,8 @@ package Modules.ReplayEngine
         private var curZoom:Number = NaN; // 카메라가 마지막으로 적용한 배율. 실제 배율과 다르면 외부가 바꾼 것
         private var zoomMoving:Boolean = false; // 배율이 zoomCommit을 향해 움직이는 중
         private var zoomCommit:Number = NaN; // 줌아웃 뒤 유지하려는 배율. 줌아웃은 바로 낮추고, 올리는 것(줌인)은 확인 시간을 거쳐서만 올림
-        private var upSince:int = -1; // 더 큰 배율이어도 영역이 들어가는 상태가 이어지기 시작한 시각, 아니면 -1
+        private var upSince:int = -1;
+        private var userZoomAt:int = -1000000; // 마지막 수동 줌(카메라가 적용하지 않은 배율 변화를 감지한) 시각 // 더 큰 배율이어도 영역이 들어가는 상태가 이어지기 시작한 시각, 아니면 -1
 
         // 화면에서 캔버스를 보여주는 영역. 위쪽은 상단바(+시크바가 겹치는 띠) 아래, 시크바는 위쪽에 붙어 있어 아래쪽은 스테이지 끝까지
         private function viewportRect():Rectangle
@@ -91,7 +94,12 @@ package Modules.ReplayEngine
         public function updateBounds():void
         {
             syncToAnchor();
-            detectExternalZoom();
+
+            // 재생 중 수동 줌 직후 커서가 화면 밖이면 다음 그리기 틱을 기다리지 않고 바로 안전 구역으로 끌어옴 (무시 구간이면 3-3 규칙대로 안 끌어옴)
+            if (detectExternalZoom() && ReplayState.isReplayStarted && !ignoringExcursion && !isBlocked())
+            {
+                keepCursorInSafeZone();
+            }
         }
 
         // 이번 틱에 영역을 쓰지 못한 이유 ("": 영역 사용 중). unaligned = 탐색 직후 등으로 큐가 어긋남, fewSamples = 미리 볼 커서 지점이 3개 미만, coverage = 프레임/묶음 상한으로 목표 시간만큼 못 봄
@@ -503,19 +511,30 @@ package Modules.ReplayEngine
         // ---- 자동 줌 ----
 
         // 카메라가 적용하지 않은 배율 변화(사용자 줌, 창 맞춤, 재생 끝 복원 등)면 그 값을 사용자 줌으로 받아들이고 자동 줌을 풀음
-        private function detectExternalZoom():void
+        // 반환: 외부 배율 변화를 감지했는지 (처음 값 읽기는 제외)
+        private function detectExternalZoom():Boolean
         {
             const actual:Number = ReplayState.rCanvasZoomMultiplier;
 
             if (isNaN(curZoom) || Math.abs(actual - curZoom) > 1e-9)
             {
+                const first:Boolean = isNaN(curZoom);
+
+                if (!first)
+                {
+                    userZoomAt = getTimer();
+                }
+
                 curZoom = actual;
                 userZoom = actual;
                 zoomState = ZOOM_FOLLOW;
                 zoomCommit = NaN;
                 zoomMoving = false;
                 upSince = -1;
+                return !first;
             }
+
+            return false;
         }
 
         // 지금 회전과 창 크기에서 캔버스 전체가 화면에 들어가는 배율 (연속값, 순수 계산)
@@ -602,6 +621,12 @@ package Modules.ReplayEngine
         // 줌인 후보(확인 시간 필요): 영역이 REGION_CALM_RATIO만큼 여유 있게 들어가는 더 큰 배율 (배속 규칙에서는 배속이 낮을 때 사용자 줌)
         private function decideZoom(view:Rectangle, fit:Number, cap:Number):void
         {
+            // 방금 사용자가 정한 배율을 존중: 수동 줌 뒤 USER_OVERRIDE_MS 동안은 자동 줌아웃을 시작하지 않음 (슬라이드쇼/큰 연출의 강제 맞춤 포함)
+            if (zoomState === ZOOM_FOLLOW && getTimer() - userZoomAt < USER_OVERRIDE_MS)
+            {
+                return;
+            }
+
             const speed:Number = ReplayState.rReplaySpeedMultipler;
             const forced:Boolean = ReplayState.isReplaySlideShowMode || isBigAnim(view); // 영역과 상관없이 화면 전체를 보여 줌
             var busy:Boolean;

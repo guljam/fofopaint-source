@@ -23,6 +23,7 @@ package Modules.InputManager
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
+    import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.DrawEngine.HandDrawnLine;
@@ -422,6 +423,11 @@ package Modules.InputManager
                                 CanvasView.viewport.zoomStep(false);
                                 HintController.showMouseHintTemp(Math.floor(CanvasView.canvasZoomMultiplier * 100) + "%");
                             }
+                        }
+                        else if (ReplayState.isReplayModeON && Utils.isCursorInDrawArea())
+                        {
+                            // 리플레이 모드: 휠 위 = 줌인, 아래 = 줌아웃 (화면 중심 기준, 힌트는 zoomStep이 띄움)
+                            ReplayDrawer.viewport.zoomStep(e.delta > 0);
                         }
                     });
             }
