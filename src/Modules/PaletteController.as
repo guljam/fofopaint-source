@@ -643,12 +643,15 @@ package Modules
             }
         }
 
+        //팔레트 색깔 드래깅 해줄때 원래 있던 자리위치에 x표시해주는 함수
         public static function drawRedXMark(g:Graphics, px:Number, py:Number, ww:Number, hh:Number):void
         {
+            //배경깔아주기
             g.beginFill(0xFFFFFF);
             g.drawRect(px, py, PaletteController.myPaletteColorWidth, PaletteController.myPaletteColorHeight);
             g.endFill();
 
+            //X표시
             g.lineStyle(3, 0xFF6600);
             g.moveTo(px + 5, py + 5);
             g.lineTo(px + ww - 5, py + hh - 5);
