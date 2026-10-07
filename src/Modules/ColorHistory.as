@@ -131,7 +131,7 @@ package Modules
 
                 if (listIndex === ignoreIndex)
                 {
-                    PaletteController.drawColorStartPos(g, ww * i, 0, ww, hh);
+                    PaletteController.drawRedXMark(g, ww * i, 0, ww, hh);
                     continue;
                 }
 

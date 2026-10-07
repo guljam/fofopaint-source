@@ -376,7 +376,7 @@ package Modules
 
                 if (i === ignoreIndex)
                 {
-                    drawColorStartPos(ColorPickerController.colorPickerBox.myPaletteBox.graphics, px, py, ww, hh);
+                    drawRedXMark(ColorPickerController.colorPickerBox.myPaletteBox.graphics, px, py, ww, hh);
                     continue;
                 }
 
@@ -643,7 +643,7 @@ package Modules
             }
         }
 
-        public static function drawColorStartPos(g:Graphics, px:Number, py:Number, ww:Number, hh:Number):void
+        public static function drawRedXMark(g:Graphics, px:Number, py:Number, ww:Number, hh:Number):void
         {
             g.beginFill(0xFFFFFF);
             g.drawRect(px, py, PaletteController.myPaletteColorWidth, PaletteController.myPaletteColorHeight);
