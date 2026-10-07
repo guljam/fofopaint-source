@@ -22,8 +22,10 @@
 /raw_resource/
 /as3-structure-tool/
 update_note.txt
-AGENT.md
+AGENTS.md
+CLAUDE.md
 /repdata_parser
 /artifacts
 
 make-air-package.ps1
+

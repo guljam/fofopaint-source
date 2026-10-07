@@ -95,7 +95,7 @@ package Modules
             }
             main.stage.addEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp, false, InputPriority.DEFAULT);
 
-            FOFOTimer.addByName("addColorMyPaletteDelayTimer", 0.6, true, function ():Boolean
+            FOFOTimer.addByName("addColorMyPaletteDelayTimer", 0.7, true, function ():Boolean
                 {
                     if (firstClickColorIndex === getMyPaletteIndexByMousePos())
                     {
