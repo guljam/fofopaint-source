@@ -84,7 +84,7 @@ package Modules
                 return -1;
             }
 
-            return HISTORY_COUNT - 1 - xLineIndex; // 화면 칸 순서가 list와 반대
+            return xLineIndex; // 화면 칸 순서가 list와 반대
         }
 
         private static function isEmpty(index:int):Boolean
@@ -127,21 +127,19 @@ package Modules
 
             for (var i:uint = 0;i < HISTORY_COUNT;i++)
             {
-                const listIndex:int = HISTORY_COUNT - 1 - i; // i는 화면 칸 번호
-
-                if (listIndex === ignoreIndex)
+                if (i === ignoreIndex)
                 {
                     PaletteController.drawRedXMark(g, ww * i, 0, ww, hh);
                     continue;
                 }
 
-                if (isEmpty(listIndex))
+                if (isEmpty(i))
                 {
                     g.beginBitmapFill(ColorPickerController.colorPickerBox.myPaletteTransBGBmpd);
                 }
                 else
                 {
-                    g.beginFill(list[listIndex]);
+                    g.beginFill(list[i]);
                 }
 
                 g.drawRect(ww * i, 0, ww, hh);
