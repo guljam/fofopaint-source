@@ -21,6 +21,7 @@ package Modules.ReplayEngine
 
         private const items:Vector.<Object> = new Vector.<Object>(); // {data, startByte, endByte, firstFrame, summary(Vector.<Number>: 프레임, x, y 반복)}
         private const stream:FileStream = new FileStream();
+        private var streamOpen:Boolean = false; // 동기 읽기(takeNext)가 연달아 일어나는 동안 열어 둠. 그리기 틱/탐색이 끝날 때 releaseStream으로 닫음
         private var nextByte:Number = -1; // 큐 맨 뒤 다음에 읽을 위치
         private var nextFrame:Number = 0; // 그 묶음의 첫 프레임 번호
         private var projX:Number = 0; // 요약을 만들 때 이어서 쓰는 커서 위치 (이동 명령은 상대값이라 앞 묶음에서 이어 계산)
@@ -84,12 +85,32 @@ package Modules.ReplayEngine
                 delete readBytePositions[pos];
             }
 
-            try
+            releaseStream();
+        }
+
+        // 열어 둔 스트림을 닫음. renderReplayFrame이 끝날 때와 refill이 끝날 때 부름 (다른 곳이 repdata를 자르거나 지울 때 핸들이 남지 않게)
+        public function releaseStream():void
+        {
+            if (streamOpen)
             {
-                stream.close();
+                streamOpen = false;
+
+                try
+                {
+                    stream.close();
+                }
+                catch (e:Error)
+                {
+                }
             }
-            catch (e:Error)
+        }
+
+        private function ensureStreamOpen():void
+        {
+            if (!streamOpen)
             {
+                stream.open(AppStateManager.replayDataFilePath, FileMode.READ);
+                streamOpen = true;
             }
         }
 
@@ -104,17 +125,18 @@ package Modules.ReplayEngine
                     resets++; // 큐에 남은 묶음이 있는데 위치가 달라짐 (탐색 등으로 그리는 쪽이 위치를 옮긴 경우)
                 }
 
-                resetAt(expectedByte, nowFrame);
-                stream.open(AppStateManager.replayDataFilePath, FileMode.READ);
+                if (items.length > 0 || nextByte !== expectedByte)
+                {
+                    resetAt(expectedByte, nowFrame);
+                }
+                else
+                {
+                    nextFrame = nowFrame; // 직전 묶음에 이어서 읽는 중이면 큐를 비우고 다시 시작하지 않음 (탐색/슬라이드쇼는 묶음 수백 개를 연달아 읽음)
+                }
 
-                try
-                {
-                    readGroup();
-                }
-                finally
-                {
-                    stream.close();
-                }
+                // 바로 그려 버리는 묶음이라 요약은 만들지 않고, 카메라가 실제로 볼 때 만듦 (summaryOf)
+                ensureStreamOpen();
+                readGroup(false);
             }
 
             if (items.length === 0)
@@ -138,6 +160,8 @@ package Modules.ReplayEngine
         // speed는 배속, nowFrame은 지금 프레임. 시간 예산을 넘으면 묶음 하나를 끝까지 읽고 멈춤
         public function refill(nowFrame:Number, speed:Number):void
         {
+            releaseStream(); // 이 틱에 동기 읽기가 열어 둔 것이 있으면 닫음
+
             if (atEnd || nextByte < 0 || items.length >= MAX_GROUPS)
             {
                 return;
@@ -152,13 +176,13 @@ package Modules.ReplayEngine
                 return; // 이미 충분히 읽어 둠
             }
 
-            stream.open(AppStateManager.replayDataFilePath, FileMode.READ); // 이번 채우기에서 한 번만 열고 닫음
+            ensureStreamOpen(); // 이번 채우기에서 한 번만 열고 끝에 닫음
 
             try
             {
                 while (!atEnd && items.length < MAX_GROUPS && nextFrame < limitFrame && ReplayClock.timeOfFrame(nextFrame) - ReplayClock.timeOfFrame(nowFrame) < wantRecordedMs)
                 {
-                    readGroup();
+                    readGroup(true);
 
                     if (getTimer() - start >= READ_BUDGET_MS)
                     {
@@ -168,7 +192,7 @@ package Modules.ReplayEngine
             }
             finally
             {
-                stream.close();
+                releaseStream();
             }
 
             const spent:int = getTimer() - start;
@@ -186,7 +210,7 @@ package Modules.ReplayEngine
         }
 
         // 큐 맨 뒤에서 묶음을 하나 읽음 (스트림은 호출한 쪽이 열어 둠. 파일 끝이면 atEnd)
-        private function readGroup():void
+        private function readGroup(withSummary:Boolean):void
         {
             stream.position = nextByte;
 
@@ -208,7 +232,7 @@ package Modules.ReplayEngine
             }
 
             readBytePositions[startByte] = 1;
-            items.push({data: data, startByte: startByte, endByte: endByte, firstFrame: nextFrame, summary: (data === null) ? null : summarize(data)});
+            items.push({data: data, startByte: startByte, endByte: endByte, firstFrame: nextFrame, summary: (withSummary && data !== null) ? summarize(data) : null, summaryReady: withSummary});
             nextByte = endByte;
             nextFrame += (data === null) ? 0 : data.length;
             const parseMs:int = getTimer() - t0;
@@ -217,6 +241,24 @@ package Modules.ReplayEngine
             {
                 maxGroupParseMs = parseMs;
             }
+        }
+
+        // 묶음의 요약. 바로 그려 버려서 읽을 때 만들지 않은 묶음은 카메라가 처음 볼 때 지금 커서에서 이어서 만듦 (이동 명령의 상대 좌표는 근사)
+        private function summaryOf(item:Object):Vector.<Number>
+        {
+            if (item.data === null)
+            {
+                return null;
+            }
+
+            if (!item.summaryReady)
+            {
+                seedProjection();
+                item.summary = summarize(item.data);
+                item.summaryReady = true;
+            }
+
+            return item.summary;
         }
 
         // 확인용 통계를 0으로 되돌림 (시험에서 구간을 나눠 셀 때)
@@ -258,7 +300,7 @@ package Modules.ReplayEngine
             coveredEndFrame = fromFrame;
             coveredToDataEnd = false;
 
-            if (currentItem !== null && currentItem.summary !== null)
+            if (currentItem !== null && summaryOf(currentItem) !== null)
             {
                 appendRange(currentItem.summary, currentItem.firstFrame, fromFrame, toFrame, out);
                 // 지금 그리는 묶음이 아직 안 끝났으면 그 끝까지는 본 것임 (저배속에서는 묶음 하나가 미리 볼 시간보다 길어 큐가 비어 있는 경우가 많음)
@@ -273,7 +315,7 @@ package Modules.ReplayEngine
 
             for each (var item:Object in items)
             {
-                if (item.summary === null)
+                if (summaryOf(item) === null)
                 {
                     continue;
                 }
@@ -334,7 +376,7 @@ package Modules.ReplayEngine
         // 확인용: 지금 그리는 묶음의 요약에서 beforeFrame보다 앞선 마지막 커서 위치를 out[0], out[1]에 넣음. 없으면 false
         public function lastCursorBefore(beforeFrame:Number, out:Vector.<Number>):Boolean
         {
-            if (currentItem === null || currentItem.summary === null)
+            if (currentItem === null || summaryOf(currentItem) === null)
             {
                 return false;
             }

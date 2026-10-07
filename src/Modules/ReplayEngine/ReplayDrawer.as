@@ -320,6 +320,7 @@ package Modules.ReplayEngine
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
             const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);
             rFileStream.close();
+            commandWindow.releaseStream(); // 이번 탐색에서 묶음을 연달아 읽느라 열어 둔 창의 스트림
             // dodraw밑이기 때문에 rFrameSum이 갱신되서 위에 nowFrame은 쓸수가 없음
 
             if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
