@@ -16,7 +16,6 @@ package Modules.ReplayEngine
     // 화면 상태(창 크기, 캔버스 경계, 줌, 회전)는 캐시하지 않고 계산할 때마다 읽음
     public class ReplayCursorFollow
     {
-        private static const CAMERA_TIMER_NAME:String = "replayCameraTimer";
         private static const CAMERA_TAU_MS:Number = 300; // 감쇠 시간. 클수록 느긋하게 따라감
         private static const DEAD_ZONE_INSET:Number = 0.2; // 화면 각 변에서 이 비율만큼 안쪽까지가 데드존 바깥 (가운데 60%가 데드존)
         private static const SAFETY_PADDING:Number = 20; // 커서가 화면 가장자리에서 이보다 가까우면 감쇠 없이 바로 따라감
@@ -93,7 +92,6 @@ package Modules.ReplayEngine
         {
             syncToAnchor();
             detectExternalZoom();
-            stopTimer();
         }
 
         // 이번 틱에 영역을 쓰지 못한 이유 ("": 영역 사용 중). unaligned = 탐색 직후 등으로 큐가 어긋남, fewSamples = 미리 볼 커서 지점이 3개 미만, coverage = 프레임/묶음 상한으로 목표 시간만큼 못 봄
@@ -124,21 +122,28 @@ package Modules.ReplayEngine
             }
         }
 
-        // 재생이 멈췄을 때 부름. 목표에 도착하지 않았으면 카메라 타이머로 남은 이동을 마무리함
-        public function finishMove():void
-        {
-            if (!isBlocked() && (!isSettled() || isZooming()))
-            {
-                startTimer();
-            }
-        }
-
-        // 목표를 계산하고 앵커를 바로 그 위치로 옮김 (탐색, 슬라이드쇼 정지 후)
+        // 목표를 계산하고 앵커와 배율을 바로 그 위치로 옮김 (탐색, 재생이 멈췄을 때). 진행 중인 줌 전환도 유지 배율로 바로 끝냄
+        // 카메라가 앵커를 움직이는 곳은 재생 중 update와 이 함수뿐임 (멈춘 뒤 남은 이동을 애니메이션하는 타이머는 없음)
         public function snap():void
         {
-            stopTimer();
+            if (!ReplayState.isReplayModeON || isBlocked())
+            {
+                return;
+            }
+
             syncToAnchor();
             computeLookahead();
+
+            // 멈추거나 탐색한 자리에서는 무시 중이던 바깥 이동도 커서를 화면에 보여 줌
+            if (lookReady && ignoringExcursion)
+            {
+                const cur:Point = ReplayDrawCommands.getRCursorPos();
+                const l:Number = Math.min(regionRect.left, cur.x);
+                const t:Number = Math.min(regionRect.top, cur.y);
+                regionRect.setTo(l, t, Math.max(regionRect.right, cur.x) - l, Math.max(regionRect.bottom, cur.y) - t);
+                ignoringExcursion = false;
+            }
+
             stepZoom(ReplayState.isReplayStarted, true);
             syncToAnchor();
             const cursor:Point = ReplayDrawCommands.getRCursorPos();
@@ -150,27 +155,10 @@ package Modules.ReplayEngine
             targetX = posX;
             targetY = posY;
             applyToAnchor();
+            keepCursorInSafeZone();
         }
 
-        // 재생이 멈춘 뒤 남은 이동을 마무리하는 타이머 콜백. 재생 중에는 update가 움직이므로 아무것도 하지 않고 꺼짐
-        private function tick():Boolean
-        {
-            if (ReplayState.isReplayStarted)
-            {
-                return false;
-            }
-
-            if (!ReplayState.isReplayModeON || isBlocked())
-            {
-                syncToAnchor();
-                return false;
-            }
-
-            step();
-            return !isSettled() || isZooming();
-        }
-
-        // 줌 → 목표 재계산 → 안전 구역 → 감쇠 → 앵커 적용. update와 tick이 같이 씀
+        // 줌 → 목표 재계산 → 안전 구역 → 감쇠 → 앵커 적용. update가 씀
         private function step():void
         {
             if (isBlocked())
@@ -273,20 +261,6 @@ package Modules.ReplayEngine
         private function clampDelta(delta:Number, lo:Number, hi:Number):Number
         {
             return (lo > hi) ? 0 : Math.max(lo, Math.min(hi, delta));
-        }
-
-        private function startTimer():void
-        {
-            if (!FOFOTimer.hasTimer(CAMERA_TIMER_NAME))
-            {
-                lastStepTime = getTimer();
-                FOFOTimer.addByName(CAMERA_TIMER_NAME, 0.0, true, tick);
-            }
-        }
-
-        private function stopTimer():void
-        {
-            FOFOTimer.remove(CAMERA_TIMER_NAME);
         }
 
         private function syncToAnchor():void
@@ -527,11 +501,6 @@ package Modules.ReplayEngine
         }
 
         // ---- 자동 줌 ----
-
-        private function isZooming():Boolean
-        {
-            return zoomMoving;
-        }
 
         // 카메라가 적용하지 않은 배율 변화(사용자 줌, 창 맞춤, 재생 끝 복원 등)면 그 값을 사용자 줌으로 받아들이고 자동 줌을 풀음
         private function detectExternalZoom():void

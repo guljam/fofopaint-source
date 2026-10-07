@@ -1461,7 +1461,7 @@ package Modules.ReplayEngine
             ReplayState.isReplayStarted = false;
             ReplayState.isReplaySlideShowMode = false;
             updateDeleteReplayDataButtonsState();
-            ReplayDrawer.cursorFollow.finishMove();
+            ReplayDrawer.cursorFollow.snap(); // 남은 이동을 애니메이션하지 않고 최종 위치와 배율로 바로 마무리
         }
 
         public static function handleReplayStartButton():void
