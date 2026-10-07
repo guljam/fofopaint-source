@@ -581,6 +581,7 @@ package Modules
                         // 드래그를 시작하면 svBox를 밝게 하고 힌트를 띄워서 지울 수 있음을 알려줌
                         ColorPickerController.colorPickerBox.setSVBoxHighlight(1);
                         HintController.showMouseHintAtCenter(HintStrings.getDeleteColorHint(), ColorPickerController.colorPickerBox.svBox);
+                        HintController.mouseHint.x -= 3;//위치 미조정
                     }
 
                     updateDeleteTarget();
