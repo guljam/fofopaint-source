@@ -43,6 +43,11 @@ package Modules.ReplayEngine
         private const readBytePositions:Dictionary = new Dictionary(); // 읽은 byte 위치별 횟수 (같은 묶음을 두 번 읽었는지 확인)
         public var duplicateReads:int = 0;
 
+        // collectCursorPath가 마지막으로 본 범위. coveredEndFrame = 요약을 살펴본 마지막 프레임(포함 안 함), coveredToDataEnd = 그 뒤에 더 읽을 데이터가 없음(파일과 메모리 끝)
+        // 끝에 못 미쳤다면 데이터가 없어서가 아니라 프레임/묶음 상한이나 아직 안 읽어서임
+        public var coveredEndFrame:Number = 0;
+        public var coveredToDataEnd:Boolean = false;
+
         public function get groupCount():int
         {
             return items.length;
@@ -244,6 +249,8 @@ package Modules.ReplayEngine
         public function collectCursorPath(fromFrame:Number, toFrame:Number, out:Vector.<Number>):Boolean
         {
             var frame:Number = fromFrame;
+            coveredEndFrame = fromFrame;
+            coveredToDataEnd = false;
 
             if (currentItem !== null && currentItem.summary !== null)
             {
@@ -259,6 +266,7 @@ package Modules.ReplayEngine
 
                 appendRange(item.summary, item.firstFrame, fromFrame, toFrame, out);
                 frame = item.firstFrame + item.data.length;
+                coveredEndFrame = frame;
 
                 if (frame >= toFrame)
                 {
@@ -270,6 +278,8 @@ package Modules.ReplayEngine
             {
                 return false;
             }
+
+            coveredEndFrame = Math.max(coveredEndFrame, ReplayState.getRFileDataTotalFrame());
 
             // 파일 묶음이 끝났으면 메모리 묶음으로 이어짐 (메모리 묶음은 byte 없이 배열 참조만 씀)
             var first:Number = ReplayState.getRFileDataTotalFrame();
@@ -295,6 +305,7 @@ package Modules.ReplayEngine
                 }
 
                 first += len;
+                coveredEndFrame = Math.max(coveredEndFrame, first);
 
                 if (first >= toFrame)
                 {
@@ -302,6 +313,7 @@ package Modules.ReplayEngine
                 }
             }
 
+            coveredToDataEnd = true; // 파일도 메모리도 여기서 끝남
             return false;
         }
 

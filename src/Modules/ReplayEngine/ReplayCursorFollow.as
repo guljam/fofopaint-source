@@ -41,10 +41,10 @@ package Modules.ReplayEngine
         private static const REGION_HIGH:Number = 0.9;
         private static const MAX_PATH_SAMPLES:int = 600; // 계산에 쓰는 경로 점 수 상한
 
+        private static const REGION_CALM_RATIO:Number = 1.15; // 줌인(복원)은 영역이 이 비율만큼 여유 있게 더 큰 배율에 들어갈 때만 후보가 됨 (줌아웃 기준과 같은 값이면 경계에서 들락날락함)
+
         private static const ZOOM_FOLLOW:int = 0; // 사용자 줌
-        private static const ZOOM_TO_FIT:int = 1; // 줌아웃 중
-        private static const ZOOM_FIT:int = 2; // 맞춤 배율 유지
-        private static const ZOOM_TO_USER:int = 3; // 복원 중
+        private static const ZOOM_HELD:int = 1; // 줌아웃해서 zoomCommit 배율을 유지하는 중 (그 배율로 가는 중도 포함)
 
         // 감쇠 중인 앵커 위치와 목표 (전역 좌표, 소수 유지. 앵커에 넣을 때만 반올림)
         private var posX:Number = 0;
@@ -69,8 +69,9 @@ package Modules.ReplayEngine
         private var zoomState:int = ZOOM_FOLLOW;
         private var userZoom:Number = NaN;
         private var curZoom:Number = NaN; // 카메라가 마지막으로 적용한 배율. 실제 배율과 다르면 외부가 바꾼 것
-        private var zoomMoving:Boolean = false; // FIT 중 창 크기가 바뀌어 맞춤 배율을 다시 따라가는 중
-        private var calmSince:int = -1; // 복원 조건이 이어지기 시작한 시각, 아니면 -1
+        private var zoomMoving:Boolean = false; // 배율이 zoomCommit을 향해 움직이는 중
+        private var zoomCommit:Number = NaN; // 줌아웃 뒤 유지하려는 배율. 줌아웃은 바로 낮추고, 올리는 것(줌인)은 확인 시간을 거쳐서만 올림
+        private var upSince:int = -1; // 더 큰 배율이어도 영역이 들어가는 상태가 이어지기 시작한 시각, 아니면 -1
 
         // 화면에서 캔버스를 보여주는 영역. 위쪽은 상단바(+시크바가 겹치는 띠) 아래, 시크바는 위쪽에 붙어 있어 아래쪽은 스테이지 끝까지
         private function viewportRect():Rectangle
@@ -92,6 +93,12 @@ package Modules.ReplayEngine
             syncToAnchor();
             detectExternalZoom();
             stopTimer();
+        }
+
+        // 이번 틱에 미리 읽은 경로의 영역으로 줌/초점을 정했는지. false면 커서 한 점과 배속 규칙을 씀 (경로가 없거나, 상한 때문에 목표 시간만큼 못 봤을 때)
+        public function get isUsingRegion():Boolean
+        {
+            return lookReady;
         }
 
         // 지금 커서가 짧은 바깥 이동(EXCURSION_IGNORE_MS 미만)으로 판단되어 따라가지 않는 중인지. 이때는 커서가 화면 밖에 있을 수 있음
@@ -308,6 +315,12 @@ package Modules.ReplayEngine
             pathBuf.length = 0;
             win.collectCursorPath(nowFrame, nowFrame + ReplayCommandWindow.LOOKAHEAD_MAX_FRAMES, pathBuf);
 
+            // 프레임/묶음 상한 때문에 목표 시간(span)만큼 못 봤으면 영역이 실제보다 작게 나오므로 믿지 않음 (데이터가 끝나서 못 본 경우는 믿음)
+            if (!win.coveredToDataEnd && ReplayClock.timeOfFrame(Math.min(win.coveredEndFrame, ReplayState.TOTAL_FRAME)) - t0 < spanMs)
+            {
+                return;
+            }
+
             // 샘플: 지금 커서 + 앞으로 커서가 바뀌는 지점 (span 안만)
             sampleT.length = 0;
             sampleX.length = 0;
@@ -469,7 +482,7 @@ package Modules.ReplayEngine
 
         private function isZooming():Boolean
         {
-            return zoomState === ZOOM_TO_FIT || zoomState === ZOOM_TO_USER || zoomMoving;
+            return zoomMoving;
         }
 
         // 카메라가 적용하지 않은 배율 변화(사용자 줌, 창 맞춤, 재생 끝 복원 등)면 그 값을 사용자 줌으로 받아들이고 자동 줌을 풀음
@@ -482,7 +495,9 @@ package Modules.ReplayEngine
                 curZoom = actual;
                 userZoom = actual;
                 zoomState = ZOOM_FOLLOW;
-                calmSince = -1;
+                zoomCommit = NaN;
+                zoomMoving = false;
+                upSince = -1;
             }
         }
 
@@ -517,53 +532,18 @@ package Modules.ReplayEngine
             return w > view.width * BIG_ANIM_RATIO || h > view.height * BIG_ANIM_RATIO;
         }
 
-        // 상태를 정하고(재생 중일 때만) 배율을 목표로 감쇠시킴. instant면 전환을 바로 끝냄
+        // 상태를 정하고(재생 중일 때만) 배율을 유지 배율(zoomCommit)로 감쇠시킴. instant면 전환을 바로 끝냄
+        // 줌아웃은 필요한 만큼 바로 낮추고, 줌인(올림)은 "더 큰 배율이어도 영역이 여유 있게 들어간다"가 RETURN_DWELL_MS 동안 이어지고 줌아웃 전환이 끝난 뒤일 때만 올림
         private function stepZoom(playing:Boolean, instant:Boolean, dt:Number = 0):void
         {
             detectExternalZoom();
             const view:Rectangle = viewportRect();
             const fit:Number = Math.min(fitZoom(view), userZoom);
+            const cap:Number = userZoom * RETURN_ZOOM_RATIO;
 
             if (playing)
             {
-                // 미리 읽은 경로가 있으면 영역이 사용자 줌에서 화면에 안 들어갈 때 바쁘다고 보고, 없으면 2단계의 배속 기준
-                const busy:Boolean = (lookReady ? regionZoom < userZoom : (ReplayState.rReplaySpeedMultipler >= AUTO_FIT_SPEED_IN || ReplayState.isReplaySlideShowMode)) || isBigAnim(view);
-
-                if (zoomState === ZOOM_FOLLOW)
-                {
-                    if (busy)
-                    {
-                        zoomState = ZOOM_TO_FIT;
-                    }
-                }
-                else if (busy)
-                {
-                    calmSince = -1;
-
-                    if (zoomState === ZOOM_TO_USER)
-                    {
-                        zoomState = ZOOM_TO_FIT;
-                    }
-                }
-                else
-                {
-                    // 들어가는 기준보다 낮은 기준(OUT)이 DWELL 동안 이어져야 복원, 중간에 기준을 벗어나면 처음부터 다시 셈
-                    const calm:Boolean = (lookReady ? regionZoom >= userZoom : ReplayState.rReplaySpeedMultipler < AUTO_FIT_SPEED_OUT) && !isBigAnim(view);
-                    const now:int = getTimer();
-
-                    if (!calm)
-                    {
-                        calmSince = -1;
-                    }
-                    else if (calmSince < 0)
-                    {
-                        calmSince = now;
-                    }
-                    else if (now - calmSince >= RETURN_DWELL_MS && zoomState !== ZOOM_TO_USER)
-                    {
-                        zoomState = ZOOM_TO_USER;
-                    }
-                }
+                decideZoom(view, fit, cap);
             }
 
             if (zoomState === ZOOM_FOLLOW)
@@ -571,19 +551,24 @@ package Modules.ReplayEngine
                 return;
             }
 
-            // 줌아웃 중 목표: 영역이 들어가는 배율을 [맞춤 배율, 사용자 줌] 안으로 자른 값 (미리 읽은 경로가 없으면 맞춤 배율)
-            const target:Number = (zoomState === ZOOM_TO_USER) ? userZoom * RETURN_ZOOM_RATIO : (lookReady ? Math.max(fit, Math.min(regionZoom, userZoom)) : fit);
+            const target:Number = Math.max(fit, Math.min(zoomCommit, cap)); // 창 크기가 바뀌어 맞춤 배율이 달라져도 범위 안으로
             const logDiff:Number = Math.log(target) - Math.log(curZoom);
 
             if (instant || Math.abs(logDiff) < ZOOM_SETTLED_LOG)
             {
-                const wasMoving:Boolean = isZooming();
+                const wasMoving:Boolean = zoomMoving;
                 applyZoom(target);
-                zoomState = (zoomState === ZOOM_TO_USER) ? ZOOM_FOLLOW : ZOOM_FIT;
+                zoomMoving = false;
+
+                if (target >= cap)
+                {
+                    zoomState = ZOOM_FOLLOW; // 사용자 줌까지 돌아옴
+                    zoomCommit = NaN;
+                    upSince = -1;
+                }
 
                 if (wasMoving)
                 {
-                    zoomMoving = false;
                     finishZoom();
                 }
 
@@ -591,9 +576,79 @@ package Modules.ReplayEngine
             }
 
             zoomMoving = true;
-
             const tau:Number = (logDiff < 0) ? ZOOM_OUT_TAU_MS : ZOOM_IN_TAU_MS;
             applyZoom(Math.exp(Math.log(curZoom) + logDiff * (1 - Math.exp(-dt / tau))));
+        }
+
+        // 지금 상황에서 유지하려는 배율(zoomCommit)을 정함
+        // 줌아웃 목표(바로 따라감): 슬라이드쇼/큰 연출이면 맞춤 배율, 영역이 있으면 영역이 들어가는 배율, 없으면(배속 규칙) 배속이 높을 때만 맞춤 배율
+        // 줌인 후보(확인 시간 필요): 영역이 REGION_CALM_RATIO만큼 여유 있게 들어가는 더 큰 배율 (배속 규칙에서는 배속이 낮을 때 사용자 줌)
+        private function decideZoom(view:Rectangle, fit:Number, cap:Number):void
+        {
+            const speed:Number = ReplayState.rReplaySpeedMultipler;
+            const forced:Boolean = ReplayState.isReplaySlideShowMode || isBigAnim(view); // 영역과 상관없이 화면 전체를 보여 줌
+            var busy:Boolean;
+            var downTarget:Number;
+            var upCandidate:Number;
+
+            if (forced)
+            {
+                busy = true;
+                downTarget = fit;
+                upCandidate = fit;
+            }
+            else if (lookReady)
+            {
+                busy = regionZoom < cap;
+                downTarget = Math.max(fit, Math.min(regionZoom, cap));
+                upCandidate = Math.max(fit, Math.min(regionZoom / REGION_CALM_RATIO, cap));
+            }
+            else
+            {
+                busy = speed >= AUTO_FIT_SPEED_IN;
+                downTarget = fit;
+                upCandidate = (speed < AUTO_FIT_SPEED_OUT) ? cap : fit;
+            }
+
+            if (zoomState === ZOOM_FOLLOW)
+            {
+                if (busy)
+                {
+                    zoomState = ZOOM_HELD;
+                    zoomCommit = downTarget;
+                    upSince = -1;
+                }
+
+                return;
+            }
+
+            if (downTarget < zoomCommit)
+            {
+                zoomCommit = downTarget; // 더 낮춰야 하면 바로 따라감
+                upSince = -1;
+                return;
+            }
+
+            // 올리는 후보는 줌아웃이 끝나 유지 배율에 도착한 뒤부터 셈 (줌아웃 중에 쌓인 시간으로 끝나자마자 줌인하지 않게)
+            const arrived:Boolean = !zoomMoving && Math.abs(Math.log(zoomCommit) - Math.log(curZoom)) < ZOOM_SETTLED_LOG;
+
+            if (!arrived || upCandidate <= zoomCommit * (1 + ZOOM_SETTLED_LOG))
+            {
+                upSince = -1;
+                return;
+            }
+
+            const now:int = getTimer();
+
+            if (upSince < 0)
+            {
+                upSince = now;
+            }
+            else if (now - upSince >= RETURN_DWELL_MS)
+            {
+                zoomCommit = upCandidate; // 그 시점의 값으로 올림
+                upSince = -1;
+            }
         }
 
         // 초점(연출 영역 중심 또는 커서)의 화면 위치가 변하지 않게 배율을 바꾸고 앵커를 보정함
