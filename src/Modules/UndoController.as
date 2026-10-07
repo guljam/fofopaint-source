@@ -169,6 +169,7 @@ package Modules
             fs.position = ReplayState.rFileLastBytePosition;
             fs.truncate(); // 데이터 위에 짤라주고
             fs.close();
+            ReplayDrawer.commandWindow.dispose(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
             // 썸네일 이미지도 날려줌
             const rNowFrameSave:Number = ReplayState.rNowFrame;
             ReplayFileCache.truncateCacheImagesAfterFrame(rNowFrameSave);

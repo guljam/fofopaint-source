@@ -35,6 +35,12 @@ package Modules.ReplayEngine
         private static const BIG_ANIM_RATIO:Number = 0.9; // 연출 영역이 사용자 줌에서 화면의 이 비율보다 크면 줌아웃
         private static const ZOOM_SETTLED_LOG:Number = 0.002; // 로그 배율 차이가 이 값 미만이면 도착
 
+        // 미리 읽은 커서 경로로 영역을 추적 (3단계)
+        private static const EXCURSION_IGNORE_MS:Number = 800; // 데드존 밖으로 나가 있던 시간이 이보다 짧으면 따라가지 않음 (실제 시간)
+        private static const REGION_LOW:Number = 0.1; // 시간 가중 10~90% 구간을 영역으로 봄
+        private static const REGION_HIGH:Number = 0.9;
+        private static const MAX_PATH_SAMPLES:int = 600; // 계산에 쓰는 경로 점 수 상한
+
         private static const ZOOM_FOLLOW:int = 0; // 사용자 줌
         private static const ZOOM_TO_FIT:int = 1; // 줌아웃 중
         private static const ZOOM_FIT:int = 2; // 맞춤 배율 유지
@@ -46,6 +52,18 @@ package Modules.ReplayEngine
         private var targetX:Number = 0;
         private var targetY:Number = 0;
         private var lastStepTime:int = 0;
+
+        // 미리 읽은 경로로 구한 값 (매 틱 다시 계산). lookReady가 false면 커서 한 점과 배속 기준으로 되돌아감
+        private var lookReady:Boolean = false;
+        private const regionRect:Rectangle = new Rectangle(); // 캔버스 좌표, 시간 가중 10~90% 영역
+        private var regionZoom:Number = NaN; // 영역이 화면에 들어가는 배율
+        private var ignoringExcursion:Boolean = false; // 지금 커서가 무시하는 짧은 바깥 이동 안에 있음
+        private var outsideSince:int = -1; // 커서가 데드존 밖으로 나간 시각 (getTimer), 안이면 -1
+        private const pathBuf:Vector.<Number> = new Vector.<Number>();
+        private const sampleT:Vector.<Number> = new Vector.<Number>(); // 샘플의 녹화 시각
+        private const sampleX:Vector.<Number> = new Vector.<Number>();
+        private const sampleY:Vector.<Number> = new Vector.<Number>();
+        private const sampleW:Vector.<Number> = new Vector.<Number>(); // 샘플의 가중치(그 위치에 머문 녹화 시간)
 
         // 자동 줌 상태. userZoom은 사용자가 정한 배율이고 외부가 배율을 바꿨을 때만 갱신됨 (자동 줌은 rCanvasZoomIndex 등 사용자 줌 값을 건드리지 않음)
         private var zoomState:int = ZOOM_FOLLOW;
@@ -76,6 +94,12 @@ package Modules.ReplayEngine
             stopTimer();
         }
 
+        // 지금 커서가 짧은 바깥 이동(EXCURSION_IGNORE_MS 미만)으로 판단되어 따라가지 않는 중인지. 이때는 커서가 화면 밖에 있을 수 있음
+        public function get isIgnoringExcursion():Boolean
+        {
+            return ignoringExcursion;
+        }
+
         // 재생 중 그리기 바로 뒤에 한 번 부름 (replayDrawTimer). 그리기 타이머가 갱신하므로 카메라 타이머와 두 번 움직이지 않음
         // 슬라이드쇼도 같은 감쇠를 거침 (즉시 맞추는 snap은 탐색 경로에서만 씀)
         public function update():void
@@ -100,6 +124,7 @@ package Modules.ReplayEngine
         {
             stopTimer();
             syncToAnchor();
+            computeLookahead();
             stepZoom(ReplayState.isReplayStarted, true);
             syncToAnchor();
             const cursor:Point = ReplayDrawCommands.getRCursorPos();
@@ -149,9 +174,15 @@ package Modules.ReplayEngine
             const now:int = getTimer();
             const dt:Number = Math.min(Math.max(0, now - lastStepTime), MAX_DT_MS);
             lastStepTime = now;
+            computeLookahead();
             stepZoom(ReplayState.isReplayStarted, false, dt);
             retarget();
-            keepCursorInSafeZone();
+
+            if (!ignoringExcursion)
+            {
+                keepCursorInSafeZone();
+            }
+
             const k:Number = 1 - Math.exp(-dt / CAMERA_TAU_MS);
             posX += (targetX - posX) * k;
             posY += (targetY - posY) * k;
@@ -226,6 +257,214 @@ package Modules.ReplayEngine
             return Math.abs(targetX - posX) < SETTLED_DIST && Math.abs(targetY - posY) < SETTLED_DIST;
         }
 
+
+        // ---- 미리 읽은 경로로 영역 추적 (3단계) ----
+
+        // 앞으로 LOOKAHEAD_REAL_MS * 배속 동안의 커서 경로에서 시간 가중 10~90% 영역을 구함
+        // 데드존 밖으로 나가는 구간이 EXCURSION_IGNORE_MS보다 짧으면 그 구간은 계산에서 빼고, 지금 커서가 그 안에 있으면 안전 구역 즉시 이동도 하지 않음
+        // 읽어 둔 경로가 없거나 부족하면 lookReady=false (커서 한 점 기준으로 되돌아감)
+        private function computeLookahead():void
+        {
+            lookReady = false;
+            ignoringExcursion = false;
+            const win:ReplayCommandWindow = ReplayDrawer.commandWindow;
+            const nowFrame:Number = ReplayState.rNowFrame;
+            const cursor:Point = ReplayDrawCommands.getRCursorPos();
+            const view:Rectangle = viewportRect();
+            const gp:Point = ReplayDrawer.rCanvasLayer1Bitmap.localToGlobal(new Point(0, 0));
+            const rad:Number = ReplayDrawer.rCanvasAnchorPoint.rotation * Math.PI / 180;
+            const cos:Number = Math.cos(rad);
+            const sin:Number = Math.sin(rad);
+            const zoom:Number = ReplayState.rCanvasZoomMultiplier;
+            const insetX:Number = view.width * DEAD_ZONE_INSET;
+            const insetY:Number = view.height * DEAD_ZONE_INSET;
+            const zoneLeft:Number = view.left + insetX;
+            const zoneRight:Number = view.right - insetX;
+            const zoneTop:Number = view.top + insetY;
+            const zoneBottom:Number = view.bottom - insetY;
+
+            // 지금 커서가 데드존 밖에 있던 시간 (현재 앵커 기준)
+            const csx:Number = gp.x + (cursor.x * cos - cursor.y * sin) * zoom;
+            const csy:Number = gp.y + (cursor.x * sin + cursor.y * cos) * zoom;
+            const nowOutside:Boolean = csx < zoneLeft || csx > zoneRight || csy < zoneTop || csy > zoneBottom;
+
+            if (!nowOutside)
+            {
+                outsideSince = -1;
+            }
+            else if (outsideSince < 0)
+            {
+                outsideSince = getTimer();
+            }
+
+            if (!win.isAlignedWith(ReplayState.rFileLastBytePosition) && !ReplayState.rMemoryDataReadON)
+            {
+                return;
+            }
+
+            const speed:Number = Math.max(1, ReplayState.rReplaySpeedMultipler);
+            const spanMs:Number = ReplayCommandWindow.LOOKAHEAD_REAL_MS * speed;
+            const t0:Number = ReplayClock.timeOfFrame(nowFrame);
+            pathBuf.length = 0;
+            win.collectCursorPath(nowFrame, nowFrame + ReplayCommandWindow.LOOKAHEAD_MAX_FRAMES, pathBuf);
+
+            // 샘플: 지금 커서 + 앞으로 커서가 바뀌는 지점 (span 안만)
+            sampleT.length = 0;
+            sampleX.length = 0;
+            sampleY.length = 0;
+            sampleW.length = 0;
+            sampleT.push(t0);
+            sampleX.push(cursor.x);
+            sampleY.push(cursor.y);
+            var stride:int = Math.max(1, int(pathBuf.length / 3 / MAX_PATH_SAMPLES));
+
+            for (var i:int = 0;i < pathBuf.length;i += 3 * stride)
+            {
+                const t:Number = ReplayClock.timeOfFrame(pathBuf[i]);
+
+                if (t - t0 > spanMs)
+                {
+                    break;
+                }
+
+                sampleT.push(Math.max(t, sampleT[sampleT.length - 1]));
+                sampleX.push(pathBuf[i + 1]);
+                sampleY.push(pathBuf[i + 2]);
+            }
+
+            const n:int = sampleT.length;
+
+            if (n < 3)
+            {
+                return; // 미리 볼 데이터가 부족함
+            }
+
+            // 가중치 = 그 위치에 머문 녹화 시간 (마지막 샘플은 span 끝까지, 데이터가 모자라면 아주 짧게)
+            const endT:Number = Math.min(t0 + spanMs, sampleT[n - 1] + 1);
+
+            for (i = 0;i < n;i++)
+            {
+                sampleW.push((i + 1 < n ? sampleT[i + 1] : endT) - sampleT[i]);
+            }
+
+            // 데드존 밖 연속 구간의 실제 시간이 EXCURSION_IGNORE_MS보다 짧으면 제외 (구간이 span 끝까지 이어지면 끝을 알 수 없어 제외하지 않음)
+            var runStart:int = -1;
+
+            for (i = 0;i <= n;i++)
+            {
+                var outside:Boolean = false;
+
+                if (i < n)
+                {
+                    const sx:Number = gp.x + (sampleX[i] * cos - sampleY[i] * sin) * zoom;
+                    const sy:Number = gp.y + (sampleX[i] * sin + sampleY[i] * cos) * zoom;
+                    outside = sx < zoneLeft || sx > zoneRight || sy < zoneTop || sy > zoneBottom;
+                }
+
+                if (outside && runStart < 0)
+                {
+                    runStart = i;
+                }
+                else if (!outside && runStart >= 0)
+                {
+                    var runMs:Number = 0;
+
+                    for (var j:int = runStart;j < i;j++)
+                    {
+                        runMs += sampleW[j];
+                    }
+
+                    var realMs:Number = runMs / speed + ((runStart === 0 && outsideSince >= 0) ? (getTimer() - outsideSince) : 0);
+                    const touchesEnd:Boolean = (i === n);
+
+                    if (!touchesEnd && realMs < EXCURSION_IGNORE_MS)
+                    {
+                        for (j = runStart;j < i;j++)
+                        {
+                            sampleW[j] = 0;
+                        }
+
+                        if (runStart === 0)
+                        {
+                            ignoringExcursion = true;
+                        }
+                    }
+
+                    runStart = -1;
+                }
+            }
+
+            // 가중 중앙값 구간: x, y 각각 시간 가중 10%~90% 위치를 영역으로 함 (중앙값은 이 구간 안에 있음)
+            var total:Number = 0;
+
+            for (i = 0;i < n;i++)
+            {
+                total += sampleW[i];
+            }
+
+            if (total <= 0)
+            {
+                ignoringExcursion = false;
+
+                for (i = 0;i < n;i++)
+                {
+                    sampleW[i] = 1;
+                }
+            }
+
+            const lowX:Number = weightedQuantile(sampleX, sampleW, REGION_LOW);
+            const highX:Number = weightedQuantile(sampleX, sampleW, REGION_HIGH);
+            const lowY:Number = weightedQuantile(sampleY, sampleW, REGION_LOW);
+            const highY:Number = weightedQuantile(sampleY, sampleW, REGION_HIGH);
+            regionRect.setTo(lowX, lowY, highX - lowX, highY - lowY);
+
+            // 지금 커서는 항상 영역 안에 둠 (영역 밖 10%를 놓치지 않게). 짧은 바깥 이동으로 무시하는 중이면 넣지 않음
+            if (!ignoringExcursion)
+            {
+                const left:Number = Math.min(regionRect.left, cursor.x);
+                const top:Number = Math.min(regionRect.top, cursor.y);
+                regionRect.setTo(left, top, Math.max(regionRect.right, cursor.x) - left, Math.max(regionRect.bottom, cursor.y) - top);
+            }
+
+            const boxW:Number = regionRect.width * Math.abs(cos) + regionRect.height * Math.abs(sin);
+            const boxH:Number = regionRect.width * Math.abs(sin) + regionRect.height * Math.abs(cos);
+            regionZoom = Math.min(boxW > 0 ? (view.width - FIT_MARGIN * 2) / boxW : Number.MAX_VALUE, boxH > 0 ? (view.height - FIT_MARGIN * 2) / boxH : Number.MAX_VALUE);
+            lookReady = true;
+        }
+
+        // 값(values)을 가중치(weights)로 센 분위수 q (0~1)
+        private function weightedQuantile(values:Vector.<Number>, weights:Vector.<Number>, q:Number):Number
+        {
+            const n:int = values.length;
+            const order:Array = new Array(n);
+            var total:Number = 0;
+
+            for (var i:int = 0;i < n;i++)
+            {
+                order[i] = i;
+                total += weights[i];
+            }
+
+            order.sort(function (a:int, b:int):int
+                {
+                    return values[a] < values[b] ? -1 : (values[a] > values[b] ? 1 : 0);
+                });
+            const goal:Number = total * q;
+            var acc:Number = 0;
+
+            for (i = 0;i < n;i++)
+            {
+                acc += weights[order[i]];
+
+                if (acc >= goal && weights[order[i]] > 0)
+                {
+                    return values[order[i]];
+                }
+            }
+
+            return values[order[n - 1]];
+        }
+
         // ---- 자동 줌 ----
 
         private function isZooming():Boolean
@@ -287,7 +526,8 @@ package Modules.ReplayEngine
 
             if (playing)
             {
-                const busy:Boolean = ReplayState.rReplaySpeedMultipler >= AUTO_FIT_SPEED_IN || ReplayState.isReplaySlideShowMode || isBigAnim(view);
+                // 미리 읽은 경로가 있으면 영역이 사용자 줌에서 화면에 안 들어갈 때 바쁘다고 보고, 없으면 2단계의 배속 기준
+                const busy:Boolean = (lookReady ? regionZoom < userZoom : (ReplayState.rReplaySpeedMultipler >= AUTO_FIT_SPEED_IN || ReplayState.isReplaySlideShowMode)) || isBigAnim(view);
 
                 if (zoomState === ZOOM_FOLLOW)
                 {
@@ -308,7 +548,7 @@ package Modules.ReplayEngine
                 else
                 {
                     // 들어가는 기준보다 낮은 기준(OUT)이 DWELL 동안 이어져야 복원, 중간에 기준을 벗어나면 처음부터 다시 셈
-                    const calm:Boolean = ReplayState.rReplaySpeedMultipler < AUTO_FIT_SPEED_OUT && !isBigAnim(view);
+                    const calm:Boolean = (lookReady ? regionZoom >= userZoom : ReplayState.rReplaySpeedMultipler < AUTO_FIT_SPEED_OUT) && !isBigAnim(view);
                     const now:int = getTimer();
 
                     if (!calm)
@@ -331,7 +571,8 @@ package Modules.ReplayEngine
                 return;
             }
 
-            const target:Number = (zoomState === ZOOM_TO_USER) ? userZoom * RETURN_ZOOM_RATIO : fit;
+            // 줌아웃 중 목표: 영역이 들어가는 배율을 [맞춤 배율, 사용자 줌] 안으로 자른 값 (미리 읽은 경로가 없으면 맞춤 배율)
+            const target:Number = (zoomState === ZOOM_TO_USER) ? userZoom * RETURN_ZOOM_RATIO : (lookReady ? Math.max(fit, Math.min(regionZoom, userZoom)) : fit);
             const logDiff:Number = Math.log(target) - Math.log(curZoom);
 
             if (instant || Math.abs(logDiff) < ZOOM_SETTLED_LOG)
@@ -421,13 +662,14 @@ package Modules.ReplayEngine
         {
             const area:Rectangle = ReplayDrawer.anim.focusRect;
 
-            if (area === null)
+            if (area === null && !lookReady)
             {
                 const p:Point = canvasToScreen(cursor.x, cursor.y);
                 return new Rectangle(p.x, p.y, 0, 0);
             }
 
-            const corners:Array = [canvasToScreen(area.left, area.top), canvasToScreen(area.right, area.top), canvasToScreen(area.left, area.bottom), canvasToScreen(area.right, area.bottom)];
+            const target:Rectangle = (area === null) ? regionRect : area;
+            const corners:Array = [canvasToScreen(target.left, target.top), canvasToScreen(target.right, target.top), canvasToScreen(target.left, target.bottom), canvasToScreen(target.right, target.bottom)];
             var minX:Number = corners[0].x;
             var maxX:Number = minX;
             var minY:Number = corners[0].y;

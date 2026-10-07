@@ -191,6 +191,7 @@ package Modules.ReplayEngine
                 UndoHistory.updateUndoBaseImageFromReplayMode();
                 fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE); // 파일 생성
                 fs.close();
+                ReplayDrawer.commandWindow.dispose();
                 FileManager.isFileAlreadySaved = false;
                 FileManager.enableNewFileButton();
                 ReplayState.setRFileDataTotalFrame(0);
@@ -237,6 +238,7 @@ package Modules.ReplayEngine
                 fs.position = 0;
                 fs.writeBytes(ba, 0, ba.length);
                 fs.close();
+                ReplayDrawer.commandWindow.dispose(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
                 ba.clear();
                 ba = null;
                 ReplayDrawer.rReplayFOFOCursor.visible = false;
@@ -290,6 +292,7 @@ package Modules.ReplayEngine
                 fs.position = ReplayState.rFileLastBytePosition;
                 fs.truncate(); // 데이터 위에 짤라주고
                 fs.close();
+                ReplayDrawer.commandWindow.dispose(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
                 // 썸네일 이미지도 날려줌
                 const rNowFrameSave:Number = ReplayState.rNowFrame;
                 ReplayFileCache.truncateCacheImagesAfterFrame(rNowFrameSave);
@@ -986,6 +989,7 @@ package Modules.ReplayEngine
                             drawCanvasFromReplayDataSlideShowMode();
                         }
 
+                        ReplayDrawer.commandWindow.refill(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
                         ReplayDrawer.cursorFollow.update();
                         return true;
                     }
@@ -1004,6 +1008,7 @@ package Modules.ReplayEngine
                         }
                     }
 
+                    ReplayDrawer.commandWindow.refill(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
                     ReplayDrawer.cursorFollow.update();
                     return true;
                 });
@@ -1528,6 +1533,7 @@ package Modules.ReplayEngine
 
             ReplayModeInput.removeEvents();
             cancelReplayRestartTimer();
+            ReplayDrawer.commandWindow.dispose();
             ReplayState.isReplayModeON = false;
             ReplayDrawer.rCanvasAnchorPoint.visible = false;
             ReplayDrawer.rReplayFOFOCursor.visible = false;
@@ -1600,6 +1606,7 @@ package Modules.ReplayEngine
             }
 
             DrawModeInput.removeEvents();
+            ReplayDrawer.commandWindow.dispose(); // 앞에서 읽어 둔 것이 있어도 이번 모드에서는 새로 읽음
             ReplayState.isReplayModeON = true;
             CanvasView.canvasAnchorPoint.visible = false;
             ReplayDrawer.rCanvasAnchorPoint.visible = true;

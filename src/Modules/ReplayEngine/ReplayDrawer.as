@@ -30,6 +30,7 @@ package Modules.ReplayEngine
         public static var rCanvasAnchorPoint:Sprite = new Sprite(); // 회전 스프라이트 부모
         public static var rCanvasPanel:Sprite = new Sprite();
         public static const viewport:ReplayViewport = new ReplayViewport(); // 리플레이 캔버스 화면 배치 (getter로 위 필드를 읽음)
+        public static const commandWindow:ReplayCommandWindow = new ReplayCommandWindow(); // 재생 중 repdata를 읽는 유일한 곳
         public static const cursorFollow:ReplayCursorFollow = new ReplayCursorFollow(); // 리플레이 커서 따라 캔버스 이동
         public static var rCanvasDrawLayer:Sprite = new Sprite();
         public static var rCanvasDrawShape:Shape = new Shape();
@@ -237,6 +238,7 @@ package Modules.ReplayEngine
                 ReplayState.rNowFrame = metaData.nowFrame; // 썸네일 이미지를 저장한 프레임
                 ReplayState.rFileLastBytePosition = metaData.lastByte; // 마지막 바이트
                 rFileStream.position = metaData.lastByte;
+                commandWindow.resetAt(metaData.lastByte, metaData.nowFrame);
                 // 원하는 프레임에서 썸네일 이미지 프레임을 빼줌 나머지 프레임만 그려주면 되니깐
                 remainingFrameCount = tragetFrame - metaData.nowFrame;
                 ReplayDrawCommands.clearData();
@@ -647,22 +649,25 @@ package Modules.ReplayEngine
             }
         }
 
+        // 재생 중 repdata는 commandWindow가 미리 읽어 둔 묶음에서 꺼내 씀 (스트림 위치가 아니라 꺼낸 묶음의 byte로 위치를 기록)
         public static function readNextFileData():Boolean
         {
-            if (ReplayDrawer.rFileStream.bytesAvailable > 0)
-            {
-                const obj:Array = ReplayDrawer.rFileStream.readObject() as Array;
+            const item:Object = commandWindow.takeNext(ReplayState.rFileLastBytePosition, ReplayState.rNowFrame);
 
-                if (!obj)
-                    return true;
-                ReplayDrawCommands.setData(obj);
-                ReplayState.rFileCutBytePosition = ReplayState.rFileLastBytePosition;
-                ReplayState.rFileLastBytePosition = ReplayDrawer.rFileStream.position;
-                ReplayState.rPrevFrame = ReplayState.rNowFrame;
-                return true;
+            if (item === null)
+            {
+                return false;
             }
 
-            return false;
+            const obj:Array = item.data;
+
+            if (!obj)
+                return true;
+            ReplayDrawCommands.setData(obj);
+            ReplayState.rFileCutBytePosition = ReplayState.rFileLastBytePosition;
+            ReplayState.rFileLastBytePosition = item.endByte;
+            ReplayState.rPrevFrame = ReplayState.rNowFrame;
+            return true;
         }
 
         // 리플레이 정지는 직접 하지 않고 정지가 필요한지만 반환함 (정지는 ReplayController가 처리)

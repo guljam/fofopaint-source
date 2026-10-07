@@ -239,6 +239,8 @@ package Modules
                 repFileTemp.moveTo(AppStateManager.replayDataFilePath, true);
             }
 
+            ReplayDrawer.commandWindow.dispose(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
+
             if (repFileTemp.exists)
             {
                 repFileTemp.deleteFile();
