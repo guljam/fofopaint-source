@@ -376,7 +376,7 @@ package Modules.ReplayEngine
                     // 예전에는 renderReplayFrame 안에서 정지된 뒤(슬라이드쇼 플래그 꺼진 상태로) 실행되던 검사라서 순서 유지를 위해 여기서 다시 해줌
                     if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoController.isDeepUndoEnabled)
                     {
-                        ReplayDrawer.cursorFollow.check(true);
+                        ReplayDrawer.cursorFollow.snap();
                     }
                 }
 
@@ -942,7 +942,7 @@ package Modules.ReplayEngine
 
                         if (!ReplayState.isReplayCanvasFitToWindow && !MouseState.isLeftDown && !UndoController.isDeepUndoEnabled)
                         {
-                            ReplayDrawer.cursorFollow.check(ReplayState.isReplaySlideShowMode);
+                            ReplayDrawer.cursorFollow.follow();
                         }
                     }
 

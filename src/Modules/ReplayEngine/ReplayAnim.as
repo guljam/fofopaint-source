@@ -66,10 +66,33 @@ package Modules.ReplayEngine
         private var lineShape:Boolean = false;
         private var lineSize:uint = 0;
         private var lineColor:uint = 0;
+        private const lineBounds:Rectangle = new Rectangle(); // 꼭짓점들의 bbox (캔버스 좌표, 선 굵기 제외)
 
         public function get isActive():Boolean
         {
             return active;
+        }
+
+        // 카메라가 보는 연출 관심 영역 (캔버스 좌표). 채우기/올가미는 덮개 영역, 선은 꼭짓점 bbox, 진행 중인 연출이 없거나 이동 연출이면 null
+        // 복사본이라 호출자가 고쳐도 됨
+        public function get focusRect():Rectangle
+        {
+            if (!active)
+            {
+                return null;
+            }
+
+            if (mode === 1)
+            {
+                return area.clone();
+            }
+
+            if (mode === 3)
+            {
+                return lineBounds.clone();
+            }
+
+            return null;
         }
 
         // 연출 길이가 있는 명령을 실행하기 직전에 부름. 연출을 하지 않을 명령이면 disarm
@@ -282,6 +305,16 @@ package Modules.ReplayEngine
             }
 
             lineXY = xyData.concat();
+            lineBounds.setTo(lineXY[0], lineXY[1], 0, 0);
+
+            for (i = 1;i < vertexCount;i++)
+            {
+                lineBounds.left = Math.min(lineBounds.left, lineXY[i * 2]);
+                lineBounds.top = Math.min(lineBounds.top, lineXY[i * 2 + 1]);
+                lineBounds.right = Math.max(lineBounds.right, lineXY[i * 2]);
+                lineBounds.bottom = Math.max(lineBounds.bottom, lineXY[i * 2 + 1]);
+            }
+
             lineShape = shape;
             lineSize = size;
             lineColor = color;

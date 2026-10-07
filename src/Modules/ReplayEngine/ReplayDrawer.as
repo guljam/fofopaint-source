@@ -343,7 +343,7 @@ package Modules.ReplayEngine
 
             if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoController.isDeepUndoEnabled)
             {
-                cursorFollow.check(true);
+                cursorFollow.snap();
             }
 
             return shouldStop;
