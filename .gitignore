@@ -9,6 +9,7 @@
 /tests
 /test-output
 /test_sample
+/docs
 
 # 개별 파일 제외
 /_make_air_file.ps1
