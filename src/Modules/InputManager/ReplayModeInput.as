@@ -177,6 +177,49 @@ package Modules.InputManager
                             ReplayController.handleReplayStopButton();
                         }
                         break;
+                    // 재생 중 배속/줌 조절 (shift/ctrl 조합은 제외). 줌 키는 반복 없이 키를 떼기 전에는 다시 들어오지 않음
+                    case InputManager.KEY.up:
+                    case InputManager.KEY.f:
+                    case InputManager.KEY.h:
+                        {
+                            if (!InputManager.isPressingShift() && !InputManager.isPressingControl())
+                            {
+                                InputManager.updateLastKey();
+                                ReplayController.startAdjustPlayBackSpeedByShortcut(true);
+                            }
+                        }
+                        break;
+                    case InputManager.KEY.down:
+                    case InputManager.KEY.v:
+                    case InputManager.KEY.n:
+                        {
+                            if (!InputManager.isPressingShift() && !InputManager.isPressingControl())
+                            {
+                                InputManager.updateLastKey();
+                                ReplayController.startAdjustPlayBackSpeedByShortcut(false);
+                            }
+                        }
+                        break;
+                    case InputManager.KEY.w:
+                    case InputManager.KEY.i:
+                        {
+                            if (!InputManager.isPressingShift() && !InputManager.isPressingControl())
+                            {
+                                InputManager.updateLastKey();
+                                ReplayDrawer.viewport.zoomStep(true);
+                            }
+                        }
+                        break;
+                    case InputManager.KEY.s:
+                    case InputManager.KEY.k:
+                        {
+                            if (!InputManager.isPressingShift() && !InputManager.isPressingControl())
+                            {
+                                InputManager.updateLastKey();
+                                ReplayDrawer.viewport.zoomStep(false);
+                            }
+                        }
+                        break;
                 }
                 return;
             }
@@ -251,6 +294,18 @@ package Modules.InputManager
                         {
                             ReplayController.startAdjustPlayBackSpeedByShortcut(false);
                         }
+                    }
+                    break;
+                case InputManager.KEY.w:
+                case InputManager.KEY.i:
+                    {
+                        ReplayDrawer.viewport.zoomStep(true); // 반복 없음: 위에서 updateLastKey를 불러 키를 떼기 전에는 다시 들어오지 않음
+                    }
+                    break;
+                case InputManager.KEY.s:
+                case InputManager.KEY.k:
+                    {
+                        ReplayDrawer.viewport.zoomStep(false);
                     }
                     break;
                 case InputManager.KEY.backspace:

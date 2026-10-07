@@ -1151,7 +1151,21 @@ package Modules.ReplayEngine
             const maxDist:Number = minDist + UIController.topBar.replaySpeedSlider.width - 2.5;
             const maxSpeed:Number = ReplayState.REPLAY_MAX_SPEED;
             var oldSpeed:Number;
+            var wasReplayRunning:Boolean = false; // 누르기 전에 재생 중이었는지 (놓으면 이어서 재생)
+            var released:Boolean = false; // 놓기와 창 비활성화가 겹쳐도 놓기 처리는 한 번만
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
+
+            // 재생 중이면 시크바 드래그와 같은 임시 중단 (stopReplay를 부르지 않아 상단바 복귀와 카메라 snap이 일어나지 않고, 시크바 텍스트의 배속 힌트가 진행 갱신에 덮이지 않음)
+            if (ReplayState.isReplayStarted)
+            {
+                wasReplayRunning = true;
+                ReplayClock.rememberPosition(ReplayState.rNowFrame, ReplayClock.recordedPeek()); // 쉬는 구간 중간에서 눌러도 그 시각부터 이어 재생
+                ReplayState.isReplayStarted = false;
+                ReplayController.clearReplayWaitingState();
+                FOFOTimer.remove("replayDrawTimer");
+                FOFOTimer.remove("prograssBarUpdateTimer");
+                ReplayDrawer.rFileStream.close();
+            }
 
             function setSpeed(mx:Number):void
             {
@@ -1280,6 +1294,12 @@ package Modules.ReplayEngine
 
             function replaySpeedButtomUpEvent(e:MouseEvent):void
             {
+                if (released)
+                {
+                    return;
+                }
+
+                released = true;
                 MouseState.endDrag("replaySpeed");
 
                 if (isReplaySpeedDragging)
@@ -1292,6 +1312,12 @@ package Modules.ReplayEngine
 
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent);
+
+                // 창 비활성화로 불린 경우도 여기서 재개 (시크바 드래그의 onMouseUp과 같은 조건)
+                if (wasReplayRunning && !ReplayState.isReplayFinished)
+                {
+                    startReplay();
+                }
             }
 
             function replaySpeedButtomMoveEvent(e:MouseEvent):void
