@@ -123,6 +123,19 @@ package Modules.ReplayEngine
         // pointStamps는 도구 안에서 점을 찍은 때마다의 getTimer 값 (선 도구처럼 점별 시각이 연출에 필요한 명령에만 넘김, 점 개수는 명령의 꼭짓점 수와 같아야 함)
         public static function stampTimingSheetToolCommand(command:Array, startStamp:int, pointStamps:Array = null):Array
         {
+            const elapsedMs:int = (getTimer() - startStamp);
+            var animMs:int = elapsedMs;
+
+            // 이거 안하면 툴 무한정 쓰면 시간이 계속 늘어남
+            if (animMs > ANIM_COMMAND_TIME_LIMIT_MS)
+            {
+                animMs = ANIM_COMMAND_TIME_LIMIT_MS;
+            }
+            else if (animMs < 0)
+            {
+                animMs = 0;
+            }
+
             var points:Array = null;
 
             if (pointStamps !== null && pointStamps.length > 0)
@@ -131,23 +144,19 @@ package Modules.ReplayEngine
 
                 for (var i:int = 0;i < pointStamps.length;i++)
                 {
-                    points[i] = Math.max(0, (pointStamps[i] - startStamp) | 0); // 도구 시작 기준 ms
+                    var pointMs:int = Math.max(0, (pointStamps[i] - startStamp) | 0); // 도구 시작 기준 ms
+
+                    // 연출 길이보다 오래 걸렸으면 점 찍은 리듬은 유지하고 전체를 비율로 줄임
+                    if (elapsedMs > animMs)
+                    {
+                        pointMs = Math.round(pointMs * animMs / elapsedMs);
+                    }
+
+                    points[i] = Math.min(pointMs, animMs);
                 }
             }
 
-            var endStamp:int = (getTimer() - startStamp);
-
-            // 이거 안하면 툴 무한정 쓰면 시간이 계속 늘어남
-            if (endStamp > ANIM_COMMAND_TIME_LIMIT_MS)
-            {
-                endStamp = ANIM_COMMAND_TIME_LIMIT_MS;
-            }
-            else if (endStamp < 0)
-            {
-                endStamp = 0;
-            }
-
-            rTimingSheetBufferStamps[command] = TimingSheetFile.makeElement(startStamp, endStamp, points);
+            rTimingSheetBufferStamps[command] = TimingSheetFile.makeElement(startStamp, animMs, points);
             return command;
         }
 
