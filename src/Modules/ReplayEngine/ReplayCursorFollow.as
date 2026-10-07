@@ -77,21 +77,13 @@ package Modules.ReplayEngine
         }
 
         // 재생 중 그리기 바로 뒤에 한 번 부름 (replayDrawTimer). 그리기 타이머가 갱신하므로 카메라 타이머와 두 번 움직이지 않음
-        // 슬라이드쇼는 감쇠 없이 바로 맞춤
+        // 슬라이드쇼도 같은 감쇠를 거침 (즉시 맞추는 snap은 탐색 경로에서만 씀)
         public function update():void
         {
-            if (!ReplayState.isReplayStarted)
+            if (ReplayState.isReplayStarted)
             {
-                return;
+                step();
             }
-
-            if (ReplayState.isReplaySlideShowMode)
-            {
-                snap();
-                return;
-            }
-
-            step();
         }
 
         // 재생이 멈췄을 때 부름. 목표에 도착하지 않았으면 카메라 타이머로 남은 이동을 마무리함
@@ -103,7 +95,7 @@ package Modules.ReplayEngine
             }
         }
 
-        // 목표를 계산하고 앵커를 바로 그 위치로 옮김 (탐색, 슬라이드쇼)
+        // 목표를 계산하고 앵커를 바로 그 위치로 옮김 (탐색, 슬라이드쇼 정지 후)
         public function snap():void
         {
             stopTimer();
