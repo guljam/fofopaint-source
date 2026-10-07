@@ -56,9 +56,41 @@ package Modules.ReplayEngine
             }
         }
 
+        // 줌 키/버튼의 다음 단계: 지금 화면에 보이는 배율 기준으로 가장 가까운 다음 단계 (자동 줌 뒤에는 배율이 단계 값이 아니라서 저장된 단계 인덱스를 쓰면 크게 튐)
+        // 지금 배율이 정확히 단계 값이면 그 다음 단계 (상대 오차 1e-6 미만은 같은 값으로 봄), 목록 끝을 넘으면 끝 값 유지
+        private function nextZoomIndexFromVisible(zoomIn:Boolean):int
+        {
+            const list:Array = CanvasView.canvasZoomMultiplierList;
+            const now:Number = ReplayState.rCanvasZoomMultiplier;
+            var i:int;
+
+            if (zoomIn)
+            {
+                for (i = 0;i < list.length;i++)
+                {
+                    if (list[i] > now * (1 + 1e-6))
+                    {
+                        return i;
+                    }
+                }
+
+                return list.length - 1;
+            }
+
+            for (i = list.length - 1;i >= 0;i--)
+            {
+                if (list[i] < now * (1 - 1e-6))
+                {
+                    return i;
+                }
+            }
+
+            return 0;
+        }
+
         override public function zoomStep(zoomIn:Boolean):void
         {
-            const newZoomIndex:int = nextZoomIndex(ReplayState.rCanvasZoomIndex, zoomIn);
+            const newZoomIndex:int = nextZoomIndexFromVisible(zoomIn);
             const newZoom:Number = CanvasView.canvasZoomMultiplierList[newZoomIndex];
             const center:Point = UIController.getStageCenterPos("replay");
             ReplayState.rLastCanvasZoomMultiplier = newZoom;
