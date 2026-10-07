@@ -321,14 +321,11 @@
 			const borderColor:uint = getRGBInfoBorderColor(color);
 
 			rgbInfoBG.graphics.clear();
-			// rgbInfoBG.graphics.beginFill(color);
-			// rgbInfoBG.graphics.drawRect(0,0,rgbInfoBGwidth,rgbInfoHeight);
-			// rgbInfoBG.graphics.endFill();
-			// rgbInfoBG.graphics.lineStyle(1, (borderColor === 0) ? color:borderColor);
-			// rgbInfoBG.graphics.drawRect(0,0, rgbInfoBGwidth,rgbInfoHeight);
-
-			HandDrawnLine.drawRect(rgbInfoBG.graphics,1.8,(borderColor === 0) ? color:borderColor,1.0,1,1,rgbInfoBGwidth-1,rgbInfoHeight-1,color,1.0,0.8);
-
+			rgbInfoBG.graphics.beginFill(color);
+			rgbInfoBG.graphics.drawRect(0,0,rgbInfoBGwidth,rgbInfoHeight);
+			rgbInfoBG.graphics.endFill();
+			rgbInfoBG.graphics.lineStyle(1, (borderColor === 0) ? color:borderColor);
+			rgbInfoBG.graphics.drawRect(0,0, rgbInfoBGwidth,rgbInfoHeight);
 			rgbInfoBGColor = color;
 			rgbInfoBGBorderColor = borderColor;
 			if(rgbInfoPaletteTypeSave != paletteType)
