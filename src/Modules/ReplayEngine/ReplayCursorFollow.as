@@ -55,6 +55,7 @@ package Modules.ReplayEngine
 
         // 미리 읽은 경로로 구한 값 (매 틱 다시 계산). lookReady가 false면 커서 한 점과 배속 기준으로 되돌아감
         private var lookReady:Boolean = false;
+        private var lookMiss:String = "";
         private const regionRect:Rectangle = new Rectangle(); // 캔버스 좌표, 시간 가중 10~90% 영역
         private var regionZoom:Number = NaN; // 영역이 화면에 들어가는 배율
         private var ignoringExcursion:Boolean = false; // 지금 커서가 무시하는 짧은 바깥 이동 안에 있음
@@ -93,6 +94,12 @@ package Modules.ReplayEngine
             syncToAnchor();
             detectExternalZoom();
             stopTimer();
+        }
+
+        // 이번 틱에 영역을 쓰지 못한 이유 ("": 영역 사용 중). unaligned = 탐색 직후 등으로 큐가 어긋남, fewSamples = 미리 볼 커서 지점이 3개 미만, coverage = 프레임/묶음 상한으로 목표 시간만큼 못 봄
+        public function get lookMissReason():String
+        {
+            return lookMiss;
         }
 
         // 이번 틱에 미리 읽은 경로의 영역으로 줌/초점을 정했는지. false면 커서 한 점과 배속 규칙을 씀 (경로가 없거나, 상한 때문에 목표 시간만큼 못 봤을 때)
@@ -214,14 +221,31 @@ package Modules.ReplayEngine
             targetY = ReplayDrawer.rCanvasAnchorPoint.y + targetShift(false, focus, view, canvas);
         }
 
-        // 커서를 놓치지 않게 안전 구역 밖이면 그 축은 가장자리에 오는 위치까지 즉시 옮김 (목표를 넘지는 않음)
+        // 커서를 놓치지 않게 안전 구역 밖이면 그 축은 가장자리에 오는 위치까지 즉시 옮김
+        // 목표 이동량에 맞춰 자르지 않음 (초점이 영역이면 목표가 커서와 반대 방향일 수 있음). 대신 옮긴 뒤 그 축의 목표를 커서가 안전 구역 안에 남는 범위로 다시 자름
+        // 캔버스 경계 규칙(EDGE_MARGIN)이 우선이라 경계 때문에 못 옮기는 만큼은 남음
         private function keepCursorInSafeZone():void
         {
             const cursor:Point = ReplayDrawCommands.getRCursorPos();
             const cursorScreen:Point = canvasToScreen(cursor.x, cursor.y);
             const view:Rectangle = viewportRect();
-            const sx:Number = safetyShift(cursorScreen.x, view.left + SAFETY_PADDING, view.right - SAFETY_PADDING, targetX - posX);
-            const sy:Number = safetyShift(cursorScreen.y, view.top + SAFETY_PADDING, view.bottom - SAFETY_PADDING, targetY - posY);
+            const canvas:Rectangle = canvasScreenRect();
+            const safeLeft:Number = view.left + SAFETY_PADDING;
+            const safeRight:Number = view.right - SAFETY_PADDING;
+            const safeTop:Number = view.top + SAFETY_PADDING;
+            const safeBottom:Number = view.bottom - SAFETY_PADDING;
+            var sx:Number = 0;
+            var sy:Number = 0;
+
+            if (cursorScreen.x < safeLeft || cursorScreen.x > safeRight)
+            {
+                sx = limitByCanvasEdge(cursorScreen.x < safeLeft ? safeLeft - cursorScreen.x : safeRight - cursorScreen.x, view.left, view.right, canvas.left, canvas.right);
+            }
+
+            if (cursorScreen.y < safeTop || cursorScreen.y > safeBottom)
+            {
+                sy = limitByCanvasEdge(cursorScreen.y < safeTop ? safeTop - cursorScreen.y : safeBottom - cursorScreen.y, view.top, view.bottom, canvas.top, canvas.bottom);
+            }
 
             if (sx !== 0 || sy !== 0)
             {
@@ -229,6 +253,26 @@ package Modules.ReplayEngine
                 posY += sy;
                 applyToAnchor();
             }
+
+            // 옮긴 뒤(또는 이미 안쪽일 때) 남은 목표 이동이 커서를 안전 구역 밖으로 끌고 가지 않게 자름
+            targetX = posX + clampDelta(targetX - posX, safeLeft - (cursorScreen.x + sx), safeRight - (cursorScreen.x + sx));
+            targetY = posY + clampDelta(targetY - posY, safeTop - (cursorScreen.y + sy), safeBottom - (cursorScreen.y + sy));
+        }
+
+        // 한 축의 이동량이 캔버스 경계 규칙을 넘지 않게 자름. 캔버스가 화면보다 작으면(중앙 고정) 옮기지 않음
+        private function limitByCanvasEdge(shift:Number, viewLo:Number, viewHi:Number, canvasLo:Number, canvasHi:Number):Number
+        {
+            if (canvasHi - canvasLo <= viewHi - viewLo)
+            {
+                return 0;
+            }
+
+            return Math.max(viewHi - EDGE_MARGIN - canvasHi, Math.min(viewLo + EDGE_MARGIN - canvasLo, shift));
+        }
+
+        private function clampDelta(delta:Number, lo:Number, hi:Number):Number
+        {
+            return (lo > hi) ? 0 : Math.max(lo, Math.min(hi, delta));
         }
 
         private function startTimer():void
@@ -273,6 +317,7 @@ package Modules.ReplayEngine
         private function computeLookahead():void
         {
             lookReady = false;
+            lookMiss = "unaligned";
             ignoringExcursion = false;
             const win:ReplayCommandWindow = ReplayDrawer.commandWindow;
             const nowFrame:Number = ReplayState.rNowFrame;
@@ -318,6 +363,7 @@ package Modules.ReplayEngine
             // 프레임/묶음 상한 때문에 목표 시간(span)만큼 못 봤으면 영역이 실제보다 작게 나오므로 믿지 않음 (데이터가 끝나서 못 본 경우는 믿음)
             if (!win.coveredToDataEnd && ReplayClock.timeOfFrame(Math.min(win.coveredEndFrame, ReplayState.TOTAL_FRAME)) - t0 < spanMs)
             {
+                lookMiss = "coverage";
                 return;
             }
 
@@ -349,6 +395,7 @@ package Modules.ReplayEngine
 
             if (n < 3)
             {
+                lookMiss = "fewSamples";
                 return; // 미리 볼 데이터가 부족함
             }
 
@@ -443,6 +490,7 @@ package Modules.ReplayEngine
             const boxH:Number = regionRect.width * Math.abs(sin) + regionRect.height * Math.abs(cos);
             regionZoom = Math.min(boxW > 0 ? (view.width - FIT_MARGIN * 2) / boxW : Number.MAX_VALUE, boxH > 0 ? (view.height - FIT_MARGIN * 2) / boxH : Number.MAX_VALUE);
             lookReady = true;
+            lookMiss = "";
         }
 
         // 값(values)을 가중치(weights)로 센 분위수 q (0~1)
@@ -777,23 +825,6 @@ package Modules.ReplayEngine
 
             // 캔버스 가장자리가 화면 안쪽으로 EDGE_MARGIN 넘게 들어오지 않게 자름
             return Math.max(viewHi - EDGE_MARGIN - canvasHi, Math.min(viewLo + EDGE_MARGIN - canvasLo, shift));
-        }
-
-        // 커서가 안전 구역 밖이면 가장자리에 오게 하는 이동량. 목표 이동량(targetDelta)을 넘지 않음. 안쪽이면 0
-        private function safetyShift(cursor:Number, safeLo:Number, safeHi:Number, targetDelta:Number):Number
-        {
-            var need:Number = 0;
-
-            if (cursor < safeLo)
-            {
-                need = Math.max(0, Math.min(safeLo - cursor, targetDelta));
-            }
-            else if (cursor > safeHi)
-            {
-                need = Math.min(0, Math.max(safeHi - cursor, targetDelta));
-            }
-
-            return need;
         }
     }
 }

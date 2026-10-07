@@ -241,7 +241,13 @@ package Modules.ReplayEngine
         // 지금 그리는 위치(그리는 쪽이 아는 rFileLastBytePosition)와 큐가 이어져 있는지. 탐색 직후처럼 어긋나 있으면 카메라는 미리 본 값을 쓰지 않음
         public function isAlignedWith(byte:Number):Boolean
         {
-            return (items.length > 0 && items[0].startByte === byte) || (items.length === 0 && atEnd && nextByte === byte);
+            if (items.length > 0)
+            {
+                return items[0].startByte === byte;
+            }
+
+            // 큐가 비어 있어도 지금 그리는 묶음의 끝이 기대 위치이고 다음에 읽을 위치와 이어져 있으면 맞는 상태 (저배속에서는 묶음 하나가 길어 큐가 자주 빔)
+            return nextByte === byte && (atEnd || (currentItem !== null && currentItem.endByte === byte));
         }
 
         // 프레임 [fromFrame, toFrame) 구간에서 커서 위치가 정해지는 지점을 (프레임, x, y) 반복으로 out에 이어 붙임
@@ -255,6 +261,14 @@ package Modules.ReplayEngine
             if (currentItem !== null && currentItem.summary !== null)
             {
                 appendRange(currentItem.summary, currentItem.firstFrame, fromFrame, toFrame, out);
+                // 지금 그리는 묶음이 아직 안 끝났으면 그 끝까지는 본 것임 (저배속에서는 묶음 하나가 미리 볼 시간보다 길어 큐가 비어 있는 경우가 많음)
+                coveredEndFrame = Math.max(coveredEndFrame, currentItem.firstFrame + currentItem.data.length);
+                frame = coveredEndFrame;
+
+                if (frame >= toFrame)
+                {
+                    return true;
+                }
             }
 
             for each (var item:Object in items)
