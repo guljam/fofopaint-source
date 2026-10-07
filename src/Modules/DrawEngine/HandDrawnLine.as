@@ -38,20 +38,21 @@ package Modules.DrawEngine
             alpha:Number, //선 알파
             startX:Number,
             startY:Number,
-            endX:Number,
-            endY:Number,
+            width:Number,
+            height:Number,
             fillColor:* = null, // 채우기 색깔 null이면 채우지 않음
             fillAlpha:Number = 1.0, // 채우기 색깔 알파
             cornerRadius:Number = 0.01 //사각형 모서리 둥글기
         ):void
         {
+            width -= thickness;
+            height -= thickness;
+            const endX:Number = startX+width;
+            const endY:Number = startY+height;
             const minX:Number = Math.min(startX, endX);
             const maxX:Number = Math.max(startX, endX);
             const minY:Number = Math.min(startY, endY);
             const maxY:Number = Math.max(startY, endY);
-
-            const width:Number = maxX - minX;
-            const height:Number = maxY - minY;
 
             const r:Number = Math.min(cornerRadius, Math.min(width * 0.5, height * 0.5));
 

@@ -22,10 +22,10 @@ package Modules
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.Tools.EyeDropperTool;
     import Modules.Tools.LineTool;
     import Modules.Tools.FillPenTool;
     import Modules.ReplayEngine.ReplayState;
+    import flash.display.Shape;
 
     public final class SidebarController
     {

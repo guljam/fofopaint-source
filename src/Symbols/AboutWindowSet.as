@@ -220,7 +220,7 @@
 		private function createResetState(fillColor:uint):Sprite
 		{
 			const padX:Number = 20;
-			const field:TextField = createLabelField("Reset app", 0xFF0000, 15);
+			const field:TextField = Utils.createTextField("Reset app", 0xFF0000, 15);
 			const w:Number = Math.ceil(field.width) + padX * 2;
 			const h:Number = Math.ceil(field.height) + 10;
 
@@ -305,18 +305,6 @@
 			}
 		}
 
-		private function createLabelField(label:String, color:uint, size:Number):TextField
-		{
-			const field:TextField = new TextField();
-			field.embedFonts = true;
-			field.selectable = false;
-			field.mouseEnabled = false;
-			field.autoSize = TextFieldAutoSize.LEFT;
-			field.defaultTextFormat = new TextFormat("Si Kancil", size, color);
-			field.text = label;
-			return field;
-		}
-
 		private function setButtonLabel(button:SimpleButton, label:String):void
 		{
 			// 원래 글자의 위치를 이어받음 (복제 버튼은 상태가 Bitmap이라 같은 좌표를 가짐)
@@ -340,7 +328,7 @@
 
 		private function createLabelState(label:String, baseX:Number, baseY:Number, color:uint):Sprite
 		{
-			const field:TextField = createLabelField(label, color, 16);
+			const field:TextField = Utils.createTextField(label, color, 16);
 			field.x = -1;
 			field.y = -3;
 

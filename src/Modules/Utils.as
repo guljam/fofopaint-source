@@ -13,6 +13,9 @@ package Modules
     import flash.display.SimpleButton;
     import avmplus.getQualifiedClassName;
     import Modules.ReplayEngine.ReplayController;
+    import flash.text.TextField;
+    import flash.text.TextFieldAutoSize;
+    import flash.text.TextFormat;
 
     public class Utils
     {
@@ -23,6 +26,18 @@ package Modules
         {
             main = instance;
         }
+
+        public static function createTextField(label:String, color:uint, size:Number):TextField
+		{
+			const field:TextField = new TextField();
+			field.embedFonts = true;
+			field.selectable = false;
+			field.mouseEnabled = false;
+			field.autoSize = TextFieldAutoSize.LEFT;
+			field.defaultTextFormat = new TextFormat("Si Kancil", size, color);
+			field.text = label;
+			return field;
+		}
 
         //커서가 드로우 영역에 있는지 검사
         public static function isCursorInDrawArea():Boolean

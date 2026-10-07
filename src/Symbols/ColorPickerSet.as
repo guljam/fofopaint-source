@@ -581,11 +581,11 @@
 
 			myPaletteBox.name = "myPaletteBox";
 
-			addChild(myPaletteBox);
-			addChild(mainColorPickerBox);
-			addChild(colorPickerPresetBox);
-			addChild(colorPickerTypeBox);
-			addChild(myPaletteDragColor);
+			this.addChild(myPaletteBox);
+			this.addChild(mainColorPickerBox);
+			this.addChild(colorPickerPresetBox);
+			this.addChild(colorPickerTypeBox);
+			this.addChild(myPaletteDragColor);
 			myPaletteDragColor.visible = false;
 
 			panelWidth = 180;
