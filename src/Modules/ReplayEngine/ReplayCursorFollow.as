@@ -24,12 +24,35 @@ package Modules.ReplayEngine
         private static const MAX_DT_MS:Number = 100; // 한 틱 dt 상한 (멈췄다 재개할 때 튀지 않게)
         private static const SETTLED_DIST:Number = 0.5; // 목표와 이 거리 미만이면 도착한 것으로 봄
 
+        // 자동 줌 (2단계)
+        private static const AUTO_FIT_SPEED_IN:Number = 8; // 이 배속 이상이면 줌아웃
+        private static const AUTO_FIT_SPEED_OUT:Number = 5; // 이 배속 미만이어야 복원 후보 (들어가는 값보다 낮게 둬서 경계에서 흔들리지 않게 함)
+        private static const RETURN_DWELL_MS:Number = 2500; // 복원 조건이 이만큼 이어져야 복원
+        private static const ZOOM_OUT_TAU_MS:Number = 200; // 줌아웃 감쇠 시간 (빠르게)
+        private static const ZOOM_IN_TAU_MS:Number = 600; // 복원 감쇠 시간 (느리게)
+        private static const RETURN_ZOOM_RATIO:Number = 1.0; // 복원 배율 = 사용자 줌 * 이 값
+        private static const FIT_MARGIN:Number = 20; // 맞춤 배율에서 화면 가장자리에 남기는 여백 px
+        private static const BIG_ANIM_RATIO:Number = 0.9; // 연출 영역이 사용자 줌에서 화면의 이 비율보다 크면 줌아웃
+        private static const ZOOM_SETTLED_LOG:Number = 0.002; // 로그 배율 차이가 이 값 미만이면 도착
+
+        private static const ZOOM_FOLLOW:int = 0; // 사용자 줌
+        private static const ZOOM_TO_FIT:int = 1; // 줌아웃 중
+        private static const ZOOM_FIT:int = 2; // 맞춤 배율 유지
+        private static const ZOOM_TO_USER:int = 3; // 복원 중
+
         // 감쇠 중인 앵커 위치와 목표 (전역 좌표, 소수 유지. 앵커에 넣을 때만 반올림)
         private var posX:Number = 0;
         private var posY:Number = 0;
         private var targetX:Number = 0;
         private var targetY:Number = 0;
         private var lastStepTime:int = 0;
+
+        // 자동 줌 상태. userZoom은 사용자가 정한 배율이고 외부가 배율을 바꿨을 때만 갱신됨 (자동 줌은 rCanvasZoomIndex 등 사용자 줌 값을 건드리지 않음)
+        private var zoomState:int = ZOOM_FOLLOW;
+        private var userZoom:Number = NaN;
+        private var curZoom:Number = NaN; // 카메라가 마지막으로 적용한 배율. 실제 배율과 다르면 외부가 바꾼 것
+        private var zoomMoving:Boolean = false; // FIT 중 창 크기가 바뀌어 맞춤 배율을 다시 따라가는 중
+        private var calmSince:int = -1; // 복원 조건이 이어지기 시작한 시각, 아니면 -1
 
         // 화면에서 캔버스를 보여주는 영역. 위쪽은 상단바(+시크바가 겹치는 띠) 아래, 시크바는 위쪽에 붙어 있어 아래쪽은 스테이지 끝까지
         private function viewportRect():Rectangle
@@ -49,6 +72,7 @@ package Modules.ReplayEngine
         public function updateBounds():void
         {
             syncToAnchor();
+            detectExternalZoom();
             stopTimer();
         }
 
@@ -73,7 +97,7 @@ package Modules.ReplayEngine
         // 재생이 멈췄을 때 부름. 목표에 도착하지 않았으면 카메라 타이머로 남은 이동을 마무리함
         public function finishMove():void
         {
-            if (!isBlocked() && !isSettled())
+            if (!isBlocked() && (!isSettled() || isZooming()))
             {
                 startTimer();
             }
@@ -83,6 +107,8 @@ package Modules.ReplayEngine
         public function snap():void
         {
             stopTimer();
+            syncToAnchor();
+            stepZoom(ReplayState.isReplayStarted, true);
             syncToAnchor();
             const cursor:Point = ReplayDrawCommands.getRCursorPos();
             const view:Rectangle = viewportRect();
@@ -110,10 +136,10 @@ package Modules.ReplayEngine
             }
 
             step();
-            return !isSettled();
+            return !isSettled() || isZooming();
         }
 
-        // 목표 재계산 → 안전 구역 → 감쇠 → 앵커 적용. update와 tick이 같이 씀
+        // 줌 → 목표 재계산 → 안전 구역 → 감쇠 → 앵커 적용. update와 tick이 같이 씀
         private function step():void
         {
             if (isBlocked())
@@ -128,11 +154,12 @@ package Modules.ReplayEngine
                 syncToAnchor();
             }
 
-            retarget();
-            keepCursorInSafeZone();
             const now:int = getTimer();
             const dt:Number = Math.min(Math.max(0, now - lastStepTime), MAX_DT_MS);
             lastStepTime = now;
+            stepZoom(ReplayState.isReplayStarted, false, dt);
+            retarget();
+            keepCursorInSafeZone();
             const k:Number = 1 - Math.exp(-dt / CAMERA_TAU_MS);
             posX += (targetX - posX) * k;
             posY += (targetY - posY) * k;
@@ -205,6 +232,180 @@ package Modules.ReplayEngine
         private function isSettled():Boolean
         {
             return Math.abs(targetX - posX) < SETTLED_DIST && Math.abs(targetY - posY) < SETTLED_DIST;
+        }
+
+        // ---- 자동 줌 ----
+
+        private function isZooming():Boolean
+        {
+            return zoomState === ZOOM_TO_FIT || zoomState === ZOOM_TO_USER || zoomMoving;
+        }
+
+        // 카메라가 적용하지 않은 배율 변화(사용자 줌, 창 맞춤, 재생 끝 복원 등)면 그 값을 사용자 줌으로 받아들이고 자동 줌을 풀음
+        private function detectExternalZoom():void
+        {
+            const actual:Number = ReplayState.rCanvasZoomMultiplier;
+
+            if (isNaN(curZoom) || Math.abs(actual - curZoom) > 1e-9)
+            {
+                curZoom = actual;
+                userZoom = actual;
+                zoomState = ZOOM_FOLLOW;
+                calmSince = -1;
+            }
+        }
+
+        // 지금 회전과 창 크기에서 캔버스 전체가 화면에 들어가는 배율 (연속값, 순수 계산)
+        private function fitZoom(view:Rectangle):Number
+        {
+            const rad:Number = ReplayDrawer.rCanvasAnchorPoint.rotation * Math.PI / 180;
+            const cos:Number = Math.abs(Math.cos(rad));
+            const sin:Number = Math.abs(Math.sin(rad));
+            const w:Number = ReplayState.RCANVAS_WIDTH;
+            const h:Number = ReplayState.RCANVAS_HEIGHT;
+            const boxW:Number = w * cos + h * sin;
+            const boxH:Number = w * sin + h * cos;
+            return Math.min((view.width - FIT_MARGIN * 2) / boxW, (view.height - FIT_MARGIN * 2) / boxH);
+        }
+
+        // 연출 영역이 사용자 줌에서 화면의 BIG_ANIM_RATIO보다 큰지
+        private function isBigAnim(view:Rectangle):Boolean
+        {
+            const area:Rectangle = ReplayDrawer.anim.focusRect;
+
+            if (area === null)
+            {
+                return false;
+            }
+
+            const rad:Number = ReplayDrawer.rCanvasAnchorPoint.rotation * Math.PI / 180;
+            const cos:Number = Math.abs(Math.cos(rad));
+            const sin:Number = Math.abs(Math.sin(rad));
+            const w:Number = (area.width * cos + area.height * sin) * userZoom;
+            const h:Number = (area.width * sin + area.height * cos) * userZoom;
+            return w > view.width * BIG_ANIM_RATIO || h > view.height * BIG_ANIM_RATIO;
+        }
+
+        // 상태를 정하고(재생 중일 때만) 배율을 목표로 감쇠시킴. instant면 전환을 바로 끝냄
+        private function stepZoom(playing:Boolean, instant:Boolean, dt:Number = 0):void
+        {
+            detectExternalZoom();
+            const view:Rectangle = viewportRect();
+            const fit:Number = Math.min(fitZoom(view), userZoom);
+
+            if (playing)
+            {
+                const busy:Boolean = ReplayState.rReplaySpeedMultipler >= AUTO_FIT_SPEED_IN || ReplayState.isReplaySlideShowMode || isBigAnim(view);
+
+                if (zoomState === ZOOM_FOLLOW)
+                {
+                    if (busy)
+                    {
+                        zoomState = ZOOM_TO_FIT;
+                    }
+                }
+                else if (busy)
+                {
+                    calmSince = -1;
+
+                    if (zoomState === ZOOM_TO_USER)
+                    {
+                        zoomState = ZOOM_TO_FIT;
+                    }
+                }
+                else
+                {
+                    // 들어가는 기준보다 낮은 기준(OUT)이 DWELL 동안 이어져야 복원, 중간에 기준을 벗어나면 처음부터 다시 셈
+                    const calm:Boolean = ReplayState.rReplaySpeedMultipler < AUTO_FIT_SPEED_OUT && !isBigAnim(view);
+                    const now:int = getTimer();
+
+                    if (!calm)
+                    {
+                        calmSince = -1;
+                    }
+                    else if (calmSince < 0)
+                    {
+                        calmSince = now;
+                    }
+                    else if (now - calmSince >= RETURN_DWELL_MS && zoomState !== ZOOM_TO_USER)
+                    {
+                        zoomState = ZOOM_TO_USER;
+                    }
+                }
+            }
+
+            if (zoomState === ZOOM_FOLLOW)
+            {
+                return;
+            }
+
+            const target:Number = (zoomState === ZOOM_TO_USER) ? userZoom * RETURN_ZOOM_RATIO : fit;
+            const logDiff:Number = Math.log(target) - Math.log(curZoom);
+
+            if (instant || Math.abs(logDiff) < ZOOM_SETTLED_LOG)
+            {
+                const wasMoving:Boolean = isZooming();
+                applyZoom(target);
+                zoomState = (zoomState === ZOOM_TO_USER) ? ZOOM_FOLLOW : ZOOM_FIT;
+
+                if (wasMoving)
+                {
+                    zoomMoving = false;
+                    finishZoom();
+                }
+
+                return;
+            }
+
+            zoomMoving = true;
+
+            const tau:Number = (logDiff < 0) ? ZOOM_OUT_TAU_MS : ZOOM_IN_TAU_MS;
+            applyZoom(Math.exp(Math.log(curZoom) + logDiff * (1 - Math.exp(-dt / tau))));
+        }
+
+        // 초점(연출 영역 중심 또는 커서)의 화면 위치가 변하지 않게 배율을 바꾸고 앵커를 보정함
+        // 매 프레임 배율이 바뀌는 중이라 에어브러시 블러와 정보 상자 갱신은 하지 않음 (finishZoom에서 한 번만)
+        private function applyZoom(z:Number):void
+        {
+            if (z === curZoom)
+            {
+                return;
+            }
+
+            const cursor:Point = ReplayDrawCommands.getRCursorPos();
+            const area:Rectangle = ReplayDrawer.anim.focusRect;
+            const fx:Number = (area === null) ? cursor.x : area.x + area.width / 2;
+            const fy:Number = (area === null) ? cursor.y : area.y + area.height / 2;
+            const before:Point = canvasToScreen(fx, fy);
+            ReplayState.rCanvasZoomMultiplier = z;
+            ReplayDrawer.rCanvasAnchorPoint.scaleX = z;
+            ReplayDrawer.rCanvasAnchorPoint.scaleY = z;
+            ReplayDrawer.updateReplayCursorScale(z);
+            const after:Point = canvasToScreen(fx, fy);
+            posX = ReplayDrawer.rCanvasAnchorPoint.x + before.x - after.x;
+            posY = ReplayDrawer.rCanvasAnchorPoint.y + before.y - after.y;
+            applyToAnchor();
+            curZoom = z;
+
+            // 배율이 커지면서 큰 캔버스의 가장자리가 화면 안쪽으로 들어왔으면 바로 되돌림 (이동 감쇠를 기다리면 그 사이 경계를 넘음)
+            const view:Rectangle = viewportRect();
+            const canvas:Rectangle = canvasScreenRect();
+            posX += (canvas.width > view.width) ? Math.max(view.right - EDGE_MARGIN - canvas.right, Math.min(view.left + EDGE_MARGIN - canvas.left, 0)) : 0;
+            posY += (canvas.height > view.height) ? Math.max(view.bottom - EDGE_MARGIN - canvas.bottom, Math.min(view.top + EDGE_MARGIN - canvas.top, 0)) : 0;
+            targetX = posX;
+            targetY = posY;
+            applyToAnchor();
+        }
+
+        // 전환이 끝났을 때 한 번만 하는 갱신
+        private function finishZoom():void
+        {
+            if (ReplayState.rAirBrushSize > 0)
+            {
+                ReplayDrawer.blurReplayCanvasByValue(ReplayState.rAirBrushSize);
+            }
+
+            UIController.canvasInfoBox.setZoom(curZoom);
         }
 
         // 캔버스 좌표를 지금 앵커 기준 화면 좌표로 바꿈 (회전, 줌 반영)
