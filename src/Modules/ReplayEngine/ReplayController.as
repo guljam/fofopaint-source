@@ -939,11 +939,6 @@ package Modules.ReplayEngine
                     {
                         lastCursorUpdateTime = nowTime;
                         ReplayDrawCommands.updateRCursorPos();
-
-                        if (!ReplayState.isReplayCanvasFitToWindow && !MouseState.isLeftDown && !UndoController.isDeepUndoEnabled)
-                        {
-                            ReplayDrawer.cursorFollow.follow();
-                        }
                     }
 
                     // 재생 중 시크바는 시계가 흐르는 대로 매 프레임 움직임 (쉬는 구간에도 멈추지 않음)
@@ -991,6 +986,7 @@ package Modules.ReplayEngine
                             drawCanvasFromReplayDataSlideShowMode();
                         }
 
+                        ReplayDrawer.cursorFollow.update();
                         return true;
                     }
 
@@ -1008,6 +1004,7 @@ package Modules.ReplayEngine
                         }
                     }
 
+                    ReplayDrawer.cursorFollow.update();
                     return true;
                 });
         }
@@ -1459,6 +1456,7 @@ package Modules.ReplayEngine
             ReplayState.isReplayStarted = false;
             ReplayState.isReplaySlideShowMode = false;
             updateDeleteReplayDataButtonsState();
+            ReplayDrawer.cursorFollow.finishMove();
         }
 
         public static function handleReplayStartButton():void

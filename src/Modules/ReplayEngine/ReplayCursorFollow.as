@@ -29,7 +29,7 @@ package Modules.ReplayEngine
         private var posY:Number = 0;
         private var targetX:Number = 0;
         private var targetY:Number = 0;
-        private var lastTickTime:int = 0;
+        private var lastStepTime:int = 0;
 
         // 화면에서 캔버스를 보여주는 영역. 위쪽은 상단바(+시크바가 겹치는 띠) 아래, 시크바는 위쪽에 붙어 있어 아래쪽은 스테이지 끝까지
         private function viewportRect():Rectangle
@@ -52,24 +52,28 @@ package Modules.ReplayEngine
             stopTimer();
         }
 
-        // 목표만 다시 계산함. 앵커는 감쇠로 따라가고, 커서가 안전 구역을 벗어난 축만 바로 따라감
-        public function follow():void
+        // 재생 중 그리기 바로 뒤에 한 번 부름 (replayDrawTimer). 그리기 타이머가 갱신하므로 카메라 타이머와 두 번 움직이지 않음
+        // 슬라이드쇼는 감쇠 없이 바로 맞춤
+        public function update():void
         {
+            if (!ReplayState.isReplayStarted)
+            {
+                return;
+            }
+
             if (ReplayState.isReplaySlideShowMode)
             {
                 snap();
                 return;
             }
 
-            syncToAnchor();
-            retarget();
-            keepCursorInSafeZone();
+            step();
+        }
 
-            if (isSettled())
-            {
-                settle();
-            }
-            else
+        // 재생이 멈췄을 때 부름. 목표에 도착하지 않았으면 카메라 타이머로 남은 이동을 마무리함
+        public function finishMove():void
+        {
+            if (!isBlocked() && !isSettled())
             {
                 startTimer();
             }
@@ -91,31 +95,55 @@ package Modules.ReplayEngine
             applyToAnchor();
         }
 
+        // 재생이 멈춘 뒤 남은 이동을 마무리하는 타이머 콜백. 재생 중에는 update가 움직이므로 아무것도 하지 않고 꺼짐
         private function tick():Boolean
         {
+            if (ReplayState.isReplayStarted)
+            {
+                return false;
+            }
+
             if (!ReplayState.isReplayModeON || isBlocked())
             {
                 syncToAnchor();
                 return false;
             }
 
-            retarget(); // 커서는 follow 사이에도 움직이므로 매 틱 목표와 안전 구역을 다시 확인
+            step();
+            return !isSettled();
+        }
+
+        // 목표 재계산 → 안전 구역 → 감쇠 → 앵커 적용. update와 tick이 같이 씀
+        private function step():void
+        {
+            if (isBlocked())
+            {
+                syncToAnchor();
+                return;
+            }
+
+            // 소수 위치는 앵커가 외부에서 옮겨졌을 때만 버림 (매번 맞추면 작은 이동분이 반올림에 지워짐)
+            if (Math.round(posX) !== ReplayDrawer.rCanvasAnchorPoint.x || Math.round(posY) !== ReplayDrawer.rCanvasAnchorPoint.y)
+            {
+                syncToAnchor();
+            }
+
+            retarget();
             keepCursorInSafeZone();
             const now:int = getTimer();
-            const dt:Number = Math.min(Math.max(0, now - lastTickTime), MAX_DT_MS);
-            lastTickTime = now;
+            const dt:Number = Math.min(Math.max(0, now - lastStepTime), MAX_DT_MS);
+            lastStepTime = now;
             const k:Number = 1 - Math.exp(-dt / CAMERA_TAU_MS);
             posX += (targetX - posX) * k;
             posY += (targetY - posY) * k;
 
             if (isSettled())
             {
-                settle();
-                return false;
+                posX = targetX;
+                posY = targetY;
             }
 
             applyToAnchor();
-            return true;
         }
 
         // 지금 화면 상태와 초점으로 목표를 다시 계산함 (현재 앵커 기준으로 필요한 이동량만큼)
@@ -150,7 +178,7 @@ package Modules.ReplayEngine
         {
             if (!FOFOTimer.hasTimer(CAMERA_TIMER_NAME))
             {
-                lastTickTime = getTimer();
+                lastStepTime = getTimer();
                 FOFOTimer.addByName(CAMERA_TIMER_NAME, 0.0, true, tick);
             }
         }
@@ -177,14 +205,6 @@ package Modules.ReplayEngine
         private function isSettled():Boolean
         {
             return Math.abs(targetX - posX) < SETTLED_DIST && Math.abs(targetY - posY) < SETTLED_DIST;
-        }
-
-        private function settle():void
-        {
-            posX = targetX;
-            posY = targetY;
-            applyToAnchor();
-            stopTimer();
         }
 
         // 캔버스 좌표를 지금 앵커 기준 화면 좌표로 바꿈 (회전, 줌 반영)
