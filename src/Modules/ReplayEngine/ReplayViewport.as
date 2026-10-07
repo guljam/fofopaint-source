@@ -57,7 +57,7 @@ package Modules.ReplayEngine
         }
 
         // 줌 키/버튼의 다음 단계: 지금 화면에 보이는 배율 기준으로 가장 가까운 다음 단계 (자동 줌 뒤에는 배율이 단계 값이 아니라서 저장된 단계 인덱스를 쓰면 크게 튐)
-        // 지금 배율이 정확히 단계 값이면 그 다음 단계 (상대 오차 1e-6 미만은 같은 값으로 봄), 목록 끝을 넘으면 끝 값 유지
+        // 지금 배율이 정확히 단계 값이면 그 다음 단계 (상대 오차 1e-6 미만은 같은 값으로 봄). 그 방향에 더 간 단계가 없으면 -1 (배율을 바꾸지 않음)
         private function nextZoomIndexFromVisible(zoomIn:Boolean):int
         {
             const list:Array = CanvasView.canvasZoomMultiplierList;
@@ -74,7 +74,7 @@ package Modules.ReplayEngine
                     }
                 }
 
-                return list.length - 1;
+                return -1;
             }
 
             for (i = list.length - 1;i >= 0;i--)
@@ -85,12 +85,19 @@ package Modules.ReplayEngine
                 }
             }
 
-            return 0;
+            return -1;
         }
 
         override public function zoomStep(zoomIn:Boolean):void
         {
             const newZoomIndex:int = nextZoomIndexFromVisible(zoomIn);
+
+            if (newZoomIndex < 0)
+            {
+                HintController.showMouseHintTemp(String(Math.floor(ReplayState.rCanvasZoomMultiplier * 100)) + "%"); // 더 갈 단계가 없으면 지금 배율 그대로 (줌아웃 키로 화면이 커지지 않게)
+                return;
+            }
+
             const newZoom:Number = CanvasView.canvasZoomMultiplierList[newZoomIndex];
             const center:Point = UIController.getStageCenterPos("replay");
             ReplayState.rLastCanvasZoomMultiplier = newZoom;
