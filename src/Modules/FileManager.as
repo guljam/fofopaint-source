@@ -44,6 +44,7 @@ package Modules
     import Modules.Tools.LineTool;
     import Modules.Tools.FillPenTool;
     import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayClock;
     import Modules.ReplayEngine.TimingSheetFile;
     import Modules.ReplayEngine.ReplayDrawCommands;
     import Modules.ReplayEngine.ReplayDrawer;
@@ -254,8 +255,9 @@ package Modules
 
         public static function loadImageFile(width:Number, height:Number, layer1Image:IBitmapDrawable, layer2Image:IBitmapDrawable):void
         {
-            ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
             ReplayState.setRFileDataTotalFrame(0);
+            ReplayClock.rebuildFileIndex();
+            ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReferenceLayerController.refLayerRawBitmapData = null;
             ReferenceLayerController.refLayerRawTransformData = null;

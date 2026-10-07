@@ -6,6 +6,7 @@ package Modules
     import flash.filesystem.FileStream;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
+    import Modules.ReplayEngine.ReplayClock;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
@@ -200,6 +201,7 @@ package Modules
                 oldData = null;
                 TimingSheetFile.appendGroupAtFrame(ReplayState.rMemoryDataTimingSheet[0], lastRDataTotalFrame);
                 ReplayState.increaseRFileDataTotalFrame(firstElementFrameCount);
+                ReplayClock.extendFileIndex(); // 덧붙은 프레임만 시간 색인에 반영
                 ReplayDrawer.updateReplayCanvasFromUndoBaseInfo();
 
                 if (ReplayState.rReplayImageCacheState === ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE)

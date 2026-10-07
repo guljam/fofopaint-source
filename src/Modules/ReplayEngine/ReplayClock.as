@@ -68,34 +68,77 @@ package Modules.ReplayEngine
             return totalFrames;
         }
 
-        // 프레임 수가 바뀌는 곳(파일 열기, 자르기, 리플레이 모드 진입)에서 부름. 시간 파일을 한번 훑어서 구간 시작 시각을 구함
-        public static function rebuild():void
+        // 파일 부분 색인. 요약뿐이라 구간 수만큼만 메모리를 씀 (프레임별 시각은 디스크의 타이밍 시트에 두고 구간 하나만 풀어 씀)
+        private static var indexedFileFrames:Number = -1; // 색인에 반영된 파일 프레임 수. -1이면 아직 만들지 않음
+        private static var fileGaps:Vector.<Number> = new Vector.<Number>(); // 파일 부분의 쉬는 구간 [시작, 끝] 쌍 (gapRanges = 파일 부분 + 메모리 부분)
+        private static var fileLastAnim:uint = 0; // 파일 마지막 프레임의 연출 길이
+        private static var indexMissCount:int = 0; // 갱신 지점이 빠져서 ensureIndex가 보정한 횟수
+
+        // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음
+        public static function get indexMisses():int
         {
-            fileFrames = ReplayState.getRFileDataTotalFrame();
-            rememberedFrame = -1;
-            TimingSheetFile.resizeToFrameCount(fileFrames);
+            return indexMissCount;
+        }
+
+        // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음. 지금 색인 요약 (증분 결과와 전체 다시 만든 결과를 비교하는 데 씀)
+        public static function indexSnapshot():Object
+        {
+            return {
+                indexed: indexedFileFrames,
+                segmentStart: segmentStart.join(","),
+                gaps: gapRanges.join(","),
+                fileEndTime: fileEndTime,
+                fileLastAnim: fileLastAnim,
+                totalTime: totalTime,
+                totalFrames: totalFrames
+            };
+        }
+
+        private static function invalidateSegmentCache():void
+        {
             cachedSegment = -1;
             cachedTimes = null;
             cachedAnims = null;
-            replayWaitingEnd = -1;
             axisSpeed = -1;
+        }
 
+        // 파일 전체를 처음부터 읽어 파일 부분 색인을 새로 만듬. 파일 불러오기, 새 파일, 앞 자르기, 처음 만들 때, 확인이 실패했을 때만 부름
+        public static function rebuildFileIndex():void
+        {
+            fileFrames = ReplayState.getRFileDataTotalFrame();
+            TimingSheetFile.resizeToFrameCount(fileFrames);
+            invalidateSegmentCache();
             segmentStart = new Vector.<Number>();
-            gapRanges = new Vector.<Number>();
-            var sum:Number = 0;
-            var prevAnim:uint = 0; // 앞 프레임의 연출 길이
-            const file:File = AppStateManager.replayTimingSheetFilePath;
+            fileGaps = new Vector.<Number>();
+            fileEndTime = 0;
+            fileLastAnim = 0;
+            indexedFileFrames = 0;
+            readIntoFileIndex(fileFrames);
+        }
 
-            if (fileFrames > 0 && file.exists)
+        // indexedFileFrames부터 to 프레임 앞까지만 읽어 파일 부분 색인을 이어서 갱신
+        private static function readIntoFileIndex(to:Number):void
+        {
+            const file:File = AppStateManager.replayTimingSheetFilePath;
+            var sum:Number = fileEndTime;
+            var prevAnim:uint = fileLastAnim; // 앞 프레임의 연출 길이
+            var first:Number = indexedFileFrames;
+
+            if (to > first && file.exists)
             {
                 const fs:FileStream = new FileStream();
                 const chunk:ByteArray = new ByteArray();
                 fs.open(file, FileMode.READ);
+                fs.position = first * TimingSheetFile.RECORD_BYTES;
 
-                for (var first:Number = 0; first < fileFrames; first += TimingSheet.SEGMENT_FRAMES)
+                while (first < to)
                 {
-                    segmentStart.push(sum);
-                    const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES, fileFrames - first));
+                    if (first % TimingSheet.SEGMENT_FRAMES === 0)
+                    {
+                        segmentStart.push(sum);
+                    }
+
+                    const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES - first % TimingSheet.SEGMENT_FRAMES, to - first));
                     chunk.clear();
                     fs.readBytes(chunk, 0, count * TimingSheetFile.RECORD_BYTES);
                     chunk.position = 0;
@@ -108,18 +151,131 @@ package Modules.ReplayEngine
                         // 쉬는 구간은 앞 프레임의 연출이 끝난 시각부터 이 프레임까지
                         if (delta > prevAnim && delta - prevAnim >= ENTRY_MS)
                         {
-                            gapRanges.push(sum + prevAnim, sum + delta);
+                            fileGaps.push(sum + prevAnim, sum + delta);
                         }
 
                         sum += delta;
                         prevAnim = anim;
                     }
+
+                    first += count;
                 }
 
                 fs.close();
             }
 
             fileEndTime = sum;
+            fileLastAnim = prevAnim;
+            indexedFileFrames = first;
+            fileFrames = first;
+        }
+
+        // 파일 뒤에 프레임이 덧붙었을 때(undo 묶음이 파일로 넘어감) 덧붙은 만큼만 읽어 이어서 반영. 아직 색인을 만든 적 없으면 첫 사용 때 만들므로 건너뜀
+        public static function extendFileIndex():void
+        {
+            if (indexedFileFrames < 0)
+            {
+                return;
+            }
+
+            invalidateSegmentCache(); // 마지막 구간이 풀려 있으면 길이가 옛 값이라 무효화
+            readIntoFileIndex(ReplayState.getRFileDataTotalFrame());
+        }
+
+        // 파일이 frame개로 잘렸을 때 frame이 속한 구간 하나만 다시 읽어 색인을 맞춤
+        public static function truncateFileIndex(frame:Number):void
+        {
+            if (indexedFileFrames < 0 || frame >= indexedFileFrames)
+            {
+                return;
+            }
+
+            invalidateSegmentCache();
+            fileFrames = frame;
+            indexedFileFrames = frame;
+
+            if (frame <= 0)
+            {
+                segmentStart = new Vector.<Number>();
+                fileGaps = new Vector.<Number>();
+                fileEndTime = 0;
+                fileLastAnim = 0;
+                return;
+            }
+
+            // 마지막 프레임(frame - 1)이 속한 구간 s의 시작부터 그 프레임까지만 읽어 끝 시각과 끝 연출 길이를 구함
+            const s:int = int((frame - 1) / TimingSheet.SEGMENT_FRAMES);
+            segmentStart.length = s + 1;
+            const first:Number = s * TimingSheet.SEGMENT_FRAMES;
+            const count:int = int(frame - first);
+            const deltas:Vector.<uint> = new Vector.<uint>(count, true);
+            const anims:Vector.<uint> = new Vector.<uint>(count, true);
+            TimingSheetFile.readRange(first, count, deltas, anims);
+            var sum:Number = segmentStart[s];
+
+            for (var i:int = 0; i < count; i++)
+            {
+                sum += deltas[i];
+            }
+
+            fileEndTime = sum;
+            fileLastAnim = anims[count - 1];
+
+            // 쉬는 구간 끝 시각이 새 끝 시각을 넘는 첫 항목부터 잘라냄 (끝 시각은 시간순)
+            var low:int = 0;
+            var high:int = fileGaps.length / 2;
+
+            while (low < high)
+            {
+                const mid:int = (low + high) >> 1;
+
+                if (fileGaps[mid * 2 + 1] <= sum)
+                {
+                    low = mid + 1;
+                }
+                else
+                {
+                    high = mid;
+                }
+            }
+
+            fileGaps.length = low * 2;
+        }
+
+        // 파일 부분 색인이 실제 프레임 수와 맞는지 확인. 처음이면 만들고, 어긋나 있으면(갱신 지점이 빠짐) 보정하고 로그
+        public static function ensureIndex():void
+        {
+            const actual:Number = ReplayState.getRFileDataTotalFrame();
+            TimingSheetFile.resizeToFrameCount(actual); // 시트 길이를 repdata와 맞춤 (예전에는 rebuild 맨 앞에서 했음)
+
+            if (indexedFileFrames < 0)
+            {
+                rebuildFileIndex();
+            }
+            else if (indexedFileFrames < actual)
+            {
+                indexMissCount++;
+                trace("[ReplayClock] 색인 갱신 지점이 빠짐: " + indexedFileFrames + " < " + actual + ", 모자란 만큼 이어서 반영");
+                extendFileIndex();
+            }
+            else if (indexedFileFrames > actual)
+            {
+                indexMissCount++;
+                trace("[ReplayClock] 색인 갱신 지점이 빠짐: " + indexedFileFrames + " > " + actual + ", 전체 다시 만듦");
+                rebuildFileIndex();
+            }
+        }
+
+        // 메모리 undo 묶음 부분을 새로 만들고 전체 길이를 다시 계산. 시계를 쓰기 직전(모드 진입, deep undo 진입 등)에 부름. 크기가 undo 개수만큼이라 매번 다시 해도 됨
+        public static function rebuildMemoryIndex():void
+        {
+            rememberedFrame = -1;
+            replayWaitingEnd = -1;
+            axisSpeed = -1;
+            fileFrames = indexedFileFrames;
+            var sum:Number = fileEndTime;
+            var prevAnim:uint = fileLastAnim;
+            gapRanges = fileGaps.concat();
 
             // 메모리 묶음: 파일 마지막 프레임 이후의 간격
             const memoryDeltas:Vector.<uint> = new Vector.<uint>();
@@ -127,7 +283,7 @@ package Modules.ReplayEngine
             TimingSheetFile.computeMemoryRecords(ReplayState.rMemoryDataTimingSheet, ReplayState.rMemoryData.length, memoryDeltas, memoryAnims);
             memoryCumulative = new Vector.<Number>(memoryDeltas.length, true);
 
-            for (i = 0; i < memoryDeltas.length; i++)
+            for (var i:int = 0; i < memoryDeltas.length; i++)
             {
                 if (memoryDeltas[i] > prevAnim && memoryDeltas[i] - prevAnim >= ENTRY_MS)
                 {
