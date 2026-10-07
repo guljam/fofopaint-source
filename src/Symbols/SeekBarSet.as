@@ -2,6 +2,7 @@
 {
 
 	import Modules.UIEngine.UITheme;
+	import flash.display.DisplayObject;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
 	import flash.text.TextField;
@@ -27,6 +28,44 @@
 		private var nowBarColorSave:ColorTransform = new ColorTransform();
 		public const BARSIZE:Number = 27;
 		private var isPrograssBarMaxWidth:Boolean = false;
+		private var playbackControls:Array = []; // 재생 중 멈춤 버튼 오른쪽에 놓는 컨트롤(줌 버튼, 배속 슬라이더). 표시 객체를 받기만 하고 어디서 가져왔는지는 모름
+		private const CONTROL_GAP:Number = 7; // 기존 버튼 간격과 같음
+
+		// 컨트롤을 멈춤 버튼 오른쪽에 순서대로 놓고 트랙 시작 위치를 그만큼 옮김. 옮기고 되돌리는 책임은 호출한 쪽
+		public function attachPlaybackControls(list:Array):void
+		{
+			detachPlaybackControls();
+			playbackControls = list.concat();
+
+			for each (var c:DisplayObject in playbackControls)
+			{
+				addChild(c);
+			}
+
+			if (stage)
+			{
+				updatePos(stage.stageWidth);
+			}
+		}
+
+		// 컨트롤을 시크바에서 떼어 냄 (다시 붙이는 건 호출한 쪽)
+		public function detachPlaybackControls():void
+		{
+			for each (var c:DisplayObject in playbackControls)
+			{
+				if (c.parent === this)
+				{
+					removeChild(c);
+				}
+			}
+
+			playbackControls = [];
+
+			if (stage)
+			{
+				updatePos(stage.stageWidth);
+			}
+		}
 
 		public function showReplayControlButton():void
 		{
@@ -133,6 +172,14 @@
 			else
 			{
 				startX = Math.floor(playButton.x + playButton.width + 7);
+			}
+
+			// 재생 중 컨트롤이 있으면 멈춤 버튼 오른쪽에 차례로 놓고(세로 가운데 정렬) 트랙은 그 오른쪽에서 시작
+			for each (var c:DisplayObject in playbackControls)
+			{
+				c.x = startX;
+				c.y = Math.floor((BARSIZE - c.height) / 2);
+				startX = Math.floor(startX + c.width + CONTROL_GAP);
 			}
 
 			trackBar.x = startX;

@@ -16,6 +16,8 @@ package Modules.ReplayEngine
     import flash.desktop.NativeDragManager;
     import flash.display.Bitmap;
     import flash.display.BitmapData;
+    import flash.display.DisplayObject;
+    import flash.display.DisplayObjectContainer;
     import flash.display.Sprite;
     import flash.events.Event;
     import flash.events.MouseEvent;
@@ -1409,6 +1411,53 @@ package Modules.ReplayEngine
             }
         }
 
+        private static var movedPlaybackControls:Array = null; // 시크바로 옮긴 상단바 컨트롤의 원래 위치 정보 (옮겨져 있지 않으면 null)
+
+        // 재생 중에는 상단바가 숨겨지므로 줌인·줌아웃 버튼과 배속 슬라이더를 시크바의 멈춤 버튼 오른쪽으로 옮김 (복제하지 않고 같은 객체를 옮겨서 이름 기반 클릭/힌트 처리가 그대로 동작)
+        private static function movePlaybackControlsToSeekBar():void
+        {
+            if (movedPlaybackControls !== null)
+            {
+                return;
+            }
+
+            const list:Array = [UIController.topBar.replayZoomInButton, UIController.topBar.replayZoomOutButton, UIController.topBar.replaySpeedSliderWrapper];
+            movedPlaybackControls = [];
+
+            for each (var o:DisplayObject in list)
+            {
+                movedPlaybackControls.push({obj: o, parent: o.parent, index: o.parent.getChildIndex(o), x: o.x, y: o.y, scaleX: o.scaleX, scaleY: o.scaleY, alpha: o.alpha, visible: o.visible});
+            }
+
+            ReplayController.seekBarBox.attachPlaybackControls(list);
+        }
+
+        // 옮긴 컨트롤을 원래 부모, 자식 순서, 위치, 배율, 알파, 보이기 상태로 되돌림
+        private static function restorePlaybackControls():void
+        {
+            if (movedPlaybackControls === null)
+            {
+                return;
+            }
+
+            ReplayController.seekBarBox.detachPlaybackControls();
+            const saved:Array = movedPlaybackControls;
+            movedPlaybackControls = null;
+            saved.sortOn("index", Array.NUMERIC); // 작은 순서부터 넣어야 원래 자식 순서가 맞음
+
+            for each (var info:Object in saved)
+            {
+                const p:DisplayObjectContainer = info.parent;
+                p.addChildAt(info.obj, Math.min(info.index, p.numChildren));
+                info.obj.x = info.x;
+                info.obj.y = info.y;
+                info.obj.scaleX = info.scaleX;
+                info.obj.scaleY = info.scaleY;
+                info.obj.alpha = info.alpha;
+                info.obj.visible = info.visible;
+            }
+        }
+
         public static function hideTopbarOnReplayStart():void
         {
             if (UIController.topBar.visible === true)
@@ -1416,6 +1465,7 @@ package Modules.ReplayEngine
                 ReplayController.seekBarBox.y = 0;
                 ReplayController.seekBarBox.hideReplayControlButton();
                 UIController.topBar.visible = false;
+                movePlaybackControlsToSeekBar();
                 HintController.hideBottomHint();
                 HintController.hideMouseHint();
             }
@@ -1425,6 +1475,7 @@ package Modules.ReplayEngine
         {
             if (UIController.topBar.visible === false)
             {
+                restorePlaybackControls();
                 UIController.topBar.visible = true;
                 seekBarBox.y = lastReplayTimeBoxYPos;
                 seekBarBox.setPlayButtonVisible(true);
