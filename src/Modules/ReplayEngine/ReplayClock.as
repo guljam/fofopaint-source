@@ -95,6 +95,34 @@ package Modules.ReplayEngine
             };
         }
 
+        // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음. 시계 상태가 서로 맞는지 점검해 어긋난 항목을 문자열로 돌려줌 (맞으면 빈 문자열)
+        public static function invariantViolations():String
+        {
+            var v:String = "";
+
+            if (memoryCumulative.length !== totalFrames - fileFrames)
+            {
+                v += "memoryCumulative(" + memoryCumulative.length + ") != totalFrames(" + totalFrames + ") - fileFrames(" + fileFrames + "); ";
+            }
+
+            if (indexedFileFrames >= 0 && fileFrames !== indexedFileFrames)
+            {
+                v += "fileFrames(" + fileFrames + ") != indexedFileFrames(" + indexedFileFrames + "); ";
+            }
+
+            if (totalTime < fileEndTime)
+            {
+                v += "totalTime(" + totalTime + ") < fileEndTime(" + fileEndTime + "); ";
+            }
+
+            if (memoryAnims.length !== memoryCumulative.length)
+            {
+                v += "memoryAnims != memoryCumulative; ";
+            }
+
+            return v;
+        }
+
         private static function invalidateSegmentCache():void
         {
             cachedSegment = -1;
@@ -117,6 +145,22 @@ package Modules.ReplayEngine
             indexedFileFrames = 0;
             readIntoFileIndex(fileFrames);
             trace('fileEndTime',fileEndTime,"fileLastAnim",fileLastAnim);
+            publishFileOnly();
+        }
+
+        // 파일 부분을 바꾼 함수가 끝날 때 부름: 전체 부분(길이, 메모리 부분, 쉬는 구간 합본, 축 캐시)을 "파일 부분만 있는 상태"로 같이 맞춤
+        // 시계는 언제 읽혀도 서로 맞는 상태여야 해서(예: 불러오는 도중 시크바 갱신) 메모리 부분이 옛 값으로 남지 않게 함. 메모리 부분은 다음 rebuildMemoryIndex()에서 다시 붙음
+        private static function publishFileOnly():void
+        {
+            fileFrames = Math.max(0, indexedFileFrames);
+            totalFrames = fileFrames;
+            totalTime = fileEndTime;
+            memoryCumulative = new Vector.<Number>();
+            memoryAnims = new Vector.<uint>();
+            memoryPoints = {};
+            gapRanges = fileGaps.concat();
+            axisSpeed = -1;
+            replayWaitingEnd = -1;
         }
 
         // indexedFileFrames부터 to 프레임 앞까지만 읽어 파일 부분 색인을 이어서 갱신 (구간 경계마다 나눠 읽음)
@@ -205,6 +249,7 @@ package Modules.ReplayEngine
 
             bytes.position = 0;
             consumeBytes(bytes, records.length / 2);
+            publishFileOnly();
         }
 
         // 시트를 비웠을 때(새 파일, 불러오기 시작) 색인도 빈 상태로 맞춤. 비운 시트에는 읽을 것이 없으므로 이게 곧 정확한 색인
@@ -217,6 +262,7 @@ package Modules.ReplayEngine
             fileLastAnim = 0;
             indexedFileFrames = 0;
             fileFrames = 0;
+            publishFileOnly();
         }
 
         // [간격(uint), 연출 길이(uint)] 8바이트 기록이 이어진 ByteArray(처음부터 끝까지)를 지금 색인 끝에 이어서 반영. 시트를 다시 쓰는 쪽(앞 자르기)이 이미 가진 메모리를 쓰므로 파일을 읽지 않음
@@ -235,6 +281,8 @@ package Modules.ReplayEngine
                 const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES - indexedFileFrames % TimingSheet.SEGMENT_FRAMES, bytes.bytesAvailable / TimingSheetFile.RECORD_BYTES));
                 consumeBytes(bytes, count);
             }
+
+            publishFileOnly();
         }
 
         // ---- 요약 파일 (reptimingindex): 앱을 껐다 켜도 전체 읽기 없이 색인을 되살림 ----
@@ -312,6 +360,7 @@ package Modules.ReplayEngine
         // 요약 파일을 읽어 시트와 맞으면 그대로 씀. 없거나 맞지 않으면 색인을 만들지 않고 둠 (첫 사용 때 ensureIndex가 전체 읽기) + 로그
         public static function loadIndex():void
         {
+            resetIndexEmpty(); // 이전 상태가 남지 않게 비운 뒤 요약이 맞을 때만 채움
             indexedFileFrames = -1;
             const file:File = AppStateManager.replayTimingIndexFilePath;
             const frames:Number = ReplayState.getRFileDataTotalFrame();
@@ -384,6 +433,7 @@ package Modules.ReplayEngine
                 fileLastAnim = lastAnim;
                 indexedFileFrames = frames;
                 fileFrames = frames;
+                publishFileOnly();
             }
             catch (error:Error)
             {
@@ -402,6 +452,7 @@ package Modules.ReplayEngine
 
             invalidateSegmentCache(); // 마지막 구간이 풀려 있으면 길이가 옛 값이라 무효화
             readIntoFileIndex(ReplayState.getRFileDataTotalFrame());
+            publishFileOnly();
         }
 
         // 파일이 frame개로 잘렸을 때 frame이 속한 구간 하나만 다시 읽어 색인을 맞춤
@@ -412,6 +463,12 @@ package Modules.ReplayEngine
                 return;
             }
 
+            truncateFileIndexCore(frame);
+            publishFileOnly();
+        }
+
+        private static function truncateFileIndexCore(frame:Number):void
+        {
             invalidateSegmentCache();
             fileFrames = frame;
             indexedFileFrames = frame;
