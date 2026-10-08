@@ -48,6 +48,7 @@ package Modules
             replayTimingSheetFilePath = dataFolderPath.resolvePath("reptimingsheet");
             replayTimingPointsFilePath = dataFolderPath.resolvePath("reptimingpoints");
             replayTimingIndexFilePath = dataFolderPath.resolvePath("reptimingindex");
+            replayTimingLegacyFilePath = dataFolderPath.resolvePath("reptiminglegacy");
             replayCacheImageFolderPath = dataFolderPath.resolvePath("imagecache");
             replayCacheImageTempFolderPath = dataFolderPath.resolvePath("imagecache_tmp");
             replayCacheImageFrameDataFilePath = dataFolderPath.resolvePath("jumpframedata");
@@ -63,6 +64,7 @@ package Modules
         public static var myPaletteDataFilePath:File;
         public static var replayDataFilePath:File;
         public static var replayTimingSheetFilePath:File; // repdata 프레임마다의 시간 간격 (TimingSheetFile)
+        public static var replayTimingLegacyFilePath:File; // 타이밍 기록이 없는 옛 프레임 수 L (TimingSheetFile). 바뀔 때마다 바로 씀
         public static var replayTimingIndexFilePath:File; // 시계 시간 색인 요약 (ReplayClock). 앱 상태 저장 때 쓰고 시작할 때 읽음
         public static var replayTimingPointsFilePath:File; // 점마다 시각이 필요한 명령(line4)의 점별 시각 (TimingSheetFile)
         private static var isRebuildFromReplayFileNeeded:Boolean = false; // loadUndoData에서 저장본이 리플레이 파일과 맞지 않아 쓰지 못했을때
@@ -314,6 +316,7 @@ package Modules
                 isRebuildFromReplayFileNeeded = true;
             }
 
+            TimingSheetFile.loadLegacy(ReplayState.getRFileDataTotalFrame()); // 요약보다 먼저: 요약이 이 값으로 만든 것인지 확인함
             ReplayClock.loadIndex(); // 복구한 프레임 수와 시트가 요약과 맞으면 첫 사용 때 전체 읽기를 건너뜀
 
             if (scratchPadDataFilePath.exists)

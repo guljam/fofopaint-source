@@ -612,6 +612,11 @@ package Modules.ReplayEngine
 
             if (sheetFramesBefore !== _frameSum)
             {
+                if (sheetFramesBefore === 0)
+                {
+                    TimingSheetFile.setLegacyFrames(_frameSum); // 시트가 아예 없던 옛 파일: 채운 프레임 전부가 옛 구간(앱 fps로 재생)
+                }
+
                 ReplayClock.rebuildFileIndex(); // 시트를 채워 맞췄으면(시간 기록이 없는 옛 파일 등) 색인도 다시 읽음. 불러오기·앞 자르기에서 시트를 쓰며 만든 색인은 그대로 씀
             }
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;

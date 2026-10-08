@@ -72,6 +72,9 @@ package Modules.ReplayEngine
         private static var indexedFileFrames:Number = -1; // 색인에 반영된 파일 프레임 수. -1이면 아직 만들지 않음
         private static var fileGaps:Vector.<Number> = new Vector.<Number>(); // 파일 부분의 쉬는 구간 [시작, 끝] 쌍 (gapRanges = 파일 부분 + 메모리 부분)
         private static var fileLastAnim:uint = 0; // 파일 마지막 프레임의 연출 길이
+        // 색인을 만들 때 쓴 옛 구간(프레임 < L)의 프레임 수와 간격. L이 0이면 간격은 쓰지 않아 0으로 둠 (fps가 바뀌어도 새 형식 파일은 영향 없음)
+        private static var indexLegacyFrames:Number = 0;
+        private static var indexLegacyDelta:Number = 0;
         private static var indexMissCount:int = 0; // 갱신 지점이 빠져서 ensureIndex가 보정한 횟수
 
         // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음
@@ -90,6 +93,7 @@ package Modules.ReplayEngine
                 fileGaps: fileGaps.join(","),
                 fileEndTime: fileEndTime,
                 fileLastAnim: fileLastAnim,
+                legacy: indexLegacyFrames + "@" + indexLegacyDelta,
                 totalTime: totalTime,
                 totalFrames: totalFrames
             };
@@ -123,6 +127,18 @@ package Modules.ReplayEngine
             return v;
         }
 
+        // 옛 구간 간격 = 앱 프레임 하나의 길이. 옛 앱은 명령을 프레임마다 하나씩 그렸음
+        private static function currentLegacyDelta():Number
+        {
+            return TimingSheetFile.legacyFrames > 0 ? 1000 / AppStateManager.main.stage.frameRate : 0;
+        }
+
+        private static function captureLegacy():void
+        {
+            indexLegacyFrames = TimingSheetFile.legacyFrames;
+            indexLegacyDelta = currentLegacyDelta();
+        }
+
         private static function invalidateSegmentCache():void
         {
             cachedSegment = -1;
@@ -137,6 +153,7 @@ package Modules.ReplayEngine
             trace('call');
             fileFrames = ReplayState.getRFileDataTotalFrame();
             TimingSheetFile.resizeToFrameCount(fileFrames);
+            captureLegacy();
             invalidateSegmentCache();
             segmentStart = new Vector.<Number>();
             fileGaps = new Vector.<Number>();
@@ -205,8 +222,15 @@ package Modules.ReplayEngine
                     segmentStart.push(sum);
                 }
 
-                const delta:uint = bytes.readUnsignedInt();
-                const anim:uint = bytes.readUnsignedInt();
+                var delta:Number = bytes.readUnsignedInt();
+                var anim:uint = bytes.readUnsignedInt();
+
+                // 옛 구간(프레임 < L)은 시트에 채워진 값 대신 앱 fps 간격
+                if (frame < indexLegacyFrames)
+                {
+                    delta = indexLegacyDelta;
+                    anim = 0;
+                }
 
                 // 쉬는 구간은 앞 프레임의 연출이 끝난 시각부터 이 프레임까지
                 if (delta > prevAnim && delta - prevAnim >= ENTRY_MS)
@@ -255,6 +279,7 @@ package Modules.ReplayEngine
         // 시트를 비웠을 때(새 파일, 불러오기 시작) 색인도 빈 상태로 맞춤. 비운 시트에는 읽을 것이 없으므로 이게 곧 정확한 색인
         public static function resetIndexEmpty():void
         {
+            captureLegacy();
             invalidateSegmentCache();
             segmentStart = new Vector.<Number>();
             fileGaps = new Vector.<Number>();
@@ -289,7 +314,7 @@ package Modules.ReplayEngine
         // 구성: "RTI1", 프레임 수, 시트 파일 크기, 시트 끝 32프레임 해시, 끝 시각, 끝 연출 길이, 구간 수 + 시작 시각들, 쉬는 구간 값 수 + 값들
         // 앱 상태를 저장하는 때(saveAllAppData)에 쓰고 시작할 때 읽음. 저장 없이 죽어서 시트와 안 맞으면 확인에서 걸러져 전체 읽기로 되돌아감
 
-        private static const INDEX_MAGIC:String = "RTI1";
+        private static const INDEX_MAGIC:String = "RTI2";
 
         // 시트 끝 최대 32프레임(256바이트)의 해시. 요약이 이 시트의 것인지 확인용
         private static function sheetTailHash(frames:Number):uint
@@ -322,7 +347,7 @@ package Modules.ReplayEngine
             const sheet:File = AppStateManager.replayTimingSheetFilePath;
 
             // 색인이 지금 시트와 맞지 않으면 옛 요약이 남지 않게 지움
-            if (indexedFileFrames < 0 || indexedFileFrames !== ReplayState.getRFileDataTotalFrame() || indexedFileFrames !== TimingSheetFile.frameCount)
+            if (indexedFileFrames < 0 || indexedFileFrames !== ReplayState.getRFileDataTotalFrame() || indexedFileFrames !== TimingSheetFile.frameCount || indexLegacyFrames !== TimingSheetFile.legacyFrames || indexLegacyDelta !== currentLegacyDelta())
             {
                 if (file.exists)
                 {
@@ -338,6 +363,8 @@ package Modules.ReplayEngine
             fs.writeDouble(indexedFileFrames);
             fs.writeDouble(sheet.exists ? sheet.size : 0);
             fs.writeUnsignedInt(sheetTailHash(indexedFileFrames));
+            fs.writeDouble(indexLegacyFrames);
+            fs.writeDouble(indexLegacyDelta);
             fs.writeDouble(fileEndTime);
             fs.writeUnsignedInt(fileLastAnim);
             fs.writeUnsignedInt(segmentStart.length);
@@ -392,6 +419,15 @@ package Modules.ReplayEngine
                 const savedFrames:Number = fs.readDouble();
                 const savedBytes:Number = fs.readDouble();
                 const savedHash:uint = fs.readUnsignedInt();
+                const savedLegacyFrames:Number = fs.readDouble();
+                const savedLegacyDelta:Number = fs.readDouble();
+
+                if (savedLegacyFrames !== TimingSheetFile.legacyFrames || savedLegacyDelta !== currentLegacyDelta())
+                {
+                    fs.close();
+                    trace("[ReplayClock] 색인 요약의 옛 구간(L 또는 앱 fps)이 지금과 달라 버림, 첫 사용 때 전체 읽기");
+                    return;
+                }
 
                 if (savedFrames !== frames || !sheet.exists || savedBytes !== sheet.size || sheet.size !== frames * TimingSheetFile.RECORD_BYTES || savedHash !== sheetTailHash(frames))
                 {
@@ -427,6 +463,8 @@ package Modules.ReplayEngine
 
                 fs.close();
                 invalidateSegmentCache();
+                indexLegacyFrames = savedLegacyFrames;
+                indexLegacyDelta = savedLegacyDelta;
                 segmentStart = starts;
                 fileGaps = gaps;
                 fileEndTime = endTime;
@@ -470,6 +508,7 @@ package Modules.ReplayEngine
         private static function truncateFileIndexCore(frame:Number):void
         {
             invalidateSegmentCache();
+            indexLegacyFrames = TimingSheetFile.legacyFrames; // 뒤 자르기로 줄어든 L (간격은 앞 구간을 만들 때 쓴 값 그대로. fps가 바뀌었으면 ensureIndex가 다시 만듦)
             fileFrames = frame;
             indexedFileFrames = frame;
 
@@ -494,11 +533,11 @@ package Modules.ReplayEngine
 
             for (var i:int = 0; i < count; i++)
             {
-                sum += deltas[i];
+                sum += (first + i < indexLegacyFrames) ? indexLegacyDelta : deltas[i];
             }
 
             fileEndTime = sum;
-            fileLastAnim = anims[count - 1];
+            fileLastAnim = (frame - 1 < indexLegacyFrames) ? 0 : anims[count - 1];
 
             // 쉬는 구간 끝 시각이 새 끝 시각을 넘는 첫 항목부터 잘라냄 (끝 시각은 시간순)
             var low:int = 0;
@@ -529,6 +568,12 @@ package Modules.ReplayEngine
 
             if (indexedFileFrames < 0)
             {
+                rebuildFileIndex();
+            }
+            else if (indexLegacyFrames !== TimingSheetFile.legacyFrames || indexLegacyDelta !== currentLegacyDelta())
+            {
+                indexMissCount++;
+                trace("[ReplayClock] 옛 구간(L 또는 앱 fps)이 색인을 만들 때와 달라 전체 다시 만듦: L " + indexLegacyFrames + " -> " + TimingSheetFile.legacyFrames + ", 간격 " + indexLegacyDelta + " -> " + currentLegacyDelta());
                 rebuildFileIndex();
             }
             else if (indexedFileFrames < actual)
@@ -845,7 +890,7 @@ package Modules.ReplayEngine
 
             for (var i:int = 0; i < count; i++)
             {
-                sum += deltas[i];
+                sum += (first + i < indexLegacyFrames) ? indexLegacyDelta : deltas[i];
                 times[i] = sum;
             }
 
