@@ -10,6 +10,7 @@ package Modules
     import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display.NativeWindow;
+    import flash.display.NativeWindowDisplayState;
     import flash.display.NativeWindowInitOptions;
     import flash.display.NativeWindowSystemChrome;
     import flash.display.NativeWindowType;
@@ -82,10 +83,13 @@ package Modules
             FOFOTimer.addByName("canvasWindowUpdateDelayTimer", 0.2, false,
                     function ():void
                     {
-                        canvasWindowInfo[0] = canvasWindow.x;
-                        canvasWindowInfo[1] = canvasWindow.y;
-                        canvasWindowInfo[2] = canvasWindow.width;
-                        canvasWindowInfo[3] = canvasWindow.height;
+                        if (canvasWindow.displayState !== NativeWindowDisplayState.MINIMIZED)
+                        {
+                            canvasWindowInfo[0] = canvasWindow.x;
+                            canvasWindowInfo[1] = canvasWindow.y;
+                            canvasWindowInfo[2] = canvasWindow.width;
+                            canvasWindowInfo[3] = canvasWindow.height;
+                        }
 
                         if (canvasWindowCanvasPanel.width !== canvasWindow.stage.stageWidth
                                 || canvasWindowCanvasPanel.height !== canvasWindow.stage.stageHeight)
@@ -251,7 +255,12 @@ package Modules
                     canvasWindowInfo[0] = main.stage.nativeWindow.x + UIController.topBar.newWindowButton.x - canvasWindowInfo[2] / 2;
                     canvasWindowInfo[1] = main.stage.nativeWindow.y;
                 }
-                canvasWindow.bounds = new Rectangle(canvasWindowInfo[0], canvasWindowInfo[1], canvasWindowInfo[2], canvasWindowInfo[3]);
+                const bounds:Rectangle = AppWindowState.getVisibleWindowBounds(new Rectangle(canvasWindowInfo[0], canvasWindowInfo[1], canvasWindowInfo[2], canvasWindowInfo[3]), canvasWindowInfo[2], canvasWindowInfo[3]);
+                canvasWindow.bounds = bounds;
+                canvasWindowInfo[0] = bounds.x;
+                canvasWindowInfo[1] = bounds.y;
+                canvasWindowInfo[2] = bounds.width;
+                canvasWindowInfo[3] = bounds.height;
             }
 
             canvasWindow.activate();

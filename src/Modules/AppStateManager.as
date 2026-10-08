@@ -16,6 +16,7 @@ package Modules
     import Modules.Tools.PenTool;
 
     import flash.display.BitmapData;
+    import flash.display.NativeWindowDisplayState;
     import flash.events.ErrorEvent;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
@@ -118,7 +119,17 @@ package Modules
             appStateObject.eraserIsSquare = PenSettings.eraserIsSquare;
             appStateObject.eraseAlpha = PenSettings.eraserAlpha;
 
-            const windowBounds:Rectangle = main.stage.nativeWindow.bounds;
+            var windowBounds:Rectangle = main.stage.nativeWindow.bounds;
+
+            if (main.stage.nativeWindow.displayState !== NativeWindowDisplayState.MINIMIZED)
+            {
+                AppWindowState.lastNormalWindowBounds = windowBounds.clone();
+            }
+            else if (AppWindowState.lastNormalWindowBounds !== null)
+            {
+                windowBounds = AppWindowState.lastNormalWindowBounds;
+            }
+
             appStateObject.stageNativeWindowX = windowBounds.x;
             appStateObject.stageNativeWindowY = windowBounds.y;
             appStateObject.stageNativeWindowWidth = windowBounds.width;
@@ -335,13 +346,15 @@ package Modules
                 FOFOTimer.addByName("loadAppDataDelayTimer", 0.2, false, function ():void
                     {
                         // Window Size & Position
-                        main.stage.nativeWindow.width = appStateObject.stageNativeWindowWidth;
-                        main.stage.nativeWindow.height = appStateObject.stageNativeWindowHeight;
-                        main.stage.nativeWindow.x = appStateObject.stageNativeWindowX;
-                        main.stage.nativeWindow.y = appStateObject.stageNativeWindowY;
+                        const windowBounds:Rectangle = AppWindowState.getVisibleWindowBounds(new Rectangle(appStateObject.stageNativeWindowX, appStateObject.stageNativeWindowY, appStateObject.stageNativeWindowWidth, appStateObject.stageNativeWindowHeight), 1000, 800);
+                        main.stage.nativeWindow.width = windowBounds.width;
+                        main.stage.nativeWindow.height = windowBounds.height;
+                        main.stage.nativeWindow.x = windowBounds.x;
+                        main.stage.nativeWindow.y = windowBounds.y;
+                        AppWindowState.lastNormalWindowBounds = windowBounds.clone();
 
-                        AppWindowState.lastAppWindowSize.width = appStateObject.stageNativeWindowWidth;
-                        AppWindowState.lastAppWindowSize.height = appStateObject.stageNativeWindowHeight;
+                        AppWindowState.lastAppWindowSize.width = windowBounds.width;
+                        AppWindowState.lastAppWindowSize.height = windowBounds.height;
 
                         // 캔버스 bg를 한번 업데이트해춤 on window resize이벤트에서는 앱이 정보가 로드되고 있을때 차단되기 때문에
                         UIController.updateStageBGSize();
