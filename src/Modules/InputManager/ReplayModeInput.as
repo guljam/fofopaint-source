@@ -398,23 +398,35 @@ package Modules.InputManager
                     return;
                 }
             }
-            if (targetName && !ReplayController.isReplayRestartTimerON())
+
+
+            if (targetName)
             {
-                if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "stageBG")
+                if (InputManager.isKeyPressed())
                 {
-                    HandTool.startInReplayMode();
                     return;
                 }
-                else if (targetName === "replayRepeatButton" || targetName === "replayFitToWindowButton")
-                {
-                    if (InputManager.isKeyPressed())
+
+                if(!ReplayController.isReplayRestartTimerON())
+                {   
+                    if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "stageBG")
                     {
+                        HandTool.startInReplayMode();
                         return;
                     }
+                    else if(targetName === "replayFitToWindowButton")
+                    {
+                        InputManager.handleMouseClickStage(targetName, onClickReplayButton);
+                    }
+                }
+
+                if (targetName === "replayRepeatButton")
+                {
                     InputManager.handleMouseClickStage(targetName, onClickReplayButton);
                     return;
                 }
             }
+
             if (target.alpha < 1.0)
             {
                 return;

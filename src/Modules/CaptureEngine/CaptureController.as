@@ -502,7 +502,7 @@ package Modules.CaptureEngine
 
             if (replayMode)
             {
-                ReplayController.showTopbarOnReplayEnd();
+                ReplayController.showTopbarOnPlayback();
                 ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
                 ReplayController.seekBarBox.visible = false;
                 ReplayModeInput.removeEvents();

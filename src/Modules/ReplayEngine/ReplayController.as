@@ -1395,7 +1395,7 @@ package Modules.ReplayEngine
         {
             ReplayController.seekBarBox.setPlayButtonVisible(true);
             hideCompleteImageToBGReplayMode();
-            showTopbarOnReplayEnd();
+            // showTopbarOnReplayEnd();
             FOFOTimer.remove("replayRestartTimer");
             updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
             Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
@@ -1409,10 +1409,9 @@ package Modules.ReplayEngine
 
         public static function startReplayRestartTimer():void
         {
-            Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, UITheme.getUIReplayRestartBarColor());
-
             if (ReplayState.isReplayRepeatON)
             {
+                Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, UITheme.getUIReplayRestartBarColor());
                 rReplayRestartTimerCount = 20;
                 FOFOTimer.addByName("replayRestartTimer", 1.0, true, function ():Boolean
                     {
@@ -1433,7 +1432,9 @@ package Modules.ReplayEngine
             }
             else
             {
+                Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
                 rReplayRestartTimerCount = 0;
+                //todo updateReplayPrograssText로 replay finished 표시해주고 싶은데 메서드가 3개일을하고있어서 잘모르겠음 ai한테 물어봐야겠음
                 updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
             }
         }
@@ -1444,79 +1445,38 @@ package Modules.ReplayEngine
 
             if (ReplayState.isReplayRepeatON)
             {
+                if(ReplayState.isReplayFinished && !ReplayController.isReplayRestartTimerON())
+                {
+                    ReplayController.startReplayRestartTimer();
+                }
                 UIController.topBar.replayRepeatButton.alpha = 1.0;
             }
             else
             {
+                if(ReplayState.isReplayFinished && ReplayController.isReplayRestartTimerON())
+                {
+                    ReplayController.cancelReplayRestartTimer();
+                }
                 UIController.topBar.replayRepeatButton.alpha = UITheme.OFFALPHA;
             }
         }
 
-        private static var movedPlaybackControls:Array = null; // 시크바로 옮긴 상단바 컨트롤의 원래 위치 정보 (옮겨져 있지 않으면 null)
-
-        // 재생 중에는 상단바가 숨겨지므로 줌인·줌아웃 버튼과 배속 슬라이더를 시크바의 멈춤 버튼 오른쪽으로 옮김 (복제하지 않고 같은 객체를 옮겨서 이름 기반 클릭/힌트 처리가 그대로 동작)
-        private static function movePlaybackControlsToSeekBar():void
-        {
-            if (movedPlaybackControls !== null)
-            {
-                return;
-            }
-
-            const list:Array = [UIController.topBar.replayZoomInButton, UIController.topBar.replayZoomOutButton, UIController.topBar.replaySpeedSliderWrapper];
-            movedPlaybackControls = [];
-
-            for each (var o:DisplayObject in list)
-            {
-                movedPlaybackControls.push({obj: o, parent: o.parent, index: o.parent.getChildIndex(o), x: o.x, y: o.y, scaleX: o.scaleX, scaleY: o.scaleY, alpha: o.alpha, visible: o.visible});
-            }
-
-            ReplayController.seekBarBox.attachPlaybackControls(list);
-        }
-
-        // 옮긴 컨트롤을 원래 부모, 자식 순서, 위치, 배율, 알파, 보이기 상태로 되돌림
-        private static function restorePlaybackControls():void
-        {
-            if (movedPlaybackControls === null)
-            {
-                return;
-            }
-
-            ReplayController.seekBarBox.detachPlaybackControls();
-            const saved:Array = movedPlaybackControls;
-            movedPlaybackControls = null;
-            saved.sortOn("index", Array.NUMERIC); // 작은 순서부터 넣어야 원래 자식 순서가 맞음
-
-            for each (var info:Object in saved)
-            {
-                const p:DisplayObjectContainer = info.parent;
-                p.addChildAt(info.obj, Math.min(info.index, p.numChildren));
-                info.obj.x = info.x;
-                info.obj.y = info.y;
-                info.obj.scaleX = info.scaleX;
-                info.obj.scaleY = info.scaleY;
-                info.obj.alpha = info.alpha;
-                info.obj.visible = info.visible;
-            }
-        }
-
-        public static function hideTopbarOnReplayStart():void
+        public static function hideTopbarOnPlayback():void
         {
             if (UIController.topBar.visible === true)
             {
                 ReplayController.seekBarBox.y = 0;
                 ReplayController.seekBarBox.hideReplayControlButton();
                 UIController.topBar.visible = false;
-                movePlaybackControlsToSeekBar();
                 HintController.hideBottomHint();
                 HintController.hideMouseHint();
             }
         }
 
-        public static function showTopbarOnReplayEnd():void
+        public static function showTopbarOnPlayback():void
         {
             if (UIController.topBar.visible === false)
             {
-                restorePlaybackControls();
                 UIController.topBar.visible = true;
                 seekBarBox.y = lastReplayTimeBoxYPos;
                 seekBarBox.setPlayButtonVisible(true);
@@ -1528,7 +1488,6 @@ package Modules.ReplayEngine
 
         public static function handleReplayStopButton():void
         {
-            showTopbarOnReplayEnd();
             stopReplay();
         }
 
@@ -1563,7 +1522,7 @@ package Modules.ReplayEngine
                 return;
             }
 
-            hideTopbarOnReplayStart();
+            // hideTopbarOnReplayStart();
             startReplay();
         }
 
