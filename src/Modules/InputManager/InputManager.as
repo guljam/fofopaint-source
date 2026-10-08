@@ -27,6 +27,7 @@ package Modules.InputManager
     import Modules.ReplayEngine.ReplayState;
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.DrawEngine.HandDrawnLine;
+    import Modules.ReplayEngine.ReplayController;
 
     public class InputManager
     {
@@ -125,7 +126,6 @@ package Modules.InputManager
         // 키 오래누름 관련 변수
         public static var pressHoldCountDownTime:Number = 0.0;
         public static var pressHoldFrameCount:int = 0;
-
 
         // handle mouse click 이벤트에서 이벤트 한번만 추가되게 하기
         public static var handMouseClickEventStarted:Boolean = false;
@@ -411,23 +411,23 @@ package Modules.InputManager
                                 }
                             }
                         }
-                        else if (!ReplayState.isReplayModeON && Utils.isCursorInDrawArea())
+                        if (Utils.isCursorInDrawArea())
                         {
-                            if (e.delta > 0)
+                            if (ReplayState.isReplayModeON)
                             {
-                                CanvasView.viewport.zoomStep(true);
+                                // 리플레이 모드: 휠 위 = 줌인, 아래 = 줌아웃 (화면 중심 기준, 힌트는 zoomStep이 띄움)
+                                ReplayDrawer.viewport.zoomStep(e.delta > 0);
+
+                                if (ReplayState.isReplayCanvasFitToWindow)
+                                {
+                                    ReplayController.toggleFitToCanvasReplayMode();
+                                }
+                            }
+                            if (!ReplayState.isReplayModeON)
+                            {
+                                CanvasView.viewport.zoomStep(e.delta > 0);
                                 HintController.showMouseHintTemp(Math.floor(CanvasView.canvasZoomMultiplier * 100) + "%");
                             }
-                            else
-                            {
-                                CanvasView.viewport.zoomStep(false);
-                                HintController.showMouseHintTemp(Math.floor(CanvasView.canvasZoomMultiplier * 100) + "%");
-                            }
-                        }
-                        else if (ReplayState.isReplayModeON && Utils.isCursorInDrawArea())
-                        {
-                            // 리플레이 모드: 휠 위 = 줌인, 아래 = 줌아웃 (화면 중심 기준, 힌트는 zoomStep이 띄움)
-                            ReplayDrawer.viewport.zoomStep(e.delta > 0);
                         }
                     });
             }
@@ -546,9 +546,9 @@ package Modules.InputManager
         public static function onKeyUpStage(e:KeyboardEvent):void
         {
             // 디버그 확인용
-            if(isPressedKey(KEY.f12))
+            if (isPressedKey(KEY.f12))
             {
-                HandDrawnLine.drawRect(StrokeBuffer.canvasDrawLayerChild.graphics,2,0,1.0,150,150,300,300,0xcccccc,0.5);
+                HandDrawnLine.drawRect(StrokeBuffer.canvasDrawLayerChild.graphics, 2, 0, 1.0, 150, 150, 300, 300, 0xcccccc, 0.5);
             }
 
             checkInvalidKey();
