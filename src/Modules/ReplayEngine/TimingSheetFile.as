@@ -20,11 +20,92 @@ package Modules.ReplayEngine
     // 점별 시각은 프레임 크기가 가변이라 따로 reptimingpoints 파일에 [프레임 번호, 개수, 값...] 레코드로 이어 씀 (프레임 번호 오름차순)
     public final class TimingSheetFile
     {
-        // 시간 기록이 없는 프레임(옛 파일, 기록이 어긋난 부분)의 간격. 24fps에서 틱당 명령 1개로 재생하던 옛 1배속과 같은 속도
+        // 시간 기록이 없는 프레임(옛 파일, 기록이 어긋난 부분)을 시트에 채우는 자리값. 파일 맨 앞 legacyFrames개(옛 구간)의 실제 재생 간격은
+        // 이 값이 아니라 ReplayClock이 앱 fps(1000 / stage.frameRate)로 계산함. 그 밖에 채워진 프레임(중간에 채워진 부분)은 이 값 그대로 42ms
         public static const LEGACY_FRAME_DELTA:uint = 42;
         public static const RECORD_BYTES:int = 8;
         private static const TWO_POW_32:Number = 4294967296;
         public static const MAX_ANIM_MS:Number = 2097151; // 합친 값이 Number의 정확한 정수 범위(2^53) 안에 들도록 연출 길이는 2^21 - 1 ms(약 35분)까지
+
+        // 파일 맨 앞에서부터 타이밍 기록이 없는 옛 프레임의 수 L. 시트 구조는 그대로 두고(옛 구간에도 42가 채워져 있음) 시계가 이 구간을 앱 fps로 읽음
+        // 바뀌는 순간 reptiminglegacy 파일에 바로 써서 저장 없이 종료해도 시트와 같이 살아남음
+        private static var legacyCount:Number = 0;
+
+        public static function get legacyFrames():Number
+        {
+            return legacyCount;
+        }
+
+        public static function setLegacyFrames(count:Number):void
+        {
+            const next:Number = Math.max(0, count);
+
+            if (next === legacyCount)
+            {
+                return;
+            }
+
+            legacyCount = next;
+            writeLegacyFile();
+        }
+
+        private static function writeLegacyFile():void
+        {
+            const file:File = AppStateManager.replayTimingLegacyFilePath;
+
+            if (file === null)
+            {
+                return; // 경로 없이 쓰는 단위 시험
+            }
+
+            if (legacyCount === 0)
+            {
+                if (file.exists)
+                {
+                    file.deleteFile();
+                }
+
+                return;
+            }
+
+            const fs:FileStream = new FileStream();
+            fs.open(file, FileMode.WRITE);
+            fs.writeDouble(legacyCount);
+            fs.close();
+        }
+
+        // 앱 시작 때 읽음. 파일이 없으면 0, 파일 프레임 수보다 크면(frames > 0일 때만 판단) 줄이고 로그
+        public static function loadLegacy(frames:Number):void
+        {
+            legacyCount = 0;
+            const file:File = AppStateManager.replayTimingLegacyFilePath;
+
+            if (file === null || !file.exists)
+            {
+                return;
+            }
+
+            try
+            {
+                const fs:FileStream = new FileStream();
+                fs.open(file, FileMode.READ);
+                legacyCount = Math.max(0, fs.readDouble());
+                fs.close();
+            }
+            catch (error:Error)
+            {
+                legacyCount = 0;
+                trace("[TimingSheetFile] 옛 프레임 수 읽기 실패, 0으로 둠: " + error);
+                return;
+            }
+
+            if (frames > 0 && legacyCount > frames)
+            {
+                trace("[TimingSheetFile] 옛 프레임 수(" + legacyCount + ")가 파일 프레임 수(" + frames + ")보다 커서 줄임");
+                legacyCount = frames;
+                writeLegacyFile();
+            }
+        }
 
         private static var lastStamp:int = 0; // 마지막으로 파일에 쓴 프레임의 getTimer 값
         private static var hasLastStamp:Boolean = false;
@@ -86,6 +167,7 @@ package Modules.ReplayEngine
             fs.open(AppStateManager.replayTimingPointsFilePath, FileMode.WRITE);
             fs.close();
             hasLastStamp = false;
+            setLegacyFrames(0);
             ReplayClock.resetIndexEmpty(); // 시트를 비웠으니 시간 색인도 빈 상태가 정확함
         }
 
@@ -125,6 +207,7 @@ package Modules.ReplayEngine
                 fs.truncate();
                 fs.close();
                 rewritePoints(0, frame, 0);
+                setLegacyFrames(Math.min(legacyCount, frame));
                 return;
             }
 
@@ -230,6 +313,7 @@ package Modules.ReplayEngine
             fs.open(file, FileMode.WRITE);
             fs.writeBytes(rest, 0, rest.length);
             fs.close();
+            setLegacyFrames(Math.max(0, legacyCount - frame));
             ReplayClock.resetIndexEmpty();
             ReplayClock.indexBytes(rest); // 다시 쓴 내용으로 시간 색인도 같이 만듦 (파일을 다시 읽지 않음)
             rest.clear();
@@ -433,7 +517,8 @@ package Modules.ReplayEngine
                 blobs.push(TimingSheet.encodeSegment(deltas, anims, count));
             }
 
-            return ["rTimingSheet", 2, total, TimingSheet.SEGMENT_FRAMES, blobs, buildPointsBlob(fileFrames, memoryStamps, memoryGroupCount)];
+            // 뒤에 선택 항목으로 옛 프레임 수 L (버전은 그대로 2라 옛 앱은 무시하고 채워진 42ms로 재생)
+            return ["rTimingSheet", 2, total, TimingSheet.SEGMENT_FRAMES, blobs, buildPointsBlob(fileFrames, memoryStamps, memoryGroupCount), Math.min(legacyCount, fileFrames)];
         }
 
         // 점별 시각 레코드를 압축한 데이터. 파일 부분(프레임 번호 < fileFrames)은 파일에서 그대로 옮기고, 메모리 묶음은 그 뒤 번호로 붙임. 없으면 null
@@ -527,6 +612,10 @@ package Modules.ReplayEngine
 
                 const blobs:Array = d[4];
                 var remaining:Number = d[2];
+
+                // 옛 프레임 수 L (선택 항목). 범위 밖이면 0. 색인을 만들기 전에 정해야 옛 구간 간격으로 계산됨
+                setLegacyFrames((d.length > 6 && d[6] is Number && d[6] >= 0 && d[6] <= d[2]) ? d[6] : 0);
+                ReplayClock.resetIndexEmpty();
 
                 for (var s:int = 0; s < blobs.length; s++)
                 {
