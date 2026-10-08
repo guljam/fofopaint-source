@@ -199,9 +199,9 @@ package Modules
                 fs.writeObject(oldData);
                 fs.close();
                 oldData = null;
-                TimingSheetFile.appendGroupAtFrame(ReplayState.rMemoryDataTimingSheet[0], lastRDataTotalFrame);
+                const written:Vector.<uint> = TimingSheetFile.appendGroupAtFrame(ReplayState.rMemoryDataTimingSheet[0], lastRDataTotalFrame);
                 ReplayState.increaseRFileDataTotalFrame(firstElementFrameCount);
-                ReplayClock.extendFileIndex(); // 덧붙은 프레임만 시간 색인에 반영
+                ReplayClock.extendFileIndexWith(written, lastRDataTotalFrame); // 덧붙은 프레임만 시간 색인에 반영 (파일을 다시 읽지 않음)
                 ReplayDrawer.updateReplayCanvasFromUndoBaseInfo();
 
                 if (ReplayState.rReplayImageCacheState === ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE)

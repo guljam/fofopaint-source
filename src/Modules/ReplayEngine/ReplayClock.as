@@ -116,12 +116,10 @@ package Modules.ReplayEngine
             readIntoFileIndex(fileFrames);
         }
 
-        // indexedFileFrames부터 to 프레임 앞까지만 읽어 파일 부분 색인을 이어서 갱신
+        // indexedFileFrames부터 to 프레임 앞까지만 읽어 파일 부분 색인을 이어서 갱신 (구간 경계마다 나눠 읽음)
         private static function readIntoFileIndex(to:Number):void
         {
             const file:File = AppStateManager.replayTimingSheetFilePath;
-            var sum:Number = fileEndTime;
-            var prevAnim:uint = fileLastAnim; // 앞 프레임의 연출 길이
             var first:Number = indexedFileFrames;
 
             if (to > first && file.exists)
@@ -133,41 +131,75 @@ package Modules.ReplayEngine
 
                 while (first < to)
                 {
-                    if (first % TimingSheet.SEGMENT_FRAMES === 0)
-                    {
-                        segmentStart.push(sum);
-                    }
-
                     const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES - first % TimingSheet.SEGMENT_FRAMES, to - first));
                     chunk.clear();
                     fs.readBytes(chunk, 0, count * TimingSheetFile.RECORD_BYTES);
                     chunk.position = 0;
+                    const records:Vector.<uint> = new Vector.<uint>(count * 2, true);
 
-                    for (var i:int = 0; i < count; i++)
+                    for (var i:int = 0; i < records.length; i++)
                     {
-                        const delta:uint = chunk.readUnsignedInt();
-                        const anim:uint = chunk.readUnsignedInt();
-
-                        // 쉬는 구간은 앞 프레임의 연출이 끝난 시각부터 이 프레임까지
-                        if (delta > prevAnim && delta - prevAnim >= ENTRY_MS)
-                        {
-                            fileGaps.push(sum + prevAnim, sum + delta);
-                        }
-
-                        sum += delta;
-                        prevAnim = anim;
+                        records[i] = chunk.readUnsignedInt();
                     }
 
+                    consumeRecords(records);
                     first += count;
                 }
 
                 fs.close();
             }
+        }
+
+        // [간격, 연출 길이] 쌍을 이어붙인 프레임 기록을 파일 부분 색인 끝에 반영. 파일을 읽는 경로와 덧붙인 값을 바로 받는 경로가 모두 여기서 계산함
+        private static function consumeRecords(records:Vector.<uint>):void
+        {
+            var sum:Number = fileEndTime;
+            var prevAnim:uint = fileLastAnim; // 앞 프레임의 연출 길이
+            var frame:Number = indexedFileFrames;
+
+            for (var i:int = 0; i < records.length; i += 2)
+            {
+                if (frame % TimingSheet.SEGMENT_FRAMES === 0)
+                {
+                    segmentStart.push(sum);
+                }
+
+                const delta:uint = records[i];
+                const anim:uint = records[i + 1];
+
+                // 쉬는 구간은 앞 프레임의 연출이 끝난 시각부터 이 프레임까지
+                if (delta > prevAnim && delta - prevAnim >= ENTRY_MS)
+                {
+                    fileGaps.push(sum + prevAnim, sum + delta);
+                }
+
+                sum += delta;
+                prevAnim = anim;
+                frame++;
+            }
 
             fileEndTime = sum;
             fileLastAnim = prevAnim;
-            indexedFileFrames = first;
-            fileFrames = first;
+            indexedFileFrames = frame;
+            fileFrames = frame;
+        }
+
+        // appendGroupAtFrame이 방금 쓴 [간격, 연출 길이] 기록을 받아 파일을 다시 읽지 않고 반영. firstFrame이 색인 끝과 다르면(시트를 채워 맞춘 경우 등) 파일에서 읽음
+        public static function extendFileIndexWith(records:Vector.<uint>, firstFrame:Number):void
+        {
+            if (indexedFileFrames < 0)
+            {
+                return;
+            }
+
+            if (indexedFileFrames !== firstFrame)
+            {
+                extendFileIndex();
+                return;
+            }
+
+            invalidateSegmentCache();
+            consumeRecords(records);
         }
 
         // 파일 뒤에 프레임이 덧붙었을 때(undo 묶음이 파일로 넘어감) 덧붙은 만큼만 읽어 이어서 반영. 아직 색인을 만든 적 없으면 첫 사용 때 만들므로 건너뜀

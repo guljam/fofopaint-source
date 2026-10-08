@@ -139,9 +139,11 @@ package Modules.ReplayEngine
         }
 
         // 묶음 하나의 명령들의 기록(packStamp 값)을 간격과 연출 길이로 바꿔서 이어 붙임. 앞 프레임까지 길이를 맞춘 다음에 씀
-        public static function appendGroupAtFrame(stamps:Array, firstFrame:Number):void
+        // 쓴 [간격, 연출 길이] 쌍을 이어붙인 목록을 돌려줌 (시계 색인이 파일을 다시 읽지 않고 반영하도록)
+        public static function appendGroupAtFrame(stamps:Array, firstFrame:Number):Vector.<uint>
         {
             resizeToFrameCount(firstFrame);
+            const written:Vector.<uint> = new Vector.<uint>(stamps.length * 2, true);
 
             const fs:FileStream = new FileStream();
             fs.open(AppStateManager.replayTimingSheetFilePath, FileMode.APPEND);
@@ -161,8 +163,10 @@ package Modules.ReplayEngine
                     }
                 }
 
-                fs.writeUnsignedInt(uint(delta));
-                fs.writeUnsignedInt(uint(unpackAnimMs(stamps[i])));
+                written[i * 2] = uint(delta);
+                written[i * 2 + 1] = uint(unpackAnimMs(stamps[i]));
+                fs.writeUnsignedInt(written[i * 2]);
+                fs.writeUnsignedInt(written[i * 2 + 1]);
                 lastStamp = stamp;
                 hasLastStamp = true;
             }
@@ -178,6 +182,8 @@ package Modules.ReplayEngine
                     appendPointsRecord(firstFrame + i, points);
                 }
             }
+
+            return written;
         }
 
         // frame개 이후를 자름 (뒤 자르기)

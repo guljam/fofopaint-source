@@ -920,7 +920,7 @@ package Modules.ReplayEngine
 
             var lastCursorUpdateTime:int = getTimer();
             var lastTextUpdateTime:int = getTimer();
-            const cursorUpdateTime:int = main.stage.frameRate * 2;
+            const cursorUpdateTime:int = ReplayState.REPLAY_VISUAL_UPDATE_MS;
             const textUpdateTime:int = 1000;
             updateReplayPrograssText();
             ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
