@@ -1903,12 +1903,11 @@ package Modules.ReplayEngine
             if (ReplayState.isReplayCanvasFitToWindow)
             {
                 resetZoomReplayMode();
-                UIController.topBar.replayFitToWindowButton.alpha = UITheme.OFFALPHA;
             }
             else
             {
                 setFitReplayCanvasToViewportON();
-                UIController.topBar.replayFitToWindowButton.alpha = 1.0;
+                
             }
         }
 
@@ -1992,11 +1991,13 @@ package Modules.ReplayEngine
         public static function setFitReplayCanvasToViewportOFF():void
         {
             ReplayState.isReplayCanvasFitToWindow = false;
+            UIController.topBar.replayFitToWindowButton.alpha = UITheme.OFFALPHA;
         }
 
         public static function setFitReplayCanvasToViewportON():void
         {
             ReplayState.isReplayCanvasFitToWindow = true;
+            UIController.topBar.replayFitToWindowButton.alpha = 1.0;
             fitReplayCanvasToViewport();
         }
 
