@@ -87,6 +87,7 @@ package Modules.ReplayEngine
                 indexed: indexedFileFrames,
                 segmentStart: segmentStart.join(","),
                 gaps: gapRanges.join(","),
+                fileGaps: fileGaps.join(","),
                 fileEndTime: fileEndTime,
                 fileLastAnim: fileLastAnim,
                 totalTime: totalTime,
@@ -105,6 +106,7 @@ package Modules.ReplayEngine
         // 파일 전체를 처음부터 읽어 파일 부분 색인을 새로 만듬. 파일 불러오기, 새 파일, 앞 자르기, 처음 만들 때, 확인이 실패했을 때만 부름
         public static function rebuildFileIndex():void
         {
+            trace('call');
             fileFrames = ReplayState.getRFileDataTotalFrame();
             TimingSheetFile.resizeToFrameCount(fileFrames);
             invalidateSegmentCache();
@@ -114,6 +116,7 @@ package Modules.ReplayEngine
             fileLastAnim = 0;
             indexedFileFrames = 0;
             readIntoFileIndex(fileFrames);
+            trace('fileEndTime',fileEndTime,"fileLastAnim",fileLastAnim);
         }
 
         // indexedFileFrames부터 to 프레임 앞까지만 읽어 파일 부분 색인을 이어서 갱신 (구간 경계마다 나눠 읽음)
@@ -132,17 +135,11 @@ package Modules.ReplayEngine
                 while (first < to)
                 {
                     const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES - first % TimingSheet.SEGMENT_FRAMES, to - first));
+                    trace('count',count);
                     chunk.clear();
                     fs.readBytes(chunk, 0, count * TimingSheetFile.RECORD_BYTES);
                     chunk.position = 0;
-                    const records:Vector.<uint> = new Vector.<uint>(count * 2, true);
-
-                    for (var i:int = 0; i < records.length; i++)
-                    {
-                        records[i] = chunk.readUnsignedInt();
-                    }
-
-                    consumeRecords(records);
+                    consumeBytes(chunk, count);
                     first += count;
                 }
 
@@ -150,22 +147,22 @@ package Modules.ReplayEngine
             }
         }
 
-        // [간격, 연출 길이] 쌍을 이어붙인 프레임 기록을 파일 부분 색인 끝에 반영. 파일을 읽는 경로와 덧붙인 값을 바로 받는 경로가 모두 여기서 계산함
-        private static function consumeRecords(records:Vector.<uint>):void
+        // 현재 위치부터 [간격(uint), 연출 길이(uint)] 기록 count개를 읽어 파일 부분 색인 끝에 반영. 파일을 읽는 경로, 덧붙인 값을 바로 받는 경로, 시트를 다시 쓰는 경로가 모두 여기서 계산함
+        private static function consumeBytes(bytes:ByteArray, count:int):void
         {
             var sum:Number = fileEndTime;
             var prevAnim:uint = fileLastAnim; // 앞 프레임의 연출 길이
             var frame:Number = indexedFileFrames;
 
-            for (var i:int = 0; i < records.length; i += 2)
+            for (var i:int = 0; i < count; i++)
             {
                 if (frame % TimingSheet.SEGMENT_FRAMES === 0)
                 {
                     segmentStart.push(sum);
                 }
 
-                const delta:uint = records[i];
-                const anim:uint = records[i + 1];
+                const delta:uint = bytes.readUnsignedInt();
+                const anim:uint = bytes.readUnsignedInt();
 
                 // 쉬는 구간은 앞 프레임의 연출이 끝난 시각부터 이 프레임까지
                 if (delta > prevAnim && delta - prevAnim >= ENTRY_MS)
@@ -199,7 +196,200 @@ package Modules.ReplayEngine
             }
 
             invalidateSegmentCache();
-            consumeRecords(records);
+            const bytes:ByteArray = new ByteArray();
+
+            for (var i:int = 0; i < records.length; i++)
+            {
+                bytes.writeUnsignedInt(records[i]);
+            }
+
+            bytes.position = 0;
+            consumeBytes(bytes, records.length / 2);
+        }
+
+        // 시트를 비웠을 때(새 파일, 불러오기 시작) 색인도 빈 상태로 맞춤. 비운 시트에는 읽을 것이 없으므로 이게 곧 정확한 색인
+        public static function resetIndexEmpty():void
+        {
+            invalidateSegmentCache();
+            segmentStart = new Vector.<Number>();
+            fileGaps = new Vector.<Number>();
+            fileEndTime = 0;
+            fileLastAnim = 0;
+            indexedFileFrames = 0;
+            fileFrames = 0;
+        }
+
+        // [간격(uint), 연출 길이(uint)] 8바이트 기록이 이어진 ByteArray(처음부터 끝까지)를 지금 색인 끝에 이어서 반영. 시트를 다시 쓰는 쪽(앞 자르기)이 이미 가진 메모리를 쓰므로 파일을 읽지 않음
+        public static function indexBytes(bytes:ByteArray):void
+        {
+            if (indexedFileFrames < 0)
+            {
+                return;
+            }
+
+            invalidateSegmentCache();
+            bytes.position = 0;
+
+            while (bytes.bytesAvailable >= TimingSheetFile.RECORD_BYTES)
+            {
+                const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES - indexedFileFrames % TimingSheet.SEGMENT_FRAMES, bytes.bytesAvailable / TimingSheetFile.RECORD_BYTES));
+                consumeBytes(bytes, count);
+            }
+        }
+
+        // ---- 요약 파일 (reptimingindex): 앱을 껐다 켜도 전체 읽기 없이 색인을 되살림 ----
+        // 구성: "RTI1", 프레임 수, 시트 파일 크기, 시트 끝 32프레임 해시, 끝 시각, 끝 연출 길이, 구간 수 + 시작 시각들, 쉬는 구간 값 수 + 값들
+        // 앱 상태를 저장하는 때(saveAllAppData)에 쓰고 시작할 때 읽음. 저장 없이 죽어서 시트와 안 맞으면 확인에서 걸러져 전체 읽기로 되돌아감
+
+        private static const INDEX_MAGIC:String = "RTI1";
+
+        // 시트 끝 최대 32프레임(256바이트)의 해시. 요약이 이 시트의 것인지 확인용
+        private static function sheetTailHash(frames:Number):uint
+        {
+            const file:File = AppStateManager.replayTimingSheetFilePath;
+            var hash:uint = 2166136261;
+
+            if (frames <= 0 || !file.exists)
+            {
+                return hash;
+            }
+
+            const count:int = int(Math.min(32, frames));
+            const fs:FileStream = new FileStream();
+            fs.open(file, FileMode.READ);
+            fs.position = (frames - count) * TimingSheetFile.RECORD_BYTES;
+
+            for (var i:int = 0; i < count * 2; i++)
+            {
+                hash = ((hash ^ fs.readUnsignedInt()) * 16777619) & 0xFFFFFFFF;
+            }
+
+            fs.close();
+            return hash;
+        }
+
+        public static function saveIndex():void
+        {
+            const file:File = AppStateManager.replayTimingIndexFilePath;
+            const sheet:File = AppStateManager.replayTimingSheetFilePath;
+
+            // 색인이 지금 시트와 맞지 않으면 옛 요약이 남지 않게 지움
+            if (indexedFileFrames < 0 || indexedFileFrames !== ReplayState.getRFileDataTotalFrame() || indexedFileFrames !== TimingSheetFile.frameCount)
+            {
+                if (file.exists)
+                {
+                    file.deleteFile();
+                }
+
+                return;
+            }
+
+            const fs:FileStream = new FileStream();
+            fs.open(file, FileMode.WRITE);
+            fs.writeUTFBytes(INDEX_MAGIC);
+            fs.writeDouble(indexedFileFrames);
+            fs.writeDouble(sheet.exists ? sheet.size : 0);
+            fs.writeUnsignedInt(sheetTailHash(indexedFileFrames));
+            fs.writeDouble(fileEndTime);
+            fs.writeUnsignedInt(fileLastAnim);
+            fs.writeUnsignedInt(segmentStart.length);
+
+            for (var i:int = 0; i < segmentStart.length; i++)
+            {
+                fs.writeDouble(segmentStart[i]);
+            }
+
+            fs.writeUnsignedInt(fileGaps.length);
+
+            for (i = 0; i < fileGaps.length; i++)
+            {
+                fs.writeDouble(fileGaps[i]);
+            }
+
+            fs.close();
+        }
+
+        // 요약 파일을 읽어 시트와 맞으면 그대로 씀. 없거나 맞지 않으면 색인을 만들지 않고 둠 (첫 사용 때 ensureIndex가 전체 읽기) + 로그
+        public static function loadIndex():void
+        {
+            indexedFileFrames = -1;
+            const file:File = AppStateManager.replayTimingIndexFilePath;
+            const frames:Number = ReplayState.getRFileDataTotalFrame();
+
+            if (frames <= 0)
+            {
+                return; // 비어 있으면 읽을 것이 없음. 첫 사용 때 만들어도 비용 0
+            }
+
+            if (!file.exists)
+            {
+                trace("[ReplayClock] 색인 요약 파일 없음, 첫 사용 때 전체 읽기");
+                return;
+            }
+
+            try
+            {
+                const sheet:File = AppStateManager.replayTimingSheetFilePath;
+                const fs:FileStream = new FileStream();
+                fs.open(file, FileMode.READ);
+
+                if (fs.readUTFBytes(4) !== INDEX_MAGIC)
+                {
+                    fs.close();
+                    trace("[ReplayClock] 색인 요약 파일 형식이 다름, 첫 사용 때 전체 읽기");
+                    return;
+                }
+
+                const savedFrames:Number = fs.readDouble();
+                const savedBytes:Number = fs.readDouble();
+                const savedHash:uint = fs.readUnsignedInt();
+
+                if (savedFrames !== frames || !sheet.exists || savedBytes !== sheet.size || sheet.size !== frames * TimingSheetFile.RECORD_BYTES || savedHash !== sheetTailHash(frames))
+                {
+                    fs.close();
+                    trace("[ReplayClock] 색인 요약이 시트와 맞지 않음(저장 없이 종료 등), 첫 사용 때 전체 읽기");
+                    return;
+                }
+
+                const endTime:Number = fs.readDouble();
+                const lastAnim:uint = fs.readUnsignedInt();
+                const starts:Vector.<Number> = new Vector.<Number>();
+                const segmentCount:uint = fs.readUnsignedInt();
+
+                if (segmentCount !== Math.ceil(frames / TimingSheet.SEGMENT_FRAMES))
+                {
+                    fs.close();
+                    trace("[ReplayClock] 색인 요약의 구간 수가 다름, 첫 사용 때 전체 읽기");
+                    return;
+                }
+
+                for (var i:uint = 0; i < segmentCount; i++)
+                {
+                    starts.push(fs.readDouble());
+                }
+
+                const gaps:Vector.<Number> = new Vector.<Number>();
+                const gapCount:uint = fs.readUnsignedInt();
+
+                for (i = 0; i < gapCount; i++)
+                {
+                    gaps.push(fs.readDouble());
+                }
+
+                fs.close();
+                invalidateSegmentCache();
+                segmentStart = starts;
+                fileGaps = gaps;
+                fileEndTime = endTime;
+                fileLastAnim = lastAnim;
+                indexedFileFrames = frames;
+                fileFrames = frames;
+            }
+            catch (error:Error)
+            {
+                indexedFileFrames = -1;
+                trace("[ReplayClock] 색인 요약 읽기 실패, 첫 사용 때 전체 읽기: " + error);
+            }
         }
 
         // 파일 뒤에 프레임이 덧붙었을 때(undo 묶음이 파일로 넘어감) 덧붙은 만큼만 읽어 이어서 반영. 아직 색인을 만든 적 없으면 첫 사용 때 만들므로 건너뜀

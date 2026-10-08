@@ -86,6 +86,7 @@ package Modules.ReplayEngine
             fs.open(AppStateManager.replayTimingPointsFilePath, FileMode.WRITE);
             fs.close();
             hasLastStamp = false;
+            ReplayClock.resetIndexEmpty(); // 시트를 비웠으니 시간 색인도 빈 상태가 정확함
         }
 
         // 마지막 프레임의 시각을 잊게 해서 다음 프레임의 간격을 0으로 만듬 (시계가 끊긴 직후)
@@ -229,6 +230,8 @@ package Modules.ReplayEngine
             fs.open(file, FileMode.WRITE);
             fs.writeBytes(rest, 0, rest.length);
             fs.close();
+            ReplayClock.resetIndexEmpty();
+            ReplayClock.indexBytes(rest); // 다시 쓴 내용으로 시간 색인도 같이 만듦 (파일을 다시 읽지 않음)
             rest.clear();
         }
 
@@ -531,8 +534,10 @@ package Modules.ReplayEngine
                     const deltas:Vector.<uint> = new Vector.<uint>(count, true);
                     const anims:Vector.<uint> = new Vector.<uint>(count, true);
                     TimingSheet.decodeSegment(blobs[s] as ByteArray, count, deltas, anims);
+                    const firstOfSegment:Number = d[2] - remaining;
                     appendRecords(deltas, anims);
                     remaining -= count;
+                    indexSegment(deltas, anims, firstOfSegment);
                 }
 
                 if (remaining !== 0)
@@ -569,6 +574,20 @@ package Modules.ReplayEngine
             }
 
             return true;
+        }
+
+        // 불러오며 풀어 쓴 구간을 시계 색인에도 바로 반영 (시트를 다시 읽지 않음)
+        private static function indexSegment(deltas:Vector.<uint>, anims:Vector.<uint>, firstFrame:Number):void
+        {
+            const records:Vector.<uint> = new Vector.<uint>(deltas.length * 2, true);
+
+            for (var i:int = 0; i < deltas.length; i++)
+            {
+                records[i * 2] = deltas[i];
+                records[i * 2 + 1] = anims[i];
+            }
+
+            ReplayClock.extendFileIndexWith(records, firstFrame);
         }
 
         // firstFrame부터 count개의 간격과 연출 길이를 읽어서 deltas, anims(둘다 count 이상)에 채움. 파일에 모자란 부분은 0

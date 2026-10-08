@@ -607,8 +607,13 @@ package Modules.ReplayEngine
             stopGeneratingCacheImageFunc = null;
             ReplayDrawCommands.clearData();
             ReplayState.setRFileDataTotalFrame(_frameSum);
+            const sheetFramesBefore:Number = TimingSheetFile.frameCount;
             TimingSheetFile.resizeToFrameCount(_frameSum); // 시트가 없거나 길이가 다르면 repdata 프레임 수에 맞춤
-            ReplayClock.rebuildFileIndex(); // 파일 불러오기, 앞 자르기 뒤라 시트 전체가 바뀜
+
+            if (sheetFramesBefore !== _frameSum)
+            {
+                ReplayClock.rebuildFileIndex(); // 시트를 채워 맞췄으면(시간 기록이 없는 옛 파일 등) 색인도 다시 읽음. 불러오기·앞 자르기에서 시트를 쓰며 만든 색인은 그대로 씀
+            }
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReplayFileCache.deleteCacheProgress();
             resetReplayTime();
