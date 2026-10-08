@@ -16,7 +16,7 @@
 	<text xml:lang="ja">Japanese App name goes here</text>
 	</name>
 -->
-<application xmlns="http://ns.adobe.com/air/application/51.3">
+<application xmlns="http://ns.adobe.com/air/application/51.4">
   <id>fofoPaint</id>
   <versionNumber>28.01</versionNumber>
   <filename>fofoPaint</filename>
@@ -43,5 +43,10 @@
   </icon>
   <customUpdateUI>false</customUpdateUI>
   <allowBrowserInvocation>false</allowBrowserInvocation>
-  <supportedProfiles>desktop</supportedProfiles>
+  <!-- 네이티브 확장(ANE)을 쓰므로 extendedDesktop, 배포는 Windows bundle(captive runtime) -->
+  <supportedProfiles>extendedDesktop</supportedProfiles>
+  <!-- 저장, 코덱, 캐시 이미지 네이티브 처리 (anesrc/fofonative), adl 실행시 -extdir .ane-debug 필요 -->
+  <extensions>
+    <extensionID>com.fofo.nativecore</extensionID>
+  </extensions>
 </application>

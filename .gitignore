@@ -5,6 +5,8 @@
 /.agents/
 /.as3mxml-unpackaged-anes/
 /anesrc/pigmentmix/
+/anesrc/fofonative/build/
+/.ane-debug/
 /native
 /tests
 /test-output
@@ -30,3 +32,4 @@ CLAUDE.md
 
 make-air-package.ps1
 worker.swf_old
+make-air-bundle.ps1

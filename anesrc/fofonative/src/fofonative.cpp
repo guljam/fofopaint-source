@@ -1,0 +1,123 @@
+// com.fofo.nativecore 진입점
+// 저장, 코덱, 캐시 이미지처럼 무거운 픽셀/압축 작업을 네이티브로 처리함
+// 모듈별 함수 목록을 모아서 컨텍스트에 등록함
+#include "common.h"
+#include <vector>
+
+FREObject newInt(int32_t value)
+{
+    FREObject object = NULL;
+    FRENewObjectFromInt32(value, &object);
+    return object;
+}
+
+FREObject newUint(uint32_t value)
+{
+    FREObject object = NULL;
+    FRENewObjectFromUint32(value, &object);
+    return object;
+}
+
+FREObject newDouble(double value)
+{
+    FREObject object = NULL;
+    FRENewObjectFromDouble(value, &object);
+    return object;
+}
+
+FREObject newBool(bool value)
+{
+    FREObject object = NULL;
+    FRENewObjectFromBool(value ? 1 : 0, &object);
+    return object;
+}
+
+FREObject newString(const char* text)
+{
+    FREObject object = NULL;
+    FRENewObjectFromUTF8((uint32_t)strlen(text), (const uint8_t*)text, &object);
+    return object;
+}
+
+bool getInt(FREObject object, int32_t* value)
+{
+    return FREGetObjectAsInt32(object, value) == FRE_OK;
+}
+
+bool getUint(FREObject object, uint32_t* value)
+{
+    return FREGetObjectAsUint32(object, value) == FRE_OK;
+}
+
+bool getDouble(FREObject object, double* value)
+{
+    return FREGetObjectAsDouble(object, value) == FRE_OK;
+}
+
+bool getBool(FREObject object, bool* value)
+{
+    uint32_t flag = 0;
+
+    if (FREGetObjectAsBool(object, &flag) != FRE_OK)
+        return false;
+
+    *value = flag != 0;
+    return true;
+}
+
+bool getString(FREObject object, char* buffer, size_t bufferSize)
+{
+    uint32_t length = 0;
+    const uint8_t* text = NULL;
+
+    buffer[0] = 0;
+
+    if (FREGetObjectAsUTF8(object, &length, &text) != FRE_OK || length + 1 > bufferSize)
+        return false;
+
+    memcpy(buffer, text, length);
+    buffer[length] = 0;
+    return true;
+}
+
+static std::vector<FRENamedFunction> gFunctions;
+
+static void addFunctions(const NamedFunction* list, uint32_t count)
+{
+    for (uint32_t i = 0; i < count; i++)
+    {
+        FRENamedFunction f;
+        f.name = (const uint8_t*)list[i].name;
+        f.functionData = NULL;
+        f.function = list[i].function;
+        gFunctions.push_back(f);
+    }
+}
+
+static void ContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctions, const FRENamedFunction** functions)
+{
+    if (gFunctions.empty())
+    {
+        uint32_t count = 0;
+        const NamedFunction* list = pixelFunctions(&count);
+        addFunctions(list, count);
+    }
+
+    *numFunctions = (uint32_t)gFunctions.size();
+    *functions = gFunctions.data();
+}
+
+static void ContextFinalizer(FREContext ctx)
+{
+}
+
+FOFO_EXPORT void NativeCoreExtInit(void** extData, FREContextInitializer* contextInitializer, FREContextFinalizer* contextFinalizer)
+{
+    *extData = NULL;
+    *contextInitializer = &ContextInitializer;
+    *contextFinalizer = &ContextFinalizer;
+}
+
+FOFO_EXPORT void NativeCoreExtFin(void* extData)
+{
+}
