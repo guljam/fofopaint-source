@@ -464,7 +464,7 @@ package Modules
                     || (memoryTrainingMask.x === canvasRefHolder.mouseX
                         && memoryTrainingMask.y === canvasRefHolder.mouseY))
             {
-                return false;
+                return true;
             }
 
             memoryTrainingMask.x = canvasRefHolder.mouseX;
