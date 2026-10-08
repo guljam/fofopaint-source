@@ -584,7 +584,6 @@ package Modules.ReplayEngine
                 // 클릭한 시각을 기억해둠. 클릭한 곳이 쉬는 구간 중간이면 재생을 시작할때 구간 처음이 아니라 그 시각부터 이어감
                 ReplayClock.rememberPosition(ReplayState.rNowFrame, ReplayClock.ratioToTime(clickedRatio));
                 // 재생중에 스킵하고 있었으면 다시 시작
-                trace('wasReplayRunning',wasReplayStarted);
 
                 //이 조건이 wasReplayStarted보다 먼저야와야함
                 //순서를 바꾸면 슬라이드 쇼 모드에서 탐색바 끝까지 올리고 정지되었는데 stopreplay가 호출되지 않아서 버그생김

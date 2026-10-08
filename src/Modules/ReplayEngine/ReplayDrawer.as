@@ -325,7 +325,6 @@ package Modules.ReplayEngine
 
             if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
             {
-                trace('calll');
                 if (ReplayState.isReplayModeON) // deepundo도 있어서
                 {
                     if (!ReplayState.isReplayFinished)
