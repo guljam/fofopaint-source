@@ -56,3 +56,4 @@ struct NamedFunction
 // 모듈마다 자기 함수 목록을 돌려줌
 const NamedFunction* pixelFunctions(uint32_t* count);
 const NamedFunction* testFunctions(uint32_t* count);
+const NamedFunction* codecFunctions(uint32_t* count);

@@ -123,7 +123,7 @@ package Modules
                     fs.readBytes(replayData, 0, compBytes);
                     if (headerLength === REPLAY_FILE_HEADER_V2.length)
                     {
-                        const decodedReplayData:ByteArray = ReplayDataCodec.decode(replayData);
+                        const decodedReplayData:ByteArray = ReplayDataCodec.decodeAuto(replayData); // 네이티브가 있으면 네이티브로
                         replayData.clear();
                         replayData = decodedReplayData;
                     }

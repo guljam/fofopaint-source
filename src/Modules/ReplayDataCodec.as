@@ -48,6 +48,48 @@ package Modules
         private static const S_OBJECT:int = 6; // 이름, 문자열, Vector/Array 등 AMF3 그대로
         private static const S_RUN:int = 7; // lineTo 묶음 길이
 
+        // 네이티브(NativeCore, anesrc/fofonative/src/frc2.cpp)를 쓸 수 있으면 네이티브로 풀고, 못 쓰거나 실패하면 AS3 decode
+        public static function decodeAuto(input:ByteArray):ByteArray
+        {
+            if (NativeCore.isAvailable)
+            {
+                const output:ByteArray = new ByteArray();
+                const result:int = NativeCore.callResult("frc2Decode", input, output);
+
+                if (result === NativeCore.OK)
+                {
+                    input.position = 0;
+                    return output;
+                }
+
+                trace("Replay codec native decode failed: " + result);
+                output.clear();
+            }
+
+            return decode(input);
+        }
+
+        // encodeVerified와 같음, 네이티브를 먼저 쓰고 지원하지 않는 AMF3 형식 등으로 실패하면 AS3
+        public static function encodeVerifiedAuto(input:ByteArray):ByteArray
+        {
+            if (NativeCore.isAvailable)
+            {
+                const output:ByteArray = new ByteArray();
+                const result:int = NativeCore.callResult("frc2Encode", input, output, true);
+
+                if (result === NativeCore.OK)
+                {
+                    input.position = 0;
+                    return output;
+                }
+
+                trace("Replay codec native encode failed: " + result);
+                output.clear();
+            }
+
+            return encodeVerified(input);
+        }
+
         public static function isEncoded(input:ByteArray):Boolean
         {
             return input.length >= 5 && input[0] == 70 && input[1] == 82 && input[2] == 67 && input[3] == 50;

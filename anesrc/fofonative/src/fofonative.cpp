@@ -127,6 +127,8 @@ static void ContextInitializer(void* extData, const uint8_t* ctxType, FREContext
         addFunctions(list, count);
         list = testFunctions(&count);
         addFunctions(list, count);
+        list = codecFunctions(&count);
+        addFunctions(list, count);
     }
 
     *numFunctions = (uint32_t)gFunctions.size();
