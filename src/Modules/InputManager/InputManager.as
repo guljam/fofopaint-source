@@ -417,11 +417,6 @@ package Modules.InputManager
                             {
                                 // 리플레이 모드: 휠 위 = 줌인, 아래 = 줌아웃 (화면 중심 기준, 힌트는 zoomStep이 띄움)
                                 ReplayDrawer.viewport.zoomStep(e.delta > 0);
-
-                                if (ReplayState.isReplayCanvasFitToWindow)
-                                {
-                                    ReplayController.toggleFitToCanvasReplayMode();
-                                }
                             }
                             if (!ReplayState.isReplayModeON)
                             {
