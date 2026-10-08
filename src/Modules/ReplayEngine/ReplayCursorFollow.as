@@ -75,6 +75,7 @@ package Modules.ReplayEngine
         private var zoomCommit:Number = NaN; // 줌아웃 뒤 유지하려는 배율. 줌아웃은 바로 낮추고, 올리는 것(줌인)은 확인 시간을 거쳐서만 올림
         private var upSince:int = -1;
         private var userZoomAt:int = -1000000; // 마지막 수동 줌(카메라가 적용하지 않은 배율 변화를 감지한) 시각 // 더 큰 배율이어도 영역이 들어가는 상태가 이어지기 시작한 시각, 아니면 -1
+        private var slideShowIdle:Boolean = false; // 슬라이드쇼에서 맞춤 배율과 위치에 도착해 쉬는 중. updateBounds/snap이 깨움
 
         // 화면에서 캔버스를 보여주는 영역. 위쪽은 상단바(+시크바가 겹치는 띠) 아래, 시크바는 위쪽에 붙어 있어 아래쪽은 스테이지 끝까지
         private function viewportRect():Rectangle
@@ -93,6 +94,7 @@ package Modules.ReplayEngine
         // 외부가 화면을 바꿨을 때 부름. 카메라 내부 값을 실제 앵커로 다시 맞추고 진행 중인 이동을 멈춤
         public function updateBounds():void
         {
+            slideShowIdle = false;
             syncToAnchor();
 
             // 재생 중 수동 줌 직후 커서가 화면 밖이면 다음 그리기 틱을 기다리지 않고 바로 안전 구역으로 끌어옴 (무시 구간이면 3-3 규칙대로 안 끌어옴)
@@ -121,7 +123,7 @@ package Modules.ReplayEngine
         }
 
         // 재생 중 그리기 바로 뒤에 한 번 부름 (replayDrawTimer). 그리기 타이머가 갱신하므로 카메라 타이머와 두 번 움직이지 않음
-        // 슬라이드쇼도 같은 감쇠를 거침 (즉시 맞추는 snap은 탐색 경로에서만 씀)
+        // 슬라이드쇼도 같은 감쇠를 거치고, 맞춤 배율과 위치에 도착하면 쉼 (slideShowIdle) (즉시 맞추는 snap은 탐색 경로에서만 씀)
         public function update():void
         {
             if (ReplayState.isReplayStarted)
@@ -134,6 +136,8 @@ package Modules.ReplayEngine
         // 카메라가 앵커를 움직이는 곳은 재생 중 update와 이 함수뿐임 (멈춘 뒤 남은 이동을 애니메이션하는 타이머는 없음)
         public function snap():void
         {
+            slideShowIdle = false;
+
             if (!ReplayState.isReplayModeON || isBlocked())
             {
                 return;
@@ -175,6 +179,11 @@ package Modules.ReplayEngine
                 return;
             }
 
+            if (ReplayState.isReplaySlideShowMode && slideShowIdle)
+            {
+                return;
+            }
+
             // 소수 위치는 앵커가 외부에서 옮겨졌을 때만 버림 (매번 맞추면 작은 이동분이 반올림에 지워짐)
             if (Math.round(posX) !== ReplayDrawer.rCanvasAnchorPoint.x || Math.round(posY) !== ReplayDrawer.rCanvasAnchorPoint.y)
             {
@@ -204,6 +213,7 @@ package Modules.ReplayEngine
             }
 
             applyToAnchor();
+            slideShowIdle = ReplayState.isReplaySlideShowMode && !zoomMoving && isSettled() && getTimer() - userZoomAt >= USER_OVERRIDE_MS;
         }
 
         // 지금 화면 상태와 초점으로 목표를 다시 계산함 (현재 앵커 기준으로 필요한 이동량만큼)

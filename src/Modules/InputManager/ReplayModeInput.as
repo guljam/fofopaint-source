@@ -354,6 +354,7 @@ package Modules.InputManager
                 case "replayRotateButton":
                     {
                         ReplayController.resetRotationReplayMode();
+                        ReplayDrawer.cursorFollow.updateBounds();
                     }
                     break;
                 case "replayZoomInButton":

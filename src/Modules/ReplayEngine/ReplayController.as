@@ -1102,7 +1102,6 @@ package Modules.ReplayEngine
                 drawCanvasFromReplayDataSlideShowMode();
             }
 
-            ReplayDrawer.commandWindow.refill(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
             if(!ReplayState.isReplayCanvasFitToWindow)
             {
                 ReplayDrawer.cursorFollow.update();
