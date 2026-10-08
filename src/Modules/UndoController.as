@@ -10,6 +10,7 @@ package Modules
     import flash.filesystem.FileStream;
     import flash.geom.Point;
     import Modules.ReplayEngine.ReplayController;
+    import Modules.ReplayEngine.ReplayClock;
     import Modules.ReplayEngine.ReplayDrawCommands;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
@@ -175,6 +176,7 @@ package Modules
             ReplayFileCache.truncateCacheImagesAfterFrame(rNowFrameSave);
             ReplayState.setRFileDataTotalFrame(rNowFrameSave);
             TimingSheetFile.truncateAfter(rNowFrameSave);
+            ReplayClock.truncateFileIndex(rNowFrameSave);
             ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
             ReplayController.resetReplayTime();
             resetUndoState(true);

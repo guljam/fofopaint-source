@@ -8,6 +8,7 @@ package Modules.ReplayEngine
     public class ReplayState
     {
         public static var REPLAY_MAX_SPEED:Number = 0.0;
+        public static const REPLAY_VISUAL_UPDATE_MS:int = 48; // 리플레이 커서 표시 갱신 주기(ms). 앱 프레임레이트와 무관
 
         public static const REPLAY_IMAGE_CAHCHE_COMPLETE:int = (1 << 0);
         public static const REPLAY_IMAGE_CAHCHE_PROCESSING:int = (1 << 1);

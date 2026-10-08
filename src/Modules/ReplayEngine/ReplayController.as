@@ -102,7 +102,9 @@ package Modules.ReplayEngine
         public static function updateTotalFrameAndReplayMaxSpeedFor10Sec(totalframe:Number):void
         {
             ReplayState.TOTAL_FRAME = totalframe;
-            ReplayClock.rebuild(); // 프레임 수가 바뀌는 곳마다 부르므로 여기서 시계의 시간 색인도 새로 만듬
+            // 파일 부분 색인은 바꾼 곳에서 증분으로 갱신하고(ReplayClock.extendFileIndex, truncateFileIndex, rebuildFileIndex) 여기서는 맞는지 확인만 함. 메모리 부분은 매번 새로 만듬
+            ReplayClock.ensureIndex();
+            ReplayClock.rebuildMemoryIndex();
             var maxSpeed:Number = Math.floor(ReplayClock.axisMsAtSpeed(1) / 10000); // 1배속 기준으로 쉬는 구간을 줄인 길이 (배속에 따라 길이가 바뀌는 순환을 피함)
 
             if (maxSpeed < 1.0)
@@ -198,6 +200,7 @@ package Modules.ReplayEngine
                 FileManager.enableNewFileButton();
                 ReplayState.setRFileDataTotalFrame(0);
                 TimingSheetFile.reset();
+                ReplayClock.rebuildFileIndex();
                 ReplayState.rMemoryData.splice(0, ReplayState.rMemoryDataIndex + 1);
                 ReplayState.rMemoryDataFrames.splice(0, ReplayState.rMemoryDataIndex + 1);
                 ReplayState.rMemoryDataTimingSheet.splice(0, ReplayState.rMemoryDataIndex + 1);
@@ -300,6 +303,7 @@ package Modules.ReplayEngine
                 ReplayFileCache.truncateCacheImagesAfterFrame(rNowFrameSave);
                 ReplayState.setRFileDataTotalFrame(rNowFrameSave);
                 TimingSheetFile.truncateAfter(rNowFrameSave);
+                ReplayClock.truncateFileIndex(rNowFrameSave);
                 updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
                 DrawCanvas.canvasLayer1BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer1BitmapData, ReplayDrawer.rCanvasLayer1BitmapData, DrawCanvas.canvasLayer1Bitmap);
                 DrawCanvas.canvasLayer1Bitmap.bitmapData = DrawCanvas.canvasLayer1BitmapData;
@@ -603,7 +607,13 @@ package Modules.ReplayEngine
             stopGeneratingCacheImageFunc = null;
             ReplayDrawCommands.clearData();
             ReplayState.setRFileDataTotalFrame(_frameSum);
+            const sheetFramesBefore:Number = TimingSheetFile.frameCount;
             TimingSheetFile.resizeToFrameCount(_frameSum); // 시트가 없거나 길이가 다르면 repdata 프레임 수에 맞춤
+
+            if (sheetFramesBefore !== _frameSum)
+            {
+                ReplayClock.rebuildFileIndex(); // 시트를 채워 맞췄으면(시간 기록이 없는 옛 파일 등) 색인도 다시 읽음. 불러오기·앞 자르기에서 시트를 쓰며 만든 색인은 그대로 씀
+            }
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReplayFileCache.deleteCacheProgress();
             resetReplayTime();
@@ -915,7 +925,7 @@ package Modules.ReplayEngine
 
             var lastCursorUpdateTime:int = getTimer();
             var lastTextUpdateTime:int = getTimer();
-            const cursorUpdateTime:int = main.stage.frameRate * 2;
+            const cursorUpdateTime:int = ReplayState.REPLAY_VISUAL_UPDATE_MS;
             const textUpdateTime:int = 1000;
             updateReplayPrograssText();
             ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
@@ -2028,6 +2038,7 @@ package Modules.ReplayEngine
             ReplayState.rMemoryDataReadON = false;
             ReplayState.mirrorCommandReady = false;
             ReplayState.setRFileDataTotalFrame(0);
+            ReplayClock.rebuildFileIndex();
             updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             CanvasLayers.isLayerSwapped = false;
