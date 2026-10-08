@@ -43,6 +43,9 @@ bool getBool(FREObject object, bool* value);
 // UTF-8 문자열을 복사해서 돌려줌, 실패하면 빈 문자열과 false
 bool getString(FREObject object, char* buffer, size_t bufferSize);
 
+// ByteArray 길이를 length로 맞추고 data를 0번부터 복사 (FRE 호출 안에서만), position은 0
+bool setByteArray(FREObject byteArray, const uint8_t* data, size_t length);
+
 // 함수 등록용
 struct NamedFunction
 {
@@ -52,3 +55,4 @@ struct NamedFunction
 
 // 모듈마다 자기 함수 목록을 돌려줌
 const NamedFunction* pixelFunctions(uint32_t* count);
+const NamedFunction* testFunctions(uint32_t* count);

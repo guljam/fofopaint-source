@@ -4,6 +4,7 @@ package Modules
     import avm2.intrinsics.memory.si8;
     import flash.display.BitmapData;
     import flash.display.BitmapDataChannel;
+    import flash.display.PNGEncoderOptions;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.system.ApplicationDomain;
@@ -15,6 +16,7 @@ package Modules
     // 처음 쓸때 런타임 변환을 측정해서 표를 만들고
     // 네이티브(NativeCore)를 쓸 수 있으면 내부 버퍼에 원래 값을 직접 써넣고, 없으면(워커, 네이티브 빌드가 없는 운영체제) AS3로 입력값을 바꿔서 setPixels 함
     // 저장쪽에는 적용하면 안됨 (두번 적용되면 틀어짐)
+    // 저장용 표(내부값 -> copyPixelsToByteArray 출력값)도 여기서 만듬: 네이티브 저장이 copyPixelsToByteArray와 같은 바이트를 만들게 함
     public final class PixelRestore
     {
         private static const TABLE_LENGTH:int = 65536; // 표 인덱스: 알파 << 8 | copyPixelsToByteArray 출력값
@@ -24,6 +26,31 @@ package Modules
         private static var workMemory:ByteArray = null;
         private static var isNativeReady:Boolean = false; // 네이티브에 표를 넘겼고 자체 검증도 통과함
         private static var isTableReady:Boolean = false;
+        private static var isNativeSaveReady:Boolean = false; // 네이티브 저장표를 넘겼고 자체 검증도 통과함
+        private static var isSaveTableReady:Boolean = false;
+        private static var isNativePngReady:Boolean = false; // 네이티브 PNG 표(AIR PNG 인코더와 같은 값)를 넘겼고 자체 검증도 통과함
+
+        // 네이티브가 BitmapData 내부 버퍼에서 copyPixelsToByteArray와 같은 바이트를 만들 수 있는지
+        public static function get isNativeSaveEnabled():Boolean
+        {
+            if (!isSaveTableReady)
+            {
+                buildSaveTable();
+            }
+
+            return isNativeSaveReady;
+        }
+
+        // 네이티브 PNG 인코더가 AIR encode(PNGEncoderOptions)와 같은 픽셀 값을 쓸 수 있는지
+        public static function get isNativePngEnabled():Boolean
+        {
+            if (!isSaveTableReady)
+            {
+                buildSaveTable();
+            }
+
+            return isNativePngReady;
+        }
 
         public static function get isNativeEnabled():Boolean
         {
@@ -140,6 +167,85 @@ package Modules
                 workMemory = null;
                 trace("PixelRestore: " + error);
             }
+        }
+
+        // 네이티브가 알려진 내부값(알파 y, 색 x)을 직접 쓴 256x256 비트맵을 copyPixelsToByteArray해서 표를 만듬
+        // 무작위 비트맵에서 네이티브 변환 결과가 copyPixelsToByteArray와 다르면 쓰지 않음 (저장은 AS3 경로)
+        private static function buildSaveTable():void
+        {
+            isSaveTableReady = true;
+
+            if (!NativeCore.isAvailable)
+            {
+                return;
+            }
+
+            const probe:BitmapData = new BitmapData(256, 256, true, 0);
+            const output:ByteArray = new ByteArray();
+
+            try
+            {
+                if (NativeCore.callResult("fillSaveProbe", probe) !== NativeCore.OK)
+                {
+                    trace("PixelRestore native save: probe failed");
+                    return;
+                }
+
+                probe.copyPixelsToByteArray(probe.rect, output);
+                const tableResult:int = NativeCore.callResult("setSaveTable", output);
+
+                if (tableResult !== NativeCore.OK)
+                {
+                    trace("PixelRestore native save: setSaveTable " + tableResult);
+                    return;
+                }
+
+                const sample:BitmapData = new BitmapData(256, 256, true, 0);
+                sample.noise(20261009, 0, 255, BitmapDataChannel.ALPHA | BitmapDataChannel.RED | BitmapDataChannel.GREEN | BitmapDataChannel.BLUE, false);
+                isNativeSaveReady = isSameAsCopyPixels(sample);
+
+                // AIR PNG 인코더는 반투명 픽셀을 copyPixelsToByteArray와 다르게 반올림해서(실측 ±1~2) PNG용 표를 따로 만듬
+                const probePng:ByteArray = new ByteArray();
+                probe.encode(probe.rect, new PNGEncoderOptions(), probePng);
+
+                if (NativeCore.callResult("setPngTable", probePng) === NativeCore.OK)
+                {
+                    const samplePng:ByteArray = new ByteArray();
+                    sample.encode(sample.rect, new PNGEncoderOptions(), samplePng);
+                    isNativePngReady = NativeCore.callResult("checkPngTable", sample, samplePng) === NativeCore.OK;
+                    samplePng.clear();
+                }
+
+                probePng.clear();
+                sample.dispose();
+                trace("PixelRestore native save: " + (isNativeSaveReady ? "ok" : "check failed") + ", png: " + (isNativePngReady ? "ok" : "check failed"));
+            }
+            finally
+            {
+                probe.dispose();
+                output.clear();
+            }
+        }
+
+        // 네이티브 toStraight 결과가 copyPixelsToByteArray와 바이트 단위로 같은지
+        public static function isSameAsCopyPixels(bmpd:BitmapData):Boolean
+        {
+            const expected:ByteArray = new ByteArray();
+            bmpd.copyPixelsToByteArray(bmpd.rect, expected);
+            const actual:ByteArray = new ByteArray();
+            actual.length = expected.length;
+            var same:Boolean = NativeCore.callResult("toStraight", bmpd, actual) === NativeCore.OK && actual.length === expected.length;
+
+            for (var i:uint = 0;same && i < expected.length;i += 4)
+            {
+                expected.position = i;
+                actual.position = i;
+                same = expected.readUnsignedInt() === actual.readUnsignedInt();
+            }
+
+            expected.clear();
+            actual.clear();
+            return same;
         }
 
         private static function initializeNative(internalTable:ByteArray):void

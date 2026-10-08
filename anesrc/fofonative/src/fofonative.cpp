@@ -2,6 +2,7 @@
 // 저장, 코덱, 캐시 이미지처럼 무거운 픽셀/압축 작업을 네이티브로 처리함
 // 모듈별 함수 목록을 모아서 컨텍스트에 등록함
 #include "common.h"
+#include "pool.h"
 #include <vector>
 
 FREObject newInt(int32_t value)
@@ -80,6 +81,29 @@ bool getString(FREObject object, char* buffer, size_t bufferSize)
     return true;
 }
 
+bool setByteArray(FREObject byteArray, const uint8_t* data, size_t length)
+{
+    if (length > 0xFFFFFFFFu)
+        return false;
+
+    if (FRESetObjectProperty(byteArray, (const uint8_t*)"length", newUint((uint32_t)length), NULL) != FRE_OK)
+        return false;
+
+    FREByteArray bytes;
+
+    if (FREAcquireByteArray(byteArray, &bytes) != FRE_OK)
+        return false;
+
+    const bool ok = bytes.length == length;
+
+    if (ok && length > 0)
+        memcpy(bytes.bytes, data, length);
+
+    FREReleaseByteArray(byteArray);
+    FRESetObjectProperty(byteArray, (const uint8_t*)"position", newUint(0), NULL);
+    return ok;
+}
+
 static std::vector<FRENamedFunction> gFunctions;
 
 static void addFunctions(const NamedFunction* list, uint32_t count)
@@ -101,6 +125,8 @@ static void ContextInitializer(void* extData, const uint8_t* ctxType, FREContext
         uint32_t count = 0;
         const NamedFunction* list = pixelFunctions(&count);
         addFunctions(list, count);
+        list = testFunctions(&count);
+        addFunctions(list, count);
     }
 
     *numFunctions = (uint32_t)gFunctions.size();
@@ -120,4 +146,5 @@ FOFO_EXPORT void NativeCoreExtInit(void** extData, FREContextInitializer* contex
 
 FOFO_EXPORT void NativeCoreExtFin(void* extData)
 {
+    pool::stop();
 }
