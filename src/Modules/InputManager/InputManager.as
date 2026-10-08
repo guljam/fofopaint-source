@@ -569,6 +569,7 @@ package Modules.InputManager
             {
                 return;
             }
+            // ALT 단독 입력이 창 포커스를 시스템 메뉴로 뺏어가는 것을 막음. AIR 51.4.1부터 ALT keyDown의 preventDefault가 Windows 기본 처리를 실제로 막음 (Github-4292)
             if (keyCode === KEY.tab || keyCode === KEY.alt)
             {
                 e.preventDefault();
