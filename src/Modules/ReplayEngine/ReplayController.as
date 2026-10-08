@@ -60,7 +60,7 @@ package Modules.ReplayEngine
         private static const REPLAY_SLIDESHOW_ACTIVE_SPEED:Number = 60;
         private static const REPLAY_DRAW_CHUNK_FRAMES:Number = 200; // 시계를 따라가려고 한번에 그리는 프레임 수 단위
         private static const REPLAY_DRAW_TIME_BUDGET:int = 14; // 한 틱에 그리기에 쓰는 최대 시간(ms)
-        private static const REPLAY_SLIDESHOW_FRAME_RATE:Number = 2; // 1/2초 = 0.5초마다 갱신
+        private static const REPLAY_SLIDESHOW_FRAME_RATE:Number = 1; // 1/2초 = 0.5초마다 갱신
         private static const REPLAY_SLIDESHOW_UPDATE_TIME:Number = 1000 / REPLAY_SLIDESHOW_FRAME_RATE;
         private static var rCanvasCompleteAnchorPoint:Sprite = new Sprite(); // 리플레이에어 이미지가 재생되었을때 보여주는 객체 stage와 가로세로 중앙정렬
         private static var rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0), "auto", true);
@@ -513,7 +513,7 @@ package Modules.ReplayEngine
             }
 
             // 리플레이 플레이 중인지 아닌지 플래그 미리 저장해둠
-            var wasReplayRunning:Boolean = false;
+            var wasReplayStarted:Boolean = false;
             var clickX:Number = ReplayController.seekBarBox.trackBar.mouseX * ReplayController.seekBarBox.trackBar.scaleX;
             var clickedRatio:Number = clickX / ReplayController.seekBarBox.trackBar.width; // 마지막으로 가리킨 시크바 위치(0~1), 쉬는 구간 중간을 클릭했을때 그 시각에서 이어 재생하는데 씀
             var finalFrame:Number = ReplayClock.ratioToFrame(clickedRatio);
@@ -546,7 +546,7 @@ package Modules.ReplayEngine
             {
                 if (ReplayState.isReplayStarted)
                 {
-                    wasReplayRunning = true;
+                    wasReplayStarted = true;
                     ReplayState.isReplayStarted = false;
                     ReplayController.clearReplayWaitingState();
                     FOFOTimer.remove("replayDrawTimer");
@@ -584,16 +584,19 @@ package Modules.ReplayEngine
                 // 클릭한 시각을 기억해둠. 클릭한 곳이 쉬는 구간 중간이면 재생을 시작할때 구간 처음이 아니라 그 시각부터 이어감
                 ReplayClock.rememberPosition(ReplayState.rNowFrame, ReplayClock.ratioToTime(clickedRatio));
                 // 재생중에 스킵하고 있었으면 다시 시작
+                trace('wasReplayRunning',wasReplayStarted);
 
-                if (wasReplayRunning && !ReplayState.isReplayFinished)
-                {
-                    startReplay();
-                }
-                else if (ReplayState.isReplayFinished)
+                //이 조건이 wasReplayStarted보다 먼저야와야함
+                //순서를 바꾸면 슬라이드 쇼 모드에서 탐색바 끝까지 올리고 정지되었는데 stopreplay가 호출되지 않아서 버그생김
+                if (ReplayState.isReplayFinished)
                 {
                     ReplayController.seekBarBox.setReplayPrograssBarMaxWidth();
                     updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
                     stopReplay();
+                }
+                if (wasReplayStarted && !ReplayState.isReplayFinished)
+                {
+                    startReplay();
                 }
             }
 
@@ -988,26 +991,10 @@ package Modules.ReplayEngine
         {
             FOFOTimer.addByName("replayDrawTimer", 0.0, true, function ():Boolean
                 {
+                    checkAutoHideTopbarOnPlayback();
                     if (ReplayState.isReplaySlideShowMode)
                     {
-                        if (!shouldUseReplaySlideShowMode())
-                        {
-                            ReplayState.isReplaySlideShowMode = false;
-                            ReplayDrawer.rFileStream.close();
-
-                            if (!ReplayState.rMemoryDataReadON)
-                            {
-                                ReplayDrawer.rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
-                                ReplayDrawer.rFileStream.position = ReplayState.rFileLastBytePosition;
-                            }
-                        }
-                        else
-                        {
-                            drawCanvasFromReplayDataSlideShowMode();
-                        }
-
-                        ReplayDrawer.commandWindow.refill(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
-                        ReplayDrawer.cursorFollow.update();
+                        startReplaySlideShowMode();
                         return true;
                     }
 
@@ -1026,7 +1013,10 @@ package Modules.ReplayEngine
                     }
 
                     ReplayDrawer.commandWindow.refill(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
-                    ReplayDrawer.cursorFollow.update();
+                    if(!ReplayState.isReplayCanvasFitToWindow)
+                    {
+                        ReplayDrawer.cursorFollow.update();
+                    }
                     return true;
                 });
         }
@@ -1093,6 +1083,31 @@ package Modules.ReplayEngine
             }
 
             return false;
+        }
+
+        public static function startReplaySlideShowMode():void
+        {
+            if (!shouldUseReplaySlideShowMode())
+            {
+                ReplayState.isReplaySlideShowMode = false;
+                ReplayDrawer.rFileStream.close();
+
+                if (!ReplayState.rMemoryDataReadON)
+                {
+                    ReplayDrawer.rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
+                    ReplayDrawer.rFileStream.position = ReplayState.rFileLastBytePosition;
+                }
+            }
+            else
+            {
+                drawCanvasFromReplayDataSlideShowMode();
+            }
+
+            ReplayDrawer.commandWindow.refill(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
+            if(!ReplayState.isReplayCanvasFitToWindow)
+            {
+                ReplayDrawer.cursorFollow.update();
+            }
         }
 
         public static function shouldUseReplaySlideShowMode():Boolean
@@ -1461,6 +1476,20 @@ package Modules.ReplayEngine
             }
         }
 
+        public static function checkAutoHideTopbarOnPlayback():void
+        {
+            if(ReplayMouseAutoHide.isMouseHided)
+            {
+                hideTopbarOnPlayback();
+            }
+            else if(UIController.topBar.visible === false)
+            {
+                if(main.stage.mouseY <= UIController.STAGE_TOP_OFFSET)
+                {
+                    showTopbarOnPlayback();
+                }
+            }
+        }
         public static function hideTopbarOnPlayback():void
         {
             if (UIController.topBar.visible === true)
@@ -1479,7 +1508,6 @@ package Modules.ReplayEngine
             {
                 UIController.topBar.visible = true;
                 seekBarBox.y = lastReplayTimeBoxYPos;
-                seekBarBox.setPlayButtonVisible(true);
                 seekBarBox.showReplayControlButton();
                 HintController.hideBottomHint();
                 HintController.hideMouseHint();
@@ -1502,6 +1530,7 @@ package Modules.ReplayEngine
             FOFOTimer.remove("replayDrawTimer");
             ReplayDrawer.anim.clear();
             ReplayController.clearReplayWaitingState();
+            ReplayController.showTopbarOnPlayback();
 
             if (!ReplayState.isReplayFinished)
             {
@@ -1565,9 +1594,9 @@ package Modules.ReplayEngine
 
             ReplayFileCache.clearRFrameTempCache();
             ReplayClock.anchorAtFrame(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
+            ReplayMouseAutoHide.start();
             startReplayDrawTimer();
             startUpdatingPrograssBarTimer();
-            ReplayMouseAutoHide.start();
         }
 
         public static function exitReplayMode():void

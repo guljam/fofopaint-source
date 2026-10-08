@@ -6,15 +6,29 @@ package Modules.ReplayEngine
 
     import flash.geom.Point;
     import flash.ui.Mouse;
+    import flash.display.Stage;
 
     // 리플레이 재생중 마우스가 가만히 있으면 시스템 마우스 포인터를 숨김
     public class ReplayMouseAutoHide
     {
-        private static const TIMER_NAME:String = "replayHideCursorCheckTimer";
+        public static var main:Main;
+        public static function setMainInstance(instance:Main):void
+        {
+            main = instance;
+            frameRate = main.stage.frameRate;
+        }
 
-        private static var isMouseHided:Boolean = false;
+        private static const TIMER_NAME:String = "replayHideCursorCheckTimer";
+        private static var frameRate:Number = 0;
+
+        private static var _isMouseHided:Boolean = false;
         private static var count:int = 0;
         private static const pos:Point = new Point(0, 0);
+
+        public static function get isMouseHided():Boolean
+        {
+            return _isMouseHided;
+        }
 
         public static function start():void
         {
@@ -25,9 +39,9 @@ package Modules.ReplayEngine
 
             FOFOTimer.addByName(TIMER_NAME, 0.0, true, function ():Boolean
                 {
-                    if (!ReplayState.isReplayModeON || UIController.topBar.visible)
+                    if (!ReplayState.isReplayModeON)
                     {
-                        show();
+                        showMouse();
                         return false;
                     }
 
@@ -38,31 +52,29 @@ package Modules.ReplayEngine
 
         private static function isMouseMoved():Boolean
         {
-            return pos.x !== ReplayController.main.stage.mouseX || pos.y !== ReplayController.main.stage.mouseY || MouseState.isLeftDown || MouseState.isRightDown;
+            return pos.x !== main.stage.mouseX || pos.y !== main.stage.mouseY || MouseState.isLeftDown || MouseState.isRightDown;
         }
 
         private static function updateMousePos():void
         {
-            pos.setTo(ReplayController.main.stage.mouseX, ReplayController.main.stage.mouseY);
+            pos.setTo(main.stage.mouseX, main.stage.mouseY);
         }
 
-        private static function show():void
+        private static function showMouse():void
         {
             Mouse.show();
-            isMouseHided = false;
+            _isMouseHided = false;
             count = 0;
         }
 
         private static function check():void
         {
-            const frameRate:Number = ReplayController.main.stage.frameRate;
-
-            if (isMouseHided)
+            if (_isMouseHided)
             {
                 if (isMouseMoved())
                 {
                     count = 0;
-                    show();
+                    showMouse();
                 }
             }
             else
@@ -74,9 +86,9 @@ package Modules.ReplayEngine
                     if (!HintController.isHighlightBoxVisible())
                     {
                         Mouse.hide();
-                        HintController.hideBottomHint();
-                        isMouseHided = true;
+                        _isMouseHided = true;
                         updateMousePos();
+                        ReplayController.hideTopbarOnPlayback();
                     }
                 }
                 else

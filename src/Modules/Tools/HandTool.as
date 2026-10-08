@@ -27,7 +27,6 @@ package Modules.Tools
         private static const old:Point = new Point(0, 0);
 
         private static var isReplayMode:Boolean;
-        private static var isDrawMode:Boolean;
 
         private static var xAnc:Sprite;
 
@@ -50,7 +49,7 @@ package Modules.Tools
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
             CanvasViewport.forMode(isReplayMode).keepInStage();
 
-            if (isDrawMode)
+            if (!isReplayMode)
             {
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
 
@@ -112,14 +111,13 @@ package Modules.Tools
         private static function _start(fromReplayMode:Boolean, fromWheelClick:Boolean):void
         {
             isReplayMode = fromReplayMode;
-            isDrawMode = !fromReplayMode;
 
             xAnc = CanvasViewport.forMode(isReplayMode).anchor;
 
             old.setTo(main.stage.mouseX, main.stage.mouseY);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             
-            if (isDrawMode)
+            if (!fromReplayMode)
             {
                 ToolPanel.toolBox.setCursorVisible(false);
                 ReferenceLayerController.setRefLayerAndGridVisible(false);

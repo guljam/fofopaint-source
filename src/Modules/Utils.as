@@ -19,13 +19,13 @@ package Modules
 
     public class Utils
     {
-        public static const ZERO_POINT:Point = new Point(0, 0);
-
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
         }
+
+        public static const ZERO_POINT:Point = new Point(0, 0);
 
         public static function createTextField(label:String, color:uint, size:Number):TextField
 		{

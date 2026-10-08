@@ -66,6 +66,7 @@
     import flash.events.UncaughtErrorEvent;
     import flash.net.registerClassAlias;
     import flash.system.Capabilities;
+    import Modules.ReplayEngine.ReplayMouseAutoHide;
 
     // import
     public class Main extends Sprite
@@ -137,6 +138,7 @@
             ToolPanel.setMainInstance(this);
             Utils.setMainInstance(this);
             ReplayController.setMainInstance(this);
+            ReplayMouseAutoHide.setMainInstance(this);
             InputManager.setMainInstance(this);
             DrawModeInput.setMainInstance(this);
             CaptureModeInput.setMainInstance(this);

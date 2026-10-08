@@ -150,7 +150,6 @@ package Modules.ReplayEngine
         // 파일 전체를 처음부터 읽어 파일 부분 색인을 새로 만듬. 파일 불러오기, 새 파일, 앞 자르기, 처음 만들 때, 확인이 실패했을 때만 부름
         public static function rebuildFileIndex():void
         {
-            trace('call');
             fileFrames = ReplayState.getRFileDataTotalFrame();
             TimingSheetFile.resizeToFrameCount(fileFrames);
             captureLegacy();
@@ -161,7 +160,6 @@ package Modules.ReplayEngine
             fileLastAnim = 0;
             indexedFileFrames = 0;
             readIntoFileIndex(fileFrames);
-            trace('fileEndTime',fileEndTime,"fileLastAnim",fileLastAnim);
             publishFileOnly();
         }
 
@@ -196,7 +194,6 @@ package Modules.ReplayEngine
                 while (first < to)
                 {
                     const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES - first % TimingSheet.SEGMENT_FRAMES, to - first));
-                    trace('count',count);
                     chunk.clear();
                     fs.readBytes(chunk, 0, count * TimingSheetFile.RECORD_BYTES);
                     chunk.position = 0;
