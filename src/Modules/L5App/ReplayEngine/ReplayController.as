@@ -42,7 +42,6 @@ package Modules.L5App.ReplayEngine
     import Modules.L4UI.LoadBoxController;
     import Modules.L5App.InputManager.ReplayModeInput;
     import Modules.ReplayEngine.ReplayMouseAutoHide;
-    import Modules.ReplayEngine.ReplaySaveMetaData;
     import Modules.L4UI.SidebarController;
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.KeyState;
@@ -63,6 +62,7 @@ package Modules.L5App.ReplayEngine
     import Modules.L2Engine.UndoHistory;
     import Modules.L4UI.CanvasViewport;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L1Data.ReplayEngine.ReplaySaveMetaData;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController

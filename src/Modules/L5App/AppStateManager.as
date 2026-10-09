@@ -14,7 +14,6 @@ package Modules.L5App
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
-    import Modules.ReplayEngine.ReplaySaveMetaData;
     import flash.trace.Trace;
     import Modules.L3Feature.ActivityWorkTimer;
     import Modules.L5App.AppWindowState;
@@ -52,6 +51,7 @@ package Modules.L5App
     import Modules.L2Engine.UndoHistory;
     import Modules.L4UI.DrawEngine.CanvasResizer;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L1Data.ReplayEngine.ReplaySaveMetaData;
 
     // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager

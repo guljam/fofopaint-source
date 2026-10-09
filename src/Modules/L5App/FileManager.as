@@ -28,7 +28,6 @@ package Modules.L5App
     import libwebp.DecodeWebp;
     import flash.display.IBitmapDrawable;
     import flash.geom.Matrix;
-    import Modules.ReplayEngine.ReplaySaveMetaData;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.ClipboardManager;
     import Modules.L4UI.ColorPickerController;
@@ -67,6 +66,7 @@ package Modules.L5App
     import Modules.L2Engine.UndoHistory;
     import Modules.L4UI.DrawEngine.CanvasResizer;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L1Data.ReplayEngine.ReplaySaveMetaData;
 
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager

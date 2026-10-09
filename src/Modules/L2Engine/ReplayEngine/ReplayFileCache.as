@@ -16,10 +16,10 @@ package Modules.L2Engine.ReplayEngine
     import Modules.Utils;
     import Modules.L5App.FileManager;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
-    import Modules.ReplayEngine.ReplaySaveMetaData;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L1Data.ReplayEngine.ReplaySaveMetaData;
 
     // 층: L2 엔진 - 리플레이 파일(repdata) 쓰기와 캐시 이미지 생성·복원
     public class ReplayFileCache
