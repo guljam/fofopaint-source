@@ -487,7 +487,7 @@ package Modules.ReplayEngine
             CacheImageFile.writeSync(AppStateManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length - 1)), layer1, layer2, metadata);
         }
 
-        // worker가 임시 파일로 써둔 캐시 이미지를 다음 번호로 확정해줌
+        // worker(또는 네이티브)가 임시 파일로 써둔 캐시 이미지를 다음 번호로 확정해줌 (undo 캐시)
         public static function commitCacheImage(tempFile:File, metadata:CacheImageMetaData):Boolean
         {
             // 이진 탐색이 깨지지 않게 마지막 캐시보다 뒤이고 리플레이 파일 안에 있는 프레임만 받음
@@ -498,7 +498,20 @@ package Modules.ReplayEngine
                 return false;
             }
 
-            const dest:File = AppStateManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length));
+            if (!moveTempCacheImage(tempFile, rJumpImageFrameData.length))
+            {
+                return false;
+            }
+
+            rJumpImageFrameData.push(metadata.nowFrame);
+            return true;
+        }
+
+        // 임시 파일을 index번 캐시 파일로 옮기고 정말 옮겨졌는지 확인 (rJumpImageFrameData는 부른 쪽이 갱신)
+        // undo 캐시(commitCacheImage)와 불러오기 캐시(ReplayController.generateReplayCacheImage)가 같이 씀
+        public static function moveTempCacheImage(tempFile:File, index:int):Boolean
+        {
+            const dest:File = AppStateManager.replayCacheImageFolderPath.resolvePath(String(index));
 
             try
             {
@@ -519,8 +532,48 @@ package Modules.ReplayEngine
                 return false;
             }
 
-            rJumpImageFrameData.push(metadata.nowFrame);
             return true;
+        }
+
+        // 불러오기 캐시 임시 폴더를 만들고 안의 파일을 지움 (생성 시작, 앱 시작 때), 못 지운 파일은 남겨도 이름이 겹치지 않음
+        public static function clearLoadCacheTempFolder():void
+        {
+            const folder:File = AppStateManager.replayCacheImageLoadTempFolderPath;
+
+            try
+            {
+                if (!folder.exists)
+                {
+                    folder.createDirectory();
+                    return;
+                }
+
+                const list:Array = folder.getDirectoryListing();
+
+                for (var i:int = 0;i < list.length;i++)
+                {
+                    deleteFileQuietly(list[i]);
+                }
+            }
+            catch (error:Error)
+            {
+                trace("Load cache temp folder cleanup failed: " + error);
+            }
+        }
+
+        public static function deleteFileQuietly(file:File):void
+        {
+            try
+            {
+                if (file !== null && file.exists)
+                {
+                    file.deleteFile();
+                }
+            }
+            catch (error:Error)
+            {
+                trace("Cache temp file delete failed: " + error);
+            }
         }
 
         // frame 이후의 캐시 이미지를 지우고, worker에서 아직 만들고 있는 캐시 이미지도 무효로 만듬

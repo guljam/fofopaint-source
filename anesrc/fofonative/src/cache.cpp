@@ -43,6 +43,19 @@ namespace
     volatile LONG gGeneration = 0;
     volatile LONG gActiveCacheJobs = 0;
 
+    // ---- 테스트 전용 훅 (cacheTestHooks를 부를 때만 켜짐, 앱은 부르지 않음) ----
+    // 훅을 켠 뒤 시작한 캐시 쓰기 작업에 1부터 번호를 매기고, 압축과 마지막 세대 확인을 지난 뒤(파일 쓰기 직전)에서
+    // failOrdinal 번 작업은 holdCount개가 붙잡힐 때까지 기다렸다가 "error"로 끝내고,
+    // holdFrom..holdFrom+holdCount-1 번 작업은 cacheTestRelease까지 붙잡아 둠 (경쟁 조건을 결정적으로 재현하려고)
+    volatile LONG gTestEnabled = 0;
+    volatile LONG gTestOrdinal = 0;
+    volatile LONG gTestHeld = 0;
+    LONG gTestFailOrdinal = 0;
+    LONG gTestHoldFrom = 0;
+    LONG gTestHoldCount = 0;
+    LONG gTestHoldAfterWrite = 0; // 1이면 쓰기·교체를 끝낸 뒤 완료 알림 직전에 붙잡음 (늦게 온 "done"을 AS3가 버리는지 시험)
+    HANDLE gTestRelease = NULL;
+
     double nowMs()
     {
         static LARGE_INTEGER freq = { 0 };
@@ -242,6 +255,7 @@ namespace
         Bytes metadata;
         int compression = COMPRESS_ZLIB;
         uint64_t budgetBytes = 0;
+        LONG testOrdinal = 0; // 테스트 훅이 켜졌을 때만 0이 아님
 
         ~CacheWriteJob() override
         {
@@ -280,8 +294,36 @@ namespace
                 return;
             }
 
+            if (testOrdinal != 0)
+            {
+                if (testOrdinal == gTestFailOrdinal)
+                {
+                    for (int waited = 0; waited < 1000 && gTestHeld < gTestHoldCount; waited++)
+                        Sleep(10);
+
+                    jobs::finish(id, "cache", resultText("error", compressed - start, 0, 0, 0));
+                    // 메인이 실패 알림을 처리할 때까지 메모리 예산을 쥐고 있어서 다음 스냅샷이 네이티브로 먼저 들어가지 않게 함
+                    Sleep(2000);
+                    return;
+                }
+
+                if (!gTestHoldAfterWrite && testOrdinal >= gTestHoldFrom && testOrdinal < gTestHoldFrom + gTestHoldCount)
+                {
+                    InterlockedIncrement(&gTestHeld);
+                    WaitForSingleObject(gTestRelease, 120000);
+                }
+            }
+
             std::wstring temp;
             IoResult result = writeTempFile(path, { &file }, temp);
+
+            // 쓰는 사이에 세대가 바뀌었으면 교체하지 않음 (AS3가 이미 결과를 버리기로 함, 쓸데없는 파일을 남기지 않게)
+            if (result.ok && gGeneration != generation)
+            {
+                deleteQuietly(temp);
+                jobs::finish(id, "cache", resultText("cancelled", compressed - start, nowMs() - compressed, 0, 0));
+                return;
+            }
 
             if (result.ok)
             {
@@ -289,6 +331,12 @@ namespace
 
                 if (!result.ok)
                     deleteQuietly(temp);
+            }
+
+            if (testOrdinal != 0 && gTestHoldAfterWrite && testOrdinal >= gTestHoldFrom && testOrdinal < gTestHoldFrom + gTestHoldCount)
+            {
+                InterlockedIncrement(&gTestHeld);
+                WaitForSingleObject(gTestRelease, 120000);
             }
 
             jobs::finish(id, "cache", resultText(result.ok ? "done" : "error", compressed - start, nowMs() - compressed, file.size(), result.error));
@@ -395,6 +443,9 @@ static FREObject CacheWrite(FREContext ctx, void* functionData, uint32_t argc, F
     job->generation = generation;
     job->path = widePath(path);
     job->compression = (int)gCompression;
+
+    if (gTestEnabled)
+        job->testOrdinal = InterlockedIncrement(&gTestOrdinal);
     FREByteArray metadata;
 
     if (FREAcquireByteArray(argv[4], &metadata) != FRE_OK)
@@ -651,7 +702,48 @@ static FREObject BudgetInfo(FREContext ctx, void* functionData, uint32_t argc, F
     return newString(text);
 }
 
+// cacheTestHooks(failOrdinal:int, holdFrom:int, holdCount:int, holdAfterWrite:int):int  테스트 전용, 0,0,0이면 끔
+static FREObject CacheTestHooks(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
+{
+    int32_t fail = 0, from = 0, count = 0, after = 0;
+
+    if (argc < 3 || !getInt(argv[0], &fail) || !getInt(argv[1], &from) || !getInt(argv[2], &count) || (argc >= 4 && !getInt(argv[3], &after)))
+        return newInt(RESULT_BAD_ARGUMENT);
+
+    gTestHoldAfterWrite = after;
+
+    if (gTestRelease == NULL)
+        gTestRelease = CreateEventW(NULL, TRUE, FALSE, NULL);
+
+    ResetEvent(gTestRelease);
+    gTestFailOrdinal = fail;
+    gTestHoldFrom = from;
+    gTestHoldCount = count;
+    InterlockedExchange(&gTestHeld, 0);
+    InterlockedExchange(&gTestOrdinal, 0);
+    InterlockedExchange(&gTestEnabled, (fail || count) ? 1 : 0);
+    return newInt(RESULT_OK);
+}
+
+// cacheTestRelease():int  붙잡은 작업을 풀어줌
+static FREObject CacheTestRelease(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
+{
+    if (gTestRelease != NULL)
+        SetEvent(gTestRelease);
+
+    return newInt(RESULT_OK);
+}
+
+// cacheTestHeld():int  지금까지 붙잡힌 작업 수
+static FREObject CacheTestHeld(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
+{
+    return newInt((int32_t)gTestHeld);
+}
+
 static const NamedFunction gCacheFunctions[] = {
+    { "cacheTestHooks", &CacheTestHooks },
+    { "cacheTestRelease", &CacheTestRelease },
+    { "cacheTestHeld", &CacheTestHeld },
     { "cacheSetGeneration", &CacheSetGeneration },
     { "cacheWrite", &CacheWrite },
     { "cacheWriteSync", &CacheWriteSync },

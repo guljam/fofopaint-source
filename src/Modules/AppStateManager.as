@@ -52,6 +52,7 @@ package Modules
             replayTimingLegacyFilePath = dataFolderPath.resolvePath("reptiminglegacy");
             replayCacheImageFolderPath = dataFolderPath.resolvePath("imagecache");
             replayCacheImageTempFolderPath = dataFolderPath.resolvePath("imagecache_tmp");
+            replayCacheImageLoadTempFolderPath = dataFolderPath.resolvePath("imagecache_loadtmp");
             replayCacheImageFrameDataFilePath = dataFolderPath.resolvePath("jumpframedata");
             replayCacheProgressFilePath = dataFolderPath.resolvePath("imagecacheprogress");
             replayCachePreviewFilePath = dataFolderPath.resolvePath("imagecachepreview");
@@ -71,6 +72,9 @@ package Modules
         private static var isRebuildFromReplayFileNeeded:Boolean = false; // loadUndoData에서 저장본이 리플레이 파일과 맞지 않아 쓰지 못했을때
         public static var replayCacheImageFolderPath:File;
         public static var replayCacheImageTempFolderPath:File; // worker가 캐시 이미지를 쓰는 곳, main이 확인 후 imagecache로 옮김
+        // 불러오기 캐시 네이티브 작업이 쓰는 곳, main이 앞 번호부터 확인해서 imagecache로 옮김
+        // undo 캐시 임시 폴더(prepareCacheTempFolder가 안의 파일을 다 지움)와 섞이지 않게 따로 둠
+        public static var replayCacheImageLoadTempFolderPath:File;
         public static var replayCacheImageFrameDataFilePath:File;
         public static var replayCacheProgressFilePath:File; // 캐시 이미지 만드는 도중 앱을 닫았을때 이어서 만들기 위한 진행 기록
         public static var replayCachePreviewFilePath:File; // 그때 로드박스에 깔려있던 흐린 배경 이미지
@@ -201,6 +205,7 @@ package Modules
         public static function loadAppState():void
         {
             isLoadingAppData = true;
+            ReplayFileCache.clearLoadCacheTempFolder(); // 지난 실행에서 끝나지 못한 불러오기 캐시 임시 파일
             const fs:FileStream = new FileStream();
             var arr:Array = [];
             var metaData:CacheImageMetaData;

@@ -21,6 +21,7 @@ package Modules.ReplayEngine
     import flash.events.MouseEvent;
     import flash.events.NativeDragEvent;
     import flash.filesystem.FileMode;
+    import flash.filesystem.File;
     import flash.filesystem.FileStream;
     import flash.filters.BlurFilter;
     import flash.filters.GlowFilter;
@@ -676,6 +677,9 @@ package Modules.ReplayEngine
             }
         }
 
+        private static var loadCacheRunSeq:int = 0; // 불러오기 캐시 임시 파일 이름이 실행마다 겹치지 않게
+        private static const PENDING_CACHE_WAIT_LIMIT:int = 120000;
+
         // resumeIndex가 0 이상이면 그 번호의 캐시 이미지 상태에서 이어서 만듬 (rJumpImageFrameData는 미리 복원되어 있어야함)
         public static function generateReplayCacheImage(finalizeFunc:Function, resumeIndex:int = -1):void
         {
@@ -729,26 +733,45 @@ package Modules.ReplayEngine
             LoadBoxController.loadMenuBox.visible = false;
 
             // 네이티브로 쓸 수 있으면 구간마다 스냅샷(두 레이어 내부 버퍼 복사)만 넘기고 바로 다음 구간을 그림, 압축·쓰기는 네이티브 스레드에서 병렬
-            // 번호는 스냅샷때 정하고, 완료는 순서가 섞여도 앞에서부터 이어진 번호까지만 rJumpImageFrameData와 진행 기록에 확정 (이어 만들기는 확정된 번호까지만 믿음)
+            // 작업은 작업마다 다른 임시 파일(imagecache_loadtmp)에 쓰고, main이 앞에서부터 이어진 번호만 imagecache/<번호>로 옮겨서
+            // rJumpImageFrameData와 진행 기록에 확정 (undo 캐시의 commitCacheImage와 같은 구조, 이어 만들기는 확정된 번호까지만 믿음)
+            // 대체 경로로 바꾸거나 멈출때는 cacheEpoch를 올려서 그 전에 시작한 작업의 결과(늦게 온 완료 알림)는 임시 파일만 지우고 버림
             var useNativeCache:Boolean = NativeCacheJobs.isAvailable;
             var isStopped:Boolean = false;
             var nextCacheIndex:int = ReplayFileCache.rJumpImageFrameData.length;
-            var pendingCacheJobs:int = 0;
+            var cacheEpoch:int = 0;
+            var pendingCacheJobs:int = 0; // 지금 cacheEpoch의 작업만 셈, 무효화된 작업은 파일 끝에서 기다리지 않음
+            var pendingWaitStart:int = 0; // 파일 끝에서 남은 작업을 기다리기 시작한 시각
             var waitingSnapshot:CacheImageMetaData = null; // 메모리 상한 때문에 아직 못 넘긴 스냅샷, 넘길때까지 다음 구간을 그리지 않음
-            const snapshotFrames:Object = {}; // 번호 -> nowFrame (확정 전)
-            const doneCacheIndexes:Object = {}; // 다 썼지만 앞 번호가 아직이라 확정 못 한 번호
+            var snapshotFrames:Object = {}; // 번호 -> nowFrame (확정 전)
+            var doneCacheIndexes:Object = {}; // 다 썼지만 앞 번호가 아직이라 확정 못 한 번호 -> 임시 파일
             const cacheGeneration:int = BackgroundWorkerCoordinator.getCacheGeneration();
+            const runId:int = ++loadCacheRunSeq;
+            ReplayFileCache.clearLoadCacheTempFolder();
 
             function confirmDoneCaches():void
             {
                 var confirmed:Boolean = false;
 
-                while (doneCacheIndexes[ReplayFileCache.rJumpImageFrameData.length] === true)
+                while (doneCacheIndexes[ReplayFileCache.rJumpImageFrameData.length] !== undefined)
                 {
-                    const index:int = ReplayFileCache.rJumpImageFrameData.length;
+                    const jumps:Array = ReplayFileCache.rJumpImageFrameData;
+                    const index:int = jumps.length;
+                    const tempFile:File = doneCacheIndexes[index];
+                    const frame:Number = snapshotFrames[index];
                     delete doneCacheIndexes[index];
-                    ReplayFileCache.rJumpImageFrameData.push(snapshotFrames[index]);
                     delete snapshotFrames[index];
+
+                    // 이진 탐색이 깨지지 않게 마지막 캐시보다 뒤 프레임만 받음, 옮기기에 실패하면 그 작업이 실패한 것으로 보고 대체 경로로
+                    if (!(jumps.length > 0 && frame > jumps[jumps.length - 1]) || !ReplayFileCache.moveTempCacheImage(tempFile, index))
+                    {
+                        AppStateManager.writeCrashLog("Replay cache image " + index + " commit failed (frame " + frame + ")");
+                        ReplayFileCache.deleteFileQuietly(tempFile);
+                        fallBackToSyncCache();
+                        break;
+                    }
+
+                    jumps.push(frame);
                     confirmed = true;
                 }
 
@@ -758,7 +781,24 @@ package Modules.ReplayEngine
                 }
             }
 
-            // 네이티브 작업이 실패하면 그 번호부터는 확정할 수 없으므로 남은 작업을 취소하고 확정된 다음 번호부터 AS3로 씀
+            // 진행 중이거나 확정 전인 네이티브 작업의 결과를 버림 (확정 전 임시 파일은 지우고, 진행 중인 작업은 알림이 올때 자기 임시 파일을 지움)
+            function invalidateNativeCaches():void
+            {
+                cacheEpoch++;
+                pendingCacheJobs = 0;
+
+                for each (var tempFile:File in doneCacheIndexes)
+                {
+                    ReplayFileCache.deleteFileQuietly(tempFile);
+                }
+
+                snapshotFrames = {};
+                doneCacheIndexes = {};
+                // 네이티브가 블록 사이에서 빨리 멈추게 세대도 바꿈
+                BackgroundWorkerCoordinator.cancelPendingCacheImages();
+            }
+
+            // 네이티브 작업이 실패하면 그 번호부터는 확정할 수 없으므로 남은 작업을 버리고 확정된 다음 번호부터 AS3로 씀
             function fallBackToSyncCache():void
             {
                 if (!useNativeCache)
@@ -767,7 +807,7 @@ package Modules.ReplayEngine
                 }
 
                 useNativeCache = false;
-                BackgroundWorkerCoordinator.cancelPendingCacheImages();
+                invalidateNativeCaches();
                 nextCacheIndex = ReplayFileCache.rJumpImageFrameData.length;
             }
 
@@ -777,19 +817,23 @@ package Modules.ReplayEngine
                 if (useNativeCache)
                 {
                     const index:int = nextCacheIndex;
-                    const result:int = NativeCacheJobs.start(AppStateManager.replayCacheImageFolderPath.resolvePath(String(index)).nativePath,
+                    const epoch:int = cacheEpoch;
+                    const tempFile:File = AppStateManager.replayCacheImageLoadTempFolderPath.resolvePath(runId + "_" + epoch + "_" + index);
+                    const result:int = NativeCacheJobs.start(tempFile.nativePath,
                             ReplayDrawer.rCanvasLayer1BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, metadata, cacheGeneration, false, function (r:Object):void
                             {
-                                pendingCacheJobs--;
-
-                                if (isStopped)
+                                // 무효화된 작업이거나 생성이 멈췄으면 결과를 버림 (pendingCacheJobs는 무효화할때 이미 뺌)
+                                if (epoch !== cacheEpoch || isStopped)
                                 {
+                                    ReplayFileCache.deleteFileQuietly(tempFile);
                                     return;
                                 }
 
+                                pendingCacheJobs--;
+
                                 if (r.status === "done")
                                 {
-                                    doneCacheIndexes[index] = true;
+                                    doneCacheIndexes[index] = tempFile;
                                     confirmDoneCaches();
                                 }
                                 else
@@ -798,6 +842,7 @@ package Modules.ReplayEngine
                                     {
                                         AppStateManager.writeCrashLog("Replay cache image " + index + " failed: " + r.status + " " + r.error);
                                     }
+                                    ReplayFileCache.deleteFileQuietly(tempFile);
                                     fallBackToSyncCache();
                                 }
                             });
@@ -854,9 +899,18 @@ package Modules.ReplayEngine
 
                     if (namojiBytes === 0)
                     {
-                        // 네이티브 작업이 다 확정된 뒤에 끝냄
+                        // 네이티브 작업이 다 확정된 뒤에 끝냄, 알림이 오지 않으면(정상이면 없는 일) 2분 뒤 남은 작업을 버리고 끝냄
                         if (pendingCacheJobs > 0)
                         {
+                            if (pendingWaitStart === 0)
+                            {
+                                pendingWaitStart = getTimer();
+                            }
+                            else if (getTimer() - pendingWaitStart > PENDING_CACHE_WAIT_LIMIT)
+                            {
+                                AppStateManager.writeCrashLog("Replay cache image jobs timed out: " + pendingCacheJobs);
+                                fallBackToSyncCache();
+                            }
                             return;
                         }
 
@@ -916,11 +970,8 @@ package Modules.ReplayEngine
                 fs.close();
                 isStopped = true;
 
-                // 아직 쓰는 중인 네이티브 캐시는 취소 (진행 기록에는 확정된 번호만 있어서 다음 실행때 그 뒤부터 다시 만듦)
-                if (pendingCacheJobs > 0)
-                {
-                    BackgroundWorkerCoordinator.cancelPendingCacheImages();
-                }
+                // 아직 쓰는 중이거나 확정 전인 네이티브 캐시는 버림 (진행 기록에는 확정된 번호만 있어서 다음 실행때 그 뒤부터 다시 만듦)
+                invalidateNativeCaches();
             };
         }
 
