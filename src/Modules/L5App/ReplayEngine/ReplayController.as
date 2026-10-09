@@ -5,7 +5,6 @@ package Modules.L5App.ReplayEngine
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.MouseState;
@@ -36,7 +35,6 @@ package Modules.L5App.ReplayEngine
     import Modules.NativeCore;
     import Modules.CaptureEngine.CaptureController;
     import Modules.DragInteraction;
-    import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
     import Modules.Utils;
     import Symbols.SeekBarSet;
@@ -63,6 +61,8 @@ package Modules.L5App.ReplayEngine
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.UndoHistory;
     import Modules.L1Data.AppDataPaths;
+    import Modules.L4UI.UIEngine.HintController;
+    import Modules.L4UI.PenSizePreviewCursor;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController

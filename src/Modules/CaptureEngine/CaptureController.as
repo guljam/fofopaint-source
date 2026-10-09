@@ -3,10 +3,8 @@ package Modules.CaptureEngine
     import Modules.CanvasViewport;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
-    import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
     import Modules.Utils;
-    import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
@@ -31,6 +29,8 @@ package Modules.CaptureEngine
     import Modules.L2Engine.BackgroundWorkerCoordinator;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L4UI.UIEngine.HintController;
+    import Modules.L4UI.PenSizePreviewCursor;
 
     // 층: L3 기능 - 캡처 모드 진입·종료와 캡처 처리
     public class CaptureController

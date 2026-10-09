@@ -1,6 +1,5 @@
 package Modules.L5App
 {
-    import Modules.UIEngine.HintController;
     import flash.events.Event;
     import Modules.MouseState;
     import Modules.ClipboardManager;
@@ -34,6 +33,7 @@ package Modules.L5App
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.AppDataPaths;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState

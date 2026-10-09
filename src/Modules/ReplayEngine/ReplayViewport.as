@@ -2,7 +2,6 @@ package Modules.ReplayEngine
 {
     import Modules.CanvasViewport;
     import Modules.DrawEngine.CanvasView;
-    import Modules.UIEngine.HintController;
 
     import flash.display.Bitmap;
     import flash.display.Sprite;
@@ -10,6 +9,7 @@ package Modules.ReplayEngine
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 리플레이 모드 캔버스의 화면 배치 (ReplayDrawer.viewport)
     // 층: L2 엔진 - 리플레이 모드 캔버스의 화면 배치 (ReplayDrawer.viewport)

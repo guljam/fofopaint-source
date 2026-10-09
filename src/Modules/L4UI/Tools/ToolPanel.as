@@ -2,13 +2,11 @@ package Modules.L4UI.Tools
 {
     import Modules.InputPriority;
     import Modules.MouseState;
-    import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
     import Modules.Utils;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
-    import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
     import Symbols.ToolMenuSet;
     import Symbols.ToolMenuSet2;
@@ -28,13 +26,15 @@ package Modules.L4UI.Tools
     import Modules.L3Feature.Tools.EyeDropperTool;
     import Modules.L5App.InputManager.InputManager;
     import Modules.L4UI.DrawEngine.LayerPreview;
-    import Modules.Tools.PenSettings;
     import Modules.L3Feature.Tools.RotateTool;
     import Modules.L4UI.SidebarController;
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L4UI.UIEngine.HintController;
+    import Modules.L1Data.Tools.PenSettings;
+    import Modules.L4UI.PenSizePreviewCursor;
 
     // 사이드바의 툴 패널 UI: 툴박스, 우클릭 툴박스(toolBox2), 펜 옵션 박스와 그 클릭/드래그 처리
     // 도구 선택 상태는 ToolController가 가지고, 여기서는 표시와 입력 해석만 함

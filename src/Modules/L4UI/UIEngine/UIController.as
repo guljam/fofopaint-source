@@ -31,7 +31,6 @@ package Modules.L4UI.UIEngine
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L4UI.AboutBoxController;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.HintController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.UIEngine.UITheme;
     import Modules.L1Data.AppDataPaths;

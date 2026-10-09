@@ -2,11 +2,9 @@ package Modules.L2Engine.DrawEngine
 {
     import Modules.InputPriority;
     import Modules.MouseState;
-    import Modules.PenSizePreviewCursor;
     import Modules.Utils;
     import Modules.CaptureEngine.CaptureController;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
 
     import flash.display.Shape;
@@ -22,6 +20,8 @@ package Modules.L2Engine.DrawEngine
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.UndoHistory;
+    import Modules.L4UI.UIEngine.HintController;
+    import Modules.L4UI.PenSizePreviewCursor;
 
     // 캔버스 상하좌우 리사이즈 버튼과 드래그로 캔버스 크기 조절
     // 층: L2 엔진 - 캔버스 상하좌우 리사이즈 버튼과 드래그로 크기 조절

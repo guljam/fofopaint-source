@@ -1,6 +1,5 @@
 package Modules.L4UI
 {
-    import Modules.UIEngine.HintController;
     import Symbols.AboutWindowSet;
 
     import flash.events.MouseEvent;
@@ -21,6 +20,7 @@ package Modules.L4UI
     import Modules.MouseState;
     import Modules.Utils;
     import Modules.L1Data.AppDataPaths;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 층: L4 UI - 정보(About) 창 열기·닫기와 크기·위치
     public class AboutBoxController

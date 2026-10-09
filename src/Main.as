@@ -13,13 +13,11 @@
     import Modules.DrawEngine.DrawCanvas;
     import Modules.InputPriority;
     import Modules.MouseState;
-    import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
     import Modules.Tools.MoveTool;
     import Modules.Tools.PenTool;
     import Modules.Tools.ZoomTool;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.HintController;
     import Modules.Utils;
 
     import Symbols.HintBoxSet;
@@ -70,6 +68,8 @@
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.AppDataPaths;
+    import Modules.L4UI.UIEngine.HintController;
+    import Modules.L4UI.PenSizePreviewCursor;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화

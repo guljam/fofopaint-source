@@ -2,7 +2,6 @@ package Modules.L4UI
 {
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
-    import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
     import flash.display.Shape;
     import flash.events.KeyboardEvent;
@@ -14,6 +13,7 @@ package Modules.L4UI
     import Modules.Utils;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 층: L4 UI - 캔버스 격자 표시와 격자 간격 조절
     public class CanvasGridOverlay

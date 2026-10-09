@@ -17,7 +17,6 @@
 
 	import Modules.AppUpdater;
 	import Modules.Utils;
-	import Modules.PenSizePreviewCursor;
 	import Modules.CaptureEngine.CaptureStamp;
 	import Modules.ReplayEngine.ReplayState;
 	import Modules.L4UI.ImageViewWindow;
@@ -26,6 +25,7 @@
 	import Modules.L4UI.SidebarController;
 	import Modules.L4UI.AboutBoxController;
 	import Modules.L4UI.UIEngine.UIController;
+	import Modules.L4UI.PenSizePreviewCursor;
 
 	// 층: L4 UI - 상단 메뉴 화면 묶음
 	public class TopMenuSet extends Sprite

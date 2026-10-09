@@ -1,6 +1,5 @@
-package Modules
+package Modules.L3Feature
 {
-    import Modules.Tools.PenSettings;
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
@@ -13,6 +12,7 @@ package Modules
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.UndoHistory;
+    import Modules.L1Data.Tools.PenSettings;
 
     // 층: L3 기능 - 획이 끝났을 때 임시 그리기 버퍼를 레이어에 합치고 undo 기록을 준비
     public class DrawingFinish

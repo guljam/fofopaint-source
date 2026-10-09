@@ -1,6 +1,5 @@
 ﻿package
 {
-    import Modules.Tools.PenSettings;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.Utils;
     import Modules.UIEngine.UITheme;
@@ -16,6 +15,7 @@
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L1Data.Tools.PenSettings;
 
     // 층: L1 데이터 - 힌트 문구 모음
     public class HintStrings

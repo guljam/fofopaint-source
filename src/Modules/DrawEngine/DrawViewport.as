@@ -1,7 +1,6 @@
 package Modules.DrawEngine
 {
     import Modules.CanvasViewport;
-    import Modules.PenSizePreviewCursor;
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.ZoomTool;
     import Modules.UIEngine.CanvasNavigator;
@@ -12,6 +11,7 @@ package Modules.DrawEngine
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L3Feature.Tools.LassoTool;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L4UI.PenSizePreviewCursor;
 
     // 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)
     // 층: L2 엔진 - 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)

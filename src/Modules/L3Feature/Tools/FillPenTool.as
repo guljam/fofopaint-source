@@ -6,7 +6,6 @@ package Modules.L3Feature.Tools
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.ColorHistory;
-    import Modules.DrawingFinish;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.ReferenceLayerController;
@@ -24,7 +23,6 @@ package Modules.L3Feature.Tools
     import Modules.ReplayEngine.ReplayState;
     import Modules.L4UI.ColorPickerController;
     import Modules.Tools.DottedLineTool;
-    import Modules.Tools.PenSettings;
     import Modules.Tools.PenTool;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
@@ -32,6 +30,8 @@ package Modules.L3Feature.Tools
     import Modules.L4UI.PaletteController;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.UndoHistory;
+    import Modules.L3Feature.DrawingFinish;
+    import Modules.L1Data.Tools.PenSettings;
 
     // 층: L3 기능 - 채우기 펜
     public class FillPenTool

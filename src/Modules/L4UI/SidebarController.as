@@ -2,7 +2,6 @@ package Modules.L4UI
 {
     import Modules.DrawEngine.CanvasView;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureController;
 
@@ -31,6 +30,7 @@ package Modules.L4UI
     import Modules.Utils;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 층: L4 UI - 사이드바 위치, 숨김·표시, 퀵 사이드바
     public final class SidebarController

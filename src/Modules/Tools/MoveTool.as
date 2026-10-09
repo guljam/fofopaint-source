@@ -12,12 +12,12 @@ package Modules.Tools
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
     import flash.geom.Point;
-    import Modules.PenSizePreviewCursor;
     import Modules.ReplayEngine.ReplayState;
     import Modules.L3Feature.Tools.LassoTool;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.UndoHistory;
+    import Modules.L4UI.PenSizePreviewCursor;
 
     // 층: L3 기능 - 이동 툴
     public class MoveTool

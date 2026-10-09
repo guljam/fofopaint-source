@@ -1,6 +1,5 @@
 package Modules.L5App.InputManager
 {
-    import Modules.Tools.PenSettings;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
@@ -10,13 +9,11 @@ package Modules.L5App.InputManager
     import Modules.ClipboardManager;
     import Modules.DragInteraction;
     import Modules.InputPriority;
-    import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
     import Modules.Utils;
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.MoveTool;
     import Modules.Tools.ZoomTool;
-    import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
 
     import flash.display.DisplayObject;
@@ -44,6 +41,9 @@ package Modules.L5App.InputManager
     import Modules.L1Data.KeyState;
     import Modules.L4UI.AboutBoxController;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L4UI.UIEngine.HintController;
+    import Modules.L1Data.Tools.PenSettings;
+    import Modules.L4UI.PenSizePreviewCursor;
 
     // 드로우 모드의 키보드/마우스 입력 (툴 단축키, 툴박스2, 드로우 모드 버튼)
     // 층: L5 앱 흐름 - 드로우 모드의 키보드/마우스 입력

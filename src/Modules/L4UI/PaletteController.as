@@ -1,7 +1,6 @@
 package Modules.L4UI
 {
 
-    import Modules.UIEngine.HintController;
     import Modules.Tools.PenTool;
     import Symbols.ColorPickerSet;
 
@@ -18,6 +17,7 @@ package Modules.L4UI
     import Modules.DragInteraction;
     import Modules.InputPriority;
     import Modules.L1Data.AppDataPaths;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 층: L4 UI - My Palette 선택·추가·저장과 적용
     public final class PaletteController

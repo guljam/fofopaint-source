@@ -5,9 +5,7 @@ package Modules.L5App.InputManager
     import Modules.InputPriority;
     import Modules.L1Data.KeyState;
     import Modules.MouseState;
-    import Modules.PenSizePreviewCursor;
     import Modules.Utils;
-    import Modules.UIEngine.HintController;
     import Modules.CaptureEngine.CaptureController;
 
     import flash.display.DisplayObject;
@@ -30,6 +28,8 @@ package Modules.L5App.InputManager
     import Modules.L4UI.AboutBoxController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L4UI.UIEngine.HintController;
+    import Modules.L4UI.PenSizePreviewCursor;
 
     // 층: L5 앱 흐름 - 키보드·마우스 입력을 받아 모드별 입력 처리로 나눠줌
     public class InputManager

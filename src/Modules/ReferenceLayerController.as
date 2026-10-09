@@ -5,7 +5,6 @@ package Modules
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
 
     import Symbols.RefLayerMenuSet;
@@ -33,6 +32,7 @@ package Modules
     import Modules.L3Feature.UndoController;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.UndoHistory;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 층: L4 UI - 참조 레이어 메뉴와 이미지 병합·투명도·비우기
     public final class ReferenceLayerController

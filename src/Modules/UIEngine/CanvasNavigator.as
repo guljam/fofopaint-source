@@ -14,6 +14,7 @@ package Modules.UIEngine
     import Modules.L3Feature.Tools.LassoTool;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 사이드바의 캔버스 미리보기(네비게이터): 보이는 영역 커서 갱신, 클릭/드래그로 캔버스 이동
     // 층: L4 UI - 사이드바 캔버스 미리보기(네비게이터)와 클릭·드래그 이동

@@ -1,6 +1,5 @@
-package Modules
+package Modules.L4UI
 {
-    import Modules.Tools.PenSettings;
     import Modules.DrawEngine.CanvasView;
     import Modules.Tools.PenTool;
     import Modules.DrawEngine.DrawCanvas;
@@ -10,6 +9,11 @@ package Modules
     import Modules.L2Engine.DrawEngine.CanvasResizer;
     import Modules.L4UI.LoadBoxController;
     import Modules.L3Feature.Tools.ToolController;
+    import Modules.MouseState;
+    import Modules.PenCursorPreviewPixel;
+    import Modules.L1Data.Tools.PenSettings;
+    import Modules.ReferenceLayerController;
+    import Modules.Utils;
 
     // 층: L4 UI - 펜 크기 미리보기 커서 (모양, 위치, 보임 여부)
     public class PenSizePreviewCursor

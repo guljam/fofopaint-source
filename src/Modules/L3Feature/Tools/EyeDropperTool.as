@@ -4,7 +4,6 @@ package Modules.L3Feature.Tools
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.MouseState;
-    import Modules.UIEngine.HintController;
     import Modules.InputPriority;
     import Modules.CaptureEngine.CaptureController;
     import Modules.ReferenceLayerController;
@@ -27,6 +26,7 @@ package Modules.L3Feature.Tools
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 층: L3 기능 - 스포이드 툴
     public class EyeDropperTool

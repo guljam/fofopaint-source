@@ -1,13 +1,13 @@
 package Modules.ReplayEngine
 {
     import Modules.MouseState;
-    import Modules.UIEngine.HintController;
 
     import flash.geom.Point;
     import flash.ui.Mouse;
     import flash.display.Stage;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 리플레이 재생중 마우스가 가만히 있으면 시스템 마우스 포인터를 숨김
     // 층: L4 UI - 리플레이 재생 중 마우스가 가만히 있으면 포인터 숨김

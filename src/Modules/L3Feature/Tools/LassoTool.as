@@ -5,7 +5,6 @@ package Modules.L3Feature.Tools
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.MouseState;
@@ -45,6 +44,7 @@ package Modules.L3Feature.Tools
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.UndoHistory;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 층: L3 기능 - 올가미 선택과 이동·회전·크기·미러
     public class LassoTool

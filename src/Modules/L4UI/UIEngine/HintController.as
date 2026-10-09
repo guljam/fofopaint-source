@@ -1,10 +1,9 @@
-package Modules.UIEngine
+package Modules.L4UI.UIEngine
 {
     import Modules.CanvasViewport;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.MouseState;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.Tools.PenSettings;
     import Modules.ReplayEngine.ReplayState;
     import Modules.Utils;
     import Symbols.HintBoxSet;
@@ -25,6 +24,9 @@ package Modules.UIEngine
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L4UI.AboutBoxController;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.UIEngine.CanvasNavigator;
+    import Modules.L1Data.Tools.PenSettings;
+    import Modules.UIEngine.UITheme;
 
     // 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시. 문구는 HintStrings가 담당
     // 층: L4 UI - 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시

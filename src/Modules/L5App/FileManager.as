@@ -4,7 +4,6 @@ package Modules.L5App
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.CaptureEngine.CaptureController;
@@ -48,7 +47,6 @@ package Modules.L5App
     import Modules.L3Feature.Tools.LineTool;
     import Modules.L4UI.LoadBoxController;
     import Modules.NativeSave;
-    import Modules.PenSizePreviewCursor;
     import Modules.PixelRestore;
     import Modules.ReferenceLayerController;
     import Modules.L5App.ReplayEngine.ReplayController;
@@ -67,6 +65,8 @@ package Modules.L5App
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.UndoHistory;
     import Modules.L1Data.AppDataPaths;
+    import Modules.L4UI.UIEngine.HintController;
+    import Modules.L4UI.PenSizePreviewCursor;
 
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager

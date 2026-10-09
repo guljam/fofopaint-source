@@ -1,11 +1,9 @@
 package Modules.L5App
 {
-    import Modules.Tools.PenSettings;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.CaptureEngine.CaptureController;
@@ -43,7 +41,6 @@ package Modules.L5App
     import Modules.CacheImageMetaData;
     import Modules.ColorHistory;
     import Modules.L4UI.PaletteController;
-    import Modules.PenSizePreviewCursor;
     import Modules.PixelRestore;
     import Modules.ReferenceLayerController;
     import Modules.L2Engine.ReplayEngine.ReplayClock;
@@ -52,6 +49,9 @@ package Modules.L5App
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.UndoHistory;
+    import Modules.L4UI.UIEngine.HintController;
+    import Modules.L1Data.Tools.PenSettings;
+    import Modules.L4UI.PenSizePreviewCursor;
 
     // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager

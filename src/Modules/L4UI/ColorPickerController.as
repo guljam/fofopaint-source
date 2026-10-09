@@ -1,6 +1,5 @@
 package Modules.L4UI
 {
-    import Modules.Tools.PenSettings;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.UITheme;
     import Symbols.ColorPickerSet;
@@ -21,11 +20,11 @@ package Modules.L4UI
     import Modules.L5App.InputManager.InputManager;
     import Modules.InputPriority;
     import Modules.L3Feature.Tools.LineTool;
-    import Modules.PenSizePreviewCursor;
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.Utils;
     import Modules.L1Data.KeyState;
+    import Modules.L1Data.Tools.PenSettings;
 
     // 층: L4 UI - 색 선택기 박스와 숫자패드, 색 프리셋 선택 처리
     public class ColorPickerController
