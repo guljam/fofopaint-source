@@ -16,8 +16,6 @@ package Modules.ReplayEngine
     import flash.desktop.NativeDragManager;
     import flash.display.Bitmap;
     import flash.display.BitmapData;
-    import flash.display.DisplayObject;
-    import flash.display.DisplayObjectContainer;
     import flash.display.Sprite;
     import flash.events.Event;
     import flash.events.MouseEvent;
@@ -63,7 +61,7 @@ package Modules.ReplayEngine
         private static const REPLAY_SLIDESHOW_ACTIVE_SPEED:Number = 60;
         private static const REPLAY_DRAW_CHUNK_FRAMES:Number = 200; // 시계를 따라가려고 한번에 그리는 프레임 수 단위
         private static const REPLAY_DRAW_TIME_BUDGET:int = 14; // 한 틱에 그리기에 쓰는 최대 시간(ms)
-        private static const REPLAY_SLIDESHOW_FRAME_RATE:Number = 1; // 1/2초 = 0.5초마다 갱신
+        private static const REPLAY_SLIDESHOW_FRAME_RATE:Number = 1.5; // 1/1.5초마다 갱신
         private static const REPLAY_SLIDESHOW_UPDATE_TIME:Number = 1000 / REPLAY_SLIDESHOW_FRAME_RATE;
         private static var rCanvasCompleteAnchorPoint:Sprite = new Sprite(); // 리플레이에어 이미지가 재생되었을때 보여주는 객체 stage와 가로세로 중앙정렬
         private static var rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0), "auto", true);
