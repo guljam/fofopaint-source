@@ -1,39 +1,21 @@
-package Modules.InputManager
+package Modules.L5App.InputManager
 {
     import Modules.Tools.PenSettings;
-    import Modules.Tools.ToolPanel;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
-    import Modules.DrawEngine.LayerPreview;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.DrawEngine.CanvasResizer;
     import Modules.MouseState;
-    import Modules.ActivityWorkTimer;
     import Modules.AppUpdater;
     import Modules.AboutBoxController;
-    import Modules.CanvasGridOverlay;
     import Modules.ClipboardManager;
-    import Modules.ColorPickerController;
     import Modules.DragInteraction;
-    import Modules.FileManager;
-    import Modules.LoadBoxController;
-    import Modules.ImageViewWindow;
     import Modules.InputPriority;
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
-    import Modules.SidebarController;
-    import Modules.Tools.ToolController;
-    import Modules.UndoController;
     import Modules.Utils;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.ReplayEngine.ReplayController;
-    import Modules.Tools.FillPenTool;
-    import Modules.Tools.HandTool;
-    import Modules.Tools.LassoTool;
-    import Modules.Tools.LineTool;
     import Modules.Tools.MoveTool;
-    import Modules.Tools.RotateTool;
     import Modules.Tools.ZoomTool;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
@@ -43,6 +25,24 @@ package Modules.InputManager
     import flash.display.SimpleButton;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
+    import Modules.L3Feature.ActivityWorkTimer;
+    import Modules.L4UI.CanvasGridOverlay;
+    import Modules.L2Engine.DrawEngine.CanvasResizer;
+    import Modules.L4UI.ColorPickerController;
+    import Modules.L5App.FileManager;
+    import Modules.L3Feature.Tools.FillPenTool;
+    import Modules.L3Feature.Tools.HandTool;
+    import Modules.L4UI.ImageViewWindow;
+    import Modules.L3Feature.Tools.LassoTool;
+    import Modules.L4UI.DrawEngine.LayerPreview;
+    import Modules.L3Feature.Tools.LineTool;
+    import Modules.L4UI.LoadBoxController;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L3Feature.Tools.RotateTool;
+    import Modules.L4UI.SidebarController;
+    import Modules.L3Feature.Tools.ToolController;
+    import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L3Feature.UndoController;
 
     // 드로우 모드의 키보드/마우스 입력 (툴 단축키, 툴박스2, 드로우 모드 버튼)
     // 층: L5 앱 흐름 - 드로우 모드의 키보드/마우스 입력

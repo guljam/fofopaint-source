@@ -1,16 +1,11 @@
-package Modules.DrawEngine
+package Modules.L2Engine.DrawEngine
 {
-    import Modules.Tools.ToolPanel;
-    import Modules.ImageViewWindow;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.PenSizePreviewCursor;
-    import Modules.Tools.ToolController;
-    import Modules.UndoController;
     import Modules.UndoHistory;
     import Modules.Utils;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.InputManager.InputManager;
     import Modules.ReplayEngine.ReplayState;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
@@ -20,6 +15,13 @@ package Modules.DrawEngine
     import flash.display.Sprite;
     import flash.events.MouseEvent;
     import flash.geom.Point;
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
+    import Modules.L4UI.ImageViewWindow;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.L3Feature.Tools.ToolController;
+    import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L3Feature.UndoController;
 
     // 캔버스 상하좌우 리사이즈 버튼과 드래그로 캔버스 크기 조절
     // 층: L2 엔진 - 캔버스 상하좌우 리사이즈 버튼과 드래그로 크기 조절

@@ -1,11 +1,7 @@
-package Modules
+package Modules.L4UI
 {
     import Modules.Tools.PenSettings;
-    import Modules.Tools.ToolPanel;
-    import Modules.Tools.ToolController;
     import Modules.DrawEngine.DrawCanvas;
-    import Modules.InputManager.InputManager;
-    import Modules.InputManager.DrawModeInput;
     import Modules.UIEngine.UITheme;
     import Symbols.ColorPickerSet;
     import Symbols.NumPadSet;
@@ -17,9 +13,19 @@ package Modules
     import Modules.Tools.PenTool;
     import Symbols.FillPenMenuSet;
     import flash.utils.getTimer;
-    import Modules.Tools.LineTool;
-    import Modules.Tools.FillPenTool;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.ColorHistory;
+    import Modules.DragInteraction;
+    import Modules.L5App.InputManager.DrawModeInput;
+    import Modules.L3Feature.Tools.FillPenTool;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.InputPriority;
+    import Modules.L3Feature.Tools.LineTool;
+    import Modules.PaletteController;
+    import Modules.PenSizePreviewCursor;
+    import Modules.L3Feature.Tools.ToolController;
+    import Modules.L4UI.Tools.ToolPanel;
+    import Modules.Utils;
 
     // 층: L4 UI - 색 선택기 박스와 숫자패드, 색 프리셋 선택 처리
     public class ColorPickerController

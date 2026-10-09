@@ -1,6 +1,5 @@
-package Modules
+package Modules.L3Feature
 {
-    import Modules.InputManager.InputManager;
     import Modules.UIEngine.HintController;
     import flash.display.InteractiveObject;
     import flash.events.FocusEvent;
@@ -12,6 +11,8 @@ package Modules
     import flash.text.TextField;
     import flash.text.TextFieldType;
     import flash.utils.getTimer;
+    import Modules.ImeDiagnostics;
+    import Modules.L5App.InputManager.InputManager;
 
     // IME 상태의 단일 관리자
     //  - 규칙: 텍스트 입력 필드에 포커스가 있으면 IME를 켜고, 그 외(캔버스 단축키 영역)에서는 끔

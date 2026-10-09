@@ -1,4 +1,4 @@
-package Modules.Tools
+package Modules.L3Feature.Tools
 {
     import Modules.CanvasViewport;
     import Modules.UIEngine.CanvasNavigator;
@@ -8,11 +8,11 @@ package Modules.Tools
     import Modules.ReferenceLayerController;
     import flash.geom.Point;
     import Modules.DragInteraction;
-    import Modules.InputManager.InputManager;
     import Modules.PenSizePreviewCursor;
-    import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.L5App.ReplayEngine.ReplayController;
 
     // 층: L3 기능 - 회전 툴
     public class RotateTool

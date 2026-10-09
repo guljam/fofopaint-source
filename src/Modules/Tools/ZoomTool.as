@@ -8,11 +8,12 @@ package Modules.Tools
     import Modules.UIEngine.UITheme;
     import flash.geom.Point;
     import Modules.ReferenceLayerController;
-    import Modules.CanvasGridOverlay;
     import Modules.DragInteraction;
     import Modules.PenSizePreviewCursor;
     import flash.display.Sprite;
     import Modules.Utils;
+    import Modules.L4UI.CanvasGridOverlay;
+    import Modules.L3Feature.Tools.LassoTool;
 
     // 층: L3 기능 - 줌 툴
     public class ZoomTool

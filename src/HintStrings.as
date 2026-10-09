@@ -1,21 +1,21 @@
 ﻿package
 {
     import Modules.Tools.PenSettings;
-    import Modules.Tools.ToolPanel;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.Utils;
     import Modules.UIEngine.UITheme;
     import Main;
-    import Modules.CanvasGridOverlay;
     import Modules.Tools.PenTool;
     import Modules.AppUpdater;
-    import Modules.ColorPickerController;
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.PenTool;
-    import Modules.Tools.LassoTool;
-    import Modules.Tools.ToolController;
-    import Modules.ActivityWorkTimer;
-    import Modules.ReplayEngine.ReplayController;
+    import Modules.L3Feature.ActivityWorkTimer;
+    import Modules.L4UI.CanvasGridOverlay;
+    import Modules.L4UI.ColorPickerController;
+    import Modules.L3Feature.Tools.LassoTool;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L3Feature.Tools.ToolController;
+    import Modules.L4UI.Tools.ToolPanel;
 
     // 층: L1 데이터 - 힌트 문구 모음
     public class HintStrings

@@ -1,21 +1,14 @@
-package Modules
+package Modules.L5App
 {
-    import Modules.Tools.ToolPanel;
-    import Modules.Tools.ToolController;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.DrawEngine.CanvasResizer;
-    import Modules.InputManager.InputManager;
-    import Modules.InputManager.DrawModeInput;
-    import Modules.InputManager.ReplayModeInput;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.Tools.LassoTool;
     import Modules.Tools.PenTool;
 
     import flash.desktop.ClipboardFormats;
@@ -41,9 +34,6 @@ package Modules
     import libwebp.DecodeWebp;
     import flash.display.IBitmapDrawable;
     import flash.geom.Matrix;
-    import Modules.Tools.LineTool;
-    import Modules.Tools.FillPenTool;
-    import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayClock;
     import Modules.ReplayEngine.TimingSheetFile;
     import Modules.ReplayEngine.ReplayDrawCommands;
@@ -51,6 +41,31 @@ package Modules
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
     import Modules.ReplayEngine.ReplaySaveMetaData;
+    import Modules.AppStateManager;
+    import Modules.BackgroundWorkerCoordinator;
+    import Modules.L4UI.CanvasGridOverlay;
+    import Modules.L2Engine.DrawEngine.CanvasResizer;
+    import Modules.ClipboardManager;
+    import Modules.L4UI.ColorPickerController;
+    import Modules.L5App.InputManager.DrawModeInput;
+    import Modules.L3Feature.Tools.FillPenTool;
+    import Modules.L4UI.ImageViewWindow;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.L3Feature.Tools.LassoTool;
+    import Modules.L3Feature.Tools.LineTool;
+    import Modules.L4UI.LoadBoxController;
+    import Modules.NativeSave;
+    import Modules.PenSizePreviewCursor;
+    import Modules.PixelRestore;
+    import Modules.ReferenceLayerController;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.ReplayDataCodec;
+    import Modules.L5App.InputManager.ReplayModeInput;
+    import Modules.L3Feature.Tools.ToolController;
+    import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L3Feature.UndoController;
+    import Modules.UndoHistory;
+    import Modules.Utils;
 
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager

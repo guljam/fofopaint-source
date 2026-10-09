@@ -1,11 +1,7 @@
 package Modules.DrawEngine
 {
-    import Modules.Tools.ToolPanel;
-    import Modules.Tools.ToolController;
-    import Modules.UndoController;
     import Modules.UndoHistory;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.Tools.LassoTool;
     import Modules.UIEngine.HintController;
 
     import flash.display.Bitmap;
@@ -13,6 +9,10 @@ package Modules.DrawEngine
     import flash.display.BlendMode;
     import flash.display.Sprite;
     import flash.geom.Rectangle;
+    import Modules.L3Feature.Tools.LassoTool;
+    import Modules.L3Feature.Tools.ToolController;
+    import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L3Feature.UndoController;
 
     // 드로우 모드 레이어 1/2: 선택, 잠금(체크), 스왑, 병합
     // 층: L2 엔진 - 드로우 모드 레이어 1/2 선택, 잠금, 스왑, 병합

@@ -1,13 +1,10 @@
 package Modules
 {
     import Modules.Tools.PenSettings;
-    import Modules.Tools.ToolPanel;
-    import Modules.Tools.ToolController;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
@@ -24,7 +21,6 @@ package Modules
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
-    import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawCommands;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayFileCache;
@@ -33,6 +29,19 @@ package Modules
     import Modules.ReplayEngine.TimingSheetFile;
     import Modules.ReplayEngine.ReplaySaveMetaData;
     import flash.trace.Trace;
+    import Modules.L3Feature.ActivityWorkTimer;
+    import Modules.L5App.AppWindowState;
+    import Modules.L4UI.CanvasGridOverlay;
+    import Modules.L2Engine.DrawEngine.CanvasResizer;
+    import Modules.L4UI.ColorPickerController;
+    import Modules.L5App.FileManager;
+    import Modules.L4UI.ImageViewWindow;
+    import Modules.L4UI.LoadBoxController;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L4UI.SidebarController;
+    import Modules.L3Feature.Tools.ToolController;
+    import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L3Feature.UndoController;
 
     // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager

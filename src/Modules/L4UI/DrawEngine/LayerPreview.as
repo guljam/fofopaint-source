@@ -1,9 +1,7 @@
-package Modules.DrawEngine
+package Modules.L4UI.DrawEngine
 {
-    import Modules.InputManager.InputManager;
     import Modules.MouseState;
     import Modules.ReferenceLayerController;
-    import Modules.SidebarController;
     import Modules.ReplayEngine.ReplayState;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
@@ -22,6 +20,11 @@ package Modules.DrawEngine
     import flash.geom.Rectangle;
     import flash.utils.getTimer;
     import Symbols.ToolOptionsSet;
+    import Modules.DrawEngine.CanvasLayers;
+    import Modules.DrawEngine.CanvasView;
+    import Modules.DrawEngine.DrawCanvas;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.L4UI.SidebarController;
 
     // 컨트롤 박스의 레이어 버튼에 hover 하면 캔버스를 비스듬히 눕혀 층(배경/참조/레이어2/레이어1)을 보여줌
     // 3D/GPU 없이 2D Matrix(세로 압축 + 층별 띄우기)만 사용. 레이어 BitmapData는 참조만 하므로 복사 없음

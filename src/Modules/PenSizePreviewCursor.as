@@ -1,14 +1,15 @@
 package Modules
 {
     import Modules.Tools.PenSettings;
-    import Modules.Tools.ToolController;
     import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.CanvasResizer;
     import Modules.Tools.PenTool;
     import Modules.DrawEngine.DrawCanvas;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.getTimer;
+    import Modules.L2Engine.DrawEngine.CanvasResizer;
+    import Modules.L4UI.LoadBoxController;
+    import Modules.L3Feature.Tools.ToolController;
 
     // 층: L4 UI - 펜 크기 미리보기 커서 (모양, 위치, 보임 여부)
     public class PenSizePreviewCursor

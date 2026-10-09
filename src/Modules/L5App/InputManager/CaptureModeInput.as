@@ -1,9 +1,7 @@
-package Modules.InputManager
+package Modules.L5App.InputManager
 {
     import Modules.MouseState;
-    import Modules.ActivityWorkTimer;
     import Modules.ClipboardManager;
-    import Modules.FileManager;
     import Modules.InputPriority;
     import Modules.CaptureEngine.CaptureController;
     import Modules.CaptureEngine.CaptureStamp;
@@ -12,6 +10,8 @@ package Modules.InputManager
     import flash.display.DisplayObject;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
+    import Modules.L3Feature.ActivityWorkTimer;
+    import Modules.L5App.FileManager;
 
     // 캡처 모드의 키보드/마우스 입력
     // 층: L5 앱 흐름 - 캡처 모드의 키보드/마우스 입력

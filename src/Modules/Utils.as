@@ -12,10 +12,11 @@ package Modules
     import flash.geom.ColorTransform;
     import flash.display.SimpleButton;
     import avmplus.getQualifiedClassName;
-    import Modules.ReplayEngine.ReplayController;
     import flash.text.TextField;
     import flash.text.TextFieldAutoSize;
     import flash.text.TextFormat;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L4UI.SidebarController;
 
     // 층: L1 데이터 - 색 변환, 텍스트 필드 생성 등 공용 함수
     public class Utils

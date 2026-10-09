@@ -1,13 +1,11 @@
-package Modules.Tools
+package Modules.L3Feature.Tools
 {
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.InputPriority;
     import Modules.ColorHistory;
-    import Modules.ColorPickerController;
     import Modules.DrawingFinish;
-    import Modules.InputManager.InputManager;
     import Modules.PaletteController;
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
@@ -21,6 +19,10 @@ package Modules.Tools
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.utils.getTimer;
+    import Modules.L4UI.ColorPickerController;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.Tools.PenSettings;
+    import Modules.Tools.PenTool;
 
     // 층: L3 기능 - 직선 그리기
     public class LineTool

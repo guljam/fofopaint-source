@@ -1,10 +1,8 @@
 package Modules.DrawEngine
 {
-    import Modules.CanvasGridOverlay;
     import Modules.CanvasViewport;
     import Modules.PenSizePreviewCursor;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.Tools.LassoTool;
     import Modules.Tools.ZoomTool;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.UIController;
@@ -12,6 +10,8 @@ package Modules.DrawEngine
     import flash.display.Bitmap;
     import flash.display.Sprite;
     import flash.geom.Point;
+    import Modules.L4UI.CanvasGridOverlay;
+    import Modules.L3Feature.Tools.LassoTool;
 
     // 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)
     // 층: L2 엔진 - 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)

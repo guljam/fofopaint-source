@@ -17,11 +17,12 @@ package Modules.ReplayEngine
     import flash.geom.Rectangle;
     import Symbols.FOFOCursorSet;
     import Modules.CacheImageMetaData;
-    import Modules.FileManager;
     import Modules.AppStateManager;
     import Modules.UndoHistory;
-    import Modules.UndoController;
     import Modules.Tools.PenTool;
+    import Modules.L5App.FileManager;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L3Feature.UndoController;
 
     // 층: L2 엔진 - 리플레이 캔버스에 명령을 그리고 프레임 이동
     public class ReplayDrawer

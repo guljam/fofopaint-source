@@ -1,4 +1,4 @@
-package Modules.Tools
+package Modules.L3Feature.Tools
 {
     import Modules.CanvasViewport;
     import Modules.UIEngine.CanvasNavigator;
@@ -10,10 +10,11 @@ package Modules.Tools
     import flash.display.Bitmap;
     import flash.events.MouseEvent;
     import Modules.ReferenceLayerController;
-    import Modules.InputManager.InputManager;
     import Modules.PenSizePreviewCursor;
-    import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L4UI.Tools.ToolPanel;
 
     // 층: L3 기능 - 손 툴(캔버스 끌어 이동)
     public class HandTool

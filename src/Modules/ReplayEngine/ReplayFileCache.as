@@ -11,7 +11,6 @@ package Modules.ReplayEngine
     import Modules.UIEngine.HintController;
     import Modules.BackgroundWorkerCoordinator;
     import Modules.CacheImageMetaData;
-    import Modules.FileManager;
     import Modules.AppStateManager;
     import Modules.ReplayDataCodec;
     import Modules.CacheImageFile;
@@ -19,6 +18,7 @@ package Modules.ReplayEngine
     import Modules.CacheImageFormat;
     import Modules.ReferenceLayerController;
     import Modules.Utils;
+    import Modules.L5App.FileManager;
 
     // 층: L2 엔진 - 리플레이 파일(repdata) 쓰기와 캐시 이미지 생성·복원
     public class ReplayFileCache

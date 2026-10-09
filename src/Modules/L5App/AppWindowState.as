@@ -1,39 +1,38 @@
-package
+package Modules.L5App
 {
-    import Modules.Tools.ToolPanel;
-    import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import flash.events.Event;
     import Modules.AppStateManager;
-    import Modules.InputManager.InputManager;
-    import Modules.InputManager.DrawModeInput;
-    import Modules.InputManager.ReplayModeInput;
-    import Modules.InputManager.CaptureModeInput;
-    import Modules.ImeController;
     import Modules.MouseState;
     import Modules.ClipboardManager;
     import Modules.AboutBoxController;
-    import Modules.Tools.ToolController;
-    import Modules.Tools.FillPenTool;
-    import Modules.SidebarController;
     import flash.utils.getTimer;
     import Modules.BackgroundWorkerCoordinator;
     import Modules.NativeSave;
-    import Modules.FileManager;
-    import Modules.LoadBoxController;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.UndoController;
-    import Modules.ColorPickerController;
-    import Modules.ActivityWorkTimer;
-    import Modules.ImageViewWindow;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.ReplayEngine.ReplayController;
-    import Modules.Tools.LassoTool;
     import Modules.ReplayEngine.ReplayFileCache;
     import flash.geom.Rectangle;
     import flash.display.Screen;
     import flash.display.NativeWindowDisplayState;
+    import Modules.L3Feature.ActivityWorkTimer;
+    import Modules.L2Engine.DrawEngine.CanvasResizer;
+    import Modules.L5App.InputManager.CaptureModeInput;
+    import Modules.L4UI.ColorPickerController;
+    import Modules.L5App.InputManager.DrawModeInput;
+    import Modules.L3Feature.Tools.FillPenTool;
+    import Modules.L4UI.ImageViewWindow;
+    import Modules.L3Feature.ImeController;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.L3Feature.Tools.LassoTool;
+    import Modules.L4UI.LoadBoxController;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L5App.InputManager.ReplayModeInput;
+    import Modules.L4UI.SidebarController;
+    import Modules.L3Feature.Tools.ToolController;
+    import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L3Feature.UndoController;
 
     // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState

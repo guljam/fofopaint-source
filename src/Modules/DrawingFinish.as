@@ -4,14 +4,14 @@ package Modules
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
-    import Modules.Tools.ToolController;
     import Modules.Tools.PenTool;
-    import Modules.UndoController;
 
     import flash.filters.BlurFilter;
     import flash.geom.ColorTransform;
-    import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L3Feature.Tools.ToolController;
+    import Modules.L3Feature.UndoController;
 
     // 층: L3 기능 - 획이 끝났을 때 임시 그리기 버퍼를 레이어에 합치고 undo 기록을 준비
     public class DrawingFinish

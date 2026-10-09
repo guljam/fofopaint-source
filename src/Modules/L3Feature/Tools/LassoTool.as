@@ -1,4 +1,4 @@
-package Modules.Tools
+package Modules.L3Feature.Tools
 {
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.DrawEngine.CanvasView;
@@ -11,14 +11,8 @@ package Modules.Tools
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.ColorPickerController;
     import Modules.DragInteraction;
-    import Modules.ImageViewWindow;
-    import Modules.InputManager.InputManager;
-    import Modules.InputManager.DrawModeInput;
     import Modules.ReferenceLayerController;
-    import Modules.SidebarController;
-    import Modules.UndoController;
     import Modules.Utils;
 
     import Symbols.LassoMenuSet;
@@ -38,9 +32,18 @@ package Modules.Tools
     import flash.geom.Rectangle;
     import Symbols.RotateCursorSet;
     import Modules.UndoHistory;
-    import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.L4UI.ColorPickerController;
+    import Modules.Tools.DottedLineTool;
+    import Modules.L5App.InputManager.DrawModeInput;
+    import Modules.L4UI.ImageViewWindow;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L4UI.SidebarController;
+    import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L3Feature.UndoController;
+    import Modules.Tools.ZoomTool;
 
     // 층: L3 기능 - 올가미 선택과 이동·회전·크기·미러
     public class LassoTool

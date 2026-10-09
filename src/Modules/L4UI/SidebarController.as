@@ -1,16 +1,11 @@
-package Modules
+package Modules.L4UI
 {
-    import Modules.Tools.ToolPanel;
-    import Modules.Tools.ToolController;
     import Modules.DrawEngine.CanvasView;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.DrawEngine.CanvasResizer;
-    import Modules.InputManager.InputManager;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.Tools.LassoTool;
 
     import Symbols.FOFO;
     import Symbols.SidePanelSet;
@@ -22,10 +17,21 @@ package Modules
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.Tools.LineTool;
-    import Modules.Tools.FillPenTool;
     import Modules.ReplayEngine.ReplayState;
     import flash.display.Shape;
+    import Modules.L2Engine.DrawEngine.CanvasResizer;
+    import Modules.DragInteraction;
+    import Modules.L3Feature.Tools.FillPenTool;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.InputPriority;
+    import Modules.L3Feature.Tools.LassoTool;
+    import Modules.L3Feature.Tools.LineTool;
+    import Modules.MouseState;
+    import Modules.PaletteController;
+    import Modules.ReferenceLayerController;
+    import Modules.L3Feature.Tools.ToolController;
+    import Modules.L4UI.Tools.ToolPanel;
+    import Modules.Utils;
 
     // 층: L4 UI - 사이드바 위치, 숨김·표시, 퀵 사이드바
     public final class SidebarController

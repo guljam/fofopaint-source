@@ -29,6 +29,9 @@ package Modules
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
+    import Modules.L4UI.CanvasGridOverlay;
+    import Modules.L5App.FileManager;
+    import Modules.L3Feature.UndoController;
 
     // 층: L4 UI - 참조 레이어 메뉴와 이미지 병합·투명도·비우기
     public final class ReferenceLayerController

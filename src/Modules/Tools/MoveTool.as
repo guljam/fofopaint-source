@@ -10,13 +10,14 @@ package Modules.Tools
     import Modules.Utils;
     import flash.display.BitmapData;
     import flash.geom.Matrix;
-    import Modules.UndoController;
     import flash.geom.Rectangle;
     import flash.geom.Point;
     import Modules.PenSizePreviewCursor;
     import Modules.UndoHistory;
-    import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.L3Feature.Tools.LassoTool;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L3Feature.UndoController;
 
     // 층: L3 기능 - 이동 툴
     public class MoveTool

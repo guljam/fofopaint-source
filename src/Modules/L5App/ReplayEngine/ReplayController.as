@@ -1,4 +1,4 @@
-package Modules.ReplayEngine
+package Modules.L5App.ReplayEngine
 {
     import Modules.CanvasViewport;
     import Modules.DrawEngine.CanvasView;
@@ -36,24 +36,33 @@ package Modules.ReplayEngine
     import Modules.NativeCacheJobs;
     import Modules.NativeCore;
     import Modules.BackgroundWorkerCoordinator;
-    import Modules.CanvasGridOverlay;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.ColorPickerController;
     import Modules.DragInteraction;
-    import Modules.FileManager;
     import Modules.AppStateManager;
-    import Modules.LoadBoxController;
-    import Modules.ImageViewWindow;
-    import Modules.InputManager.InputManager;
-    import Modules.InputManager.DrawModeInput;
-    import Modules.InputManager.ReplayModeInput;
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
-    import Modules.SidebarController;
     import Modules.UndoHistory;
-    import Modules.UndoController;
     import Modules.Utils;
     import Symbols.SeekBarSet;
+    import Modules.L5App.AppWindowState;
+    import Modules.L4UI.CanvasGridOverlay;
+    import Modules.L4UI.ColorPickerController;
+    import Modules.L5App.InputManager.DrawModeInput;
+    import Modules.L5App.FileManager;
+    import Modules.L4UI.ImageViewWindow;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.L4UI.LoadBoxController;
+    import Modules.ReplayEngine.ReplayClock;
+    import Modules.ReplayEngine.ReplayDrawCommands;
+    import Modules.ReplayEngine.ReplayDrawer;
+    import Modules.ReplayEngine.ReplayFileCache;
+    import Modules.L5App.InputManager.ReplayModeInput;
+    import Modules.ReplayEngine.ReplayMouseAutoHide;
+    import Modules.ReplayEngine.ReplaySaveMetaData;
+    import Modules.ReplayEngine.ReplayState;
+    import Modules.L4UI.SidebarController;
+    import Modules.ReplayEngine.TimingSheetFile;
+    import Modules.L3Feature.UndoController;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController

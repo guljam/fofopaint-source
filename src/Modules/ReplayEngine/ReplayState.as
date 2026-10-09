@@ -1,9 +1,9 @@
 package Modules.ReplayEngine
 {
     import Modules.UndoHistory;
-    import Modules.UndoController;
     import flash.utils.Dictionary;
     import flash.utils.getTimer;
+    import Modules.L3Feature.UndoController;
 
     // 층: L1 데이터 - 리플레이 프레임 번호와 메모리 데이터 등 리플레이 상태
     public class ReplayState

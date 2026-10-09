@@ -1,9 +1,7 @@
 package Modules
 {
-    import Modules.InputManager.InputManager;
 
     import Modules.UIEngine.HintController;
-    import Modules.SidebarController;
     import Modules.Tools.PenTool;
     import Symbols.ColorPickerSet;
 
@@ -13,6 +11,9 @@ package Modules
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
     import flash.geom.Point;
+    import Modules.L4UI.ColorPickerController;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.L4UI.SidebarController;
 
     // 층: L4 UI - My Palette 선택·추가·저장과 적용
     public final class PaletteController

@@ -4,7 +4,6 @@ package Modules.ReplayEngine
     import Modules.DrawEngine.DrawCanvas;
     import Modules.Tools.PenTool;
     import flash.geom.Point;
-    import Modules.Tools.LassoTool;
     import flash.display.LineScaleMode;
     import flash.display.CapsStyle;
     import flash.display.BitmapData;
@@ -14,6 +13,7 @@ package Modules.ReplayEngine
     import flash.geom.Matrix;
     import flash.filters.BlurFilter;
     import Modules.Utils;
+    import Modules.L3Feature.Tools.LassoTool;
 
     // 층: L2 엔진 - 리플레이 그리기 명령 실행과 리플레이 커서 위치 관리
     public class ReplayDrawCommands

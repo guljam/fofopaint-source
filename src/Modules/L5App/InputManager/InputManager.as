@@ -1,23 +1,15 @@
-package Modules.InputManager
+package Modules.L5App.InputManager
 {
-    import Modules.Tools.ToolPanel;
     import Modules.DrawEngine.CanvasView;
     import Modules.AboutBoxController;
     import Modules.ClipboardManager;
-    import Modules.ColorPickerController;
-    import Modules.FileManager;
-    import Modules.ImeController;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.PenSizePreviewCursor;
-    import Modules.SidebarController;
-    import Modules.Tools.ToolController;
     import Modules.Utils;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.Tools.HandTool;
-    import Modules.Tools.LassoTool;
 
     import flash.display.DisplayObject;
     import flash.events.Event;
@@ -27,8 +19,16 @@ package Modules.InputManager
     import Modules.ReplayEngine.ReplayState;
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.DrawEngine.HandDrawnLine;
-    import Modules.ReplayEngine.ReplayController;
     import Symbols.TopMenuSet;
+    import Modules.L4UI.ColorPickerController;
+    import Modules.L5App.FileManager;
+    import Modules.L3Feature.Tools.HandTool;
+    import Modules.L3Feature.ImeController;
+    import Modules.L3Feature.Tools.LassoTool;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L4UI.SidebarController;
+    import Modules.L3Feature.Tools.ToolController;
+    import Modules.L4UI.Tools.ToolPanel;
 
     // 층: L5 앱 흐름 - 키보드·마우스 입력을 받아 모드별 입력 처리로 나눠줌
     public class InputManager

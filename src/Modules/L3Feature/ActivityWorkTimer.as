@@ -1,10 +1,11 @@
-package Modules
+package Modules.L3Feature
 {
-    import Modules.InputManager.InputManager;
     import Modules.UIEngine.UIController;
     import flash.utils.Timer;
     import flash.utils.getTimer;
     import flash.events.TimerEvent;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.MouseState;
 
     // 층: L3 기능 - 앱 실행 시간과 작업 시간 측정
     public class ActivityWorkTimer

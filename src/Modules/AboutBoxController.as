@@ -1,9 +1,5 @@
 package Modules
 {
-    import Modules.InputManager.InputManager;
-    import Modules.InputManager.DrawModeInput;
-    import Modules.InputManager.ReplayModeInput;
-    import Modules.InputManager.CaptureModeInput;
     import Modules.UIEngine.HintController;
     import Symbols.AboutWindowSet;
 
@@ -14,6 +10,12 @@ package Modules
     import flash.net.navigateToURL;
     import flash.net.URLRequest;
     import flash.utils.getTimer;
+    import Modules.L5App.AppWindowState;
+    import Modules.L5App.InputManager.CaptureModeInput;
+    import Modules.L5App.InputManager.DrawModeInput;
+    import Modules.L5App.FileManager;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.L5App.InputManager.ReplayModeInput;
 
     // 층: L4 UI - 정보(About) 창 열기·닫기와 크기·위치
     public class AboutBoxController

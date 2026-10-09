@@ -7,7 +7,6 @@ package Modules.Tools
     import Modules.InputPriority;
     import Modules.MouseState;
 	import Modules.ColorHistory;
-	import Modules.ColorPickerController;
 	import Modules.DrawingFinish;
 	import Modules.PaletteController;
 	import Modules.ReferenceLayerController;
@@ -24,8 +23,9 @@ package Modules.Tools
 	import flash.geom.Rectangle;
 	import flash.utils.getTimer;
 	import Modules.PenSizePreviewCursor;
-	import Modules.ReplayEngine.ReplayController;
 	import Modules.ReplayEngine.ReplayState;
+	import Modules.L4UI.ColorPickerController;
+	import Modules.L5App.ReplayEngine.ReplayController;
 
 	// 층: L3 기능 - 펜 그리기와 지우개
 	public final class PenTool

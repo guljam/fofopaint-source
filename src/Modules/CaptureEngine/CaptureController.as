@@ -3,20 +3,11 @@ package Modules.CaptureEngine
     import Modules.CanvasViewport;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
-    import Modules.DrawEngine.CanvasResizer;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.Utils;
-    import Modules.SidebarController;
     import Modules.PenSizePreviewCursor;
-    import Modules.FileManager;
-    import Modules.ColorPickerController;
-    import Modules.CanvasGridOverlay;
-    import Modules.InputManager.InputManager;
-    import Modules.InputManager.DrawModeInput;
-    import Modules.InputManager.ReplayModeInput;
-    import Modules.InputManager.CaptureModeInput;
     import Modules.ReferenceLayerController;
     import Modules.BackgroundWorkerCoordinator;
     import flash.desktop.Clipboard;
@@ -28,9 +19,18 @@ package Modules.CaptureEngine
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.L4UI.CanvasGridOverlay;
+    import Modules.L2Engine.DrawEngine.CanvasResizer;
+    import Modules.L5App.InputManager.CaptureModeInput;
+    import Modules.L4UI.ColorPickerController;
+    import Modules.L5App.InputManager.DrawModeInput;
+    import Modules.L5App.FileManager;
+    import Modules.L5App.InputManager.InputManager;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L5App.InputManager.ReplayModeInput;
+    import Modules.L4UI.SidebarController;
 
     // 층: L3 기능 - 캡처 모드 진입·종료와 캡처 처리
     public class CaptureController

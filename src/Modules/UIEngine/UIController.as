@@ -1,27 +1,15 @@
 package Modules.UIEngine
 {
-    import Modules.Tools.ToolPanel;
     import Modules.CanvasViewport;
     import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.CanvasResizer;
     import Modules.AboutBoxController;
     import Modules.AppStateManager;
     import Modules.CaptureEngine.CaptureController;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.ClipboardManager;
-    import Modules.ColorPickerController;
-    import Modules.FileManager;
-    import Modules.LoadBoxController;
-    import Modules.Tools.FillPenTool;
-    import Modules.ImageViewWindow;
     import Modules.ReferenceLayerController;
-    import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.SidebarController;
-    import Modules.Tools.ToolController;
-    import Modules.Tools.EyeDropperTool;
-    import Modules.Tools.LassoTool;
     import Modules.Utils;
     import Symbols.CanvasInfoSet;
     import Symbols.RotateCursorSet;
@@ -31,6 +19,19 @@ package Modules.UIEngine
     import flash.display.Sprite;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import Modules.L5App.AppWindowState;
+    import Modules.L2Engine.DrawEngine.CanvasResizer;
+    import Modules.L4UI.ColorPickerController;
+    import Modules.L3Feature.Tools.EyeDropperTool;
+    import Modules.L5App.FileManager;
+    import Modules.L3Feature.Tools.FillPenTool;
+    import Modules.L4UI.ImageViewWindow;
+    import Modules.L3Feature.Tools.LassoTool;
+    import Modules.L4UI.LoadBoxController;
+    import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L4UI.SidebarController;
+    import Modules.L3Feature.Tools.ToolController;
+    import Modules.L4UI.Tools.ToolPanel;
 
     // 스테이지 UI 배치: 표시 순서, 뷰포트 여백, 창 크기 변경 배치, UI 색상/스케일을 각 패널에 반영
     // 층: L4 UI - 스테이지 UI 배치와 UI 색상·스케일을 패널에 반영
