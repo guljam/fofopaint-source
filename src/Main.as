@@ -35,7 +35,6 @@
     import Modules.L3Feature.ActivityWorkTimer;
     import Modules.L5App.AppWindowState;
     import Modules.L4UI.CanvasGridOverlay;
-    import Modules.L2Engine.DrawEngine.CanvasResizer;
     import Modules.L5App.InputManager.CaptureModeInput;
     import Modules.L4UI.ColorPickerController;
     import Modules.L5App.InputManager.DrawModeInput;
@@ -74,6 +73,7 @@
     import Modules.L1Data.ColorHistory;
     import Modules.L2Engine.UndoHistory;
     import Modules.L4UI.CanvasViewport;
+    import Modules.L4UI.DrawEngine.CanvasResizer;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화

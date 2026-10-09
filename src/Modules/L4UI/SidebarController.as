@@ -16,7 +16,6 @@ package Modules.L4UI
     import flash.geom.Rectangle;
     import Modules.ReplayEngine.ReplayState;
     import flash.display.Shape;
-    import Modules.L2Engine.DrawEngine.CanvasResizer;
     import Modules.DragInteraction;
     import Modules.L3Feature.Tools.FillPenTool;
     import Modules.InputPriority;
@@ -32,6 +31,7 @@ package Modules.L4UI
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L4UI.DrawEngine.CanvasResizer;
 
     // 층: L4 UI - 사이드바 위치, 숨김·표시, 퀵 사이드바
     public final class SidebarController

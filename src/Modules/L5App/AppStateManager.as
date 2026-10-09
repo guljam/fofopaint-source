@@ -20,7 +20,6 @@ package Modules.L5App
     import Modules.L3Feature.ActivityWorkTimer;
     import Modules.L5App.AppWindowState;
     import Modules.L4UI.CanvasGridOverlay;
-    import Modules.L2Engine.DrawEngine.CanvasResizer;
     import Modules.L4UI.ColorPickerController;
     import Modules.L5App.FileManager;
     import Modules.L4UI.ImageViewWindow;
@@ -52,6 +51,7 @@ package Modules.L5App
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
     import Modules.L1Data.ColorHistory;
     import Modules.L2Engine.UndoHistory;
+    import Modules.L4UI.DrawEngine.CanvasResizer;
 
     // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager

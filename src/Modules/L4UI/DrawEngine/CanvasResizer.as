@@ -1,4 +1,4 @@
-package Modules.L2Engine.DrawEngine
+package Modules.L4UI.DrawEngine
 {
     import Modules.InputPriority;
     import Modules.MouseState;
@@ -20,6 +20,8 @@ package Modules.L2Engine.DrawEngine
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.UndoHistory;
+    import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 캔버스 상하좌우 리사이즈 버튼과 드래그로 캔버스 크기 조절
     // 층: L2 엔진 - 캔버스 상하좌우 리사이즈 버튼과 드래그로 크기 조절

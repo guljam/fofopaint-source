@@ -18,7 +18,6 @@ package Modules.L4UI.Tools
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.L2Engine.DrawEngine.CanvasResizer;
     import Modules.L5App.InputManager.DrawModeInput;
     import Modules.L3Feature.Tools.EyeDropperTool;
     import Modules.L5App.InputManager.InputManager;
@@ -36,6 +35,7 @@ package Modules.L4UI.Tools
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.DrawEngine.CanvasLayers;
+    import Modules.L4UI.DrawEngine.CanvasResizer;
 
     // 사이드바의 툴 패널 UI: 툴박스, 우클릭 툴박스(toolBox2), 펜 옵션 박스와 그 클릭/드래그 처리
     // 도구 선택 상태는 ToolController가 가지고, 여기서는 표시와 입력 해석만 함

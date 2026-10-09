@@ -11,7 +11,6 @@ package Modules.L5App
     import flash.display.Screen;
     import flash.display.NativeWindowDisplayState;
     import Modules.L3Feature.ActivityWorkTimer;
-    import Modules.L2Engine.DrawEngine.CanvasResizer;
     import Modules.L5App.InputManager.CaptureModeInput;
     import Modules.L4UI.ColorPickerController;
     import Modules.L5App.InputManager.DrawModeInput;
@@ -34,6 +33,7 @@ package Modules.L5App
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L4UI.DrawEngine.CanvasResizer;
 
     // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState
