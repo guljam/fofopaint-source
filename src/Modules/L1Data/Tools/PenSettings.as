@@ -1,11 +1,6 @@
 package Modules.L1Data.Tools
 {
-    import Modules.DrawEngine.StrokeBuffer;
     import Modules.UIEngine.UITheme;
-    import Modules.L3Feature.Tools.ToolController;
-    import Modules.L4UI.Tools.ToolPanel;
-    import Modules.L4UI.UIEngine.HintController;
-    import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L1Data.ToolState;
 
     // 펜/지우개 설정값(크기, 투명도, 모양, 손떨림 보정, 에어브러시, 샤프 라인)과 그 변경 함수
@@ -13,6 +8,31 @@ package Modules.L1Data.Tools
     // 층: L1 데이터 - 펜·지우개 설정값(크기, 투명도, 모양 등)과 그 변경 함수
     public class PenSettings
     {
+        // 마우스 옆에 임시 힌트 문구를 보여달라는 보고 (인자: 문구)
+        public static var onMouseHintTempFunc:Function;
+        // 그리기 도구 투명도를 적용했다는 보고 (인자: 투명도 인덱스)
+        public static var onAlphaAppliedFunc:Function;
+        // 그리기 도구 크기를 적용했다는 보고 (인자: 크기 인덱스)
+        public static var onSizeIndexAppliedFunc:Function;
+        // 펜 모양(사각/원) 버튼을 골랐다는 보고 (인자: 사각 여부)
+        public static var onShapeSelectedFunc:Function;
+        // 샤프 라인을 켜거나 껐다는 보고 (인자: 켬 여부)
+        public static var onSharpLineToggledFunc:Function;
+        // 에어브러시 체크박스를 켜거나 껐다는 보고 (인자: 켬 여부)
+        public static var onAirBrushToggledFunc:Function;
+        // 블러 모양 표시를 바꿔야 한다는 보고 (인자: 블러 여부)
+        public static var onBlurShapeSetFunc:Function;
+        // 그리기 임시 레이어의 필터를 비워야 한다는 보고
+        public static var onDrawLayerFilterClearedFunc:Function;
+        // 펜 크기 미리보기 커서의 크기와 모양을 다시 맞춰야 한다는 보고
+        public static var onCursorShapeChangedFunc:Function;
+        // 펜 크기 미리보기 커서의 위치와 보임 여부를 다시 맞춰야 한다는 보고
+        public static var onCursorPosChangedFunc:Function;
+        // 펜 크기 미리보기 커서의 크기를 바꿔야 한다는 보고 (인자: 크기)
+        public static var onCursorSizeChangedFunc:Function;
+        // 그리는 툴이 아니면 펜 툴로 바꿔야 한다는 보고 (인자: 지우개도 그리는 툴로 볼지)
+        public static var onPenToolNeededFunc:Function;
+
         public static var penAlpha:Number = 1.0;
         public static var penSize:uint = 3;
         public static var penIsSquare:Boolean = false;
@@ -45,6 +65,7 @@ package Modules.L1Data.Tools
             return ToolState.isSelectedTool(ToolState.TOOL_FILLPEN) && isPenAirBrushON;
         }
 
+        // 지금 도구의 이름, 크기, 투명도를 마우스 옆 임시 힌트로 보여줌
         public static function showDrawToolHintSizeOpacity():void
         {
             var tooltype:String = "";
@@ -76,15 +97,16 @@ package Modules.L1Data.Tools
                 alpha = penAlphaList[eraserAlphaIndex];
             }
 
-            HintController.showMouseHintTemp(tooltype + size + "px, " + alpha * 100 + "%");
+            if (onMouseHintTempFunc != null) onMouseHintTempFunc(tooltype + size + "px, " + alpha * 100 + "%");
         }
 
+        // 현재 도구(펜/지우개)에 투명도를 적용하고 투명도 커서 위치를 맞춤
         public static function applyDrawingToolAlpha(alpha:Number = 0.0):void
         {
             const index:int = penAlphaList.indexOf(alpha);
             const eraseFlag:Boolean = ToolState.isSelectedTool(ToolState.TOOL_ERASER);
 
-            ToolPanel.updateOpacityCursorPos(index);
+            if (onAlphaAppliedFunc != null) onAlphaAppliedFunc(index);
 
             if (eraseFlag === false)
             {
@@ -98,6 +120,7 @@ package Modules.L1Data.Tools
             }
         }
 
+        // 단축키로 투명도를 한 단계 올리거나 내림 (그리는 도구가 아니면 펜으로 바꿈)
         public static function adjustDrawToolAlphaByShortcut(increase:Boolean):void
         {
             function setAlpha(alp:Number, size:uint):void
@@ -127,7 +150,7 @@ package Modules.L1Data.Tools
                 applyDrawingToolAlpha(penAlphaList[index]);
                 showDrawToolHintSizeOpacity();
             }
-            ToolController.selectPenToolIfNotDrawingTool(true);
+            if (onPenToolNeededFunc != null) onPenToolNeededFunc(true);
 
             if (ToolState.isSelectedToolPenOrLine() || ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
@@ -139,6 +162,7 @@ package Modules.L1Data.Tools
             }
         }
 
+        // 단축키로 크기를 한 단계 올리거나 내림 (그리는 도구가 아니면 펜으로 바꿈)
         public static function adjustDrawToolSizeByShortcut(increase:Boolean):void
         {
             if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN) && !isFillPenSizeChangeable())
@@ -172,11 +196,11 @@ package Modules.L1Data.Tools
                 setDrawToolSize(index);
                 showDrawToolHintSizeOpacity();
 
-                PenSizePreviewCursor.updateSizeAndShape();
-                PenSizePreviewCursor.updatePosAndVisibility();
+                if (onCursorShapeChangedFunc != null) onCursorShapeChangedFunc();
+                if (onCursorPosChangedFunc != null) onCursorPosChangedFunc();
             }
 
-            ToolController.selectPenToolIfNotDrawingTool(true);
+            if (onPenToolNeededFunc != null) onPenToolNeededFunc(true);
 
             if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
@@ -207,6 +231,7 @@ package Modules.L1Data.Tools
             }
         }
 
+        // 크기 버튼(이름 끝 번호)을 눌러 크기를 정함
         public static function selectPenSizeButton(targetName:String):void
         {
             const numberOnly:String = targetName.substr(UITheme.NSIZE_BUTTON_PREFIX.length);
@@ -218,7 +243,7 @@ package Modules.L1Data.Tools
             }
 
             setDrawToolSize(index);
-            PenSizePreviewCursor.updateSizeAndShape();
+            if (onCursorShapeChangedFunc != null) onCursorShapeChangedFunc();
 
             if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
@@ -243,6 +268,7 @@ package Modules.L1Data.Tools
             }
         }
 
+        // 현재 도구의 크기를 인덱스로 정하고 크기 커서를 옮김
         public static function setDrawToolSize(index:uint):void
         {
             const size:uint = penSizeList[index];
@@ -251,7 +277,7 @@ package Modules.L1Data.Tools
             {
                 penSize = size;
                 penSizeIndex = index;
-                PenSizePreviewCursor.updateCursorSize(penSize);
+                if (onCursorSizeChangedFunc != null) onCursorSizeChangedFunc(penSize);
             }
             else if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
@@ -263,12 +289,13 @@ package Modules.L1Data.Tools
             {
                 eraserSize = size;
                 eraserSizeIndex = index;
-                PenSizePreviewCursor.updateCursorSize(eraserSize);
+                if (onCursorSizeChangedFunc != null) onCursorSizeChangedFunc(eraserSize);
             }
 
-            ToolPanel.movePenSizeCursor(index);
+            if (onSizeIndexAppliedFunc != null) onSizeIndexAppliedFunc(index);
         }
 
+        // 펜/지우개 모양(사각 여부)을 정함
         public static function selectPenShapeButton(shapeFlag:Boolean):void
         {
             penListShapeIsSqare = shapeFlag;
@@ -288,15 +315,16 @@ package Modules.L1Data.Tools
                 }
             }
 
-            ToolPanel.updatePenShapeSet(shapeFlag);
-            PenSizePreviewCursor.updateSizeAndShape();
+            if (onShapeSelectedFunc != null) onShapeSelectedFunc(shapeFlag);
+            if (onCursorShapeChangedFunc != null) onCursorShapeChangedFunc();
         }
 
+        // 샤프 라인을 켜거나 끔
         public static function toggleSharpLine(flag:Boolean):void
         {
             isSharpLineON = flag;
-            ToolPanel.updateSharpLineButtons(flag);
-            PenSizePreviewCursor.updateSizeAndShape();
+            if (onSharpLineToggledFunc != null) onSharpLineToggledFunc(flag);
+            if (onCursorShapeChangedFunc != null) onCursorShapeChangedFunc();
         }
 
         public static function getSharpLinePosOffset(size:Number):Number
@@ -305,28 +333,34 @@ package Modules.L1Data.Tools
                 : (size % 2.0 === 0) ? 0.5 : 0.0;
         }
 
+        // 단축키로 샤프 라인을 켜고 끄며 힌트를 보여줌
         public static function toggleSharpLineByShortcut():void
         {
             toggleSharpLine(!isSharpLineON);
 
             if (isSharpLineON)
             {
-                HintController.showMouseHintTemp("Sharp line ON");
+                if (onMouseHintTempFunc != null) onMouseHintTempFunc("Sharp line ON");
             }
             else
             {
-                HintController.showMouseHintTemp("Sharp line OFF");
+                if (onMouseHintTempFunc != null) onMouseHintTempFunc("Sharp line OFF");
             }
         }
 
+        // 단축키로 펜 에어브러시를 켜고 끄며 힌트를 보여줌
         public static function togglePenAirBrushButtonShortCut():void
         {
             isPenAirBrushON = !isPenAirBrushON;
             toggleAirBrushCheckBox(isPenAirBrushON, true);
             if (isPenAirBrushON)
-                HintController.showMouseHintTemp("Pen Air brush ON");
+            {
+                if (onMouseHintTempFunc != null) onMouseHintTempFunc("Pen Air brush ON");
+            }
             else
-                HintController.showMouseHintTemp("Pen Air brush OFF");
+            {
+                if (onMouseHintTempFunc != null) onMouseHintTempFunc("Pen Air brush OFF");
+            }
         }
 
         public static function togglePenAirBrushButton(flag:Boolean):void
@@ -335,9 +369,10 @@ package Modules.L1Data.Tools
             toggleAirBrushCheckBox(flag, true);
         }
 
+        // 에어브러시 체크박스를 켜거나 끄고 블러 크기를 정함
         public static function toggleAirBrushCheckBox(flag:Boolean, penFlag:Boolean):void
         {
-            ToolPanel.updateAirBrushButtons(flag);
+            if (onAirBrushToggledFunc != null) onAirBrushToggledFunc(flag);
 
             if (flag)
             {
@@ -349,24 +384,29 @@ package Modules.L1Data.Tools
                 {
                     airBrushSizeDrawMode = eraserSize;
                 }
-                ToolPanel.setBlurShapeSet(true);
+                if (onBlurShapeSetFunc != null) onBlurShapeSetFunc(true);
             }
             else if (airBrushSizeDrawMode !== 0)
             {
                 airBrushSizeDrawMode = 0;
-                StrokeBuffer.canvasDrawLayerChild.filters = [];
-                ToolPanel.setBlurShapeSet(false);
+                if (onDrawLayerFilterClearedFunc != null) onDrawLayerFilterClearedFunc();
+                if (onBlurShapeSetFunc != null) onBlurShapeSetFunc(false);
             }
         }
 
+        // 단축키로 지우개 에어브러시를 켜고 끄며 힌트를 보여줌
         public static function toggleEraseAirBrushButtonShortCut():void
         {
             isEraserAirBrushON = !isEraserAirBrushON;
             toggleAirBrushCheckBox(isEraserAirBrushON, false);
             if (isEraserAirBrushON)
-                HintController.showMouseHintTemp("Eraser Air brush ON");
+            {
+                if (onMouseHintTempFunc != null) onMouseHintTempFunc("Eraser Air brush ON");
+            }
             else
-                HintController.showMouseHintTemp("Eraser Air brush OFF");
+            {
+                if (onMouseHintTempFunc != null) onMouseHintTempFunc("Eraser Air brush OFF");
+            }
         }
 
         public static function toggleEraseAirBrushButton(flag:Boolean):void

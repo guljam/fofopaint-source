@@ -70,6 +70,8 @@
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.PenSizePreviewCursor;
+    import Modules.L1Data.Tools.PenSettings;
+    import Modules.DrawEngine.StrokeBuffer;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화
@@ -102,6 +104,26 @@
             this.removeEventListener(Event.ADDED_TO_STAGE, onStageAdded);
             initializeStage();
         }
+        // 아래층(L1~L3)이 위층에 알릴 때 쓰는 보고용 슬롯을 등록함. loadAppState보다 먼저 등록해야 함 (initializeModule 끝에서 부름. 각 클래스의 static 초기화가 setMainInstance 순서보다 앞서지 않도록 그 뒤에 둠)
+        public function registerSlots():void
+        {
+            PenSettings.onMouseHintTempFunc = HintController.showMouseHintTemp;
+            PenSettings.onAlphaAppliedFunc = ToolPanel.updateOpacityCursorPos;
+            PenSettings.onSizeIndexAppliedFunc = ToolPanel.movePenSizeCursor;
+            PenSettings.onShapeSelectedFunc = ToolPanel.updatePenShapeSet;
+            PenSettings.onSharpLineToggledFunc = ToolPanel.updateSharpLineButtons;
+            PenSettings.onAirBrushToggledFunc = ToolPanel.updateAirBrushButtons;
+            PenSettings.onBlurShapeSetFunc = ToolPanel.setBlurShapeSet;
+            PenSettings.onDrawLayerFilterClearedFunc = function ():void
+            {
+                StrokeBuffer.canvasDrawLayerChild.filters = [];
+            };
+            PenSettings.onCursorShapeChangedFunc = PenSizePreviewCursor.updateSizeAndShape;
+            PenSettings.onCursorPosChangedFunc = PenSizePreviewCursor.updatePosAndVisibility;
+            PenSettings.onCursorSizeChangedFunc = PenSizePreviewCursor.updateCursorSize;
+            PenSettings.onPenToolNeededFunc = ToolController.selectPenToolIfNotDrawingTool;
+        }
+
         public function initializeModule():void
         {
             // 나중에 file load 클래스 초기화로 옮겨야함
@@ -148,6 +170,7 @@
             DrawModeInput.setMainInstance(this);
             CaptureModeInput.setMainInstance(this);
             ReplayModeInput.setMainInstance(this);
+            registerSlots();
         }
 
         public function initializeTools():void
