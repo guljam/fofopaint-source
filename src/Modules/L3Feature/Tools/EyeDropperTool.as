@@ -27,6 +27,7 @@ package Modules.L3Feature.Tools
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L1Data.ToolState;
 
     // 층: L3 기능 - 스포이드 툴
     public class EyeDropperTool
@@ -232,11 +233,11 @@ package Modules.L3Feature.Tools
 
             if (okFlag)
             {
-                if (!(ToolController.isLastTool(ToolController.TOOL_FILLPEN)
-                            || ToolController.isLastTool(ToolController.TOOL_LINE)
-                            || ToolController.isLastTool(ToolController.TOOL_PEN)))
+                if (!(ToolState.isLastTool(ToolState.TOOL_FILLPEN)
+                            || ToolState.isLastTool(ToolState.TOOL_LINE)
+                            || ToolState.isLastTool(ToolState.TOOL_PEN)))
                 {
-                    ToolController.setLastTool(ToolController.TOOL_PEN);
+                    ToolState.setLastTool(ToolState.TOOL_PEN);
                 }
             }
 
@@ -245,7 +246,7 @@ package Modules.L3Feature.Tools
 
         private static function isNotEyeDropperTool():Boolean
         {
-            return !ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || ReplayState.isReplayModeON || CaptureController.isCaptureModeON || FileManager.isFileBrowserOpened || MouseState.isClickBlocked;
+            return !ToolState.isSelectedTool(ToolState.TOOL_EYEDROPPER) || ReplayState.isReplayModeON || CaptureController.isCaptureModeON || FileManager.isFileBrowserOpened || MouseState.isClickBlocked;
         }
 
         private static function confirmEyeDropperSelection():void
@@ -332,9 +333,9 @@ package Modules.L3Feature.Tools
             }
 
             ToolPanel.toolBox.moveToolCursor("toolEyedropper");
-            ToolController.setLastTool(ToolController.nowTool);
+            ToolState.setLastTool(ToolState.nowTool);
             // todo: 이것도 그냥 setLastToolPen, setSeletedToolPen이런식으로 메서드로 호출
-            ToolController.setSelectedTool(ToolController.TOOL_EYEDROPPER);
+            ToolState.setSelectedTool(ToolState.TOOL_EYEDROPPER);
 
             penColorBackup = PenTool.penColor;
             Utils.setColorTransform(eyedropperLens.oldColor, PenTool.penColor);

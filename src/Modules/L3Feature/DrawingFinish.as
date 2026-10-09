@@ -9,10 +9,10 @@ package Modules.L3Feature
     import flash.geom.ColorTransform;
     import Modules.ReplayEngine.ReplayState;
     import Modules.L5App.ReplayEngine.ReplayController;
-    import Modules.L3Feature.Tools.ToolController;
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.UndoHistory;
     import Modules.L1Data.Tools.PenSettings;
+    import Modules.L1Data.ToolState;
 
     // 층: L3 기능 - 획이 끝났을 때 임시 그리기 버퍼를 레이어에 합치고 undo 기록을 준비
     public class DrawingFinish
@@ -55,7 +55,7 @@ package Modules.L3Feature
             StrokeBuffer.updateCanvasDrawLayerClipRect();
             StrokeBuffer.extendCanvasDrawLayerClipRect(); // 그린 영역을 100% 다 포함하지 않아서 약간 늘려줌
 
-            if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+            if (ToolState.isSelectedToolPenOrLine() || ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
                 drawLayerAlpha.alphaMultiplier = PenSettings.penAlpha;
 
@@ -68,7 +68,7 @@ package Modules.L3Feature
                     DrawCanvas.canvasLayer1BitmapData.draw(StrokeBuffer.canvasDrawLayerBitmap, null, drawLayerAlpha, (PenTool.isTransparentPenColor) ? "erase" : null, StrokeBuffer.canvasDrawLayerClipRect);
                 }
             }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))
             {
                 drawLayerAlpha.alphaMultiplier = PenSettings.eraserAlpha;
 

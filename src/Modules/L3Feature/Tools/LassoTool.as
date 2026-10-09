@@ -45,6 +45,7 @@ package Modules.L3Feature.Tools
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.UndoHistory;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L1Data.ToolState;
 
     // 층: L3 기능 - 올가미 선택과 이동·회전·크기·미러
     public class LassoTool
@@ -1206,8 +1207,8 @@ package Modules.L3Feature.Tools
             {
                 KeyState.updateLastKey();
                 _isLassoMenuHiddenTemp = true;
-                ToolController.setSelectedTool(ToolController.TOOL_HAND);
-                ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
+                ToolState.setSelectedTool(ToolState.TOOL_HAND);
+                ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_HAND);
             }
         }
 
@@ -1228,11 +1229,11 @@ package Modules.L3Feature.Tools
                 if (_isLassoMenuHiddenTemp)
                 {
                     lassoMenuBox.visible = false;
-                    if (ToolController.isSelectedTool(ToolController.TOOL_HAND))
+                    if (ToolState.isSelectedTool(ToolState.TOOL_HAND))
                         HandTool.startInDrawMode();
-                    else if (ToolController.isSelectedTool(ToolController.TOOL_ZOOM))
+                    else if (ToolState.isSelectedTool(ToolState.TOOL_ZOOM))
                         ZoomTool.start();
-                    else if (ToolController.isSelectedTool(ToolController.TOOL_ROTATE))
+                    else if (ToolState.isSelectedTool(ToolState.TOOL_ROTATE))
                         RotateTool.startInDrawMode();
                 }
                 else
@@ -1366,8 +1367,8 @@ package Modules.L3Feature.Tools
 
                 KeyState.updateLastKey();
                 _isLassoMenuHiddenTemp = true;
-                ToolController.setSelectedTool(ToolController.TOOL_HAND);
-                ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
+                ToolState.setSelectedTool(ToolState.TOOL_HAND);
+                ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_HAND);
             }
             else if (KeyState.isPressingShift())
             {
@@ -1402,16 +1403,16 @@ package Modules.L3Feature.Tools
                 case KeyState.KEY.i:
                     _isLassoMenuHiddenTemp = true;
                     KeyState.updateLastKey();
-                    ToolController.setSelectedTool(ToolController.TOOL_ZOOM);
-                    ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_ZOOM);
+                    ToolState.setSelectedTool(ToolState.TOOL_ZOOM);
+                    ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_ZOOM);
                     break;
 
                 case KeyState.KEY.s:
                 case KeyState.KEY.k:
                     _isLassoMenuHiddenTemp = true;
                     KeyState.updateLastKey();
-                    ToolController.setSelectedTool(ToolController.TOOL_ROTATE);
-                    ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_ROTATE);
+                    ToolState.setSelectedTool(ToolState.TOOL_ROTATE);
+                    ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_ROTATE);
                     break;
 
                 case KeyState.KEY.enter:

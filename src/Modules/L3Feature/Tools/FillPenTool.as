@@ -32,6 +32,7 @@ package Modules.L3Feature.Tools
     import Modules.L1Data.UndoHistory;
     import Modules.L3Feature.DrawingFinish;
     import Modules.L1Data.Tools.PenSettings;
+    import Modules.L1Data.ToolState;
 
     // 층: L3 기능 - 채우기 펜
     public class FillPenTool
@@ -428,7 +429,7 @@ package Modules.L3Feature.Tools
 
             if (isStartedFromShortCut)
             {
-                ToolController.setLastTool(ToolController.TOOL_PEN);
+                ToolState.setLastTool(ToolState.TOOL_PEN);
                 ToolController.selectPenTool();
             }
         }

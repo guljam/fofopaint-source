@@ -8,12 +8,12 @@ package Modules.L4UI
     import flash.utils.getTimer;
     import Modules.L2Engine.DrawEngine.CanvasResizer;
     import Modules.L4UI.LoadBoxController;
-    import Modules.L3Feature.Tools.ToolController;
     import Modules.MouseState;
     import Modules.PenCursorPreviewPixel;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.ReferenceLayerController;
     import Modules.Utils;
+    import Modules.L1Data.ToolState;
 
     // 층: L4 UI - 펜 크기 미리보기 커서 (모양, 위치, 보임 여부)
     public class PenSizePreviewCursor
@@ -85,7 +85,7 @@ package Modules.L4UI
 
         public static function checkCursorVisibility():void
         {
-            if (cursorSize <= 4 || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+            if (cursorSize <= 4 || ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
                 if (_cursor.visible)
                 {
@@ -110,11 +110,11 @@ package Modules.L4UI
 
         public static function updateZoom(z:Number):void
         {
-            if (ToolController.isSelectedToolPenOrLine())
+            if (ToolState.isSelectedToolPenOrLine())
             {
                 cursorSize = PenSettings.penSize * CanvasView.canvasZoomMultiplier;
             }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))
             {
                 cursorSize = PenSettings.eraserSize * CanvasView.canvasZoomMultiplier;
             }
@@ -133,7 +133,7 @@ package Modules.L4UI
             // || (!quickSidebarON && !isCursorInDrawArea())
             // (sideBar.visible && (sideBarScrollBar.hitTestPoint(mouseX,mouseY) || sideBar.hitTestPoint(mouseX,mouseY)))
             if (isPenSizeCursorInvisible
-                    || (ToolController.nowTool > ToolController.TOOL_LINE && ToolController.nowTool !== ToolController.TOOL_FILLPEN) // 1 2 3 4 펜 지우개 라인툴 라인-지우개툴
+                    || (ToolState.nowTool > ToolState.TOOL_LINE && ToolState.nowTool !== ToolState.TOOL_FILLPEN) // 1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                     || !Utils.isCursorInDrawArea()
                     || CanvasResizer.isCanvasResizing()
                     || (ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mx, my))
@@ -157,8 +157,8 @@ package Modules.L4UI
         // size, size drag, zoom, rotate시 업데이트 해줌
         public static function updateSizeAndShape():void
         {
-            const isPenTool:Boolean = ToolController.isSelectedToolPenOrLine();
-            if (!isPenTool && !ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+            const isPenTool:Boolean = ToolState.isSelectedToolPenOrLine();
+            if (!isPenTool && !ToolState.isSelectedTool(ToolState.TOOL_ERASER))
             {
                 return;
             }

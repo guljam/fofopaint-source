@@ -23,13 +23,13 @@ package Modules.L5App.InputManager
     import Modules.L3Feature.Tools.LassoTool;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
-    import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L4UI.AboutBoxController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.PenSizePreviewCursor;
+    import Modules.L1Data.ToolState;
 
     // 층: L5 앱 흐름 - 키보드·마우스 입력을 받아 모드별 입력 처리로 나눠줌
     public class InputManager
@@ -294,7 +294,7 @@ package Modules.L5App.InputManager
                 HandTool.startInDrawModeWithWheelClick();
             }
 
-            ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
+            ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_HAND);
         }
 
         public static function onKeyUpStage(e:KeyboardEvent):void

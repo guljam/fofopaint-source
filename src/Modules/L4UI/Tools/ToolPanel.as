@@ -35,6 +35,7 @@ package Modules.L4UI.Tools
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L4UI.PenSizePreviewCursor;
+    import Modules.L1Data.ToolState;
 
     // 사이드바의 툴 패널 UI: 툴박스, 우클릭 툴박스(toolBox2), 펜 옵션 박스와 그 클릭/드래그 처리
     // 도구 선택 상태는 ToolController가 가지고, 여기서는 표시와 입력 해석만 함
@@ -80,31 +81,31 @@ package Modules.L4UI.Tools
         {
             switch (toolIndex)
             {
-                case ToolController.TOOL_PEN:
+                case ToolState.TOOL_PEN:
                     return toolBox.toolPen;
-                case ToolController.TOOL_FILLPEN:
+                case ToolState.TOOL_FILLPEN:
                     return toolBox.toolFillPen;
-                case ToolController.TOOL_ERASER:
+                case ToolState.TOOL_ERASER:
                     return toolBox.toolEraser;
-                case ToolController.TOOL_EYEDROPPER:
+                case ToolState.TOOL_EYEDROPPER:
                     return toolBox.toolEyedropper;
-                case ToolController.TOOL_LASSO:
+                case ToolState.TOOL_LASSO:
                     return toolBox.toolLasso;
-                case ToolController.TOOL_MOVE:
+                case ToolState.TOOL_MOVE:
                     return toolBox.toolMove;
-                case ToolController.TOOL_LINE:
+                case ToolState.TOOL_LINE:
                     return toolBox.toolLine;
-                case ToolController.TOOL_ZOOM:
+                case ToolState.TOOL_ZOOM:
                     return toolBox.toolZoomIn;
-                case ToolController.TOOL_ROTATE:
+                case ToolState.TOOL_ROTATE:
                     return toolBox.toolRotate;
-                case ToolController.TOOL_HAND:
+                case ToolState.TOOL_HAND:
                     return toolBox.toolHand;
-                case ToolController.TOOL_UNDO:
+                case ToolState.TOOL_UNDO:
                     return toolBox.toolUndo;
-                case ToolController.TOOL_REDO:
+                case ToolState.TOOL_REDO:
                     return toolBox.toolRedo;
-                case ToolController.TOOL_MIRROR:
+                case ToolState.TOOL_MIRROR:
                     return toolBox.toolMirror;
             }
 
@@ -147,13 +148,13 @@ package Modules.L4UI.Tools
         public static function updateToolOptionsTextBySelectedTool():void
         {
             var toolName:String = "Pen";
-            const nt:uint = ToolController.nowTool;
+            const nt:uint = ToolState.nowTool;
 
-            if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+            if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))
                 toolName = "Eraser";
-            else if (ToolController.isSelectedTool(ToolController.TOOL_LINE))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_LINE))
                 toolName = "Line";
-            else if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
                 toolName = "FillPen";
 
             toolOptionsBox.hintText(toolName);
@@ -189,8 +190,8 @@ package Modules.L4UI.Tools
             const minValue:Number = 0.02;
             const stepValue:Number = (maxValue - minValue) / step;
 
-            const airBrushFlag:Boolean = ToolController.isSelectedToolPenOrLine() && PenSettings.isPenAirBrushON;
-            const eraseAirBrushFlag:Boolean = ToolController.isSelectedTool(ToolController.TOOL_ERASER) && PenSettings.isEraserAirBrushON;
+            const airBrushFlag:Boolean = ToolState.isSelectedToolPenOrLine() && PenSettings.isPenAirBrushON;
+            const eraseAirBrushFlag:Boolean = ToolState.isSelectedTool(ToolState.TOOL_ERASER) && PenSettings.isEraserAirBrushON;
 
             var oldValue:int = PenSettings.penSmoothSlideValue;
 
@@ -273,7 +274,7 @@ package Modules.L4UI.Tools
                 {
                     case "toolPen":
                         {
-                            if (!ToolController.isSelectedTool(ToolController.TOOL_PEN))
+                            if (!ToolState.isSelectedTool(ToolState.TOOL_PEN))
                             {
                                 ToolController.selectPenTool();
                                 PenSizePreviewCursor.updateSizeAndShape();
@@ -282,7 +283,7 @@ package Modules.L4UI.Tools
                         break;
                     case "toolFillPen":
                         {
-                            if (!ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+                            if (!ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
                             {
                                 ToolController.selectFillPenTool();
                                 PenSizePreviewCursor.updateSizeAndShape();
@@ -291,7 +292,7 @@ package Modules.L4UI.Tools
                         break;
                     case "toolEraser":
                         {
-                            if (!ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+                            if (!ToolState.isSelectedTool(ToolState.TOOL_ERASER))
                             {
                                 ToolController.selectEraserTool();
                                 PenSizePreviewCursor.updateSizeAndShape();
@@ -300,7 +301,7 @@ package Modules.L4UI.Tools
                         break;
                     case "toolLine":
                         {
-                            if (!ToolController.isSelectedTool(ToolController.TOOL_LINE))
+                            if (!ToolState.isSelectedTool(ToolState.TOOL_LINE))
                             {
                                 ToolController.selectLineTool();
                                 PenSizePreviewCursor.updateSizeAndShape();
@@ -309,7 +310,7 @@ package Modules.L4UI.Tools
                         break;
                     case "toolLasso":
                         {
-                            if (!ToolController.isSelectedTool(ToolController.TOOL_LASSO))
+                            if (!ToolState.isSelectedTool(ToolState.TOOL_LASSO))
                             {
                                 ToolController.selectLassoTool();
                             }
@@ -317,7 +318,7 @@ package Modules.L4UI.Tools
                         break;
                     case "toolEyedropper":
                         {
-                            if (!ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER))
+                            if (!ToolState.isSelectedTool(ToolState.TOOL_EYEDROPPER))
                             {
                                 EyeDropperTool.start();
                             }
@@ -427,7 +428,7 @@ package Modules.L4UI.Tools
         // 에어브러시를 끄면 크기 커서를 1에 둠
         public static function updateFillPenOptions():void
         {
-            if (!ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+            if (!ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
                 return;
             }
@@ -596,61 +597,61 @@ package Modules.L4UI.Tools
                     {
                         ToolController.selectPenTool();
                         PenSizePreviewCursor.updateSizeAndShape();
-                        showNowToolIconToCursorTemp(ToolController.TOOL_PEN);
+                        showNowToolIconToCursorTemp(ToolState.TOOL_PEN);
                     }
                     break;
                 case "toolFillPen":
                     {
                         ToolController.selectFillPenTool();
                         PenSizePreviewCursor.updateSizeAndShape();
-                        showNowToolIconToCursorTemp(ToolController.TOOL_FILLPEN);
+                        showNowToolIconToCursorTemp(ToolState.TOOL_FILLPEN);
                     }
                     break;
                 case "toolEraser":
                     {
                         ToolController.selectEraserTool();
                         PenSizePreviewCursor.updateSizeAndShape();
-                        showNowToolIconToCursorTemp(ToolController.TOOL_ERASER);
+                        showNowToolIconToCursorTemp(ToolState.TOOL_ERASER);
                     }
                     break;
                 case "toolLine":
                     {
                         ToolController.selectLineTool();
                         PenSizePreviewCursor.updateSizeAndShape();
-                        showNowToolIconToCursorTemp(ToolController.TOOL_LINE);
+                        showNowToolIconToCursorTemp(ToolState.TOOL_LINE);
                     }
                     break;
                 case "toolLasso":
                     {
                         ToolController.selectLassoTool();
-                        showNowToolIconToCursorTemp(ToolController.TOOL_LASSO);
+                        showNowToolIconToCursorTemp(ToolState.TOOL_LASSO);
                     }
                     break;
                 case "toolEyedropper":
                     {
-                        if (!ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER))
+                        if (!ToolState.isSelectedTool(ToolState.TOOL_EYEDROPPER))
                         {
                             EyeDropperTool.start();
-                            showNowToolIconToCursorTemp(ToolController.TOOL_EYEDROPPER);
+                            showNowToolIconToCursorTemp(ToolState.TOOL_EYEDROPPER);
                         }
                     }
                     break;
                 case "toolUndo":
                     {
                         UndoController.undo();
-                        showNowToolIconToCursorTemp(ToolController.TOOL_UNDO);
+                        showNowToolIconToCursorTemp(ToolState.TOOL_UNDO);
                     }
                     break;
                 case "toolRedo":
                     {
                         UndoController.redo();
-                        showNowToolIconToCursorTemp(ToolController.TOOL_REDO);
+                        showNowToolIconToCursorTemp(ToolState.TOOL_REDO);
                     }
                     break;
                 case "toolMirror":
                     {
                         CanvasView.mirrorCanvas();
-                        showNowToolIconToCursorTemp(ToolController.TOOL_MIRROR);
+                        showNowToolIconToCursorTemp(ToolState.TOOL_MIRROR);
                     }
                     break;
                 case "toolRefLayer":
@@ -857,7 +858,7 @@ package Modules.L4UI.Tools
 
             if (targetName.indexOf(UITheme.NSIZE_BUTTON_PREFIX) == 0)
             {
-                if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+                if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
                 {
                     if (PenSettings.isFillPenSizeChangeable())
                     {
@@ -876,7 +877,7 @@ package Modules.L4UI.Tools
             {
                 case "penSmoothSliderWrapper":
                     {
-                        if (ToolController.nowTool !== ToolController.TOOL_PEN)
+                        if (ToolState.nowTool !== ToolState.TOOL_PEN)
                         {
                             return true;
                         }
@@ -888,7 +889,7 @@ package Modules.L4UI.Tools
 
                 case "shapeRect":
                     {
-                        if (!ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+                        if (!ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
                         {
                             ToolController.selectPenToolIfNotDrawingTool(true);
                             PenSettings.selectPenShapeButton(true);
@@ -897,7 +898,7 @@ package Modules.L4UI.Tools
                     return true;
                 case "shapeCircle":
                     {
-                        if (!ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+                        if (!ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
                         {
                             ToolController.selectPenToolIfNotDrawingTool(true);
                             PenSettings.selectPenShapeButton(false);
@@ -986,11 +987,11 @@ package Modules.L4UI.Tools
                         {
                             ToolController.selectPenToolIfNotDrawingTool(true);
 
-                            if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+                            if (ToolState.isSelectedToolPenOrLine() || ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
                             {
                                 PenSettings.togglePenAirBrushButton(!PenSettings.isPenAirBrushON);
                             }
-                            else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+                            else if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))
                             {
                                 PenSettings.toggleEraseAirBrushButton(!PenSettings.isEraserAirBrushON);
                             }

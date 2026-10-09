@@ -20,13 +20,13 @@ package Modules.L4UI.UIEngine
     import Modules.L3Feature.Tools.LineTool;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
-    import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L4UI.AboutBoxController;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.UIEngine.UITheme;
+    import Modules.L1Data.ToolState;
 
     // 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시. 문구는 HintStrings가 담당
     // 층: L4 UI - 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시
@@ -162,7 +162,7 @@ package Modules.L4UI.UIEngine
                     return false;
                 }
             }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
                 if ((targetName && targetName.indexOf(UITheme.NSIZE_BUTTON_PREFIX) !== -1 && !PenSettings.isFillPenSizeChangeable()) || target.alpha < 0.5)
                 {

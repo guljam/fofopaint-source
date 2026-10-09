@@ -44,6 +44,7 @@ package Modules.L5App.InputManager
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L4UI.PenSizePreviewCursor;
+    import Modules.L1Data.ToolState;
 
     // 드로우 모드의 키보드/마우스 입력 (툴 단축키, 툴박스2, 드로우 모드 버튼)
     // 층: L5 앱 흐름 - 드로우 모드의 키보드/마우스 입력
@@ -172,7 +173,7 @@ package Modules.L5App.InputManager
                         if (ToolPanel.toolBox2.visible && ToolPanel.toolBox2.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                         {
                             ToolPanel.updateToolBoxMousePos(ToolPanel.toolBox2.toolPen);
-                            ToolController.updateLastTool();
+                            ToolState.updateLastTool();
                             HandTool.startInDrawMode();
                         }
 
@@ -316,10 +317,10 @@ package Modules.L5App.InputManager
                 }
                 else
                 {
-                    if (ToolController.lastTool > ToolController.TOOL_NONE)
+                    if (ToolState.lastTool > ToolState.TOOL_NONE)
                     {
                         ToolController.selectLastUsedTool();
-                        ToolPanel.showNowToolIconToCursorTemp(ToolController.nowTool);
+                        ToolPanel.showNowToolIconToCursorTemp(ToolState.nowTool);
                     }
                     PenSizePreviewCursor.updatePosAndVisibility();
                 }
@@ -359,7 +360,7 @@ package Modules.L5App.InputManager
             if (KeyState.isPressingControlShift())
             {
                 // shift 누르고 ctrl 순서로 누를때 이전툴로 복원
-                if (ToolController.isSelectedTool(ToolController.TOOL_LINE))
+                if (ToolState.isSelectedTool(ToolState.TOOL_LINE))
                 {
                     ToolController.selectLastUsedTool();
                 }
@@ -576,7 +577,7 @@ package Modules.L5App.InputManager
                 case KeyState.KEY.l:
                     {
                         CanvasView.mirrorCanvas();
-                        ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_MIRROR);
+                        ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_MIRROR);
                     }
                     break;
                 case KeyState.KEY.c:
@@ -640,11 +641,11 @@ package Modules.L5App.InputManager
                 case KeyState.KEY.n4:
                 case KeyState.KEY.n7:
                     {
-                        if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+                        if (ToolState.isSelectedToolPenOrLine() || ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
                         {
                             PenSettings.togglePenAirBrushButtonShortCut();
                         }
-                        else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+                        else if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))
                         {
                             PenSettings.toggleEraseAirBrushButtonShortCut();
                         }
@@ -659,14 +660,14 @@ package Modules.L5App.InputManager
                 case KeyState.KEY.comma:
                     {
                         KeyState.startKeyRepeat(true, UndoController.redo);
-                        ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_REDO);
+                        ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_REDO);
                     }
                     return true;
                 case KeyState.KEY.z:
                 case KeyState.KEY.dot:
                     {
                         KeyState.startKeyRepeat(true, UndoController.undo);
-                        ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_UNDO);
+                        ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_UNDO);
                     }
                     return true;
                 case KeyState.KEY.tab:
@@ -699,7 +700,7 @@ package Modules.L5App.InputManager
                 else
                 {
                     KeyState.resetLastKey();
-                    if (ToolController.lastTool > ToolController.TOOL_NONE)
+                    if (ToolState.lastTool > ToolState.TOOL_NONE)
                     {
                         ToolController.selectLastUsedTool();
                     }
@@ -865,7 +866,7 @@ package Modules.L5App.InputManager
         private static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
         {
             if (MouseState.isLeftDown || KeyState.isKeyPressed() || KeyState.isPressingControl() || SidebarController.isQuickSidebarActive
-                    || FillPenTool.isStarted || LineTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
+                    || FillPenTool.isStarted || LineTool.isStarted || ToolState.isSelectedTool(ToolState.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
                     || LoadBoxController.loadMenuBox.visible || UIController.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;
@@ -959,12 +960,12 @@ package Modules.L5App.InputManager
             }
             else if (secondKey === KeyState.KEY.n4 || secondKey === KeyState.KEY.n7)
             {
-                if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+                if (ToolState.isSelectedToolPenOrLine() || ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
                 {
                     PenSettings.togglePenAirBrushButtonShortCut();
                     return true;
                 }
-                else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+                else if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))
                 {
                     PenSettings.toggleEraseAirBrushButtonShortCut();
                     return true;

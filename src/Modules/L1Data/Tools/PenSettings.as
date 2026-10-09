@@ -6,6 +6,7 @@ package Modules.L1Data.Tools
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.PenSizePreviewCursor;
+    import Modules.L1Data.ToolState;
 
     // 펜/지우개 설정값(크기, 투명도, 모양, 손떨림 보정, 에어브러시, 샤프 라인)과 그 변경 함수
     // 현재 도구(ToolController)에 맞는 값을 바꾸고, 옵션 박스 표시는 ToolPanel에 맡김
@@ -41,7 +42,7 @@ package Modules.L1Data.Tools
         // 채우기 펜의 크기는 에어브러시가 켜져 있을때만 바꿀 수 있음 (진행 중에도 가능, 블러는 OK할 때 적용함)
         public static function isFillPenSizeChangeable():Boolean
         {
-            return ToolController.isSelectedTool(ToolController.TOOL_FILLPEN) && isPenAirBrushON;
+            return ToolState.isSelectedTool(ToolState.TOOL_FILLPEN) && isPenAirBrushON;
         }
 
         public static function showDrawToolHintSizeOpacity():void
@@ -50,25 +51,25 @@ package Modules.L1Data.Tools
             var size:Number;
             var alpha:Number;
 
-            if (ToolController.isSelectedTool(ToolController.TOOL_PEN))
+            if (ToolState.isSelectedTool(ToolState.TOOL_PEN))
             {
                 tooltype = "Pen ";
                 size = penSizeList[penSizeIndex];
                 alpha = penAlphaList[penAlphaIndex];
             }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_LINE))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_LINE))
             {
                 tooltype = "Line ";
                 size = penSizeList[penSizeIndex];
                 alpha = penAlphaList[penAlphaIndex];
             }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
                 tooltype = "Fill Pen ";
                 size = (isPenAirBrushON) ? fillPenSize : 1;
                 alpha = penAlphaList[penAlphaIndex];
             }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))
             {
                 tooltype = "Eraser ";
                 size = penSizeList[eraserSizeIndex];
@@ -81,7 +82,7 @@ package Modules.L1Data.Tools
         public static function applyDrawingToolAlpha(alpha:Number = 0.0):void
         {
             const index:int = penAlphaList.indexOf(alpha);
-            const eraseFlag:Boolean = ToolController.isSelectedTool(ToolController.TOOL_ERASER);
+            const eraseFlag:Boolean = ToolState.isSelectedTool(ToolState.TOOL_ERASER);
 
             ToolPanel.updateOpacityCursorPos(index);
 
@@ -128,11 +129,11 @@ package Modules.L1Data.Tools
             }
             ToolController.selectPenToolIfNotDrawingTool(true);
 
-            if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+            if (ToolState.isSelectedToolPenOrLine() || ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
                 setAlpha(penAlpha, penSize);
             }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))
             {
                 setAlpha(eraserAlpha, eraserSize);
             }
@@ -140,7 +141,7 @@ package Modules.L1Data.Tools
 
         public static function adjustDrawToolSizeByShortcut(increase:Boolean):void
         {
-            if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN) && !isFillPenSizeChangeable())
+            if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN) && !isFillPenSizeChangeable())
             {
                 return;
             }
@@ -177,7 +178,7 @@ package Modules.L1Data.Tools
 
             ToolController.selectPenToolIfNotDrawingTool(true);
 
-            if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+            if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
                 setSize(fillPenSizeIndex, penAlpha);
 
@@ -186,7 +187,7 @@ package Modules.L1Data.Tools
                     airBrushSizeDrawMode = fillPenSize;
                 }
             }
-            else if (ToolController.isSelectedToolPenOrLine())
+            else if (ToolState.isSelectedToolPenOrLine())
             {
                 setSize(penSizeIndex, penAlpha);
                 // 이거 get set함수로 변환
@@ -195,7 +196,7 @@ package Modules.L1Data.Tools
                     airBrushSizeDrawMode = penSize;
                 }
             }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))
             {
                 setSize(eraserSizeIndex, eraserAlpha);
 
@@ -211,7 +212,7 @@ package Modules.L1Data.Tools
             const numberOnly:String = targetName.substr(UITheme.NSIZE_BUTTON_PREFIX.length);
             const index:uint = parseInt(numberOnly);
 
-            if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN) && !isFillPenSizeChangeable())
+            if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN) && !isFillPenSizeChangeable())
             {
                 return;
             }
@@ -219,21 +220,21 @@ package Modules.L1Data.Tools
             setDrawToolSize(index);
             PenSizePreviewCursor.updateSizeAndShape();
 
-            if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+            if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
                 if (isPenAirBrushON && fillPenSize !== airBrushSizeDrawMode)
                 {
                     airBrushSizeDrawMode = fillPenSize;
                 }
             }
-            else if (ToolController.isSelectedToolPenOrLine())
+            else if (ToolState.isSelectedToolPenOrLine())
             {
                 if (isPenAirBrushON && penSize !== airBrushSizeDrawMode)
                 {
                     airBrushSizeDrawMode = penSize;
                 }
             }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))
             {
                 if (isEraserAirBrushON && eraserSize !== airBrushSizeDrawMode)
                 {
@@ -246,19 +247,19 @@ package Modules.L1Data.Tools
         {
             const size:uint = penSizeList[index];
 
-            if (ToolController.isSelectedToolPenOrLine())
+            if (ToolState.isSelectedToolPenOrLine())
             {
                 penSize = size;
                 penSizeIndex = index;
                 PenSizePreviewCursor.updateCursorSize(penSize);
             }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN))
             {
                 // 펜 크기는 건드리지 않음. 도구를 바꾸면 select*Tool이 원래 크기를 다시 적용함
                 fillPenSize = size;
                 fillPenSizeIndex = index;
             }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))
             {
                 eraserSize = size;
                 eraserSizeIndex = index;
@@ -272,14 +273,14 @@ package Modules.L1Data.Tools
         {
             penListShapeIsSqare = shapeFlag;
 
-            if (ToolController.isSelectedToolPenOrLine())
+            if (ToolState.isSelectedToolPenOrLine())
             {
                 if (penIsSquare !== shapeFlag)
                 {
                     penIsSquare = shapeFlag;
                 }
             }
-            else if (ToolController.isSelectedTool(ToolController.TOOL_ERASER))
+            else if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))
             {
                 if (eraserIsSquare !== shapeFlag)
                 {
@@ -342,7 +343,7 @@ package Modules.L1Data.Tools
             {
                 if (penFlag)
                 {
-                    airBrushSizeDrawMode = (ToolController.isSelectedTool(ToolController.TOOL_FILLPEN)) ? fillPenSize : penSize;
+                    airBrushSizeDrawMode = (ToolState.isSelectedTool(ToolState.TOOL_FILLPEN)) ? fillPenSize : penSize;
                 }
                 else
                 {

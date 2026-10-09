@@ -31,6 +31,7 @@ package Modules.L4UI
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L1Data.ToolState;
 
     // 층: L4 UI - 사이드바 위치, 숨김·표시, 퀵 사이드바
     public final class SidebarController
@@ -914,7 +915,7 @@ package Modules.L4UI
                 {
                     return true;
                 }
-                else if (ToolPanel.handlePenOptionsBoxMouseDown(target) && (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_ERASER)))
+                else if (ToolPanel.handlePenOptionsBoxMouseDown(target) && (ToolState.isSelectedToolPenOrLine() || ToolState.isSelectedTool(ToolState.TOOL_ERASER)))
                 {
                     return true;
                 }

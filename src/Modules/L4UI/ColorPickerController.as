@@ -25,6 +25,7 @@ package Modules.L4UI
     import Modules.Utils;
     import Modules.L1Data.KeyState;
     import Modules.L1Data.Tools.PenSettings;
+    import Modules.L1Data.ToolState;
 
     // 층: L4 UI - 색 선택기 박스와 숫자패드, 색 프리셋 선택 처리
     public class ColorPickerController
@@ -532,9 +533,9 @@ package Modules.L4UI
         public static function onMouseDownCurrentColor(e:MouseEvent):void
         {
             if (numPadBox.visible || LineTool.isStarted
-                    || (KeyState.isKeyPressed() && !ToolController.isSelectedToolPenOrLine()
-                    && !ToolController.isSelectedTool(ToolController.TOOL_ERASER)
-                    && !ToolController.isSelectedTool(ToolController.TOOL_FILLPEN)))
+                    || (KeyState.isKeyPressed() && !ToolState.isSelectedToolPenOrLine()
+                    && !ToolState.isSelectedTool(ToolState.TOOL_ERASER)
+                    && !ToolState.isSelectedTool(ToolState.TOOL_FILLPEN)))
             {
                 return;
             }
@@ -1043,9 +1044,9 @@ package Modules.L4UI
         public static function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean
         {
             if (ToolPanel.isToolBox2Showing || (KeyState.isKeyPressed()
-                        && !ToolController.isSelectedToolPenOrLine()
-                        && !ToolController.isSelectedTool(ToolController.TOOL_ERASER)
-                        && !ToolController.isSelectedTool(ToolController.TOOL_FILLPEN)))
+                        && !ToolState.isSelectedToolPenOrLine()
+                        && !ToolState.isSelectedTool(ToolState.TOOL_ERASER)
+                        && !ToolState.isSelectedTool(ToolState.TOOL_FILLPEN)))
             {
                 return false;
             }
