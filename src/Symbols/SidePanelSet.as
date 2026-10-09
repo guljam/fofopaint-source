@@ -6,6 +6,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 사이드 패널 배경 화면 묶음
 	public class SidePanelSet extends Sprite
 	{
 		private const sideBarBG:Shape = new Shape();

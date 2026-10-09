@@ -27,6 +27,7 @@ package Modules
     import Modules.ReplayEngine.ReplayState;
     import flash.display.Shape;
 
+    // 층: L4 UI - 사이드바 위치, 숨김·표시, 퀵 사이드바
     public final class SidebarController
     {
         public static var main:Main;

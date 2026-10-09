@@ -12,6 +12,7 @@ package Modules.Tools
 	// 지나온 입력 경로를 버리지 않고 평균을 내기 때문에 빠르게 휘두른 곡선도 그 경로를 따라감
 	// 선이 커서를 늦게 따라가는 구간은 PenTool에서 미리보기(getPreview)로 채워줌
 	// 디스플레이 객체에 의존하지 않고 좌표 계산만 함, 그려주는건 PenTool에서 함
+	// 층: L2 엔진 - 펜 손떨림 보정 (시간 + 경로 길이 이동 평균)
 	public final class PenStabilizer
 	{
 		public static const SAMPLE_SPACING:Number = 1.0; // 입력 경로를 다시 샘플링하는 간격(px)

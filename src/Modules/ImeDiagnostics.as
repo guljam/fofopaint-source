@@ -14,6 +14,7 @@ package Modules
     //   1) <앱 저장 폴더>/ime_diag_on.txt (빈 파일) 생성
     //   2) 앱을 실행(이미 실행 중이면 창을 다시 활성화)하고 IME 모드별로 키를 눌러봄
     //   3) <앱 저장 폴더>/ime_diag.txt 를 전달. 마커 파일을 지우면 꺼짐
+    // 층: L3 기능 - 일본어·중국어 등 IME 환경의 키 입력과 IME 상태 진단 기록
     public class ImeDiagnostics
     {
         public static const MARKER_FILE:String = "ime_diag_on.txt";

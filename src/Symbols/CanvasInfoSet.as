@@ -8,6 +8,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 캔버스 크기·줌·회전·미러 정보 표시 화면 묶음
 	public class CanvasInfoSet extends Sprite
 	{
 		public var canvasInfo:TextField;

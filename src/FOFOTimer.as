@@ -5,6 +5,7 @@ package
 	import flash.events.Event;
 	import flash.utils.getTimer;
 
+	// 층: L1 데이터 - 이름으로 타이머를 등록·제거
 	public class FOFOTimer extends Sprite
 	{
 		private static const dummy:Sprite = new Sprite();

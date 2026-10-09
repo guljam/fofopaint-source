@@ -42,6 +42,7 @@ package Modules.Tools
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
 
+    // 층: L3 기능 - 올가미 선택과 이동·회전·크기·미러
     public class LassoTool
     {
         // todo: 포멧팅 필요

@@ -34,6 +34,7 @@ package Modules
     import Modules.ReplayEngine.ReplaySaveMetaData;
     import flash.trace.Trace;
 
+    // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager
     {
         public static var main:Main;

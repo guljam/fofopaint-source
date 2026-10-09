@@ -18,6 +18,7 @@ package Modules.ReplayEngine
     //   값 = 연출 길이 * 2^32 + getTimer 값(uint로 본 것)
     // 점마다 시각이 필요한 명령(line4)은 [위 Number, [점별 시각 ms]] 배열이 값이 됨 (점 시각은 명령의 시각(도구 시작) 기준)
     // 점별 시각은 프레임 크기가 가변이라 따로 reptimingpoints 파일에 [프레임 번호, 개수, 값...] 레코드로 이어 씀 (프레임 번호 오름차순)
+    // 층: L2 엔진 - 프레임마다의 시간 기록을 이어 쓴 파일
     public final class TimingSheetFile
     {
         // 시간 기록이 없는 프레임(옛 파일, 기록이 어긋난 부분)을 시트에 채우는 자리값. 파일 맨 앞 legacyFrames개(옛 구간)의 실제 재생 간격은

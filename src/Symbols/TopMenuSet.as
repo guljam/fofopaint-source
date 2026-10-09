@@ -27,6 +27,7 @@
 	import Modules.ReplayEngine.ReplayController;
 	import Modules.ReplayEngine.ReplayState;
 
+	// 층: L4 UI - 상단 메뉴 화면 묶음
 	public class TopMenuSet extends Sprite
 	{
 		public const BARSIZE:Number = 38;

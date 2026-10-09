@@ -10,6 +10,7 @@ package Modules
 
     // GitHub의 versionInfo.txt로 새 버전이 있는지만 확인하고, 업데이트 버튼을 누르면 배포 사이트(GitHub 릴리스 페이지)를 엶
     // Windows bundle(captive runtime) 배포라 .air 내려받기와 flash.desktop.Updater 설치는 쓰지 않음
+    // 층: L3 기능 - GitHub의 새 버전 확인과 배포 사이트 열기
     public final class AppUpdater
     {
         public static var main:Main;

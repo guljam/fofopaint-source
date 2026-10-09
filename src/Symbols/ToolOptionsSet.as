@@ -9,6 +9,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 툴 옵션 박스 화면 묶음
 	public class ToolOptionsSet extends Sprite
 	{
 		public const penSizeBox:Sprite = new Sprite();

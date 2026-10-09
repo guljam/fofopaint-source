@@ -12,6 +12,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 올가미 메뉴 화면 묶음
 	public class LassoMenuSet extends Sprite
 	{
 		public var lassoMenuMoveButton:SimpleButton;

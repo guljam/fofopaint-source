@@ -6,6 +6,7 @@ package Modules
     import flash.geom.Point;
 
     // 최근에 쓴 색 10개. My Palette와 완전히 별개의 배열을 쓰며 저장은 PaletteController.saveMypPaletteList가 함께 해줌
+    // 층: L1 데이터 - 최근에 쓴 색 10개
     public final class ColorHistory
     {
         public static const HISTORY_COUNT:int = 10;

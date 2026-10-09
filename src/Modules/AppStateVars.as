@@ -1,5 +1,6 @@
 package Modules
 {
+    // 층: L1 데이터 - 앱 상태 저장 파일에 저장하는 값 묶음
     public class AppStateVars
     {
         public function AppStateVars():void {}

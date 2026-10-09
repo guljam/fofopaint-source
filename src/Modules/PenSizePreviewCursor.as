@@ -10,6 +10,7 @@ package Modules
     import flash.geom.Rectangle;
     import flash.utils.getTimer;
 
+    // 층: L4 UI - 펜 크기 미리보기 커서 (모양, 위치, 보임 여부)
     public class PenSizePreviewCursor
     {
 

@@ -8,6 +8,7 @@
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 
+	// 층: L4 UI - FOFO 커서와 리플레이 대기 표시 화면 묶음
 	public class FOFOCursorSet extends Sprite
 	{
 		private var fofoCursor:SimpleButton;

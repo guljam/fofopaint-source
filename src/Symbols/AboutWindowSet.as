@@ -14,6 +14,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 정보 창 화면 묶음
 	public class AboutWindowSet extends Sprite
 	{
 		public var versionInfo:TextField;

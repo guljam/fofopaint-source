@@ -7,6 +7,7 @@ package Modules
     // 네이티브 저장 작업(.png + .fofo, 캡처 PNG) 시작과 완료 알림
     // 네이티브는 시작 호출 안에서 비트맵과 바이트를 복사하고 바로 돌아오며, 끝나면 StatusEvent(code: "save"/"png", level: 작업 번호)를 보냄
     // 완료 결과는 takeJobResult로 꺼냄 (줄마다 한 필드, anesrc/fofonative/src/savejob.cpp makeResult)
+    // 층: L1 데이터 - 네이티브 저장 작업 시작과 완료 알림
     public final class NativeSave
     {
         public static const STATUS_OK:String = "ok";

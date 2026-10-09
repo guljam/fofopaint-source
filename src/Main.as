@@ -69,6 +69,7 @@
     import Modules.ReplayEngine.ReplayMouseAutoHide;
 
     // import
+    // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화
     public class Main extends Sprite
     {
         // todo: (중요) module 클래스는 정적 변수가 아니라 main에서 호출되어서 연결되어지는 클래스 인스턴스로 가는게맞는것같음

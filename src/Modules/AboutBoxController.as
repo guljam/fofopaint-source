@@ -15,6 +15,7 @@ package Modules
     import flash.net.URLRequest;
     import flash.utils.getTimer;
 
+    // 층: L4 UI - 정보(About) 창 열기·닫기와 크기·위치
     public class AboutBoxController
     {
         public static var main:Main;

@@ -22,6 +22,7 @@ package Modules.ReplayEngine
     // 명령은 연출이 시작하는 시점에 이미 실행된 상태(레이어 데이터는 최종 결과)이고, 연출은 그 위에 얹은 임시 표시라서
     // 중간에 멈추거나 탐색해도 clear만 하면 정확한 최종 상태가 보임
     // 흐름: 그리기 루프가 명령을 실행하기 전에 arm → 명령이 실행되면서 start*를 부름 → 틱마다 update → 끝나거나 clear
+    // 층: L2 엔진 - 채우기·올가미·이동 명령의 실시간 재생 연출
     public class ReplayAnim
     {
         public static const MIN_REAL_MS:Number = 120; // 배속을 반영한 실제 연출 시간이 이보다 짧으면 연출 없이 바로 보여줌

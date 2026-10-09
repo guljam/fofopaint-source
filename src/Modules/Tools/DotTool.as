@@ -5,6 +5,7 @@ package Modules.Tools
 
     import flash.geom.Point;
 
+    // 층: L3 기능 - 점 찍기
     public class DotTool
     {
         private static var cmd:Vector.<int> = new Vector.<int>();

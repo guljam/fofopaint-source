@@ -14,6 +14,7 @@ package Modules.Tools
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
 
+    // 층: L3 기능 - 회전 툴
     public class RotateTool
     {
         public static var main:Main;

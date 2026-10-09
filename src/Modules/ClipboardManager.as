@@ -8,6 +8,7 @@ package Modules
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
 
+    // 층: L3 기능 - 클립보드 이미지 불러오기
     public class ClipboardManager
     {
         public static var main:Main;

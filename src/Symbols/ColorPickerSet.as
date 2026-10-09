@@ -19,6 +19,7 @@
 	import assets.VisualFieldCollector;
 	import Modules.DrawEngine.HandDrawnLine;
 
+	// 층: L4 UI - 색 선택기 화면 묶음
 	public class ColorPickerSet extends Sprite
 	{
 		private static const SV_BOX_HIGHLIGHT_OFFSETS:Vector.<Number> = new <Number>[0,25,50]; //svBox 하이라이트 단계(0=없음, 1=삭제 대상 표시, 2=커서가 올라감)별로 RGB에 더해주는 값

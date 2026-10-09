@@ -10,6 +10,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 스포이드 돋보기 화면 묶음
 	public class EyedropperLensSet extends Sprite
 	{
 		public const magSize:Number = 112;

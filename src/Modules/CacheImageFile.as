@@ -16,6 +16,7 @@ package Modules
     // 네이티브를 쓸 수 있으면 내부 버퍼 원본 덤프(손실 없음)로 쓰고 읽음, 못 쓰면 straight + PixelRestore (AS3)
     // 옛 형식([zlib 레이어1, zlib 레이어2, CacheImageMetaData] writeObject)도 읽음:
     // 앱을 업데이트한 뒤 첫 실행에서 캐시를 다시 만들려면 불러오기 경로를 타야 하는데 그 경로는 메모리 undo 뭉치를 지우므로 옛 캐시를 그대로 읽어서 씀
+    // 층: L2 엔진 - 캐시 이미지 파일 읽기·쓰기
     public final class CacheImageFile
     {
         public static function isNewFormatFile(file:File):Boolean

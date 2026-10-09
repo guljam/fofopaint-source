@@ -15,6 +15,7 @@ package Modules.Tools
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayDrawer;
 
+    // 층: L3 기능 - 손 툴(캔버스 끌어 이동)
     public class HandTool
     {
         public static var main:Main;

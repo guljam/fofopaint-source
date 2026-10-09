@@ -29,6 +29,7 @@ package Modules.Tools
     import flash.filters.BlurFilter;
     import Modules.ReplayEngine.ReplayState;
 
+    // 층: L3 기능 - 채우기 펜
     public class FillPenTool
     {
         // todo 다른 메서드들도 마찬가지지만 클래스 정적 변수 직접 접근하는 부분은 메서드로 호출하게 만들어야함

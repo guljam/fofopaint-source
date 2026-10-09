@@ -14,6 +14,7 @@ package Modules
     import flash.filesystem.FileStream;
     import flash.geom.Point;
 
+    // 층: L4 UI - My Palette 선택·추가·저장과 적용
     public final class PaletteController
     {
         public static var main:Main;

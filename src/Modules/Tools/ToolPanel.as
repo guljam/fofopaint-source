@@ -33,6 +33,7 @@ package Modules.Tools
 
     // 사이드바의 툴 패널 UI: 툴박스, 우클릭 툴박스(toolBox2), 펜 옵션 박스와 그 클릭/드래그 처리
     // 도구 선택 상태는 ToolController가 가지고, 여기서는 표시와 입력 해석만 함
+    // 층: L4 UI - 사이드바 툴 패널 표시와 클릭·드래그 입력 해석
     public class ToolPanel
     {
         public static var main:Main;

@@ -45,6 +45,7 @@ package Modules.InputManager
     import flash.events.MouseEvent;
 
     // 드로우 모드의 키보드/마우스 입력 (툴 단축키, 툴박스2, 드로우 모드 버튼)
+    // 층: L5 앱 흐름 - 드로우 모드의 키보드/마우스 입력
     public class DrawModeInput
     {
         public static var main:Main;

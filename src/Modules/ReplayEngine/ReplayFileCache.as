@@ -20,6 +20,7 @@ package Modules.ReplayEngine
     import Modules.ReferenceLayerController;
     import Modules.Utils;
 
+    // 층: L2 엔진 - 리플레이 파일(repdata) 쓰기와 캐시 이미지 생성·복원
     public class ReplayFileCache
     {
         public static const REPLAY_DISK_CACHE_FRAME_INTERVAL:Number = 10000;

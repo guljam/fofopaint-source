@@ -55,6 +55,7 @@ package Modules.ReplayEngine
     import Modules.Utils;
     import Symbols.SeekBarSet;
 
+    // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController
     {
         public static var main:Main;

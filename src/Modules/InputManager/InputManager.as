@@ -30,6 +30,7 @@ package Modules.InputManager
     import Modules.ReplayEngine.ReplayController;
     import Symbols.TopMenuSet;
 
+    // 층: L5 앱 흐름 - 키보드·마우스 입력을 받아 모드별 입력 처리로 나눠줌
     public class InputManager
     {
         public static var main:Main;

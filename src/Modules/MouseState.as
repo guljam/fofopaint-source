@@ -3,6 +3,7 @@ package Modules
     import flash.events.MouseEvent;
 
     // 마우스 버튼 눌림 상태의 단일 소유자
+    // 층: L1 데이터 - 마우스 버튼 눌림 상태의 단일 소유자
     public class MouseState
     {
         public static var isLeftDown:Boolean = false;

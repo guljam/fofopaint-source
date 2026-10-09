@@ -17,6 +17,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 숫자패드와 LCH 조절 화면 묶음
 	public class NumPadSet extends Sprite
 	{
 		public var numInc:SimpleButton;

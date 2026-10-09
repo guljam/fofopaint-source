@@ -21,6 +21,7 @@ package Modules
     import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
 
+    // 층: L2 엔진 - 백그라운드 워커 시작·중지와 데이터 전달
     public final class BackgroundWorkerCoordinator
     {
         public static var main:Main;

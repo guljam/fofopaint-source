@@ -21,6 +21,7 @@ package Modules.DrawEngine
     import flash.geom.Rectangle;
 
     // 드로우 모드 캔버스 데이터: 크기, 배경색, 레이어 1/2 비트맵, 미러 상태와 픽셀 처리
+    // 층: L2 엔진 - 드로우 모드 캔버스 데이터 (크기, 배경색, 레이어 비트맵, 미러)
     public class DrawCanvas
     {
         public static const CANVAS_MAX_SIZE:Number = 2000;

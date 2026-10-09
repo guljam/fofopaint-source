@@ -7,6 +7,7 @@ package Modules
     import flash.events.MouseEvent;
     import flash.geom.Point;
 
+    // 층: L1 데이터 - 드래그 박스 상호작용 시작과 이동·종료 처리
     public class DragInteraction
     {
         public static var main:Main;

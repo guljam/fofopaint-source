@@ -17,6 +17,7 @@ package Modules
     import flash.text.TextFieldAutoSize;
     import flash.text.TextFormat;
 
+    // 층: L1 데이터 - 색 변환, 텍스트 필드 생성 등 공용 함수
     public class Utils
     {
         public static var main:Main;

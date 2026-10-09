@@ -3,6 +3,7 @@ package assets
     import flash.utils.describeType;
     import flash.text.TextInteractionMode;
 
+    // 층: L1 데이터 - Symbols의 비어 있는 시각 필드를 찾아 모음
     public final class VisualFieldCollector
     {
         public static function collectNullVisualFields(target:Object):Array

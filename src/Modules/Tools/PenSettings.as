@@ -7,6 +7,7 @@ package Modules.Tools
 
     // 펜/지우개 설정값(크기, 투명도, 모양, 손떨림 보정, 에어브러시, 샤프 라인)과 그 변경 함수
     // 현재 도구(ToolController)에 맞는 값을 바꾸고, 옵션 박스 표시는 ToolPanel에 맡김
+    // 층: L1 데이터 - 펜·지우개 설정값(크기, 투명도, 모양 등)과 그 변경 함수
     public class PenSettings
     {
         public static var penAlpha:Number = 1.0;

@@ -10,6 +10,7 @@ package Modules
     // 픽셀 형식 1: premultiplied 내부 버퍼 원본(호스트 32비트 ARGB, 아래 행부터) - 네이티브가 씀, 손실 없음
     //          2: straight A,R,G,B(copyPixelsToByteArray, 위 행부터) - 네이티브를 못 쓸때 AS3/worker가 씀
     //          3: premultiplied, 위 행부터
+    // 층: L1 데이터 - 캐시 이미지 파일 형식 정의
     public final class CacheImageFormat
     {
         public static const VERSION:int = 1;

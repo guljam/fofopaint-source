@@ -6,6 +6,7 @@ package Modules
     import flash.utils.getTimer;
     import flash.events.TimerEvent;
 
+    // 층: L3 기능 - 앱 실행 시간과 작업 시간 측정
     public class ActivityWorkTimer
     {
         public static var main:Main;

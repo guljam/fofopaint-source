@@ -18,6 +18,7 @@ package Modules.Tools
     import Modules.ReplayEngine.ReplayController;
     import Modules.ReplayEngine.ReplayState;
 
+    // 층: L3 기능 - 이동 툴
     public class MoveTool
     {
         public static var main:Main;

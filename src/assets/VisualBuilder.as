@@ -4,6 +4,7 @@ package assets
     import flash.display.DisplayObjectContainer;
     import flash.display.Sprite;
 
+    // 층: L1 데이터 - Symbols 시각 요소를 대상 객체의 자식과 필드로 연결
     public final class VisualBuilder
     {
         public static function buildInto(

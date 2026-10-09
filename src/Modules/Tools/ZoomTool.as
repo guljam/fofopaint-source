@@ -14,6 +14,7 @@ package Modules.Tools
     import flash.display.Sprite;
     import Modules.Utils;
 
+    // 층: L3 기능 - 줌 툴
     public class ZoomTool
     {
         public static var main:Main;

@@ -15,6 +15,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 불러오기 박스 화면 묶음
 	public class LoadBoxSet extends Sprite
 	{
 		public var dragDropLoadButton:SimpleButton;

@@ -19,6 +19,7 @@ package Modules
 
     // undo / redo / 딥 언두로 위치를 옮기고 그 위치의 캔버스를 다시 그려줌
     // 메모리 undo 데이터와 undo 위치 자체는 UndoHistory가 가지고 있음
+    // 층: L3 기능 - undo / redo / 딥 언두로 위치를 옮기고 캔버스를 다시 그림
     public class UndoController
     {
         // 딥언도 (Deep Undo)

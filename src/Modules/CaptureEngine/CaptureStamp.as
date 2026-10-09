@@ -23,6 +23,7 @@ package Modules.CaptureEngine
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
 
+    // 층: L3 기능 - 캡처 도장(시간 스탬프)과 글꼴
     public class CaptureStamp
     {
         public static var main:Main;

@@ -27,6 +27,7 @@ package Modules.Tools
 	import Modules.ReplayEngine.ReplayController;
 	import Modules.ReplayEngine.ReplayState;
 
+	// 층: L3 기능 - 펜 그리기와 지우개
 	public final class PenTool
 	{
 		public static var main:Main;

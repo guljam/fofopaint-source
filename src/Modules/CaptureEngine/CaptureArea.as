@@ -17,6 +17,7 @@ package Modules.CaptureEngine
     import flash.geom.Point;
     import flash.geom.Rectangle;
 
+    // 층: L3 기능 - 캡처 영역 지정과 표시
     public class CaptureArea
     {
         public static var main:Main;

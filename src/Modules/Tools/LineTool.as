@@ -22,6 +22,7 @@ package Modules.Tools
     import flash.geom.Point;
     import flash.utils.getTimer;
 
+    // 층: L3 기능 - 직선 그리기
     public class LineTool
     {
         public static var main:Main;

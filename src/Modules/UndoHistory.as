@@ -14,6 +14,7 @@ package Modules
 
     // 메모리 undo 데이터(ReplayState.rMemoryData)를 쌓고 자르는 일과 undo 위치, undo 기준 이미지를 맡음
     // undo 위치를 옮겨서 캔버스를 다시 그리는 일은 UndoController가 함
+    // 층: L1 데이터 - 메모리 undo 데이터를 쌓고 자르는 일과 undo 위치·기준 이미지
     public class UndoHistory
     {
         private static const NATIVE_UNDO_LIMIT_COUNT:int = 10;

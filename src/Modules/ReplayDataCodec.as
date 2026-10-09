@@ -10,6 +10,7 @@ package Modules
     //   연속된 lineTo는 한 묶음으로 기록하고, 묶음 전체가 정수 픽셀이면 차이를 픽셀 단위로 기록
     // - 그 외 명령: 명령 이름은 번호로, 필드는 같은 이름의 직전 명령과 같으면 태그 1바이트로 기록
     // 저장 쪽은 decode 결과가 원본 바이트와 같은지 확인하고 다르면 이 변환을 쓰지 않아야 함
+    // 층: L1 데이터 - .fofo 리플레이 블록 전용 무손실 변환
     public final class ReplayDataCodec
     {
         private static const MAGIC:String = "FRC2";

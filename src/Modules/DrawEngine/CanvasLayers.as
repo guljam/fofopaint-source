@@ -15,6 +15,7 @@ package Modules.DrawEngine
     import flash.geom.Rectangle;
 
     // 드로우 모드 레이어 1/2: 선택, 잠금(체크), 스왑, 병합
+    // 층: L2 엔진 - 드로우 모드 레이어 1/2 선택, 잠금, 스왑, 병합
     public class CanvasLayers
     {
         public static var isLayer2Selected:Boolean = false;

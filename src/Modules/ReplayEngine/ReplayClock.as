@@ -11,6 +11,7 @@ package Modules.ReplayEngine
     // 재생 시작 지점의 녹화 시각 R0와 그때의 getTimer T0를 기준으로 지금 녹화 시각 R = R0 + (getTimer() - T0) * 배속 를 구해서
     // 시각이 R 이하인 프레임까지 그리게 함. 매번 기준점과 비교하니 프레임 레이트가 바뀌어도 오차가 쌓이지 않음
     // 시각은 파일 구간(10000프레임)을 하나씩만 풀어서 구하고, 파일 뒤의 메모리 undo 묶음은 기록해둔 시각에서 구함
+    // 층: L2 엔진 - 실시간 재생 시계 (녹화 시각 계산과 대기 건너뛰기)
     public final class ReplayClock
     {
         // 쉬는(Replay Waiting) 구간 규칙

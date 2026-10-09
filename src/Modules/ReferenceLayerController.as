@@ -30,6 +30,7 @@ package Modules
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
 
+    // 층: L4 UI - 참조 레이어 메뉴와 이미지 병합·투명도·비우기
     public final class ReferenceLayerController
     {
         public static var main:Main;

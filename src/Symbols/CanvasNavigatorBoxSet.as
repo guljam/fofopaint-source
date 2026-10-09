@@ -10,6 +10,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 캔버스 네비게이터 박스 화면 묶음
 	public class CanvasNavigatorBoxSet extends Sprite
 	{
 		public var navCursor:Sprite = new Sprite();

@@ -10,6 +10,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 참조 레이어 메뉴 화면 묶음
 	public class RefLayerMenuSet extends Sprite
 	{
 		public var refInfoText:TextField;

@@ -23,6 +23,7 @@ package Modules.ReplayEngine
     import Modules.UndoController;
     import Modules.Tools.PenTool;
 
+    // 층: L2 엔진 - 리플레이 캔버스에 명령을 그리고 프레임 이동
     public class ReplayDrawer
     {
         // 리플레이

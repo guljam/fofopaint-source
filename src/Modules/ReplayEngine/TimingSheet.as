@@ -6,6 +6,7 @@ package Modules.ReplayEngine
     // 프레임 번호 i의 시각 = delta[0] + ... + delta[i], 첫 프레임이나 앱을 새로 켠 직후 명령의 delta는 0
     // 10000프레임씩 구간으로 나눠 구간마다 따로 압축함 (.fofo에는 구간 blob 목록으로 저장)
     // 재생할때는 ReplayClock이 구간을 하나씩만 풀어서 쓰고 구간을 벗어나면 버림
+    // 층: L1 데이터 - 프레임마다 직전 명령과의 간격(ms)을 기록한 타이밍 시트
     public final class TimingSheet
     {
         public static const SEGMENT_FRAMES:int = 10000;

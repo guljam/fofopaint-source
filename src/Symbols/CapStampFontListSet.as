@@ -17,6 +17,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 캡처 도장 글꼴 목록 화면 묶음
 	public class CapStampFontListSet extends Sprite
 	{
 		public var capFontListPrev:SimpleButton;

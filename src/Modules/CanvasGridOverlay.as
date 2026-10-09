@@ -12,6 +12,7 @@ package Modules
     import flash.events.MouseEvent;
     import flash.geom.Point;
 
+    // 층: L4 UI - 캔버스 격자 표시와 격자 간격 조절
     public class CanvasGridOverlay
     {
         public static var main:Main;

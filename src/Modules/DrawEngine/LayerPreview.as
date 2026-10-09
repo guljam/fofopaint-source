@@ -26,6 +26,7 @@ package Modules.DrawEngine
     // 컨트롤 박스의 레이어 버튼에 hover 하면 캔버스를 비스듬히 눕혀 층(배경/참조/레이어2/레이어1)을 보여줌
     // 3D/GPU 없이 2D Matrix(세로 압축 + 층별 띄우기)만 사용. 레이어 BitmapData는 참조만 하므로 복사 없음
     // 실제 레이어 상태(visible, alpha)는 건드리지 않고 매 프레임 읽어서 보여주기만 함
+    // 층: L4 UI - 레이어 버튼 hover 시 캔버스를 눕혀 층을 보여주는 미리보기
     public class LayerPreview
     {
         private static const ROTATE_DEGREES:Number = 40.0; // 평면 회전각

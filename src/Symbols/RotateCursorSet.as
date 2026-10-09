@@ -8,6 +8,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 회전 커서 화면 묶음
 	public class RotateCursorSet extends Sprite
 	{
 		public var rotateBG:SimpleButton;

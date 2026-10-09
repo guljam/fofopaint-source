@@ -12,6 +12,7 @@
 	import assets.VisualFieldCollector;
 	import flash.display.Stage;
 
+	// 층: L4 UI - 힌트 박스 화면 묶음
 	public class HintBoxSet extends Sprite
 	{
 		static private var _instantCount:int = 0;

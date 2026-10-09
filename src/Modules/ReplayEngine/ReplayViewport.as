@@ -10,6 +10,7 @@ package Modules.ReplayEngine
     import flash.geom.Point;
 
     // 리플레이 모드 캔버스의 화면 배치 (ReplayDrawer.viewport)
+    // 층: L2 엔진 - 리플레이 모드 캔버스의 화면 배치 (ReplayDrawer.viewport)
     public class ReplayViewport extends CanvasViewport
     {
         override public function get anchor():Sprite

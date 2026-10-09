@@ -17,6 +17,7 @@
     import Modules.ActivityWorkTimer;
     import Modules.ReplayEngine.ReplayController;
 
+    // 층: L1 데이터 - 힌트 문구 모음
     public class HintStrings
     {
         static private var main:Main;

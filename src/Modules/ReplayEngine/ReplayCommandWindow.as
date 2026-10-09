@@ -11,6 +11,7 @@ package Modules.ReplayEngine
     // 카메라(ReplayCursorFollow)는 앞으로 그려질 커서 위치 요약만 collectCursorPath로 읽음 (명령 배열에는 접근하지 않음)
     // 파일은 읽을 때만 열고 바로 닫음 (다른 곳이 repdata를 자르거나 지울 때 핸들이 남지 않게)
     // 묶음은 읽은 배열 그대로 그리는 쪽에 넘기고, 명령 실행은 이 배열을 고치지 않음 (ReplayDrawCommands 전수 확인, RESULT 참고)
+    // 층: L2 엔진 - 재생 경로에서 repdata를 읽는 유일한 곳
     public class ReplayCommandWindow
     {
         public static const LOOKAHEAD_REAL_MS:Number = 500; // 실제 시간으로 이만큼 앞까지 미리 읽음 (녹화 시간으로는 * 배속)

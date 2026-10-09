@@ -18,6 +18,7 @@ package Modules
     // 네이티브(NativeCore)를 쓸 수 있으면 내부 버퍼에 원래 값을 직접 써넣고, 없으면(워커, 네이티브 빌드가 없는 운영체제) AS3로 입력값을 바꿔서 setPixels 함
     // 저장쪽에는 적용하면 안됨 (두번 적용되면 틀어짐)
     // 저장용 표(내부값 -> copyPixelsToByteArray 출력값)도 여기서 만듬: 네이티브 저장이 copyPixelsToByteArray와 같은 바이트를 만들게 함
+    // 층: L1 데이터 - 반투명 픽셀 왕복 손실을 막는 변환
     public final class PixelRestore
     {
         private static const TABLE_LENGTH:int = 65536; // 표 인덱스: 알파 << 8 | copyPixelsToByteArray 출력값

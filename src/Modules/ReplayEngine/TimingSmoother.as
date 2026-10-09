@@ -6,6 +6,7 @@ package Modules.ReplayEngine
     //   예) 이전 시각 100, 묶음 시각 142, 점 6개 -> 107, 114, 121, 128, 135, 142 (마지막 점은 원래 시각 그대로)
     // 이 클래스는 ReplayState.takeTimingSheetBufferTimes가 부르는 한 곳 외에는 아무것도 모름
     // 쓰지 않으려면 ENABLED를 false로 하거나 그 호출 한 줄을 지우면 되고, 파일 형식과 다른 코드는 바뀌지 않음
+    // 층: L1 데이터 - 펜 점의 시각 보정
     public final class TimingSmoother
     {
         public static const ENABLED:Boolean = true;

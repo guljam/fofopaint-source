@@ -15,6 +15,7 @@ package Modules
     // 캔버스 하나(드로우 또는 리플레이)의 화면 배치: 앵커 이동, 배율, 가운데 정렬, 화면 안으로 끌어오기
     // 드로우는 DrawViewport(CanvasView.viewport), 리플레이는 ReplayViewport(ReplayDrawer.viewport)가 모드별 값과 동작을 재정의함
     // 하위 클래스는 생성자에서 아무것도 읽지 않고 getter로 그때그때 읽음 (static 초기화 중에 만들어도 순환 참조가 생기지 않게)
+    // 층: L2 엔진 - 캔버스 하나의 화면 배치 공통 동작 (앵커 이동, 배율, 가운데 정렬)
     public class CanvasViewport
     {
         public static var main:Main;

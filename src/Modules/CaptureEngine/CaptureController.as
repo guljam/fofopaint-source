@@ -32,6 +32,7 @@ package Modules.CaptureEngine
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
 
+    // 층: L3 기능 - 캡처 모드 진입·종료와 캡처 처리
     public class CaptureController
     {
         public static var main:Main;

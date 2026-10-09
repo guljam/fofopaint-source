@@ -21,6 +21,7 @@ package Modules
     import Modules.Tools.FillPenTool;
     import Modules.ReplayEngine.ReplayState;
 
+    // 층: L4 UI - 색 선택기 박스와 숫자패드, 색 프리셋 선택 처리
     public class ColorPickerController
     {
         public static var main:Main;

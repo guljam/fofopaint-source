@@ -2,6 +2,7 @@ package Modules.DrawEngine
 {
     import flash.display.Graphics;
 
+    // 층: L2 엔진 - 손으로 그린 듯한 노이즈 선과 사각형 그리기 (draw, drawRect)
     public class HandDrawnLine
     {
         // 제어점 간격 및 샘플링 간격

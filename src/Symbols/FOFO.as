@@ -6,6 +6,7 @@
     import assets.VisualBuilder;
     import assets.VisualFieldCollector;
 
+    // 층: L4 UI - FOFO 캐릭터 버튼 화면 묶음 (크기, 미러, 위·아래 위치)
     public class FOFO extends Sprite
     {
         public var fofo:SimpleButton;

@@ -52,6 +52,7 @@ package Modules
     import Modules.ReplayEngine.ReplayState;
     import Modules.ReplayEngine.ReplaySaveMetaData;
 
+    // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager
     {
         public static var main:Main;

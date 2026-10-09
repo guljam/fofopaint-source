@@ -35,6 +35,7 @@ package
     import flash.display.Screen;
     import flash.display.NativeWindowDisplayState;
 
+    // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState
     {
                 public static var main:Main;

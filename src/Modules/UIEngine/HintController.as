@@ -26,6 +26,7 @@ package Modules.UIEngine
     import Modules.DrawEngine.CanvasLayers;
 
     // 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시. 문구는 HintStrings가 담당
+    // 층: L4 UI - 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시
     public final class HintController
     {
         public static var main:Main;

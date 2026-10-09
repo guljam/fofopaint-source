@@ -12,6 +12,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
+	// 층: L4 UI - 채우기 펜 메뉴 화면 묶음
 	public class FillPenMenuSet extends Sprite
 	{
 		public var fillPenInfo:TextField;

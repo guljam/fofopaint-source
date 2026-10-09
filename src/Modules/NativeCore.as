@@ -6,6 +6,7 @@ package Modules
     // 네이티브 확장(com.fofo.nativecore, anesrc/fofonative)을 앱에서 쓰는 곳은 이 클래스 하나로 모음
     // ANE가 없거나(default 플랫폼: macOS 등), 워커이거나, 컨텍스트를 못 만들면 isAvailable이 false이고
     // 호출한 쪽은 기존 AS3/워커 경로로 처리함
+    // 층: L1 데이터 - 네이티브 확장(ANE) 호출을 모은 단일 창구
     public final class NativeCore
     {
         // ANE의 library.swf에 있는 연결 클래스, ANE가 없는 환경을 위해 직접 참조하지 않고 이름으로 찾음

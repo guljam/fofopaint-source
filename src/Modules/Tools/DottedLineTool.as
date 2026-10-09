@@ -3,6 +3,7 @@ package Modules.Tools
     import flash.display.Graphics;
     import flash.geom.Point;
 
+    // 층: L3 기능 - 점선 그리기
     public class DottedLineTool
     {
         private static const lastDotPos:Point = new Point(0, 0);

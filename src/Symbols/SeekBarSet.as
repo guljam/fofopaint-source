@@ -12,6 +12,7 @@
 	import assets.VisualFieldCollector;
 	import Modules.Utils;
 
+	// 층: L4 UI - 리플레이 재생 막대(시크바) 화면 묶음
 	public class SeekBarSet extends Sprite
 	{
 		private var replayBGBar:Sprite = new Sprite();

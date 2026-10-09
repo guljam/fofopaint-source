@@ -9,6 +9,7 @@ package Modules.ReplayEngine
     import flash.display.Stage;
 
     // 리플레이 재생중 마우스가 가만히 있으면 시스템 마우스 포인터를 숨김
+    // 층: L4 UI - 리플레이 재생 중 마우스가 가만히 있으면 포인터 숨김
     public class ReplayMouseAutoHide
     {
         public static var main:Main;

@@ -14,6 +14,7 @@ package Modules.InputManager
     import flash.events.MouseEvent;
 
     // 캡처 모드의 키보드/마우스 입력
+    // 층: L5 앱 흐름 - 캡처 모드의 키보드/마우스 입력
     public class CaptureModeInput
     {
         public static var main:Main;

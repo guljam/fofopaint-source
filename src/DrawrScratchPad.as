@@ -11,6 +11,7 @@ package
     import flash.geom.Rectangle;
     import flash.geom.Point;
 
+    // 층: L4 UI - 색 선택기 안의 확대 낙서판
     public class DrawrScratchPad extends Sprite
     {
         private const scratchPadDraw:Shape = new Shape();

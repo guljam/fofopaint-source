@@ -13,6 +13,7 @@
     import assets.VisualBuilder;
     import assets.VisualFieldCollector;
 
+    // 층: L4 UI - 툴 메뉴(툴박스) 화면 묶음
     public class ToolMenuSet extends Sprite
     {
         public var toolPen:SimpleButton;

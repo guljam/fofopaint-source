@@ -15,6 +15,7 @@ package Modules.ReplayEngine
     import flash.filters.BlurFilter;
     import Modules.Utils;
 
+    // 층: L2 엔진 - 리플레이 그리기 명령 실행과 리플레이 커서 위치 관리
     public class ReplayDrawCommands
     {
         public static const rCursorPos:Point = new Point(0, 0);

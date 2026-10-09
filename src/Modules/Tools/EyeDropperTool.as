@@ -26,6 +26,7 @@ package Modules.Tools
     import flash.events.Event;
     import Modules.SidebarController;
 
+    // 층: L3 기능 - 스포이드 툴
     public class EyeDropperTool
     {
         public static var main:Main;
