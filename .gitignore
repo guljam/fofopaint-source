@@ -1,13 +1,8 @@
 # 폴더 전체 제외
 /fla_unpacked/
 /bin/
-/.vscode/
 /.agents/
 /.as3mxml-unpackaged-anes/
-/anesrc/pigmentmix/
-/anesrc/fofonative/build/
-/.ane-debug/
-/native
 /tests
 /test-output
 /test_sample
@@ -32,4 +27,3 @@ CLAUDE.md
 
 make-air-package.ps1
 worker.swf_old
-make-air-bundle.ps1

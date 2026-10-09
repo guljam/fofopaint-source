@@ -1,0 +1,25 @@
+<extension xmlns="http://ns.adobe.com/air/extension/33.1">
+  <id>com.fofo.pigmentmix</id>
+  <versionNumber>1.0.0</versionNumber>
+  <platforms>
+    <platform name="Windows-x86">
+      <applicationDeployment>
+        <nativeLibrary>pigmentmix.dll</nativeLibrary>
+        <initializer>PigmentMixExtInit</initializer>
+        <finalizer>PigmentMixExtFin</finalizer>
+      </applicationDeployment>
+    </platform>
+    <platform name="Windows-x86-64">
+      <applicationDeployment>
+        <nativeLibrary>pigmentmix.dll</nativeLibrary>
+        <initializer>PigmentMixExtInit</initializer>
+        <finalizer>PigmentMixExtFin</finalizer>
+      </applicationDeployment>
+    </platform>
+    <!-- 네이티브 빌드가 없는 운영체제(macOS, Linux 등)는 여기로 들어가고, 앱은 일반 합성으로 동작함 -->
+    <platform name="default">
+      <applicationDeployment/>
+    </platform>
+  </platforms>
+</extension>
+

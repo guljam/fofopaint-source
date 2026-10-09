@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<application xmlns="http://ns.adobe.com/air/application/51.1">
+  <id>FofoPigmentMixTest</id>
+  <filename>PigmentMixTest</filename>
+  <name>PigmentMixTest</name>
+  <versionNumber>1.0.0</versionNumber>
+  <initialWindow>
+    <content>PigmentMixTest.swf</content>
+    <visible>false</visible>
+  </initialWindow>
+  <supportedProfiles>extendedDesktop</supportedProfiles>
+  <extensions>
+    <extensionID>com.fofo.pigmentmix</extensionID>
+  </extensions>
+</application>

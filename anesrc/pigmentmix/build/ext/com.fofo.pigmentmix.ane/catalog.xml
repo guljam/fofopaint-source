@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<swc xmlns="http://www.adobe.com/flash/swccatalog/9">
+    <versions>
+        <swc version="1.2"/>
+        <compiler name="ActionScript Compiler" version="3.2.3" build="0"/>
+    </versions>
+    <features>
+        <feature-script-deps/>
+    </features>
+    <libraries>
+        <library path="library.swf">
+            <script name="com/fofo/pigmentmix/PigmentMix" mod="1790625464027">
+                <def id="com.fofo.pigmentmix:PigmentMix"/>
+                <dep id="Boolean" type="s"/>
+                <dep id="Number" type="s"/>
+                <dep id="Object" type="i"/>
+                <dep id="String" type="s"/>
+                <dep id="flash.display:BitmapData" type="s"/>
+                <dep id="flash.external:ExtensionContext" type="s"/>
+                <dep id="int" type="s"/>
+                <dep id="uint" type="s"/>
+            </script>
+            <digests>
+                <digest type="SHA-256" signed="false" value="8dc44f7b0eb0b7ceba3577239ac59d1972197a1475816b25d3660fa0afc8a045"/>
+            </digests>
+        </library>
+    </libraries>
+</swc>

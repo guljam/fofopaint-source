@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<swc xmlns="http://www.adobe.com/flash/swccatalog/9">
+    <versions>
+        <swc version="1.2"/>
+        <compiler name="ActionScript Compiler" version="3.2.3" build="0"/>
+    </versions>
+    <features>
+        <feature-script-deps/>
+    </features>
+    <libraries>
+        <library path="library.swf">
+            <script name="com/fofo/nativecore/NativeBridge" mod="1791509941689">
+                <def id="com.fofo.nativecore:NativeBridge"/>
+                <dep id="Array" type="s"/>
+                <dep id="Boolean" type="s"/>
+                <dep id="Function" type="s"/>
+                <dep id="Object" type="i"/>
+                <dep id="String" type="s"/>
+                <dep id="flash.events:StatusEvent" type="e"/>
+                <dep id="flash.external:ExtensionContext" type="s"/>
+            </script>
+            <digests>
+                <digest type="SHA-256" signed="false" value="b3412e3c390565358c97ac625a320b99abe5a53738ff91ef136c96a774322e8b"/>
+            </digests>
+        </library>
+    </libraries>
+</swc>
