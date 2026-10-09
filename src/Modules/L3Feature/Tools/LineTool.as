@@ -1,7 +1,6 @@
 package Modules.L3Feature.Tools
 {
     import Modules.DrawEngine.StrokeBuffer;
-    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.InputPriority;
     import Modules.ColorHistory;
@@ -23,6 +22,7 @@ package Modules.L3Feature.Tools
     import Modules.L3Feature.DrawingFinish;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L4UI.PenSizePreviewCursor;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 층: L3 기능 - 직선 그리기
     public class LineTool

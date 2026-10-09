@@ -1,6 +1,5 @@
 ﻿package Symbols
 {
-	import Modules.DrawEngine.DrawCanvas;
 	import flash.display.Sprite;
 	import flash.geom.ColorTransform;
 	import flash.display.BitmapData;
@@ -9,6 +8,7 @@
 	import flash.geom.Rectangle;
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
+	import Modules.L2Engine.DrawEngine.DrawCanvas;
 
 	// 층: L4 UI - 캔버스 네비게이터 박스 화면 묶음
 	public class CanvasNavigatorBoxSet extends Sprite

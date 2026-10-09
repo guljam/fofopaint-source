@@ -1,8 +1,6 @@
 package Modules.L3Feature.Tools
 {
     import Modules.DrawEngine.StrokeBuffer;
-    import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.ColorHistory;
@@ -33,6 +31,8 @@ package Modules.L3Feature.Tools
     import Modules.L3Feature.DrawingFinish;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L1Data.ToolState;
+    import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 층: L3 기능 - 채우기 펜
     public class FillPenTool

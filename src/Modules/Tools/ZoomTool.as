@@ -1,7 +1,5 @@
 package Modules.Tools
 {
-    import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.UITheme;
     import flash.geom.Point;
@@ -14,6 +12,8 @@ package Modules.Tools
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.PenSizePreviewCursor;
+    import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 층: L3 기능 - 줌 툴
     public class ZoomTool

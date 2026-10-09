@@ -1,6 +1,5 @@
 package Modules.L2Engine.ReplayEngine
 {
-    import Modules.DrawEngine.DrawCanvas;
     import flash.display.BitmapData;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
@@ -21,6 +20,7 @@ package Modules.L2Engine.ReplayEngine
     import Modules.ReplayEngine.ReplayState;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 층: L2 엔진 - 리플레이 파일(repdata) 쓰기와 캐시 이미지 생성·복원
     public class ReplayFileCache

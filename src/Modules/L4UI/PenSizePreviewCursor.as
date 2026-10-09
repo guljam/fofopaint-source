@@ -1,8 +1,6 @@
 package Modules.L4UI
 {
-    import Modules.DrawEngine.CanvasView;
     import Modules.Tools.PenTool;
-    import Modules.DrawEngine.DrawCanvas;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.getTimer;
@@ -14,6 +12,8 @@ package Modules.L4UI
     import Modules.ReferenceLayerController;
     import Modules.Utils;
     import Modules.L1Data.ToolState;
+    import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 층: L4 UI - 펜 크기 미리보기 커서 (모양, 위치, 보임 여부)
     public class PenSizePreviewCursor

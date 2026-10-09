@@ -9,8 +9,6 @@
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.ClipboardManager;
     import Modules.DragInteraction;
-    import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.DrawCanvas;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.ReferenceLayerController;
@@ -72,6 +70,8 @@
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.DrawEngine.StrokeBuffer;
+    import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화

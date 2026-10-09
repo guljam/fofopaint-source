@@ -11,8 +11,6 @@ package Modules.L2Engine.DrawEngine
     import flash.display.Sprite;
     import flash.events.MouseEvent;
     import flash.geom.Point;
-    import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.DrawCanvas;
     import Modules.L4UI.ImageViewWindow;
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;

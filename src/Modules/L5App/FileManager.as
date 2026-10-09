@@ -1,7 +1,5 @@
 package Modules.L5App
 {
-    import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.UITheme;
@@ -67,6 +65,8 @@ package Modules.L5App
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.PenSizePreviewCursor;
+    import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager

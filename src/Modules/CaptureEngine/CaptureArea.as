@@ -1,7 +1,5 @@
 package Modules.CaptureEngine
 {
-    import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.DrawCanvas;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.ReplayEngine.ReplayState;
@@ -16,6 +14,8 @@ package Modules.CaptureEngine
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 층: L3 기능 - 캡처 영역 지정과 표시
     public class CaptureArea

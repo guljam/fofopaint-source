@@ -1,8 +1,6 @@
 package Modules.Tools
 {
     import Modules.DrawEngine.StrokeBuffer;
-    import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.InputPriority;
     import Modules.MouseState;
@@ -27,6 +25,8 @@ package Modules.Tools
 	import Modules.L3Feature.DrawingFinish;
 	import Modules.L1Data.Tools.PenSettings;
 	import Modules.L4UI.PenSizePreviewCursor;
+	import Modules.L2Engine.DrawEngine.CanvasView;
+	import Modules.L2Engine.DrawEngine.DrawCanvas;
 
 	// 층: L3 기능 - 펜 그리기와 지우개
 	public final class PenTool

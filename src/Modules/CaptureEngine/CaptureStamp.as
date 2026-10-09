@@ -1,7 +1,5 @@
 package Modules.CaptureEngine
 {
-    import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.Utils;
@@ -22,6 +20,8 @@ package Modules.CaptureEngine
     import Modules.L4UI.PaletteController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 층: L3 기능 - 캡처 도장(시간 스탬프)과 글꼴
     public class CaptureStamp

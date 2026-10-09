@@ -1,6 +1,5 @@
 package Modules.L1Data
 {
-    import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.CanvasNavigator;
     import flash.display.BitmapData;
     import flash.filesystem.FileStream;
@@ -16,6 +15,7 @@ package Modules.L1Data
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L1Data.AppDataPaths;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 메모리 undo 데이터(ReplayState.rMemoryData)를 쌓고 자르는 일과 undo 위치, undo 기준 이미지를 맡음
     // undo 위치를 옮겨서 캔버스를 다시 그리는 일은 UndoController가 함

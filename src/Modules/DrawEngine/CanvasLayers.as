@@ -13,6 +13,8 @@ package Modules.DrawEngine
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.UndoHistory;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 드로우 모드 레이어 1/2: 선택, 잠금(체크), 스왑, 병합
     // 층: L2 엔진 - 드로우 모드 레이어 1/2 선택, 잠금, 스왑, 병합

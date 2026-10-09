@@ -1,7 +1,6 @@
 ﻿package Symbols
 {
 
-	import Modules.DrawEngine.DrawCanvas;
 	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
@@ -26,6 +25,7 @@
 	import Modules.L4UI.AboutBoxController;
 	import Modules.L4UI.UIEngine.UIController;
 	import Modules.L4UI.PenSizePreviewCursor;
+	import Modules.L2Engine.DrawEngine.DrawCanvas;
 
 	// 층: L4 UI - 상단 메뉴 화면 묶음
 	public class TopMenuSet extends Sprite

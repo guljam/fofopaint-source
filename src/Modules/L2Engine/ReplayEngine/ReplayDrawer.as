@@ -1,7 +1,5 @@
 package Modules.L2Engine.ReplayEngine
 {
-    import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.DrawCanvas;
     import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display.CapsStyle;
@@ -28,6 +26,8 @@ package Modules.L2Engine.ReplayEngine
     import Modules.ReplayEngine.ReplayViewport;
     import Modules.L1Data.UndoHistory;
     import Modules.L1Data.AppDataPaths;
+    import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 층: L2 엔진 - 리플레이 캔버스에 명령을 그리고 프레임 이동
     public class ReplayDrawer

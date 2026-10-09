@@ -2,8 +2,6 @@ package Modules
 {
     import Modules.CaptureEngine.CaptureController;
     import Modules.DrawEngine.CanvasLayers;
-    import Modules.DrawEngine.CanvasView;
-    import Modules.DrawEngine.DrawCanvas;
     import Modules.ReplayEngine.ReplayState;
     import Modules.UIEngine.UITheme;
 
@@ -33,6 +31,8 @@ package Modules
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.UndoHistory;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
 
     // 층: L4 UI - 참조 레이어 메뉴와 이미지 병합·투명도·비우기
     public final class ReferenceLayerController

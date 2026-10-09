@@ -1,6 +1,5 @@
 package Modules
 {
-    import Modules.DrawEngine.CanvasView;
     import flash.display.DisplayObject;
     import flash.display.DisplayObjectContainer;
     import flash.display.Stage;
@@ -17,6 +16,7 @@ package Modules
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L2Engine.DrawEngine.CanvasView;
 
     // 층: L1 데이터 - 색 변환, 텍스트 필드 생성 등 공용 함수
     public class Utils

@@ -1,6 +1,5 @@
 package Modules.L5App.InputManager
 {
-    import Modules.DrawEngine.CanvasView;
     import Modules.ClipboardManager;
     import Modules.InputPriority;
     import Modules.L1Data.KeyState;
@@ -30,6 +29,7 @@ package Modules.L5App.InputManager
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L1Data.ToolState;
+    import Modules.L2Engine.DrawEngine.CanvasView;
 
     // 층: L5 앱 흐름 - 키보드·마우스 입력을 받아 모드별 입력 처리로 나눠줌
     public class InputManager
