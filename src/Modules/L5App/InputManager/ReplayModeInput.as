@@ -17,6 +17,7 @@ package Modules.L5App.InputManager
     import Modules.L4UI.LoadBoxController;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L3Feature.Tools.RotateTool;
+    import Modules.L1Data.KeyState;
 
     // 리플레이 모드의 키보드/마우스 입력
     // 층: L5 앱 흐름 - 리플레이 모드의 키보드/마우스 입력
@@ -112,11 +113,11 @@ package Modules.L5App.InputManager
 
         private static function handleControlSubKeyReplayMode(input:int):void
         {
-            if (input === InputManager.KEY.c || input === InputManager.KEY.comma)
+            if (input === KeyState.KEY.c || input === KeyState.KEY.comma)
             {
                 CaptureController.enterCaptureMode();
             }
-            else if (input === InputManager.KEY.v || input === InputManager.KEY.m)
+            else if (input === KeyState.KEY.v || input === KeyState.KEY.m)
             {
                 if (ClipboardManager.isClipBoardButtonActivated)
                 {
@@ -129,23 +130,23 @@ package Modules.L5App.InputManager
         {
             switch (input)
             {
-                case InputManager.KEY.left:
-                case InputManager.KEY.z:
-                case InputManager.KEY.dot:
+                case KeyState.KEY.left:
+                case KeyState.KEY.z:
+                case KeyState.KEY.dot:
                     {
                         if (ReplayState.canStartReplay())
                         {
-                            InputManager.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
+                            KeyState.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
                         }
                     }
                     break;
-                case InputManager.KEY.right:
-                case InputManager.KEY.x:
-                case InputManager.KEY.comma:
+                case KeyState.KEY.right:
+                case KeyState.KEY.x:
+                case KeyState.KEY.comma:
                     {
                         if (ReplayState.canStartReplay())
                         {
-                            InputManager.startKeyRepeat(true, ReplayController.moveToNextFrame);
+                            KeyState.startKeyRepeat(true, ReplayController.moveToNextFrame);
                         }
                     }
                     break;
@@ -154,13 +155,13 @@ package Modules.L5App.InputManager
 
         private static function onKeyUpReplayMode(e:KeyboardEvent):void
         {
-            InputManager.checkGeneralKeyUp();
+            KeyState.checkGeneralKeyUp();
         }
 
         private static function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         {
-            const firstKey:uint = InputManager.getFirstPressedKey();
-            if (MouseState.isLeftDown || MouseState.isRightDown || InputManager.isLastKey(firstKey) || LoadBoxController.loadMenuBox.visible)
+            const firstKey:uint = KeyState.getFirstPressedKey();
+            if (MouseState.isLeftDown || MouseState.isRightDown || KeyState.isLastKey(firstKey) || LoadBoxController.loadMenuBox.visible)
             {
                 return;
             }
@@ -169,54 +170,54 @@ package Modules.L5App.InputManager
             {
                 switch (firstKey)
                 {
-                    case InputManager.KEY.backspace:
-                    case InputManager.KEY.esc:
-                    case InputManager.KEY.space:
+                    case KeyState.KEY.backspace:
+                    case KeyState.KEY.esc:
+                    case KeyState.KEY.space:
                         {
-                            InputManager.updateLastKey();
+                            KeyState.updateLastKey();
                             FOFOTimer.remove("prograssBarUpdateTimer");
                             ReplayController.handleReplayStopButton();
                         }
                         break;
                     // 재생 중 배속/줌 조절 (shift/ctrl 조합은 제외). 줌 키는 반복 없이 키를 떼기 전에는 다시 들어오지 않음
-                    case InputManager.KEY.up:
-                    case InputManager.KEY.f:
-                    case InputManager.KEY.h:
+                    case KeyState.KEY.up:
+                    case KeyState.KEY.f:
+                    case KeyState.KEY.h:
                         {
-                            if (!InputManager.isPressingShift() && !InputManager.isPressingControl())
+                            if (!KeyState.isPressingShift() && !KeyState.isPressingControl())
                             {
-                                InputManager.updateLastKey();
+                                KeyState.updateLastKey();
                                 ReplayController.startAdjustPlayBackSpeedByShortcut(true);
                             }
                         }
                         break;
-                    case InputManager.KEY.down:
-                    case InputManager.KEY.v:
-                    case InputManager.KEY.n:
+                    case KeyState.KEY.down:
+                    case KeyState.KEY.v:
+                    case KeyState.KEY.n:
                         {
-                            if (!InputManager.isPressingShift() && !InputManager.isPressingControl())
+                            if (!KeyState.isPressingShift() && !KeyState.isPressingControl())
                             {
-                                InputManager.updateLastKey();
+                                KeyState.updateLastKey();
                                 ReplayController.startAdjustPlayBackSpeedByShortcut(false);
                             }
                         }
                         break;
-                    case InputManager.KEY.w:
-                    case InputManager.KEY.i:
+                    case KeyState.KEY.w:
+                    case KeyState.KEY.i:
                         {
-                            if (!InputManager.isPressingShift() && !InputManager.isPressingControl())
+                            if (!KeyState.isPressingShift() && !KeyState.isPressingControl())
                             {
-                                InputManager.updateLastKey();
+                                KeyState.updateLastKey();
                                 ReplayDrawer.viewport.zoomStep(true);
                             }
                         }
                         break;
-                    case InputManager.KEY.s:
-                    case InputManager.KEY.k:
+                    case KeyState.KEY.s:
+                    case KeyState.KEY.k:
                         {
-                            if (!InputManager.isPressingShift() && !InputManager.isPressingControl())
+                            if (!KeyState.isPressingShift() && !KeyState.isPressingControl())
                             {
-                                InputManager.updateLastKey();
+                                KeyState.updateLastKey();
                                 ReplayDrawer.viewport.zoomStep(false);
                             }
                         }
@@ -229,12 +230,12 @@ package Modules.L5App.InputManager
             {
                 switch (firstKey)
                 {
-                    case InputManager.KEY.backspace:
-                    case InputManager.KEY.esc:
-                    case InputManager.KEY.enter:
-                    case InputManager.KEY.space:
+                    case KeyState.KEY.backspace:
+                    case KeyState.KEY.esc:
+                    case KeyState.KEY.enter:
+                    case KeyState.KEY.space:
                         {
-                            InputManager.updateLastKey();
+                            KeyState.updateLastKey();
                             ReplayController.cancelReplayRestartTimer();
                         }
                         break;
@@ -242,44 +243,44 @@ package Modules.L5App.InputManager
                 return;
             }
 
-            if (InputManager.isPressingShift())
+            if (KeyState.isPressingShift())
             {
-                InputManager.checkSubKey(2, false, handleShiftSubKeyReplayMode);
+                KeyState.checkSubKey(2, false, handleShiftSubKeyReplayMode);
                 return;
             }
-            else if (InputManager.isPressingControl())
+            else if (KeyState.isPressingControl())
             {
-                InputManager.checkSubKey(2, true, handleControlSubKeyReplayMode);
+                KeyState.checkSubKey(2, true, handleControlSubKeyReplayMode);
                 return;
             }
 
-            InputManager.updateLastKey();
+            KeyState.updateLastKey();
 
             switch (firstKey)
             {
-                case InputManager.KEY.left:
-                case InputManager.KEY.z:
-                case InputManager.KEY.dot:
+                case KeyState.KEY.left:
+                case KeyState.KEY.z:
+                case KeyState.KEY.dot:
                     {
                         if (ReplayState.canStartReplay())
                         {
-                            InputManager.startKeyRepeat(true, ReplayController.moveToPreviousStep);
+                            KeyState.startKeyRepeat(true, ReplayController.moveToPreviousStep);
                         }
                     }
                     break;
-                case InputManager.KEY.right:
-                case InputManager.KEY.x:
-                case InputManager.KEY.comma:
+                case KeyState.KEY.right:
+                case KeyState.KEY.x:
+                case KeyState.KEY.comma:
                     {
                         if (ReplayState.canStartReplay())
                         {
-                            InputManager.startKeyRepeat(true, ReplayController.moveToNextStep);
+                            KeyState.startKeyRepeat(true, ReplayController.moveToNextStep);
                         }
                     }
                     break;
-                case InputManager.KEY.up:
-                case InputManager.KEY.f:
-                case InputManager.KEY.h:
+                case KeyState.KEY.up:
+                case KeyState.KEY.f:
+                case KeyState.KEY.h:
                     {
                         if (ReplayState.canStartReplay())
                         {
@@ -287,9 +288,9 @@ package Modules.L5App.InputManager
                         }
                     }
                     break;
-                case InputManager.KEY.down:
-                case InputManager.KEY.v:
-                case InputManager.KEY.n:
+                case KeyState.KEY.down:
+                case KeyState.KEY.v:
+                case KeyState.KEY.n:
                     {
                         if (ReplayState.canStartReplay())
                         {
@@ -297,27 +298,27 @@ package Modules.L5App.InputManager
                         }
                     }
                     break;
-                case InputManager.KEY.w:
-                case InputManager.KEY.i:
+                case KeyState.KEY.w:
+                case KeyState.KEY.i:
                     {
                         ReplayDrawer.viewport.zoomStep(true); // 반복 없음: 위에서 updateLastKey를 불러 키를 떼기 전에는 다시 들어오지 않음
                     }
                     break;
-                case InputManager.KEY.s:
-                case InputManager.KEY.k:
+                case KeyState.KEY.s:
+                case KeyState.KEY.k:
                     {
                         ReplayDrawer.viewport.zoomStep(false);
                     }
                     break;
-                case InputManager.KEY.backspace:
-                case InputManager.KEY.esc:
-                case InputManager.KEY.f1:
-                case InputManager.KEY.f7:
+                case KeyState.KEY.backspace:
+                case KeyState.KEY.esc:
+                case KeyState.KEY.f1:
+                case KeyState.KEY.f7:
                     {
                         ReplayController.exitReplayMode();
                     }
                     break;
-                case InputManager.KEY.space:
+                case KeyState.KEY.space:
                     {
                         if (ReplayState.canStartReplay())
                         {
@@ -330,7 +331,7 @@ package Modules.L5App.InputManager
 
         private static function onRightMouseDownReplayMode(e:MouseEvent):void
         {
-            if (MouseState.isLeftDown || InputManager.isKeyPressed() || !e.target || LoadBoxController.loadMenuBox.visible
+            if (MouseState.isLeftDown || KeyState.isKeyPressed() || !e.target || LoadBoxController.loadMenuBox.visible
                     || ReplayState.isZeroReplayFrame())
             {
                 return;
@@ -342,14 +343,14 @@ package Modules.L5App.InputManager
             {
                 case "replayPrev":
                     {
-                        InputManager.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
-                        InputManager.startKeyRepeatStopTimerOnMouseLeave(e.target as DisplayObject);
+                        KeyState.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
+                        KeyState.startKeyRepeatStopTimerOnMouseLeave(e.target as DisplayObject);
                     }
                     break;
                 case "replayNext":
                     {
-                        InputManager.startKeyRepeat(true, ReplayController.moveToNextFrame);
-                        InputManager.startKeyRepeatStopTimerOnMouseLeave(e.target as DisplayObject);
+                        KeyState.startKeyRepeat(true, ReplayController.moveToNextFrame);
+                        KeyState.startKeyRepeatStopTimerOnMouseLeave(e.target as DisplayObject);
                     }
                     break;
                 case "replayRotateButton":
@@ -404,7 +405,7 @@ package Modules.L5App.InputManager
 
             if (targetName)
             {
-                if (InputManager.isKeyPressed())
+                if (KeyState.isKeyPressed())
                 {
                     return;
                 }
@@ -501,30 +502,30 @@ package Modules.L5App.InputManager
                 case "replayPrev":
                     {
                         FOFOTimer.remove("prograssBarUpdateTimer");
-                        if (InputManager.isPressingShift())
+                        if (KeyState.isPressingShift())
                         {
-                            InputManager.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
-                            InputManager.startKeyRepeatStopTimerOnMouseLeave(target);
+                            KeyState.startKeyRepeat(true, ReplayController.moveToPreviousFrame);
+                            KeyState.startKeyRepeatStopTimerOnMouseLeave(target);
                         }
                         else
                         {
-                            InputManager.startKeyRepeat(true, ReplayController.moveToPreviousStep);
-                            InputManager.startKeyRepeatStopTimerOnMouseLeave(target);
+                            KeyState.startKeyRepeat(true, ReplayController.moveToPreviousStep);
+                            KeyState.startKeyRepeatStopTimerOnMouseLeave(target);
                         }
                     }
                     break;
                 case "replayNext":
                     {
                         FOFOTimer.remove("prograssBarUpdateTimer");
-                        if (InputManager.isPressingShift())
+                        if (KeyState.isPressingShift())
                         {
-                            InputManager.startKeyRepeat(true, ReplayController.moveToNextFrame);
-                            InputManager.startKeyRepeatStopTimerOnMouseLeave(target);
+                            KeyState.startKeyRepeat(true, ReplayController.moveToNextFrame);
+                            KeyState.startKeyRepeatStopTimerOnMouseLeave(target);
                         }
                         else
                         {
-                            InputManager.startKeyRepeat(true, ReplayController.moveToNextStep);
-                            InputManager.startKeyRepeatStopTimerOnMouseLeave(target);
+                            KeyState.startKeyRepeat(true, ReplayController.moveToNextStep);
+                            KeyState.startKeyRepeatStopTimerOnMouseLeave(target);
                         }
                     }
                     break;
@@ -540,7 +541,7 @@ package Modules.L5App.InputManager
                 case "replayZoomOutButton":
                 case "replayFitToWindowButton":
                     {
-                        if (InputManager.isKeyPressed())
+                        if (KeyState.isKeyPressed())
                         {
                             return;
                         }
@@ -555,7 +556,7 @@ package Modules.L5App.InputManager
                 case "capFlip":
                 case "capRotate":
                     {
-                        if (InputManager.isKeyPressed())
+                        if (KeyState.isKeyPressed())
                         {
                             return;
                         }
@@ -569,7 +570,7 @@ package Modules.L5App.InputManager
                 case "clipBoardButton":
                 case "topBarColorButton":
                     {
-                        if (InputManager.isKeyPressed())
+                        if (KeyState.isKeyPressed())
                         {
                             return;
                         }

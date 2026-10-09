@@ -68,6 +68,7 @@
     import Modules.L4UI.SidebarController;
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L1Data.KeyState;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화
@@ -142,6 +143,7 @@
             ReplayController.setMainInstance(this);
             ReplayMouseAutoHide.setMainInstance(this);
             InputManager.setMainInstance(this);
+            KeyState.setMainInstance(this);
             DrawModeInput.setMainInstance(this);
             CaptureModeInput.setMainInstance(this);
             ReplayModeInput.setMainInstance(this);

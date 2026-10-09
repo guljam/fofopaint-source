@@ -3,12 +3,12 @@ package Modules.L3Feature.Tools
     import Modules.PenSizePreviewCursor;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.UIController;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.Tools.MoveTool;
     import Modules.Tools.PenSettings;
     import Modules.Tools.PenTool;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.Tools.ZoomTool;
+    import Modules.L1Data.KeyState;
 
     // 층: L3 기능 - 현재 툴 선택과 툴 전환
     public class ToolController
@@ -242,16 +242,16 @@ package Modules.L3Feature.Tools
         {
             switch (keyCode)
             {
-                case InputManager.KEY.q:
-                case InputManager.KEY.o:
+                case KeyState.KEY.q:
+                case KeyState.KEY.o:
                     {
                         setLastTool(TOOL_PEN);
                         selectFillPenTool();
                         ToolPanel.showNowToolIconToCursorTemp(TOOL_FILLPEN);
                     }
                     break;
-                case InputManager.KEY.c:
-                case InputManager.KEY.m:
+                case KeyState.KEY.c:
+                case KeyState.KEY.m:
                     {
                         if (!isSelectedTool(TOOL_EYEDROPPER))
                         {
@@ -264,8 +264,8 @@ package Modules.L3Feature.Tools
                         }
                     }
                     break;
-                case InputManager.KEY.r:
-                case InputManager.KEY.y:
+                case KeyState.KEY.r:
+                case KeyState.KEY.y:
                     {
                         if (!isSelectedTool(TOOL_LASSO))
                         {
@@ -275,7 +275,7 @@ package Modules.L3Feature.Tools
                         }
                     }
                     break;
-                case InputManager.KEY.space:
+                case KeyState.KEY.space:
                     {
                         if (!isSelectedTool(TOOL_HAND))
                         {
@@ -285,8 +285,8 @@ package Modules.L3Feature.Tools
                         }
                     }
                     break;
-                case InputManager.KEY.d:
-                case InputManager.KEY.j:
+                case KeyState.KEY.d:
+                case KeyState.KEY.j:
                     {
                         if (!isSelectedTool(TOOL_ERASER))
                         {
@@ -297,8 +297,8 @@ package Modules.L3Feature.Tools
                         }
                     }
                     break;
-                case InputManager.KEY.s:
-                case InputManager.KEY.k:
+                case KeyState.KEY.s:
+                case KeyState.KEY.k:
                     {
                         if (!isSelectedTool(TOOL_ROTATE))
                         {
@@ -308,8 +308,8 @@ package Modules.L3Feature.Tools
                         }
                     }
                     break;
-                case InputManager.KEY.e:
-                case InputManager.KEY.u:
+                case KeyState.KEY.e:
+                case KeyState.KEY.u:
                     {
                         if (!isSelectedTool(TOOL_MOVE))
                         {
@@ -319,8 +319,8 @@ package Modules.L3Feature.Tools
                         }
                     }
                     break;
-                case InputManager.KEY.w:
-                case InputManager.KEY.i:
+                case KeyState.KEY.w:
+                case KeyState.KEY.i:
                     {
                         if (!isSelectedTool(TOOL_ZOOM))
                         {
@@ -330,7 +330,7 @@ package Modules.L3Feature.Tools
                         }
                     }
                     break;
-                case InputManager.KEY.shift:
+                case KeyState.KEY.shift:
                     {
                         if (!isSelectedTool(TOOL_LINE))
                         {

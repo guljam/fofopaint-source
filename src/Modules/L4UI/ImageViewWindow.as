@@ -24,7 +24,7 @@ package Modules.L4UI
     import flash.geom.Rectangle;
     import Modules.ReplayEngine.ReplayState;
     import Modules.L5App.AppWindowState;
-    import Modules.L5App.InputManager.InputManager;
+    import Modules.L1Data.KeyState;
 
     // 층: L4 UI - 캔버스 이미지를 별도 창으로 보여주는 창
     public final class ImageViewWindow
@@ -183,7 +183,7 @@ package Modules.L4UI
 
         private static function onKeyDownCanvasWindow(e:KeyboardEvent):void
         {
-            if (e.keyCode === InputManager.KEY.esc)
+            if (e.keyCode === KeyState.KEY.esc)
             {
                 closeCanvasWindow();
             }

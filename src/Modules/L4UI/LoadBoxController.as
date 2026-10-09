@@ -20,7 +20,6 @@ package Modules.L4UI
     import libwebp.DecodeWebp;
     import Modules.BackgroundWorkerCoordinator;
     import Modules.L5App.FileManager;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.InputPriority;
     import Modules.L3Feature.Tools.LassoTool;
     import Modules.ReferenceLayerController;
@@ -28,6 +27,7 @@ package Modules.L4UI
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.Utils;
+    import Modules.L1Data.KeyState;
 
     // 불러오기 메뉴(로드박스)의 열기/닫기, 버튼 처리, 불러올 이미지/파일 보관, 확정 시 실제 불러오기 호출을 담당함
     // 층: L4 UI - 불러오기 메뉴(로드박스) 열기·닫기와 버튼 처리
@@ -163,8 +163,8 @@ package Modules.L4UI
 
         private static function keyDownLoadMenuBox(e:KeyboardEvent):void
         {
-            const firstKey:uint = InputManager.getFirstPressedKey();
-            if (firstKey === InputManager.KEY.esc || firstKey === InputManager.KEY.backspace)
+            const firstKey:uint = KeyState.getFirstPressedKey();
+            if (firstKey === KeyState.KEY.esc || firstKey === KeyState.KEY.backspace)
             {
                 // 캐시 이미지를 만드는 중이면 멈추고 새 파일로 초기화함
                 if (ReplayState.isGeneratingCacheImages())
@@ -208,7 +208,7 @@ package Modules.L4UI
 
         public static function prepareOpenLoadBox(fromUpdate:Boolean, reflayermenu:Boolean, file:File, bmpd:BitmapData, filetype:String):void
         {
-            InputManager.clearKeyBuffer();
+            KeyState.clearKeyBuffer();
             ToolPanel.closeToolBox2();
             loadMenuBoxFileType = filetype;
             loadMenuBoxFile = file;

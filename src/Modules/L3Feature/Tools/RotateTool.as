@@ -11,8 +11,8 @@ package Modules.L3Feature.Tools
     import Modules.PenSizePreviewCursor;
     import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L1Data.KeyState;
 
     // 층: L3 기능 - 회전 툴
     public class RotateTool
@@ -62,7 +62,7 @@ package Modules.L3Feature.Tools
                     ReplayController.fitReplayCanvasToViewport();
                 }
 
-                InputManager.resetLastKey();
+                KeyState.resetLastKey();
                 ReplayDrawer.cursorFollow.updateBounds();
             }
 

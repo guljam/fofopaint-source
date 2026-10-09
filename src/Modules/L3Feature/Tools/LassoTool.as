@@ -44,6 +44,7 @@ package Modules.L3Feature.Tools
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
     import Modules.Tools.ZoomTool;
+    import Modules.L1Data.KeyState;
 
     // 층: L3 기능 - 올가미 선택과 이동·회전·크기·미러
     public class LassoTool
@@ -176,7 +177,7 @@ package Modules.L3Feature.Tools
         {
             _lassoMenuBox.visible = true;
             _isLassoMenuHiddenTemp = false;
-            InputManager.resetLastKey();
+            KeyState.resetLastKey();
         }
 
         public static function mergeLassoImageToRefLayer():void
@@ -1201,9 +1202,9 @@ package Modules.L3Feature.Tools
 
         private static function onMouseUpLassoTool(e:MouseEvent):void
         {
-            if (InputManager.getPressedKeyCount() === 1 && InputManager.getFirstPressedKey() === InputManager.KEY.space)
+            if (KeyState.getPressedKeyCount() === 1 && KeyState.getFirstPressedKey() === KeyState.KEY.space)
             {
-                InputManager.updateLastKey();
+                KeyState.updateLastKey();
                 _isLassoMenuHiddenTemp = true;
                 ToolController.setSelectedTool(ToolController.TOOL_HAND);
                 ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
@@ -1333,10 +1334,10 @@ package Modules.L3Feature.Tools
             {
                 _isLassoMenuHiddenTemp = false;
             }
-            InputManager.checkGeneralKeyUp();
+            KeyState.checkGeneralKeyUp();
 
             // 마지막으로 처리한 키를 뗐는데 아직 누르고 있는 키가 있으면 남은 키로 다시 처리함
-            if (InputManager.isKeyPressed() && !CaptureController.isCaptureModeON && !ReplayState.isReplayModeON && InputManager.isLastKey(keyCode))
+            if (KeyState.isKeyPressed() && !CaptureController.isCaptureModeON && !ReplayState.isReplayModeON && KeyState.isLastKey(keyCode))
             {
                 onKeyDownLassoTool(null);
             }
@@ -1349,44 +1350,44 @@ package Modules.L3Feature.Tools
                 return;
             }
 
-            const keyCode:uint = InputManager.getFirstPressedKey();
+            const keyCode:uint = KeyState.getFirstPressedKey();
 
-            if (keyCode === InputManager.KEY.space)
+            if (keyCode === KeyState.KEY.space)
             {
-                if (InputManager.checkSubKey(2, true, handleSpaceSubKeyLassoTool))
+                if (KeyState.checkSubKey(2, true, handleSpaceSubKeyLassoTool))
                 {
                     return;
                 }
 
-                if (InputManager.isLastKey(keyCode))
+                if (KeyState.isLastKey(keyCode))
                 {
                     return;
                 }
 
-                InputManager.updateLastKey();
+                KeyState.updateLastKey();
                 _isLassoMenuHiddenTemp = true;
                 ToolController.setSelectedTool(ToolController.TOOL_HAND);
                 ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
             }
-            else if (InputManager.isPressingShift())
+            else if (KeyState.isPressingShift())
             {
-                if (InputManager.checkSubKey(2, true, handleShiftSubKeyLassoTool))
+                if (KeyState.checkSubKey(2, true, handleShiftSubKeyLassoTool))
                 {
                     return;
                 }
             }
 
-            if (InputManager.isLastKey(keyCode))
+            if (KeyState.isLastKey(keyCode))
             {
                 return;
             }
 
-            InputManager.updateLastKey();
+            KeyState.updateLastKey();
 
             switch (keyCode)
             {
-                case InputManager.KEY.tab:
-                case InputManager.KEY.backslash:
+                case KeyState.KEY.tab:
+                case KeyState.KEY.backslash:
                     if (SidebarController.isSidebarVisible)
                     {
                         SidebarController.hideSidebarPermanent();
@@ -1397,28 +1398,28 @@ package Modules.L3Feature.Tools
                     }
                     break;
 
-                case InputManager.KEY.w:
-                case InputManager.KEY.i:
+                case KeyState.KEY.w:
+                case KeyState.KEY.i:
                     _isLassoMenuHiddenTemp = true;
-                    InputManager.updateLastKey();
+                    KeyState.updateLastKey();
                     ToolController.setSelectedTool(ToolController.TOOL_ZOOM);
                     ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_ZOOM);
                     break;
 
-                case InputManager.KEY.s:
-                case InputManager.KEY.k:
+                case KeyState.KEY.s:
+                case KeyState.KEY.k:
                     _isLassoMenuHiddenTemp = true;
-                    InputManager.updateLastKey();
+                    KeyState.updateLastKey();
                     ToolController.setSelectedTool(ToolController.TOOL_ROTATE);
                     ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_ROTATE);
                     break;
 
-                case InputManager.KEY.enter:
+                case KeyState.KEY.enter:
                     applyLassoImageToCanvas();
                     break;
 
-                case InputManager.KEY.esc:
-                case InputManager.KEY.backspace:
+                case KeyState.KEY.esc:
+                case KeyState.KEY.backspace:
                     cancelIfActive();
                     break;
             }
@@ -1513,8 +1514,8 @@ package Modules.L3Feature.Tools
         {
             switch (input)
             {
-                case InputManager.KEY.s:
-                case InputManager.KEY.k:
+                case KeyState.KEY.s:
+                case KeyState.KEY.k:
                     if (CanvasView.canvasAnchorPoint.rotation !== 0.0)
                     {
                         CanvasView.resetRotationDrawMode();
@@ -1522,8 +1523,8 @@ package Modules.L3Feature.Tools
                     }
                     return;
 
-                case InputManager.KEY.w:
-                case InputManager.KEY.i:
+                case KeyState.KEY.w:
+                case KeyState.KEY.i:
                     if (CanvasView.canvasZoomMultiplier !== 1.0)
                     {
                         CanvasView.resetZoomDrawMode();
@@ -1535,30 +1536,30 @@ package Modules.L3Feature.Tools
         private static function handleSpaceSubKeyLassoTool(input:int):void
         {
             // 키 2개 조합만 체크함
-            if (!InputManager.isTwoKeyPressed())
+            if (!KeyState.isTwoKeyPressed())
             {
                 return;
             }
 
             switch (input)
             {
-                case InputManager.KEY.w:
-                case InputManager.KEY.i:
+                case KeyState.KEY.w:
+                case KeyState.KEY.i:
                     move1PXUp();
                     break;
 
-                case InputManager.KEY.a:
-                case InputManager.KEY.j:
+                case KeyState.KEY.a:
+                case KeyState.KEY.j:
                     move1PXLeft();
                     break;
 
-                case InputManager.KEY.s:
-                case InputManager.KEY.k:
+                case KeyState.KEY.s:
+                case KeyState.KEY.k:
                     move1PXDown();
                     break;
 
-                case InputManager.KEY.d:
-                case InputManager.KEY.l:
+                case KeyState.KEY.d:
+                case KeyState.KEY.l:
                     move1PXRight();
                     break;
             }

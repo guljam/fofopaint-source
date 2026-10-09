@@ -33,6 +33,7 @@ package Modules.L5App
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
+    import Modules.L1Data.KeyState;
 
     // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState
@@ -121,8 +122,8 @@ package Modules.L5App
             MouseState.resetAll();
             DrawModeInput.isKeyReleasedBeforeMouseUp = false;
             CanvasResizer.exit();
-            InputManager.clearKeyBuffer();
-            InputManager.removeKeyRepeatEvents(null);
+            KeyState.clearKeyBuffer();
+            KeyState.removeKeyRepeatEvents(null);
             FOFOTimer.remove("pressholdtimer");
             if (ToolPanel.isToolBox2Showing)
             {

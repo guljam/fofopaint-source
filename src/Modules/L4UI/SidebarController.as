@@ -22,7 +22,6 @@ package Modules.L4UI
     import Modules.L2Engine.DrawEngine.CanvasResizer;
     import Modules.DragInteraction;
     import Modules.L3Feature.Tools.FillPenTool;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.InputPriority;
     import Modules.L3Feature.Tools.LassoTool;
     import Modules.L3Feature.Tools.LineTool;
@@ -32,6 +31,7 @@ package Modules.L4UI
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.Utils;
+    import Modules.L1Data.KeyState;
 
     // 층: L4 UI - 사이드바 위치, 숨김·표시, 퀵 사이드바
     public final class SidebarController
@@ -269,9 +269,9 @@ package Modules.L4UI
         {
             const keyCode:uint = e.keyCode;
 
-            if (keyCode === InputManager.KEY.s || keyCode === InputManager.KEY.d
-                    || keyCode === InputManager.KEY.j || keyCode === InputManager.KEY.k
-                    || keyCode === InputManager.KEY.n6)
+            if (keyCode === KeyState.KEY.s || keyCode === KeyState.KEY.d
+                    || keyCode === KeyState.KEY.j || keyCode === KeyState.KEY.k
+                    || keyCode === KeyState.KEY.n6)
             {
                 startDeactivteQuickSidebar();
             }
@@ -360,10 +360,10 @@ package Modules.L4UI
 
         public static function isPressingQuickSidebarShortcut(key1:int, key2:int):Boolean
         {
-            if ((key1 === InputManager.KEY.s && key2 === InputManager.KEY.d)
-                    || (key1 === InputManager.KEY.d && key2 === InputManager.KEY.s)
-                    || (key1 === InputManager.KEY.j && key2 === InputManager.KEY.k)
-                    || (key1 === InputManager.KEY.k && key2 === InputManager.KEY.j))
+            if ((key1 === KeyState.KEY.s && key2 === KeyState.KEY.d)
+                    || (key1 === KeyState.KEY.d && key2 === KeyState.KEY.s)
+                    || (key1 === KeyState.KEY.j && key2 === KeyState.KEY.k)
+                    || (key1 === KeyState.KEY.k && key2 === KeyState.KEY.j))
             {
                 return true;
             }
@@ -911,7 +911,7 @@ package Modules.L4UI
                     CanvasNavigator.startCanvasMove(true);
                     return true;
                 }
-                else if (ColorPickerController.handleColorPickerBoxMouseDown(target) && !InputManager.isKeyPressed())
+                else if (ColorPickerController.handleColorPickerBoxMouseDown(target) && !KeyState.isKeyPressed())
                 {
                     return true;
                 }

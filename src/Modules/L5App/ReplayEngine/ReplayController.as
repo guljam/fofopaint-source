@@ -50,7 +50,6 @@ package Modules.L5App.ReplayEngine
     import Modules.L5App.InputManager.DrawModeInput;
     import Modules.L5App.FileManager;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.L4UI.LoadBoxController;
     import Modules.ReplayEngine.ReplayClock;
     import Modules.ReplayEngine.ReplayDrawCommands;
@@ -63,6 +62,7 @@ package Modules.L5App.ReplayEngine
     import Modules.L4UI.SidebarController;
     import Modules.ReplayEngine.TimingSheetFile;
     import Modules.L3Feature.UndoController;
+    import Modules.L1Data.KeyState;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController
@@ -679,7 +679,7 @@ package Modules.L5App.ReplayEngine
 
             LoadBoxController.closeLoadMenuBox();
             LoadBoxController.loadMenuBox.clearPreviewImage(); // 캐시 이미지 만드는 동안만 쓰던 배경
-            InputManager.clearKeyBuffer();
+            KeyState.clearKeyBuffer();
 
             if (finalizeFunc !== null)
             {
@@ -1038,7 +1038,7 @@ package Modules.L5App.ReplayEngine
                 DrawModeInput.addEvents();
             }
 
-            InputManager.clearKeyBuffer();
+            KeyState.clearKeyBuffer();
         }
 
         public static function startGeneratingReplayCacheImage(fromLoadFile:Boolean, finalizeFunc:Function, resumeIndex:int = -1):void
@@ -1343,7 +1343,7 @@ package Modules.L5App.ReplayEngine
 
         public static function startAdjustPlayBackSpeedByShortcut(increase:Boolean):void
         {
-            InputManager.startKeyRepeat(true, adjustReplaySpeedByShortcut, increase);
+            KeyState.startKeyRepeat(true, adjustReplaySpeedByShortcut, increase);
         }
 
         public static function adjutReplaySpeedByMouse():void
@@ -2224,7 +2224,7 @@ package Modules.L5App.ReplayEngine
             FileManager.updateLastFilePathByRandomFileName();
             UIController.canvasInfoBox.setMirror(false);
             AppWindowState.updateWindowTitle();
-            InputManager.removeKeyRepeatEvents(null);
+            KeyState.removeKeyRepeatEvents(null);
         }
 
         private static function replayCompleteEffect():void

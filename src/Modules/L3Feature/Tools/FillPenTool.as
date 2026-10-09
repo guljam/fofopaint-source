@@ -27,11 +27,11 @@ package Modules.L3Feature.Tools
     import Modules.ReplayEngine.ReplayState;
     import Modules.L4UI.ColorPickerController;
     import Modules.Tools.DottedLineTool;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.Tools.PenSettings;
     import Modules.Tools.PenTool;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L1Data.KeyState;
 
     // 층: L3 기능 - 채우기 펜
     public class FillPenTool
@@ -506,7 +506,7 @@ package Modules.L3Feature.Tools
             _isStarted = true;
             toolStartStamp = getTimer();
 
-            if (InputManager.getFirstPressedKey() === InputManager.KEY.q || InputManager.getFirstPressedKey() === InputManager.KEY.o)
+            if (KeyState.getFirstPressedKey() === KeyState.KEY.q || KeyState.getFirstPressedKey() === KeyState.KEY.o)
             {
                 isStartedFromShortCut = true;
             }
@@ -926,16 +926,16 @@ package Modules.L3Feature.Tools
                 return;
             }
 
-            if (InputManager.isLastKey(pressedKey))
+            if (KeyState.isLastKey(pressedKey))
             {
                 return;
             }
 
-            const secondKey:int = InputManager.getSecondPressedKey();
+            const secondKey:int = KeyState.getSecondPressedKey();
 
-            if (SidebarController.isPressingQuickSidebarShortcut(pressedKey, secondKey) || pressedKey === InputManager.KEY.n6)
+            if (SidebarController.isPressingQuickSidebarShortcut(pressedKey, secondKey) || pressedKey === KeyState.KEY.n6)
             {
-                InputManager.updateLastKey();
+                KeyState.updateLastKey();
 
                 if (SidebarController.isQuickSidebarActive === false)
                 {
@@ -947,9 +947,9 @@ package Modules.L3Feature.Tools
                     }
                 }
             }
-            else if (pressedKey === InputManager.KEY.n4 || pressedKey === InputManager.KEY.n7)
+            else if (pressedKey === KeyState.KEY.n4 || pressedKey === KeyState.KEY.n7)
             {
-                InputManager.updateLastKey();
+                KeyState.updateLastKey();
                 setPreviewOFFTimerCount();
                 PenSettings.togglePenAirBrushButtonShortCut();
 
@@ -958,30 +958,30 @@ package Modules.L3Feature.Tools
                     startFillColorUpdateTimer();
                 }
             }
-            else if ((pressedKey === InputManager.KEY.f || pressedKey === InputManager.KEY.h
-                    || pressedKey === InputManager.KEY.v || pressedKey === InputManager.KEY.n)
+            else if ((pressedKey === KeyState.KEY.f || pressedKey === KeyState.KEY.h
+                    || pressedKey === KeyState.KEY.v || pressedKey === KeyState.KEY.n)
                     && PenSettings.isFillPenSizeChangeable())
             {
-                InputManager.updateLastKey();
-                InputManager.startKeyRepeat(true, function (increase:Boolean):void
+                KeyState.updateLastKey();
+                KeyState.startKeyRepeat(true, function (increase:Boolean):void
                     {
                         setPreviewOFFTimerCount();
                         PenSettings.adjustDrawToolSizeByShortcut(increase);
-                    }, (pressedKey === InputManager.KEY.f || pressedKey === InputManager.KEY.h));
+                    }, (pressedKey === KeyState.KEY.f || pressedKey === KeyState.KEY.h));
 
                 if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))
                 {
                     startFillColorUpdateTimer();
                 }
             }
-            else if (pressedKey === InputManager.KEY.g || pressedKey === InputManager.KEY.b)
+            else if (pressedKey === KeyState.KEY.g || pressedKey === KeyState.KEY.b)
             {
-                InputManager.updateLastKey();
-                InputManager.startKeyRepeat(true, function (increase:Boolean):void
+                KeyState.updateLastKey();
+                KeyState.startKeyRepeat(true, function (increase:Boolean):void
                     {
                         setPreviewOFFTimerCount();
                         PenSettings.adjustDrawToolAlphaByShortcut(increase);
-                    }, (pressedKey === InputManager.KEY.g) ? true : false);
+                    }, (pressedKey === KeyState.KEY.g) ? true : false);
 
                 if (!FOFOTimer.hasTimer("fillColorUpdateTimer"))
                 {
@@ -993,11 +993,11 @@ package Modules.L3Feature.Tools
         private static function onKeyUpFillPen(e:KeyboardEvent):void
         {
             const keyCode:uint = e.keyCode;
-            InputManager.resetLastKey();
+            KeyState.resetLastKey();
 
             if (MouseState.isLeftDown)
             {
-                if (keyCode === InputManager.KEY.q || keyCode === InputManager.KEY.o || keyCode === InputManager.KEY.enter)
+                if (keyCode === KeyState.KEY.q || keyCode === KeyState.KEY.o || keyCode === KeyState.KEY.enter)
                 {
                     _afterKeyUpOK = true;
                 }
@@ -1005,15 +1005,15 @@ package Modules.L3Feature.Tools
                 return;
             }
 
-            if (keyCode === InputManager.KEY.w || keyCode === InputManager.KEY.i || keyCode === InputManager.KEY.z || keyCode === InputManager.KEY.dot)
+            if (keyCode === KeyState.KEY.w || keyCode === KeyState.KEY.i || keyCode === KeyState.KEY.z || keyCode === KeyState.KEY.dot)
             {
                 undoData();
             }
-            else if (keyCode === InputManager.KEY.q || keyCode === InputManager.KEY.o || keyCode === InputManager.KEY.enter)
+            else if (keyCode === KeyState.KEY.q || keyCode === KeyState.KEY.o || keyCode === KeyState.KEY.enter)
             {
                 applyFillPen();
             }
-            else if (keyCode === InputManager.KEY.esc || keyCode === InputManager.KEY.backspace)
+            else if (keyCode === KeyState.KEY.esc || keyCode === KeyState.KEY.backspace)
             {
                 cancel();
             }

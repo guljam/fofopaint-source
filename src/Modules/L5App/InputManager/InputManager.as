@@ -4,6 +4,7 @@ package Modules.L5App.InputManager
     import Modules.AboutBoxController;
     import Modules.ClipboardManager;
     import Modules.InputPriority;
+    import Modules.L1Data.KeyState;
     import Modules.MouseState;
     import Modules.PenSizePreviewCursor;
     import Modules.Utils;
@@ -39,92 +40,6 @@ package Modules.L5App.InputManager
             main = instance;
         }
 
-        public static const KEY:Object = {
-                a: 65,
-                b: 66,
-                c: 67,
-                d: 68,
-                e: 69,
-                f: 70,
-                g: 71,
-                h: 72,
-                i: 73,
-                j: 74,
-                k: 75,
-                l: 76,
-                m: 77,
-                n: 78,
-                o: 79,
-                p: 80,
-                q: 81,
-                r: 82,
-                s: 83,
-                t: 84,
-                u: 85,
-                v: 86,
-                w: 87,
-                x: 88,
-                y: 89,
-                z: 90,
-                dot: 190,
-                comma: 188,
-                semicolon: 186,
-                shift: 16,
-                ctrl: 17,
-                alt: 18,
-                rightAlt: 21, // as에서는 한글모드
-                rightCtrl: 25, // 한글 모드에서 오른쪽 컨트롤
-                space: 32,
-                backslash: 220,
-                backspace: 8,
-                enter: 13,
-                esc: 27,
-                del: 46,
-                tab: 9,
-                n0: 48,
-                n1: 49,
-                n2: 50,
-                n3: 51,
-                n4: 52,
-                n5: 53,
-                n6: 54,
-                n7: 55,
-                n8: 56,
-                n8: 56,
-                n9: 57,
-                minus: 189,
-                pgup: 33,
-                pgdn: 34,
-                home: 36,
-                end: 35,
-                left: 37,
-                up: 38,
-                right: 39,
-                down: 40,
-                f1: 112,
-                f2: 113,
-                f3: 114,
-                f4: 115,
-                f5: 116,
-                f6: 117,
-                f7: 118,
-                f8: 119,
-                f9: 120,
-                f10: 121,
-                f11: 122,
-                f12: 123,
-                window: 91
-            };
-
-        public static const KEY_REPEAT_START_DELAY:Number = 0.3;
-        public static const KEY_REPEAT_INTERVAL:Number = 0.06;
-        // 키 누름 관련
-        public static var lastPressedKey:int = -1; // 마지막 누른거 여기다가 저장 반복호출되는 keydown 함수에서 한번만 호출되게 하는변수
-        public static const keyBuffer:Array = []; // 정식 키 다운 눌러준 상태에서 다른 키가 눌러져 있으면 여기다가 저장
-        public static const COMMAND_CTRL:int = (1 << 0);
-        public static const COMMAND_SHIFT:int = (1 << 1);
-        public static const COMMAND_CTRL_SHIFT:int = (1 << 2);
-
         // 키 오래누름 관련 변수
         public static var pressHoldCountDownTime:Number = 0.0;
         public static var pressHoldFrameCount:int = 0;
@@ -145,7 +60,7 @@ package Modules.L5App.InputManager
         {
             if (!FOFOTimer.hasTimer("pressholdtimer"))
             {
-                var keyBufferLenSave:uint = getPressedKeyCount();
+                var keyBufferLenSave:uint = KeyState.getPressedKeyCount();
                 var mouseClickONSave:Boolean = MouseState.isLeftDown;
                 var rightMouseClickONSave:Boolean = MouseState.isRightDown;
                 const countDownTime:Number = 3;
@@ -173,7 +88,7 @@ package Modules.L5App.InputManager
                     {
                         if (MouseState.isLeftDown !== mouseClickONSave
                                 || MouseState.isRightDown !== rightMouseClickONSave
-                                || keyBufferLenSave !== getPressedKeyCount()
+                                || keyBufferLenSave !== KeyState.getPressedKeyCount()
                                 || (button && button.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
                                 || (abortFunc !== null && abortFunc() === true))
                         {
@@ -200,90 +115,6 @@ package Modules.L5App.InputManager
                         return true;
                     });
             }
-        }
-
-        // 지금 누르고 있는 키 중 마지막 키를 저장함 (반복되는 keydown에서 한 번만 처리하려고)
-        public static function updateLastKey():void
-        {
-            lastPressedKey = getLastPressedKey();
-        }
-
-        public static function resetLastKey():void
-        {
-            lastPressedKey = -1;
-        }
-
-        public static function isLastKey(key:uint):Boolean
-        {
-            return lastPressedKey === key;
-        }
-
-        public static function startKeyRepeatStopTimerOnMouseLeave(target:DisplayObject):void
-        {
-            FOFOTimer.addByName("checkKeyRepeatStop", 0.0, true, function ():Boolean
-                {
-                    if (!target.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
-                    {
-                        removeKeyRepeatEvents(null);
-                        return false;
-                    }
-                    return true;
-                });
-        }
-
-        public static function startKeyRepeat(firstCall:Boolean, func:Function, ...args):Boolean
-        {
-            if (FOFOTimer.hasTimer("keyHoldWaitTimer") || FOFOTimer.hasTimer("keyHoldRepeatTimer"))
-            {
-                return false;
-            }
-            FOFOTimer.addByName("keyHoldWaitTimer", KEY_REPEAT_START_DELAY, false,
-                    function ():void
-                    {
-                        func.apply(Main, args);
-                        FOFOTimer.addByName("keyHoldRepeatTimer", KEY_REPEAT_INTERVAL, true, func, args);
-                    });
-            addKeyRepeatEvents();
-            if (firstCall)
-            {
-                func.apply(Main, args);
-            }
-            return true;
-        }
-
-        public static function isPressingControl():Boolean
-        {
-            return getCommandKey() === COMMAND_CTRL;
-        }
-
-        public static function isPressingShift():Boolean
-        {
-            return getCommandKey() === COMMAND_SHIFT;
-        }
-
-        public static function isPressingControlShift():Boolean
-        {
-            return getCommandKey() === COMMAND_CTRL_SHIFT;
-        }
-
-        public static function getCommandKey():int
-        {
-            const first:uint = getFirstPressedKey();
-            const second:uint = getSecondPressedKey();
-            if ((second === KEY.shift && (first === KEY.ctrl || first === KEY.rightCtrl))
-                    || (first === KEY.shift && (second === KEY.ctrl || second === KEY.rightCtrl)))
-            {
-                return COMMAND_CTRL_SHIFT;
-            }
-            if (first === KEY.shift)
-            {
-                return COMMAND_SHIFT;
-            }
-            if (first === KEY.ctrl || first === KEY.rightCtrl)
-            {
-                return COMMAND_CTRL;
-            }
-            return 0;
         }
 
         // onClick을 주면 같은 버튼에서 마우스를 뗐을때 아래 switch 대신 onClick(targetName)을 호출함
@@ -362,26 +193,26 @@ package Modules.L5App.InputManager
 
         public static function onMouseDownStage(e:MouseEvent):void
         {
-            checkInvalidKey();
+            KeyState.checkInvalidKey();
             MouseState.onLeftDown();
             HintController.hideBottomHint();
         }
 
         public static function onMouseUpStage(e:MouseEvent):void
         {
-            checkInvalidKey();
+            KeyState.checkInvalidKey();
             MouseState.onLeftUp();
         }
 
         public static function onRightMouseDownStage(e:MouseEvent):void
         {
-            checkInvalidKey();
+            KeyState.checkInvalidKey();
             MouseState.onRightDown();
         }
 
         public static function onRightMouseUpStage(e:MouseEvent):void
         {
-            checkInvalidKey();
+            KeyState.checkInvalidKey();
             MouseState.onRightUp();
         }
 
@@ -389,7 +220,7 @@ package Modules.L5App.InputManager
         {
             if (MouseState.isLeftDown || MouseState.isRightDown || MouseState.isDragging
                     || UIController.isPopUpWindowOpened()
-                    || CaptureController.isCaptureModeON || !SidebarController.isQuickSidebarActive && InputManager.isKeyPressed() || InputManager.getCommandKey() !== 0)
+                    || CaptureController.isCaptureModeON || !SidebarController.isQuickSidebarActive && KeyState.isKeyPressed() || KeyState.getCommandKey() !== 0)
             {
                 return;
 
@@ -466,162 +297,47 @@ package Modules.L5App.InputManager
             ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_HAND);
         }
 
-        // 누르고 있는 키가 없으면 마지막 키 기록을 지움
-        public static function checkGeneralKeyUp():void
-        {
-            if (keyBuffer.length === 0)
-            {
-                resetLastKey();
-            }
-        }
-
-        public static function checkInvalidKey():void
-        {
-            const len:uint = keyBuffer.length;
-            for (var i:int = 0;i < len;i++)
-            {
-                if (keyBuffer[i] === 229
-                        || keyBuffer[i] === 241
-                        || keyBuffer[i] === 242)
-                {
-                    clearKeyBuffer();
-                    return;
-                }
-            }
-            if (len >= 2)
-            {
-                if ((keyBuffer[0] === 18 && keyBuffer[1] === 32)
-                        || (keyBuffer[0] === 32 && keyBuffer[1] === 18))
-                {
-                    clearKeyBuffer();
-                }
-            }
-        }
-
-        public static function getPressedKeyCount():int
-        {
-            return keyBuffer.length;
-        }
-
-        public static function isKeyPressed():Boolean
-        {
-            return keyBuffer.length > 0;
-        }
-
-        public static function isTwoKeyPressed():Boolean
-        {
-            return keyBuffer.length === 2;
-        }
-
-        public static function isPressedKey(key:int):Boolean
-        {
-            if (keyBuffer.lastIndexOf(key) > -1)
-            {
-                return true;
-            }
-            return false;
-        }
-        public static function getPressedKeyIndex(key:int):int
-        {
-            return keyBuffer.lastIndexOf(key);
-        }
-
-        public static function getFirstPressedKey():int
-        {
-            return keyBuffer[0];
-        }
-
-        public static function getSecondPressedKey():int
-        {
-            return keyBuffer[1];
-        }
-        public static function getLastPressedKey():int
-        {
-            return keyBuffer[keyBuffer.length - 1];
-        }
-
         public static function onKeyUpStage(e:KeyboardEvent):void
         {
             // 디버그 확인용
-            if (isPressedKey(KEY.f12))
+            if (KeyState.isPressedKey(KeyState.KEY.f12))
             {
                 UIController.topBar.showUpdateButton();
             }
 
-            checkInvalidKey();
+            KeyState.checkInvalidKey();
             ImeController.logKeyUp(e);
-            const index:int = getPressedKeyIndex(e.keyCode);
+            const index:int = KeyState.getPressedKeyIndex(e.keyCode);
             if (index > -1)
             {
-                keyBuffer.splice(index, 1);
+                KeyState.keyBuffer.splice(index, 1);
             }
             ImeController.refresh();
         }
 
         public static function onKeyDownStage(e:KeyboardEvent):void
         {
-            checkInvalidKey();
+            KeyState.checkInvalidKey();
             // IME가 가져간 키는 단축키로 처리하지 않음 (keyCode가 229 등이라 실제 키를 알 수 없음)
             if (ImeController.interceptKeyDown(e))
             {
                 return;
             }
             const keyCode:uint = e.keyCode;
-            if (keyCode === KEY.window)
+            if (keyCode === KeyState.KEY.window)
             {
                 return;
             }
             // ALT 단독 입력이 창 포커스를 시스템 메뉴로 뺏어가는 것을 막음. AIR 51.4.1부터 ALT keyDown의 preventDefault가 Windows 기본 처리를 실제로 막음 (Github-4292)
-            if (keyCode === KEY.tab || keyCode === KEY.alt)
+            if (keyCode === KeyState.KEY.tab || keyCode === KeyState.KEY.alt)
             {
                 e.preventDefault();
             }
-            if (keyBuffer.lastIndexOf(keyCode) === -1)
+            if (KeyState.keyBuffer.lastIndexOf(keyCode) === -1)
             {
-                keyBuffer.push(keyCode);
+                KeyState.keyBuffer.push(keyCode);
             }
             ImeController.refresh();
-        }
-
-        public static function addKeyRepeatEvents():void
-        {
-            main.stage.nativeWindow.addEventListener(Event.DEACTIVATE, removeKeyRepeatEvents);
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
-        }
-
-        public static function removeKeyRepeatEvents(e:Object):void
-        {
-            FOFOTimer.remove("checkKeyRepeatStop");
-            FOFOTimer.remove("keyHoldWaitTimer");
-            FOFOTimer.remove("keyHoldRepeatTimer");
-            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, removeKeyRepeatEvents);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, removeKeyRepeatEvents);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, removeKeyRepeatEvents);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, removeKeyRepeatEvents);
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents);
-        }
-
-        public static function checkSubKey(expectedLength:uint, updateFlag:Boolean, callback:Function):Boolean
-        {
-            if (getPressedKeyCount() !== expectedLength)
-            {
-                return false;
-            }
-            const subKey:uint = getLastPressedKey();
-            if (updateFlag)
-            {
-                updateLastKey();
-            }
-            if (callback !== null)
-            {
-                callback(subKey);
-            }
-            return true;
         }
 
         public static function unblockMouseClickAfterDelay():void
@@ -630,12 +346,6 @@ package Modules.L5App.InputManager
                 {
                     MouseState.isClickBlocked = false;
                 });
-        }
-
-        public static function clearKeyBuffer():void
-        {
-            keyBuffer.length = 0;
-            resetLastKey();
         }
 
         public static function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void

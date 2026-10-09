@@ -23,8 +23,8 @@ package Modules.L4UI.DrawEngine
     import Modules.DrawEngine.CanvasLayers;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.L4UI.SidebarController;
+    import Modules.L1Data.KeyState;
 
     // 컨트롤 박스의 레이어 버튼에 hover 하면 캔버스를 비스듬히 눕혀 층(배경/참조/레이어2/레이어1)을 보여줌
     // 3D/GPU 없이 2D Matrix(세로 압축 + 층별 띄우기)만 사용. 레이어 BitmapData는 참조만 하므로 복사 없음
@@ -132,7 +132,7 @@ package Modules.L4UI.DrawEngine
         // 마우스 hover로 이미 켜져 있으면 키가 소유하지 않음 (닫히는 중이면 키가 이어받아 되살림)
         private static function onKeyShowTimer():void
         {
-            if (keyPreviewKey < 0 || !InputManager.isPressedKey(keyPreviewKey))
+            if (keyPreviewKey < 0 || !KeyState.isPressedKey(keyPreviewKey))
             {
                 return; // 그 사이 키를 뗌
             }
@@ -338,7 +338,7 @@ package Modules.L4UI.DrawEngine
                 close();
                 return;
             }
-            if (isKeyPreview && keyPreviewKey >= 0 && !InputManager.isPressedKey(keyPreviewKey)) // keyup을 놓친 경우 (포커스 상실 등)
+            if (isKeyPreview && keyPreviewKey >= 0 && !KeyState.isPressedKey(keyPreviewKey)) // keyup을 놓친 경우 (포커스 상실 등)
             {
                 endKeyPreview(keyPreviewKey);
             }

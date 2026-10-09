@@ -22,11 +22,11 @@ package Modules.L3Feature.Tools
     import flash.events.Event;
     import Modules.L4UI.ColorPickerController;
     import Modules.L5App.FileManager;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.Tools.PenTool;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L1Data.KeyState;
 
     // 층: L3 기능 - 스포이드 툴
     public class EyeDropperTool
@@ -160,8 +160,8 @@ package Modules.L3Feature.Tools
                 return;
             }
 
-            if (e.keyCode === InputManager.KEY.c || e.keyCode === InputManager.KEY.m) {}
-            else if (e.keyCode === InputManager.KEY.space)
+            if (e.keyCode === KeyState.KEY.c || e.keyCode === KeyState.KEY.m) {}
+            else if (e.keyCode === KeyState.KEY.space)
             {
                 if (PenTool.isTransparentPenColor)
                 {
@@ -196,7 +196,7 @@ package Modules.L3Feature.Tools
                 return;
             }
 
-            if (e.keyCode === InputManager.KEY.c || e.keyCode === InputManager.KEY.m)
+            if (e.keyCode === KeyState.KEY.c || e.keyCode === KeyState.KEY.m)
             {
                 confirmEyeDropperSelection();
             }

@@ -26,6 +26,7 @@ package Modules.L4UI
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.Utils;
+    import Modules.L1Data.KeyState;
 
     // 층: L4 UI - 색 선택기 박스와 숫자패드, 색 프리셋 선택 처리
     public class ColorPickerController
@@ -334,7 +335,7 @@ package Modules.L4UI
 
                 Utils.setAsTopChild(numPadBox);
 
-                InputManager.resetLastKey();
+                KeyState.resetLastKey();
 
                 main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad, false, InputPriority.LATE);
                 main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad, false, InputPriority.LATE);
@@ -424,11 +425,11 @@ package Modules.L4UI
 
             if (targetName === "numInc")
             {
-                InputManager.startKeyRepeat(true, rgbInfoNumPadIncKey, 1);
+                KeyState.startKeyRepeat(true, rgbInfoNumPadIncKey, 1);
             }
             else if (targetName === "numDec")
             {
-                InputManager.startKeyRepeat(true, rgbInfoNumPadIncKey, -1);
+                KeyState.startKeyRepeat(true, rgbInfoNumPadIncKey, -1);
             }
             else if (targetName === "okLWrapper")
             {
@@ -533,7 +534,7 @@ package Modules.L4UI
         public static function onMouseDownCurrentColor(e:MouseEvent):void
         {
             if (numPadBox.visible || LineTool.isStarted
-                    || (InputManager.isKeyPressed() && !ToolController.isSelectedToolPenOrLine()
+                    || (KeyState.isKeyPressed() && !ToolController.isSelectedToolPenOrLine()
                     && !ToolController.isSelectedTool(ToolController.TOOL_ERASER)
                     && !ToolController.isSelectedTool(ToolController.TOOL_FILLPEN)))
             {
@@ -1043,7 +1044,7 @@ package Modules.L4UI
 
         public static function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean
         {
-            if (ToolPanel.isToolBox2Showing || (InputManager.isKeyPressed()
+            if (ToolPanel.isToolBox2Showing || (KeyState.isKeyPressed()
                         && !ToolController.isSelectedToolPenOrLine()
                         && !ToolController.isSelectedTool(ToolController.TOOL_ERASER)
                         && !ToolController.isSelectedTool(ToolController.TOOL_FILLPEN)))

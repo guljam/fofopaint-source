@@ -20,9 +20,9 @@ package Modules.L3Feature.Tools
     import flash.geom.Point;
     import flash.utils.getTimer;
     import Modules.L4UI.ColorPickerController;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.Tools.PenSettings;
     import Modules.Tools.PenTool;
+    import Modules.L1Data.KeyState;
 
     // 층: L3 기능 - 직선 그리기
     public class LineTool
@@ -268,7 +268,7 @@ package Modules.L3Feature.Tools
 
         private static function onKeyDownLineTool(e:KeyboardEvent):void
         {
-            if (InputManager.isPressedKey(InputManager.KEY.enter) || InputManager.isPressedKey(InputManager.KEY.esc))
+            if (KeyState.isPressedKey(KeyState.KEY.enter) || KeyState.isPressedKey(KeyState.KEY.esc))
             {
                 apply();
             }
@@ -276,7 +276,7 @@ package Modules.L3Feature.Tools
 
         private static function onKeyUpLineTool(e:KeyboardEvent):void
         {
-            if (e.keyCode === InputManager.KEY.shift)
+            if (e.keyCode === KeyState.KEY.shift)
             {
                 apply();
             }
@@ -373,7 +373,7 @@ package Modules.L3Feature.Tools
                         return true;
                     });
 
-                if (InputManager.isPressingShift())
+                if (KeyState.isPressingShift())
                 {
                     startFromShortCut = true;
                     main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLineTool, false, InputPriority.DEFAULT);

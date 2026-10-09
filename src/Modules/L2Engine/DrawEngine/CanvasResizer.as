@@ -18,10 +18,10 @@ package Modules.L2Engine.DrawEngine
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
+    import Modules.L1Data.KeyState;
 
     // 캔버스 상하좌우 리사이즈 버튼과 드래그로 캔버스 크기 조절
     // 층: L2 엔진 - 캔버스 상하좌우 리사이즈 버튼과 드래그로 크기 조절
@@ -164,7 +164,7 @@ package Modules.L2Engine.DrawEngine
                 }
                 canvasSizeChanging = false;
                 HintController.hideMouseHint();
-                updateButtonVisible((isMouseCursorInStage() && MouseState.isRightDown) || InputManager.isPressingControl());
+                updateButtonVisible((isMouseCursorInStage() && MouseState.isRightDown) || KeyState.isPressingControl());
                 CanvasView.canvasAnchorPoint.removeChild(resizePreviewRect);
                 CanvasView.canvasAnchorPoint.removeChild(resizePreviewRatioRect);
                 resizePreviewRect.graphics.clear();

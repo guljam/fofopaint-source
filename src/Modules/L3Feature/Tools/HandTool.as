@@ -12,9 +12,9 @@ package Modules.L3Feature.Tools
     import Modules.ReferenceLayerController;
     import Modules.PenSizePreviewCursor;
     import Modules.ReplayEngine.ReplayDrawer;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L1Data.KeyState;
 
     // 층: L3 기능 - 손 툴(캔버스 끌어 이동)
     public class HandTool
@@ -62,7 +62,7 @@ package Modules.L3Feature.Tools
                         LassoTool.showLassoMenuBox();
                     }
                 } // tool box에서 클릭해서 핸드툴 들어갈때 필요함
-                else if (!InputManager.isLastKey(InputManager.KEY.space))
+                else if (!KeyState.isLastKey(KeyState.KEY.space))
                 {
                     ToolController.selectLastUsedTool();
                 }

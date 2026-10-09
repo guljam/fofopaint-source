@@ -43,6 +43,7 @@ package Modules.L5App.InputManager
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
+    import Modules.L1Data.KeyState;
 
     // 드로우 모드의 키보드/마우스 입력 (툴 단축키, 툴박스2, 드로우 모드 버튼)
     // 층: L5 앱 흐름 - 드로우 모드의 키보드/마우스 입력
@@ -303,13 +304,13 @@ package Modules.L5App.InputManager
         {
             const keyCode:uint = e.keyCode;
             LayerPreview.endKeyPreview(keyCode); // 레이어 단축키를 떼면 프리뷰 즉시 복구
-            if (InputManager.isLastKey(keyCode))
+            if (KeyState.isLastKey(keyCode))
             {
                 if (MouseState.isLeftDown === true)
                 {
                     DrawModeInput.isKeyReleasedBeforeMouseUp = true;
                 }
-                else if (InputManager.isKeyPressed())
+                else if (KeyState.isKeyPressed())
                 {
                     onKeyDownDrawMode(null);
                 }
@@ -323,11 +324,11 @@ package Modules.L5App.InputManager
                     PenSizePreviewCursor.updatePosAndVisibility();
                 }
             }
-            if (!InputManager.isKeyPressed())
+            if (!KeyState.isKeyPressed())
             {
-                InputManager.resetLastKey();
+                KeyState.resetLastKey();
             }
-            if (!InputManager.isPressingControl())
+            if (!KeyState.isPressingControl())
             {
                 if (CanvasResizer.isResizing())
                 {
@@ -352,22 +353,22 @@ package Modules.L5App.InputManager
                 return;
             }
 
-            const firstKey:uint = InputManager.getFirstPressedKey();
-            const secondKey:int = InputManager.getSecondPressedKey();
+            const firstKey:uint = KeyState.getFirstPressedKey();
+            const secondKey:int = KeyState.getSecondPressedKey();
             // 자툴이 nowkey를 쓰기 때문에 nowkey 리턴 이전에서 체크해야함
-            if (InputManager.isPressingControlShift())
+            if (KeyState.isPressingControlShift())
             {
                 // shift 누르고 ctrl 순서로 누를때 이전툴로 복원
                 if (ToolController.isSelectedTool(ToolController.TOOL_LINE))
                 {
                     ToolController.selectLastUsedTool();
                 }
-                InputManager.checkSubKey(3, true, handleControlShiftSubKeyDrawMode);
+                KeyState.checkSubKey(3, true, handleControlShiftSubKeyDrawMode);
                 return;
             }
-            if (InputManager.isPressingControl())
+            if (KeyState.isPressingControl())
             {
-                if (!InputManager.checkSubKey(2, true, handleControlSubKeyDrawMode))
+                if (!KeyState.checkSubKey(2, true, handleControlSubKeyDrawMode))
                 {
                     if (CanvasResizer.isResizing() === false)
                     {
@@ -376,7 +377,7 @@ package Modules.L5App.InputManager
                 }
                 return;
             }
-            if (InputManager.isPressingShift())
+            if (KeyState.isPressingShift())
             {
                 if (handleKeyDownPenOpacitySize(secondKey))
                 {
@@ -386,21 +387,21 @@ package Modules.L5App.InputManager
                 {
                     return;
                 }
-                else if (InputManager.checkSubKey(2, true, handleShiftSubKeyDrawMode))
+                else if (KeyState.checkSubKey(2, true, handleShiftSubKeyDrawMode))
                 {
                     return;
                 }
             }
-            if (InputManager.isTwoKeyPressed())
+            if (KeyState.isTwoKeyPressed())
             {
                 // 지우개키 조합 따로 체크
-                if (firstKey === InputManager.KEY.d || firstKey === InputManager.KEY.j)
+                if (firstKey === KeyState.KEY.d || firstKey === KeyState.KEY.j)
                 {
                     if (handleKeyDownPenOpacitySize(secondKey))
                     {
                         return;
                     }
-                    else if (secondKey === InputManager.KEY.s || secondKey === InputManager.KEY.k)
+                    else if (secondKey === KeyState.KEY.s || secondKey === KeyState.KEY.k)
                     {
                         if (SidebarController.isQuickSidebarActive === false)
                         {
@@ -422,7 +423,7 @@ package Modules.L5App.InputManager
                     return;
                 }
                 // 필펜 조합 체크
-                else if (firstKey === InputManager.KEY.q || firstKey === InputManager.KEY.o)
+                else if (firstKey === KeyState.KEY.q || firstKey === KeyState.KEY.o)
                 {
                     if (handleKeyDownPenOpacitySize(secondKey))
                     {
@@ -434,11 +435,11 @@ package Modules.L5App.InputManager
                     }
                 }
             }
-            if (InputManager.isLastKey(firstKey))
+            if (KeyState.isLastKey(firstKey))
             {
                 return;
             }
-            InputManager.updateLastKey();
+            KeyState.updateLastKey();
             if (handleKeyDownPenOpacitySize(firstKey))
             {
                 return;
@@ -458,8 +459,8 @@ package Modules.L5App.InputManager
         {
             switch (input)
             {
-                case InputManager.KEY.s:
-                case InputManager.KEY.k:
+                case KeyState.KEY.s:
+                case KeyState.KEY.k:
                     {
                         if (CanvasView.canvasAnchorPoint.rotation !== 0.0)
                         {
@@ -468,8 +469,8 @@ package Modules.L5App.InputManager
                         }
                     }
                     return;
-                case InputManager.KEY.w:
-                case InputManager.KEY.i:
+                case KeyState.KEY.w:
+                case KeyState.KEY.i:
                     {
                         if (CanvasView.canvasZoomMultiplier !== 1.0)
                         {
@@ -482,26 +483,26 @@ package Modules.L5App.InputManager
         }
         private static function handleControlShiftSubKeyDrawMode(input:int):void
         {
-            if (input === InputManager.KEY.s)
+            if (input === KeyState.KEY.s)
             {
                 FileManager.openSaveFileBrowser(true);
             }
         }
         private static function handleControlSubKeyDrawMode(input:int):void
         {
-            if (input === InputManager.KEY.s)
+            if (input === KeyState.KEY.s)
             {
                 FileManager.openSaveFileBrowser(false);
             }
-            else if (input === InputManager.KEY.o)
+            else if (input === KeyState.KEY.o)
             {
                 FileManager.openLoadFileBrowser();
             }
-            else if (input === InputManager.KEY.c || input === InputManager.KEY.comma)
+            else if (input === KeyState.KEY.c || input === KeyState.KEY.comma)
             {
                 CaptureController.enterCaptureMode();
             }
-            else if (input === InputManager.KEY.v || input === InputManager.KEY.m)
+            else if (input === KeyState.KEY.v || input === KeyState.KEY.m)
             {
                 if (ClipboardManager.isClipBoardButtonActivated)
                 {
@@ -550,7 +551,7 @@ package Modules.L5App.InputManager
         {
             if (ReferenceLayerController.isRefLayerMenuON)
             {
-                if (keyCode === InputManager.KEY.esc || keyCode === InputManager.KEY.backspace)
+                if (keyCode === KeyState.KEY.esc || keyCode === KeyState.KEY.backspace)
                 {
                     ReferenceLayerController.closeRefLayerMenu();
                     return true;
@@ -559,7 +560,7 @@ package Modules.L5App.InputManager
 
             switch (keyCode)
             {
-                case InputManager.KEY.t:
+                case KeyState.KEY.t:
                     {
                         if (ReferenceLayerController.isRefLayerMenuON)
                         {
@@ -571,15 +572,15 @@ package Modules.L5App.InputManager
                         }
                     }
                     break;
-                case InputManager.KEY.a:
-                case InputManager.KEY.l:
+                case KeyState.KEY.a:
+                case KeyState.KEY.l:
                     {
                         CanvasView.mirrorCanvas();
                         ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_MIRROR);
                     }
                     break;
-                case InputManager.KEY.c:
-                case InputManager.KEY.m:
+                case KeyState.KEY.c:
+                case KeyState.KEY.m:
                     {
                         if (!ColorPickerController.colorPickerBox.scratchPad.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                         {
@@ -591,9 +592,9 @@ package Modules.L5App.InputManager
                         }
                     }
                     break;
-                case InputManager.KEY.esc:
-                case InputManager.KEY.del:
-                case InputManager.KEY.backspace:
+                case KeyState.KEY.esc:
+                case KeyState.KEY.del:
+                case KeyState.KEY.backspace:
                     {
                         if (FileManager.canCreateNewFile())
                         {
@@ -613,22 +614,22 @@ package Modules.L5App.InputManager
         {
             switch (keyCode)
             {
-                case InputManager.KEY.f1:
-                case InputManager.KEY.f7:
+                case KeyState.KEY.f1:
+                case KeyState.KEY.f7:
                     {
                         ReplayController.enterReplayMode();
                     }
                     return true;
-                case InputManager.KEY.n1:
-                case InputManager.KEY.n9:
+                case KeyState.KEY.n1:
+                case KeyState.KEY.n9:
                     handleLayerSelectShortcut(1, keyCode);
                     return true;
-                case InputManager.KEY.n2:
-                case InputManager.KEY.n0:
+                case KeyState.KEY.n2:
+                case KeyState.KEY.n0:
                     handleLayerSelectShortcut(2, keyCode);
                     return true;
-                case InputManager.KEY.n3:
-                case InputManager.KEY.n8:
+                case KeyState.KEY.n3:
+                case KeyState.KEY.n8:
                     {
                         if (ToolPanel.toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
                         {
@@ -636,8 +637,8 @@ package Modules.L5App.InputManager
                         }
                     }
                     return true;
-                case InputManager.KEY.n4:
-                case InputManager.KEY.n7:
+                case KeyState.KEY.n4:
+                case KeyState.KEY.n7:
                     {
                         if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
                         {
@@ -649,27 +650,27 @@ package Modules.L5App.InputManager
                         }
                     }
                     return true;
-                case InputManager.KEY.n6:
+                case KeyState.KEY.n6:
                     {
                         SidebarController.activeQuickSideBar(true);
                     }
                     return true;
-                case InputManager.KEY.x:
-                case InputManager.KEY.comma:
+                case KeyState.KEY.x:
+                case KeyState.KEY.comma:
                     {
-                        InputManager.startKeyRepeat(true, UndoController.redo);
+                        KeyState.startKeyRepeat(true, UndoController.redo);
                         ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_REDO);
                     }
                     return true;
-                case InputManager.KEY.z:
-                case InputManager.KEY.dot:
+                case KeyState.KEY.z:
+                case KeyState.KEY.dot:
                     {
-                        InputManager.startKeyRepeat(true, UndoController.undo);
+                        KeyState.startKeyRepeat(true, UndoController.undo);
                         ToolPanel.showNowToolIconToCursorTemp(ToolController.TOOL_UNDO);
                     }
                     return true;
-                case InputManager.KEY.tab:
-                case InputManager.KEY.backslash:
+                case KeyState.KEY.tab:
+                case KeyState.KEY.backslash:
                     {
                         if (SidebarController.isSidebarVisible)
                         {
@@ -691,13 +692,13 @@ package Modules.L5App.InputManager
             if (DrawModeInput.isKeyReleasedBeforeMouseUp) // 단축키 떼고 마우스 땠을때 원래대로 돌림
             {
                 DrawModeInput.isKeyReleasedBeforeMouseUp = false;
-                if (InputManager.keyBuffer.length > 0)
+                if (KeyState.keyBuffer.length > 0)
                 {
                     onKeyDownDrawMode(null);
                 }
                 else
                 {
-                    InputManager.resetLastKey();
+                    KeyState.resetLastKey();
                     if (ToolController.lastTool > ToolController.TOOL_NONE)
                     {
                         ToolController.selectLastUsedTool();
@@ -744,7 +745,7 @@ package Modules.L5App.InputManager
                 case "clipBoardButton":
                 case "topBarColorButton":
                     {
-                        if (ToolPanel.isToolBox2Showing || InputManager.isKeyPressed() || e.target.alpha < 1.0)
+                        if (ToolPanel.isToolBox2Showing || KeyState.isKeyPressed() || e.target.alpha < 1.0)
                         {
                             return;
                         }
@@ -775,7 +776,7 @@ package Modules.L5App.InputManager
                 case "newWindowButton":
                 case "newWindowCloseButton":
                     {
-                        if (ToolPanel.isToolBox2Showing || InputManager.isKeyPressed() || e.target.alpha < 1.0)
+                        if (ToolPanel.isToolBox2Showing || KeyState.isKeyPressed() || e.target.alpha < 1.0)
                         {
                             return;
                         }
@@ -863,7 +864,7 @@ package Modules.L5App.InputManager
         // todo numpad켜져있을때 캔버스 바로 클릭하면 바로 다른 툴 적용되게 바꾸어야함
         private static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
         {
-            if (MouseState.isLeftDown || InputManager.isKeyPressed() || InputManager.isPressingControl() || SidebarController.isQuickSidebarActive
+            if (MouseState.isLeftDown || KeyState.isKeyPressed() || KeyState.isPressingControl() || SidebarController.isQuickSidebarActive
                     || FillPenTool.isStarted || LineTool.isStarted || ToolController.isSelectedTool(ToolController.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
                     || LoadBoxController.loadMenuBox.visible || UIController.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
@@ -947,8 +948,8 @@ package Modules.L5App.InputManager
 
         private static function checkPenOptionsKeyDown(keyCode:uint):Boolean
         {
-            const secondKey:int = InputManager.getSecondPressedKey();
-            if (secondKey === InputManager.KEY.n3 || secondKey === InputManager.KEY.n8)
+            const secondKey:int = KeyState.getSecondPressedKey();
+            if (secondKey === KeyState.KEY.n3 || secondKey === KeyState.KEY.n8)
             {
                 if (ToolPanel.toolOptionsBox.sharpLineButtonWrapper.alpha === 1.0)
                 {
@@ -956,7 +957,7 @@ package Modules.L5App.InputManager
                 }
                 return true;
             }
-            else if (secondKey === InputManager.KEY.n4 || secondKey === InputManager.KEY.n7)
+            else if (secondKey === KeyState.KEY.n4 || secondKey === KeyState.KEY.n7)
             {
                 if (ToolController.isSelectedToolPenOrLine() || ToolController.isSelectedTool(ToolController.TOOL_FILLPEN))
                 {
@@ -976,19 +977,19 @@ package Modules.L5App.InputManager
         {
             switch (keyCode)
             {
-                case InputManager.KEY.f:
-                case InputManager.KEY.h:
-                    InputManager.startKeyRepeat(true, PenSettings.adjustDrawToolSizeByShortcut, true);
+                case KeyState.KEY.f:
+                case KeyState.KEY.h:
+                    KeyState.startKeyRepeat(true, PenSettings.adjustDrawToolSizeByShortcut, true);
                     return true;
-                case InputManager.KEY.v:
-                case InputManager.KEY.n:
-                    InputManager.startKeyRepeat(true, PenSettings.adjustDrawToolSizeByShortcut, false);
+                case KeyState.KEY.v:
+                case KeyState.KEY.n:
+                    KeyState.startKeyRepeat(true, PenSettings.adjustDrawToolSizeByShortcut, false);
                     return true;
-                case InputManager.KEY.g:
-                    InputManager.startKeyRepeat(true, PenSettings.adjustDrawToolAlphaByShortcut, true);
+                case KeyState.KEY.g:
+                    KeyState.startKeyRepeat(true, PenSettings.adjustDrawToolAlphaByShortcut, true);
                     return true;
-                case InputManager.KEY.b:
-                    InputManager.startKeyRepeat(true, PenSettings.adjustDrawToolAlphaByShortcut, false);
+                case KeyState.KEY.b:
+                    KeyState.startKeyRepeat(true, PenSettings.adjustDrawToolAlphaByShortcut, false);
                     return true;
             }
             return false;

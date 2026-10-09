@@ -17,11 +17,11 @@ package Modules.L3Feature
     import Modules.AppStateManager;
     import Modules.L5App.FileManager;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.ReferenceLayerController;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.UndoHistory;
     import Modules.Utils;
+    import Modules.L1Data.KeyState;
 
     // undo / redo / 딥 언두로 위치를 옮기고 그 위치의 캔버스를 다시 그려줌
     // 메모리 undo 데이터와 undo 위치 자체는 UndoHistory가 가지고 있음
@@ -199,7 +199,7 @@ package Modules.L3Feature
         {
             if (ReplayState.isGeneratingCacheImages())
             {
-                InputManager.removeKeyRepeatEvents(null);
+                KeyState.removeKeyRepeatEvents(null);
                 return;
             }
             if (_isDeepUndoEnabled)

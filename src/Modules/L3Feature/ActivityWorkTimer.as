@@ -4,8 +4,8 @@ package Modules.L3Feature
     import flash.utils.Timer;
     import flash.utils.getTimer;
     import flash.events.TimerEvent;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.MouseState;
+    import Modules.L1Data.KeyState;
 
     // 층: L3 기능 - 앱 실행 시간과 작업 시간 측정
     public class ActivityWorkTimer
@@ -104,7 +104,7 @@ package Modules.L3Feature
             const nowTime:int = getTimer();
             const subTime:int = nowTime - lastWorkTime;
             if (!main.stage.nativeWindow.active
-                    || (!MouseState.isLeftDown && !MouseState.isRightDown && !InputManager.isKeyPressed()
+                    || (!MouseState.isLeftDown && !MouseState.isRightDown && !KeyState.isKeyPressed()
                         && main.stage.mouseX === lastMousePosX && main.stage.mouseY === lastMousePosY))
             {
                 UIController.topBar.timerAFkDot.visible = !UIController.topBar.timerAFkDot.visible;

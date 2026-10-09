@@ -34,6 +34,7 @@ package Modules.L4UI.Tools
     import Modules.L4UI.SidebarController;
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L3Feature.UndoController;
+    import Modules.L1Data.KeyState;
 
     // 사이드바의 툴 패널 UI: 툴박스, 우클릭 툴박스(toolBox2), 펜 옵션 박스와 그 클릭/드래그 처리
     // 도구 선택 상태는 ToolController가 가지고, 여기서는 표시와 입력 해석만 함
@@ -681,7 +682,7 @@ package Modules.L4UI.Tools
 
         public static function handleToolBoxMouseDown(target:DisplayObject):Boolean
         {
-            if (InputManager.isKeyPressed() && !SidebarController.isQuickSidebarActive || !target)
+            if (KeyState.isKeyPressed() && !SidebarController.isQuickSidebarActive || !target)
                 return true;
             const targetName:String = target.name;
 
@@ -694,15 +695,15 @@ package Modules.L4UI.Tools
                     return true;
                 case "toolUndo":
                     {
-                        InputManager.startKeyRepeat(false, UndoController.undo);
-                        InputManager.startKeyRepeatStopTimerOnMouseLeave(target);
+                        KeyState.startKeyRepeat(false, UndoController.undo);
+                        KeyState.startKeyRepeatStopTimerOnMouseLeave(target);
                         handleToolBoxClick(targetName);
                     }
                     return true;
                 case "toolRedo":
                     {
-                        InputManager.startKeyRepeat(false, UndoController.redo);
-                        InputManager.startKeyRepeatStopTimerOnMouseLeave(target);
+                        KeyState.startKeyRepeat(false, UndoController.redo);
+                        KeyState.startKeyRepeatStopTimerOnMouseLeave(target);
                         handleToolBoxClick(targetName);
                     }
                     return true;

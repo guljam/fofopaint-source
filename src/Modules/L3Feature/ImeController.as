@@ -12,7 +12,7 @@ package Modules.L3Feature
     import flash.text.TextFieldType;
     import flash.utils.getTimer;
     import Modules.ImeDiagnostics;
-    import Modules.L5App.InputManager.InputManager;
+    import Modules.L1Data.KeyState;
 
     // IME 상태의 단일 관리자
     //  - 규칙: 텍스트 입력 필드에 포커스가 있으면 IME를 켜고, 그 외(캔버스 단축키 영역)에서는 끔
@@ -146,7 +146,7 @@ package Modules.L3Feature
             }
 
             // 누르고 있던 키 상태도 믿을 수 없으므로 비움
-            InputManager.clearKeyBuffer();
+            KeyState.clearKeyBuffer();
             e.stopImmediatePropagation();
             return true;
         }

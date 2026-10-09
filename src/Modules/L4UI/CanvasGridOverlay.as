@@ -10,10 +10,10 @@ package Modules.L4UI
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import Modules.L5App.InputManager.DrawModeInput;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.InputPriority;
     import Modules.MouseState;
     import Modules.Utils;
+    import Modules.L1Data.KeyState;
 
     // 층: L4 UI - 캔버스 격자 표시와 격자 간격 조절
     public class CanvasGridOverlay
@@ -219,7 +219,7 @@ package Modules.L4UI
 
             function repeatGridMoveByValue(moveX:Number, moveY:Number):void
             {
-                InputManager.startKeyRepeat(true, function ():void
+                KeyState.startKeyRepeat(true, function ():void
                     {
                         gridDrawOffsetX += moveX * (DrawCanvas.mirrorON ? -1 : 1);
                         gridDrawOffsetY += moveY;
@@ -281,11 +281,11 @@ package Modules.L4UI
 
             function onKeyUpGridButton(e:KeyboardEvent):void
             {
-                if (e.keyCode === InputManager.KEY.f2 || e.keyCode === InputManager.KEY.f8)
+                if (e.keyCode === KeyState.KEY.f2 || e.keyCode === KeyState.KEY.f8)
                 {
                     if (!(MouseState.isLeftDown || MouseState.isDragging))
                     {
-                        if (InputManager.isPressingShift())
+                        if (KeyState.isPressingShift())
                         {
                             if (gridGapMultiplier !== 0)
                             {
@@ -345,14 +345,14 @@ package Modules.L4UI
             {
                 HintController.hideBottomHint();
                 MouseState.endDrag("gridSlider");
-                InputManager.removeKeyRepeatEvents(null);
+                KeyState.removeKeyRepeatEvents(null);
                 main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton);
                 main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
                 main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton);
                 UIController.topBar.setReplaySpeedBarToGridSliderOFF(main.stage);
-                InputManager.clearKeyBuffer();
+                KeyState.clearKeyBuffer();
                 DrawModeInput.addEvents();
             }
 

@@ -12,6 +12,7 @@ package Modules.L5App.InputManager
     import flash.events.MouseEvent;
     import Modules.L3Feature.ActivityWorkTimer;
     import Modules.L5App.FileManager;
+    import Modules.L1Data.KeyState;
 
     // 캡처 모드의 키보드/마우스 입력
     // 층: L5 앱 흐름 - 캡처 모드의 키보드/마우스 입력
@@ -123,10 +124,10 @@ package Modules.L5App.InputManager
 
         private static function onKeyDownCaptureMode(e:KeyboardEvent):void
         {
-            const firstKey:uint = InputManager.getFirstPressedKey();
+            const firstKey:uint = KeyState.getFirstPressedKey();
             if (CaptureStamp.captureStampFontListBox.visible)
             {
-                if (firstKey === InputManager.KEY.esc)
+                if (firstKey === KeyState.KEY.esc)
                 {
                     CaptureStamp.hideStampFontList();
                 }
@@ -135,7 +136,7 @@ package Modules.L5App.InputManager
 
             if (main.stage.focus === UIController.topBar.captureInput)
             {
-                if (firstKey === InputManager.KEY.esc || firstKey === InputManager.KEY.enter || InputManager.isPressingControl())
+                if (firstKey === KeyState.KEY.esc || firstKey === KeyState.KEY.enter || KeyState.isPressingControl())
                 {
                     main.stage.focus = null;
                 }
@@ -147,20 +148,20 @@ package Modules.L5App.InputManager
                 return;
             }
 
-            if (InputManager.isPressingControl())
+            if (KeyState.isPressingControl())
             {
-                const secondKey:uint = InputManager.getSecondPressedKey();
-                if (InputManager.isLastKey(secondKey))
+                const secondKey:uint = KeyState.getSecondPressedKey();
+                if (KeyState.isLastKey(secondKey))
                 {
                     return;
                 }
-                InputManager.updateLastKey();
+                KeyState.updateLastKey();
 
-                if (secondKey === InputManager.KEY.s || secondKey === InputManager.KEY.semicolon)
+                if (secondKey === KeyState.KEY.s || secondKey === KeyState.KEY.semicolon)
                 {
                     FileManager.saveCaptureImage();
                 }
-                else if (secondKey === InputManager.KEY.c || secondKey === InputManager.KEY.comma)
+                else if (secondKey === KeyState.KEY.c || secondKey === KeyState.KEY.comma)
                 {
                     CaptureController.executeCaptureFlashEffect();
                     if (UIController.topBar.capClipBoard.alpha === 1.0)
@@ -168,7 +169,7 @@ package Modules.L5App.InputManager
                         CaptureController.copyCaptureImageToCilpBoard();
                     }
                 }
-                else if (secondKey === InputManager.KEY.v || secondKey === InputManager.KEY.m)
+                else if (secondKey === KeyState.KEY.v || secondKey === KeyState.KEY.m)
                 {
                     if (ClipboardManager.isClipBoardButtonActivated)
                     {
@@ -178,19 +179,19 @@ package Modules.L5App.InputManager
                 return;
             }
 
-            if (InputManager.isLastKey(firstKey))
+            if (KeyState.isLastKey(firstKey))
             {
                 return;
             }
 
-            InputManager.updateLastKey();
+            KeyState.updateLastKey();
 
             switch (firstKey)
             {
-                case InputManager.KEY.esc:
-                case InputManager.KEY.backspace:
-                case InputManager.KEY.f1:
-                case InputManager.KEY.f7:
+                case KeyState.KEY.esc:
+                case KeyState.KEY.backspace:
+                case KeyState.KEY.f1:
+                case KeyState.KEY.f7:
                     CaptureController.handleExitCaptureMode();
                     break;
                 default:
@@ -200,8 +201,8 @@ package Modules.L5App.InputManager
 
         private static function onKeyUpCaptureMode(e:KeyboardEvent):void
         {
-            InputManager.updateLastKey();
-            InputManager.checkGeneralKeyUp();
+            KeyState.updateLastKey();
+            KeyState.checkGeneralKeyUp();
         }
 
         private static function onMouseDownCaptureMode(e:MouseEvent):void

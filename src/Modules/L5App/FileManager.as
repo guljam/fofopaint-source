@@ -66,6 +66,7 @@ package Modules.L5App
     import Modules.L3Feature.UndoController;
     import Modules.UndoHistory;
     import Modules.Utils;
+    import Modules.L1Data.KeyState;
 
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager
@@ -426,7 +427,7 @@ package Modules.L5App
                 CanvasLayers.toggleLayerCheck(2);
             }
             CanvasResizer.updateButtonPos(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
-            InputManager.removeKeyRepeatEvents(null);
+            KeyState.removeKeyRepeatEvents(null);
             DrawCanvas.canvasLayer1Bitmap.visible = true;
             DrawCanvas.canvasLayer2Bitmap.visible = true;
             UIController.topBar.captureButton.alpha = 1.0;
@@ -456,7 +457,7 @@ package Modules.L5App
         public static function setFileBrowserIsOpen(flag:Boolean):void
         {
             isFileBrowserOpened = flag;
-            InputManager.clearKeyBuffer();
+            KeyState.clearKeyBuffer();
         }
 
         public static function updateLastFilePathByRandomFileName():void
@@ -1545,7 +1546,7 @@ package Modules.L5App
                     // 병합 이미지는 startSave가 처리 후 dispose함
                     startSave(DrawCanvas.getMergedBitmapData(false, true, true, null), true);
                     AppWindowState.updateWindowTitle();
-                    InputManager.clearKeyBuffer();
+                    KeyState.clearKeyBuffer();
                     isFileAlreadySaved = true;
                 }
                 else // 파일을 못찾으면 새로 저장
