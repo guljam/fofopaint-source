@@ -1,6 +1,5 @@
 package Modules.L3Feature.Tools
 {
-    import Modules.CanvasViewport;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.InputPriority;
     import Modules.MouseState;
@@ -15,6 +14,7 @@ package Modules.L3Feature.Tools
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.PenSizePreviewCursor;
+    import Modules.L4UI.CanvasViewport;
 
     // 층: L3 기능 - 손 툴(캔버스 끌어 이동)
     public class HandTool

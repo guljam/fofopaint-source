@@ -1,6 +1,5 @@
 package Modules.L3Feature.Tools
 {
-    import Modules.CanvasViewport;
     import Modules.UIEngine.CanvasNavigator;
     import flash.display.Sprite;
     import Modules.ReferenceLayerController;
@@ -13,6 +12,7 @@ package Modules.L3Feature.Tools
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.PenSizePreviewCursor;
+    import Modules.L4UI.CanvasViewport;
 
     // 층: L3 기능 - 회전 툴
     public class RotateTool

@@ -1,6 +1,5 @@
 package Modules.L5App.ReplayEngine
 {
-    import Modules.CanvasViewport;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
@@ -63,6 +62,7 @@ package Modules.L5App.ReplayEngine
     import Modules.L3Feature.Tools.PenTool;
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
     import Modules.L2Engine.UndoHistory;
+    import Modules.L4UI.CanvasViewport;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController

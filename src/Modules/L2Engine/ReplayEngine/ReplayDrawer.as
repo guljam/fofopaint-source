@@ -21,13 +21,13 @@ package Modules.L2Engine.ReplayEngine
     import Modules.ReplayEngine.ReplayAnim;
     import Modules.ReplayEngine.ReplayCursorFollow;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.ReplayEngine.ReplayViewport;
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L3Feature.Tools.PenTool;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L2Engine.UndoHistory;
+    import Modules.L4UI.ReplayEngine.ReplayViewport;
 
     // 층: L2 엔진 - 리플레이 캔버스에 명령을 그리고 프레임 이동
     public class ReplayDrawer

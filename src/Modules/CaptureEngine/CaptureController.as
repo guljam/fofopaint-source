@@ -1,6 +1,5 @@
 package Modules.CaptureEngine
 {
-    import Modules.CanvasViewport;
     import Modules.UIEngine.UITheme;
     import Modules.Utils;
     import Modules.ReferenceLayerController;
@@ -31,6 +30,7 @@ package Modules.CaptureEngine
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L4UI.CanvasViewport;
 
     // 층: L3 기능 - 캡처 모드 진입·종료와 캡처 처리
     public class CaptureController
