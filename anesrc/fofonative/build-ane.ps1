@@ -1,6 +1,9 @@
 # com.fofo.nativecore ANE 빌드 (Windows x86/x64 DLL + default 플랫폼)
 # 결과: extension\com.fofo.nativecore.ane (패키징용), .ane-debug\com.fofo.nativecore.ane (디버그 실행용, launch.json extdir)
 # 소스가 바뀌었을때만 다시 빌드하고, ANE가 바뀌었을때만 다시 풀어줌
+# 바뀌었는지는 수정 시각이 아니라 내용으로 정함: 소스 + SDK 경로의 SHA-256을 extension\com.fofo.nativecore.ane.srchash(저장소에 추적)와 비교
+#   (수정 시각으로 정하면 브랜치를 바꿀 때 git이 시각을 새로 찍어서 다시 빌드하고, 빌드할 때마다 DLL·.ane 바이트가 달라져서 .ane가 늘 수정됨으로 뜸)
+#   .ane와 .srchash는 같이 커밋할 것
 # -Force: 소스가 그대로여도 다시 빌드
 # macOS/Linux 네이티브 빌드는 없음, 그 운영체제에서는 default 플랫폼으로 들어가서 AS3 경로로 동작함
 param(
@@ -17,17 +20,35 @@ $output = "$root\extension\$extensionId.ane"
 $debugRoot = "$root\.ane-debug"
 $debugExtension = "$debugRoot\$extensionId.ane"
 $debugStamp = "$debugRoot\$extensionId.stamp"
+$sourceStamp = "$output.srchash"
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $sources = @(Get-Item -Path "$here\extension.xml", $PSCommandPath) +
     @(Get-ChildItem -Path "$here\src", "$here\as3", "$here\third_party" -Recurse -File)
-$needBuild = $Force -or -not (Test-Path -Path $output)
 
-if (-not $needBuild) {
-    $outputTime = (Get-Item -Path $output).LastWriteTime
-    $needBuild = [bool]($sources | Where-Object { $_.LastWriteTime -gt $outputTime })
+# 줄바꿈(CRLF/LF)이 달라도 같은 값이 나오게 텍스트 파일은 CR을 빼고 해시함, 경로는 이 폴더 기준 상대 경로
+$sha = [Security.Cryptography.SHA256]::Create()
+$hashText = New-Object System.Text.StringBuilder
+[void]$hashText.Append("$sdk`n")
+
+foreach ($file in ($sources | Sort-Object -Property FullName)) {
+    $relative = $file.FullName.Substring($here.Length).Replace('\', '/')
+
+    if ($file.Extension -match '^\.(c|h|cpp|as|xml|ps1|txt)$') {
+        $content = [IO.File]::ReadAllText($file.FullName) -replace "`r", ''
+        $bytes = [Text.Encoding]::UTF8.GetBytes($content)
+    }
+    else {
+        $bytes = [IO.File]::ReadAllBytes($file.FullName)
+    }
+
+    [void]$hashText.Append("$relative $([BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-', ''))`n")
 }
+
+$sourceHash = [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($hashText.ToString()))).Replace('-', '')
+$savedHash = if (Test-Path -Path $sourceStamp) { ([IO.File]::ReadAllText($sourceStamp)).Trim() } else { '' }
+$needBuild = $Force -or -not (Test-Path -Path $output) -or $savedHash -ne $sourceHash
 
 if ($needBuild) {
     Write-Host "Compiling $extensionId ANE..."
@@ -88,6 +109,7 @@ if ($needBuild) {
         Pop-Location
     }
 
+    [IO.File]::WriteAllText($sourceStamp, $sourceHash)
     Write-Host "Built $output"
 }
 else {
@@ -95,7 +117,7 @@ else {
 }
 
 # adl은 압축을 푼 ANE 폴더가 필요함, 풀어둔 것이 지금 ANE와 다를때만 다시 풀어줌
-$aneStamp = (Get-Item -Path $output).LastWriteTimeUtc.Ticks.ToString()
+$aneStamp = (Get-FileHash -Path $output -Algorithm SHA256).Hash
 $unpackedStamp = if (Test-Path -Path $debugStamp) { (Get-Content -Path $debugStamp -Raw).Trim() } else { '' }
 
 if ($unpackedStamp -ne $aneStamp -or -not (Test-Path -Path "$debugExtension\META-INF\ANE\extension.xml")) {
