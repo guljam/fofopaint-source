@@ -33,6 +33,7 @@ package Modules.L5App
     import Modules.L2Engine.BackgroundWorkerCoordinator;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L1Data.AppDataPaths;
 
     // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState
@@ -89,7 +90,7 @@ package Modules.L5App
 
         public static function onWindowResize(e:Event):void
         {
-            if (AppStateManager.isLoadingAppData)
+            if (AppDataPaths.isLoadingAppData)
             {
                 return;
             }
@@ -218,7 +219,7 @@ package Modules.L5App
 
                             if (nativeTimedOut)
                             {
-                                AppStateManager.writeCrashLog("Exit while native save still running");
+                                AppDataPaths.writeCrashLog("Exit while native save still running");
                             }
 
                             if (BackgroundWorkerCoordinator.isWorkerStopped() && (!NativeSave.isBusy || nativeTimedOut))

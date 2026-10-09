@@ -14,10 +14,10 @@ package Modules.L4UI
     import Modules.L4UI.ColorPickerController;
     import Modules.L5App.InputManager.InputManager;
     import Modules.L4UI.SidebarController;
-    import Modules.L5App.AppStateManager;
     import Modules.ColorHistory;
     import Modules.DragInteraction;
     import Modules.InputPriority;
+    import Modules.L1Data.AppDataPaths;
 
     // 층: L4 UI - My Palette 선택·추가·저장과 적용
     public final class PaletteController
@@ -238,7 +238,7 @@ package Modules.L4UI
         {
             const fs:FileStream = new FileStream();
 
-            fs.open(AppStateManager.myPaletteDataFilePath, FileMode.WRITE);
+            fs.open(AppDataPaths.myPaletteDataFilePath, FileMode.WRITE);
             fs.writeObject({palette: myPalettePreset, history: ColorHistory.list});
             fs.close();
         }
@@ -259,7 +259,7 @@ package Modules.L4UI
             ColorHistory.update();
             updateMyPaletteList();
 
-            if (!AppStateManager.myPaletteDataFilePath.exists)
+            if (!AppDataPaths.myPaletteDataFilePath.exists)
             {
                 saveMypPaletteList();
             }

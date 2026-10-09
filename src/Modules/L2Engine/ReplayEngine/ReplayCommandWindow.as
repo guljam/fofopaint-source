@@ -5,9 +5,9 @@ package Modules.L2Engine.ReplayEngine
     import flash.filesystem.FileStream;
     import flash.utils.Dictionary;
     import flash.utils.getTimer;
-    import Modules.L5App.AppStateManager;
     import Modules.ReplayEngine.ReplayDrawCommands;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.L1Data.AppDataPaths;
 
     // 재생 경로에서 repdata를 읽는 유일한 곳. 그리는 쪽(ReplayDrawer.readNextFileData)은 takeNext로 묶음을 하나씩 꺼내 쓰고,
     // 카메라(ReplayCursorFollow)는 앞으로 그려질 커서 위치 요약만 collectCursorPath로 읽음 (명령 배열에는 접근하지 않음)
@@ -112,7 +112,7 @@ package Modules.L2Engine.ReplayEngine
         {
             if (!streamOpen)
             {
-                stream.open(AppStateManager.replayDataFilePath, FileMode.READ);
+                stream.open(AppDataPaths.replayDataFilePath, FileMode.READ);
                 streamOpen = true;
             }
         }

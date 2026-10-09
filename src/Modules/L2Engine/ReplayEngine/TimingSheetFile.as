@@ -4,8 +4,8 @@ package Modules.L2Engine.ReplayEngine
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
     import flash.utils.ByteArray;
-    import Modules.L5App.AppStateManager;
     import Modules.ReplayEngine.TimingSheet;
+    import Modules.L1Data.AppDataPaths;
 
     // repdata 파일에 들어있는 프레임(명령)마다의 시간 기록을 이어 쓴 파일
     // 프레임 하나는 uint 둘(8바이트): 직전 프레임과의 간격(ms), 그 명령의 연출 길이(ms, 없으면 0)
@@ -53,7 +53,7 @@ package Modules.L2Engine.ReplayEngine
 
         private static function writeLegacyFile():void
         {
-            const file:File = AppStateManager.replayTimingLegacyFilePath;
+            const file:File = AppDataPaths.replayTimingLegacyFilePath;
 
             if (file === null)
             {
@@ -80,7 +80,7 @@ package Modules.L2Engine.ReplayEngine
         public static function loadLegacy(frames:Number):void
         {
             legacyCount = 0;
-            const file:File = AppStateManager.replayTimingLegacyFilePath;
+            const file:File = AppDataPaths.replayTimingLegacyFilePath;
 
             if (file === null || !file.exists)
             {
@@ -157,16 +157,16 @@ package Modules.L2Engine.ReplayEngine
         // 파일이 없으면 만들지 않고 비어있는 것으로 봄
         public static function get frameCount():Number
         {
-            const file:File = AppStateManager.replayTimingSheetFilePath;
+            const file:File = AppDataPaths.replayTimingSheetFilePath;
             return file.exists ? Math.floor(file.size / RECORD_BYTES) : 0;
         }
 
         public static function reset():void
         {
             const fs:FileStream = new FileStream();
-            fs.open(AppStateManager.replayTimingSheetFilePath, FileMode.WRITE);
+            fs.open(AppDataPaths.replayTimingSheetFilePath, FileMode.WRITE);
             fs.close();
-            fs.open(AppStateManager.replayTimingPointsFilePath, FileMode.WRITE);
+            fs.open(AppDataPaths.replayTimingPointsFilePath, FileMode.WRITE);
             fs.close();
             hasLastStamp = false;
             setLegacyFrames(0);
@@ -200,7 +200,7 @@ package Modules.L2Engine.ReplayEngine
                 return;
             }
 
-            const file:File = AppStateManager.replayTimingSheetFilePath;
+            const file:File = AppDataPaths.replayTimingSheetFilePath;
             const fs:FileStream = new FileStream();
             if (now > frame)
             {
@@ -232,7 +232,7 @@ package Modules.L2Engine.ReplayEngine
             const written:Vector.<uint> = new Vector.<uint>(stamps.length * 2, true);
 
             const fs:FileStream = new FileStream();
-            fs.open(AppStateManager.replayTimingSheetFilePath, FileMode.APPEND);
+            fs.open(AppDataPaths.replayTimingSheetFilePath, FileMode.APPEND);
 
             for (var i:int = 0; i < stamps.length; i++)
             {
@@ -286,7 +286,7 @@ package Modules.L2Engine.ReplayEngine
         // 앞의 frame개를 자르고 남은 첫 프레임의 간격을 0으로 함 (앞 자르기)
         public static function cutBefore(frame:Number):void
         {
-            const file:File = AppStateManager.replayTimingSheetFilePath;
+            const file:File = AppDataPaths.replayTimingSheetFilePath;
             hasLastStamp = false;
 
             if (frame <= 0)
@@ -325,7 +325,7 @@ package Modules.L2Engine.ReplayEngine
         private static function appendPointsRecord(frame:Number, points:Array):void
         {
             const fs:FileStream = new FileStream();
-            fs.open(AppStateManager.replayTimingPointsFilePath, FileMode.APPEND);
+            fs.open(AppDataPaths.replayTimingPointsFilePath, FileMode.APPEND);
             fs.writeUnsignedInt(uint(frame));
             fs.writeUnsignedInt(uint(points.length));
 
@@ -340,7 +340,7 @@ package Modules.L2Engine.ReplayEngine
         // 점별 시각 파일에서 프레임 번호가 [minFrame, maxFrame)인 레코드만 남기고 번호를 shift만큼 옮겨서 다시 씀 (자르기)
         private static function rewritePoints(minFrame:Number, maxFrame:Number, shift:Number):void
         {
-            const file:File = AppStateManager.replayTimingPointsFilePath;
+            const file:File = AppDataPaths.replayTimingPointsFilePath;
 
             if (!file.exists || file.size === 0)
             {
@@ -390,7 +390,7 @@ package Modules.L2Engine.ReplayEngine
         // 프레임 frame의 점별 시각(도구 시작 기준 ms). 없으면 null. 파일을 앞에서부터 읽으며 찾음 (레코드는 프레임 번호 오름차순)
         public static function readPoints(frame:Number):Vector.<uint>
         {
-            const file:File = AppStateManager.replayTimingPointsFilePath;
+            const file:File = AppDataPaths.replayTimingPointsFilePath;
 
             if (!file.exists || file.size === 0)
             {
@@ -434,7 +434,7 @@ package Modules.L2Engine.ReplayEngine
         public static function appendRecords(deltas:Vector.<uint>, anims:Vector.<uint>):void
         {
             const fs:FileStream = new FileStream();
-            fs.open(AppStateManager.replayTimingSheetFilePath, FileMode.APPEND);
+            fs.open(AppDataPaths.replayTimingSheetFilePath, FileMode.APPEND);
 
             for (var i:int = 0; i < deltas.length; i++)
             {
@@ -527,7 +527,7 @@ package Modules.L2Engine.ReplayEngine
         private static function buildPointsBlob(fileFrames:Number, memoryStamps:Array, memoryGroupCount:int):ByteArray
         {
             const raw:ByteArray = new ByteArray();
-            const file:File = AppStateManager.replayTimingPointsFilePath;
+            const file:File = AppDataPaths.replayTimingPointsFilePath;
 
             if (file.exists && file.size > 0)
             {
@@ -646,7 +646,7 @@ package Modules.L2Engine.ReplayEngine
                         points.writeBytes(d[5] as ByteArray, 0, (d[5] as ByteArray).length);
                         points.uncompress();
                         const pfs:FileStream = new FileStream();
-                        pfs.open(AppStateManager.replayTimingPointsFilePath, FileMode.WRITE);
+                        pfs.open(AppDataPaths.replayTimingPointsFilePath, FileMode.WRITE);
                         pfs.writeBytes(points, 0, points.length);
                         pfs.close();
                         points.clear();
@@ -684,7 +684,7 @@ package Modules.L2Engine.ReplayEngine
         // firstFrame부터 count개의 간격과 연출 길이를 읽어서 deltas, anims(둘다 count 이상)에 채움. 파일에 모자란 부분은 0
         public static function readRange(firstFrame:Number, count:int, deltas:Vector.<uint>, anims:Vector.<uint> = null):void
         {
-            const file:File = AppStateManager.replayTimingSheetFilePath;
+            const file:File = AppDataPaths.replayTimingSheetFilePath;
 
             if (!file.exists)
             {

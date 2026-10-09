@@ -66,6 +66,7 @@ package Modules.L5App
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.UndoHistory;
+    import Modules.L1Data.AppDataPaths;
 
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager
@@ -241,7 +242,7 @@ package Modules.L5App
 
             if (isNew2020FileFlag)
             {
-                fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE);
+                fs.open(AppDataPaths.replayDataFilePath, FileMode.WRITE);
                 fs.position = 0;
                 fs.writeBytes(replayData);
                 fs.close();
@@ -253,7 +254,7 @@ package Modules.L5App
                 fs.position = imgStartByte;
                 fs.truncate();
                 fs.close();
-                repFileTemp.moveTo(AppStateManager.replayDataFilePath, true);
+                repFileTemp.moveTo(AppDataPaths.replayDataFilePath, true);
             }
 
             ReplayDrawer.commandWindow.dispose(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
@@ -804,12 +805,12 @@ package Modules.L5App
         public static function onInvokeEvent(e:InvokeEvent):void
         {
             // 앱 상태 복원 중에는 창 크기와 UI 배치가 확정되지 않아 로드박스 크기가 어긋나므로 복원이 끝난 뒤에 띄움
-            if (AppStateManager.isLoadingAppData)
+            if (AppDataPaths.isLoadingAppData)
             {
                 pendingInvokeArguments = e.arguments;
                 FOFOTimer.addByName("pendingInvokeTimer", 0.1, true, function ():Boolean
                     {
-                        if (AppStateManager.isLoadingAppData)
+                        if (AppDataPaths.isLoadingAppData)
                         {
                             return true;
                         }
@@ -976,7 +977,7 @@ package Modules.L5App
         // 저장 결과는 onNativeSaveDone, 끝날때까지 isSaveInProgress를 유지해서 repdata 자르기/초기화를 막음
         private static function startNativeSave(mergedImage:BitmapData):Boolean
         {
-            if (!NativeSave.isAvailable || !AppStateManager.replayDataFilePath.exists)
+            if (!NativeSave.isAvailable || !AppDataPaths.replayDataFilePath.exists)
             {
                 return false;
             }
@@ -1008,7 +1009,7 @@ package Modules.L5App
             }
             else
             {
-                repdataLength = AppStateManager.replayDataFilePath.size;
+                repdataLength = AppDataPaths.replayDataFilePath.size;
 
                 for (var i:int = 0, len:int = UndoHistory.undoDataIndex;i <= len;i++)
                 {
@@ -1066,7 +1067,7 @@ package Modules.L5App
             const pngPath:String = lastSaveFilePath;
             const started:Boolean = NativeSave.startSave(pngPath, ReplayFileCache.getReplayFileNameFromPath(pngPath), composite,
                     first1, first2, current1, current2, reference,
-                    AppStateManager.replayDataFilePath.nativePath, repdataLength, memoryGroups, mirrorBytes, timingBytes,
+                    AppDataPaths.replayDataFilePath.nativePath, repdataLength, memoryGroups, mirrorBytes, timingBytes,
                     firstMeta, finalMeta, referenceMeta, nativeSaveOptions, onNativeSaveDone);
             trace("Native save start: memory groups " + (memoryTime - saveStartTime) + "ms, timing sheet " + (sheetTime - memoryTime)
                 + "ms, composite " + (compositeTime - sheetTime) + "ms, native call " + (getTimer() - compositeTime) + "ms");
@@ -1091,7 +1092,7 @@ package Modules.L5App
                     lastSaveFilePath = result.pngPath;
                     lastSaveFileName = getFileNameFromPath(lastSaveFilePath);
                     AppWindowState.updateWindowTitle();
-                    AppStateManager.writeCrashLog("Save renamed to " + result.pngPath + " (" + result.message + ")");
+                    AppDataPaths.writeCrashLog("Save renamed to " + result.pngPath + " (" + result.message + ")");
                     finishSave(result.fofoSize, true);
                     break;
                 case NativeSave.STATUS_FAILED:
@@ -1099,7 +1100,7 @@ package Modules.L5App
                     break;
                 default:
                     // 네이티브 내부 오류(메모리 부족 등)는 쓰기 실패가 아님, 이 저장을 기존 worker 경로로 다시 함 (지금 캔버스 기준)
-                    AppStateManager.writeCrashLog("Native save internal error, retry with worker: " + result.stage + " " + result.message);
+                    AppDataPaths.writeCrashLog("Native save internal error, retry with worker: " + result.stage + " " + result.message);
                     startWorkerSave(DrawCanvas.getMergedBitmapData(false, true, true, null), true);
                     break;
             }
@@ -1122,7 +1123,7 @@ package Modules.L5App
         // 폴더 없음, 권한 없음, 디스크 부족처럼 이름을 바꿔도 안 되는 쓰기 실패: 재시도하지 않고 알림, 저장 안 됨 상태로 둠
         private static function handleSaveWriteFailed(result:Object):void
         {
-            AppStateManager.writeCrashLog("Save failed: stage=" + result.stage + " win32 error=" + result.error
+            AppDataPaths.writeCrashLog("Save failed: stage=" + result.stage + " win32 error=" + result.error
                 + " png=" + result.pngPath + " fofo=" + result.fofoPath + " " + result.message);
             BackgroundWorkerCoordinator.isSaveInProgress = 0;
             isFileAlreadySaved = false;
@@ -1161,7 +1162,7 @@ package Modules.L5App
         {
             saveStartTime = getTimer();
 
-            if (AppStateManager.replayDataFilePath.exists)
+            if (AppDataPaths.replayDataFilePath.exists)
             {
                 rLayer1FirstImageData = new ByteArray();
                 rLayer2FirstImageData = new ByteArray();
@@ -1192,7 +1193,7 @@ package Modules.L5App
                     ReferenceLayerController.canvasRefLayerBitmapData.copyPixelsToByteArray(newRectangle, ReferenceLayerController.refLayerImageData);
                 }
                 // 리플레이 파일을 임시파일로 복사해서 이 내부의 바이트만 읽어서 워커에게 보냄
-                AppStateManager.replayDataFilePath.copyTo(repFileTemp, true);
+                AppDataPaths.replayDataFilePath.copyTo(repFileTemp, true);
 
                 const fs:FileStream = new FileStream();
 
@@ -1373,7 +1374,7 @@ package Modules.L5App
                 {
                     if (result.status !== NativeSave.STATUS_OK)
                     {
-                        AppStateManager.writeCrashLog("Capture save failed: stage=" + result.stage + " win32 error=" + result.error + " " + result.pngPath + " " + result.message);
+                        AppDataPaths.writeCrashLog("Capture save failed: stage=" + result.stage + " win32 error=" + result.error + " " + result.pngPath + " " + result.message);
                         HintController.showMouseHintTemp("Capture save failed: " + describeWriteError(result.error), 10.0);
                     }
                 });

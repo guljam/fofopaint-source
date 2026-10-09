@@ -9,13 +9,13 @@ package Modules.L1Data
     import Modules.ReplayEngine.ReplayState;
     import Modules.L5App.FileManager;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.L5App.AppStateManager;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
     import Modules.CacheImageMetaData;
     import Modules.L2Engine.ReplayEngine.ReplayClock;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
+    import Modules.L1Data.AppDataPaths;
 
     // 메모리 undo 데이터(ReplayState.rMemoryData)를 쌓고 자르는 일과 undo 위치, undo 기준 이미지를 맡음
     // undo 위치를 옮겨서 캔버스를 다시 그리는 일은 UndoController가 함
@@ -198,7 +198,7 @@ package Modules.L1Data
             {
                 const fs:FileStream = new FileStream();
                 const firstElementFrameCount:uint = ReplayState.rMemoryDataFrames[0];
-                const rf:File = AppStateManager.replayDataFilePath;
+                const rf:File = AppDataPaths.replayDataFilePath;
                 const lastRDataTotalFrame:Number = ReplayState.getRFileDataTotalFrame();
 
                 fs.open(rf, FileMode.APPEND);

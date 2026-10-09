@@ -11,9 +11,9 @@ package Modules.L5App
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.PenTool;
 
+    import Modules.L1Data.AppDataPaths;
     import flash.display.BitmapData;
     import flash.display.NativeWindowDisplayState;
-    import flash.events.ErrorEvent;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
@@ -60,47 +60,11 @@ package Modules.L5App
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
-            dataFolderPath = File.applicationStorageDirectory.resolvePath("portable_"+main.APP_STATE_VERSION);
-            appStateFilePath = dataFolderPath.resolvePath("appstate" + main.APP_STATE_VERSION);
-            scratchPadDataFilePath = dataFolderPath.resolvePath("scratchdata");
-            undoDataFilePath = dataFolderPath.resolvePath("undodata");
-            myPaletteDataFilePath = dataFolderPath.resolvePath("mypalettedata");
-            replayDataFilePath = dataFolderPath.resolvePath("repdata");
-            replayTimingSheetFilePath = dataFolderPath.resolvePath("reptimingsheet");
-            replayTimingPointsFilePath = dataFolderPath.resolvePath("reptimingpoints");
-            replayTimingIndexFilePath = dataFolderPath.resolvePath("reptimingindex");
-            replayTimingLegacyFilePath = dataFolderPath.resolvePath("reptiminglegacy");
-            replayCacheImageFolderPath = dataFolderPath.resolvePath("imagecache");
-            replayCacheImageTempFolderPath = dataFolderPath.resolvePath("imagecache_tmp");
-            replayCacheImageLoadTempFolderPath = dataFolderPath.resolvePath("imagecache_loadtmp");
-            replayCacheImageFrameDataFilePath = dataFolderPath.resolvePath("jumpframedata");
-            replayCacheProgressFilePath = dataFolderPath.resolvePath("imagecacheprogress");
-            replayCachePreviewFilePath = dataFolderPath.resolvePath("imagecachepreview");
+            AppDataPaths.initialize(main.APP_STATE_VERSION);
         }
 
-        private static var dataFolderPath:File;
-        private static var isWritingCrashLog:Boolean = false;
-        public static var appStateFilePath:File;
-        public static var scratchPadDataFilePath:File;
-        public static var undoDataFilePath:File;
-        public static var myPaletteDataFilePath:File;
-        public static var replayDataFilePath:File;
-        public static var replayTimingSheetFilePath:File; // repdata 프레임마다의 시간 간격 (TimingSheetFile)
-        public static var replayTimingLegacyFilePath:File; // 타이밍 기록이 없는 옛 프레임 수 L (TimingSheetFile). 바뀔 때마다 바로 씀
-        public static var replayTimingIndexFilePath:File; // 시계 시간 색인 요약 (ReplayClock). 앱 상태 저장 때 쓰고 시작할 때 읽음
-        public static var replayTimingPointsFilePath:File; // 점마다 시각이 필요한 명령(line4)의 점별 시각 (TimingSheetFile)
         private static var isRebuildFromReplayFileNeeded:Boolean = false; // loadUndoData에서 저장본이 리플레이 파일과 맞지 않아 쓰지 못했을때
-        public static var replayCacheImageFolderPath:File;
-        public static var replayCacheImageTempFolderPath:File; // worker가 캐시 이미지를 쓰는 곳, main이 확인 후 imagecache로 옮김
-        // 불러오기 캐시 네이티브 작업이 쓰는 곳, main이 앞 번호부터 확인해서 imagecache로 옮김
-        // undo 캐시 임시 폴더(prepareCacheTempFolder가 안의 파일을 다 지움)와 섞이지 않게 따로 둠
-        public static var replayCacheImageLoadTempFolderPath:File;
-        public static var replayCacheImageFrameDataFilePath:File;
-        public static var replayCacheProgressFilePath:File; // 캐시 이미지 만드는 도중 앱을 닫았을때 이어서 만들기 위한 진행 기록
-        public static var replayCachePreviewFilePath:File; // 그때 로드박스에 깔려있던 흐린 배경 이미지
         public static const appUpTimePath:File = File.applicationStorageDirectory.resolvePath("appuptime");
-
-        public static var isLoadingAppData:Boolean = false;
 
         private static function loadAppUpTimeFromAppData():void
         {
@@ -217,20 +181,20 @@ package Modules.L5App
             appStateObject.isRefLayerMemoryTrainingON = ReferenceLayerController.isRefLayerMemoryTrainingON;
 
             const fs:FileStream = new FileStream();
-            fs.open(appStateFilePath, FileMode.WRITE);
+            fs.open(AppDataPaths.appStateFilePath, FileMode.WRITE);
             fs.writeObject(appStateObject);
             fs.close();
         }
 
         public static function loadAppState():void
         {
-            isLoadingAppData = true;
+            AppDataPaths.isLoadingAppData = true;
             ReplayFileCache.clearLoadCacheTempFolder(); // 지난 실행에서 끝나지 못한 불러오기 캐시 임시 파일
             const fs:FileStream = new FileStream();
             var arr:Array = [];
             var metaData:CacheImageMetaData;
             var newRectangle:Rectangle;
-            const firstCachedImage:File = replayCacheImageFolderPath.resolvePath("0");
+            const firstCachedImage:File = AppDataPaths.replayCacheImageFolderPath.resolvePath("0");
 
             // 앱 경로에 마지막 저장 파일이 있으면 끄기전의 상태로 세팅해줌
             if (firstCachedImage.exists && CacheImageFile.isNewFormatFile(firstCachedImage))
@@ -339,18 +303,18 @@ package Modules.L5App
                 tmpbmpd = null;
             }
 
-            if (replayCacheImageFrameDataFilePath.exists)
+            if (AppDataPaths.replayCacheImageFrameDataFilePath.exists)
             {
-                fs.open(replayCacheImageFrameDataFilePath, FileMode.READ);
+                fs.open(AppDataPaths.replayCacheImageFrameDataFilePath, FileMode.READ);
                 arr = fs.readObject() as Array;
                 fs.close();
 
                 ReplayFileCache.rJumpImageFrameData = arr.concat();
             }
 
-            if (myPaletteDataFilePath.exists)
+            if (AppDataPaths.myPaletteDataFilePath.exists)
             {
-                fs.open(myPaletteDataFilePath, FileMode.READ);
+                fs.open(AppDataPaths.myPaletteDataFilePath, FileMode.READ);
                 var list:Object = fs.readObject();
                 fs.close(); // 기존 코드에 없던 항목 변경을 막기 위해 유지
 
@@ -358,11 +322,11 @@ package Modules.L5App
                 list = null;
             }
 
-            if (undoDataFilePath.exists)
+            if (AppDataPaths.undoDataFilePath.exists)
             {
                 loadUndoData(); // ReplayController.undo data 복구 먼저 해줘야함
             }
-            else if (replayDataFilePath.exists && replayDataFilePath.size > 0)
+            else if (AppDataPaths.replayDataFilePath.exists && AppDataPaths.replayDataFilePath.size > 0)
             {
                 // undo 저장본 없이 리플레이 파일만 있으면 파일부터 다시 읽음
                 isRebuildFromReplayFileNeeded = true;
@@ -371,14 +335,14 @@ package Modules.L5App
             TimingSheetFile.loadLegacy(ReplayState.getRFileDataTotalFrame()); // 요약보다 먼저: 요약이 이 값으로 만든 것인지 확인함
             ReplayClock.loadIndex(); // 복구한 프레임 수와 시트가 요약과 맞으면 첫 사용 때 전체 읽기를 건너뜀
 
-            if (scratchPadDataFilePath.exists)
+            if (AppDataPaths.scratchPadDataFilePath.exists)
             {
                 loadScratchPadImage();
             }
 
-            if (appStateFilePath.exists)
+            if (AppDataPaths.appStateFilePath.exists)
             {
-                fs.open(appStateFilePath, FileMode.READ);
+                fs.open(AppDataPaths.appStateFilePath, FileMode.READ);
                 const appStateObject:AppStateVars = fs.readObject() as AppStateVars;
                 fs.close();
 
@@ -583,7 +547,7 @@ package Modules.L5App
 
                         CanvasNavigator.updateCursor();
                         PenSizePreviewCursor.updateSizeAndShape();
-                        isLoadingAppData = false;
+                        AppDataPaths.isLoadingAppData = false;
                         AppWindowState.updateWindowTitle();
                         CanvasLayers.selectLayer(1, false);
 
@@ -675,115 +639,18 @@ package Modules.L5App
                         return true;
                     });
 
-                isLoadingAppData = false;
+                AppDataPaths.isLoadingAppData = false;
             }
 
             loadAppUpTimeFromAppData();
         }
 
-        public static function writeCrashLog(errorObject:*):void
-        {
-            if (isWritingCrashLog || dataFolderPath === null)
-            {
-                return;
-            }
-
-            isWritingCrashLog = true;
-            var stream:FileStream;
-            try
-            {
-                const now:Date = new Date();
-                var dateKey:String = String(now.fullYear);
-                if (now.month + 1 < 10)
-                    dateKey += "0";
-                dateKey += String(now.month + 1);
-                if (now.date < 10)
-                    dateKey += "0";
-                dateKey += String(now.date);
-
-                const logFolder:File = dataFolderPath.resolvePath("log");
-                logFolder.createDirectory();
-                const logFile:File = logFolder.resolvePath("fofo_error_log_" + dateKey + ".txt");
-                var logText:String = "[" + now.toString() + "]\r\n";
-
-                if (errorObject is Error)
-                {
-                    const runtimeError:Error = errorObject as Error;
-                    logText += runtimeError.toString() + "\r\n";
-                    logText += "Message: " + runtimeError.message + "\r\n";
-                    logText += "Error ID: " + runtimeError.errorID + "\r\n";
-                    const stack:String = runtimeError.getStackTrace();
-                    logText += "Stack trace:\r\n" + (stack ? stack : "(unavailable)") + "\r\n";
-                }
-                else if (errorObject is ErrorEvent)
-                {
-                    const errorEvent:ErrorEvent = errorObject as ErrorEvent;
-                    logText += errorEvent.toString() + "\r\n";
-                    logText += "Message: " + errorEvent.text + "\r\n";
-                    logText += "Error ID: " + errorEvent.errorID + "\r\n";
-                    logText += "Stack trace: (unavailable for ErrorEvent)\r\n";
-                }
-                else
-                {
-                    logText += "Thrown value: " + String(errorObject) + "\r\n";
-                    logText += "Stack trace: (unavailable)\r\n";
-                }
-                logText += "\r\n";
-
-                stream = new FileStream();
-                stream.open(logFile, FileMode.APPEND);
-                stream.writeUTFBytes(logText);
-            }
-            catch (writeError:Error)
-            {
-                trace("Crash log write failed: " + writeError);
-            }
-            finally
-            {
-                if (stream !== null)
-                {
-                    try
-                    {
-                        stream.close();
-                    }
-                    catch (closeError:Error)
-                    {
-                        trace("Crash log close failed: " + closeError);
-                    }
-                }
-                isWritingCrashLog = false;
-            }
-        }
-
         public static function saveReplayFrameData():void
         {
             const fs:FileStream = new FileStream();
-            fs.open(replayCacheImageFrameDataFilePath, FileMode.WRITE);
+            fs.open(AppDataPaths.replayCacheImageFrameDataFilePath, FileMode.WRITE);
             fs.writeObject(ReplayFileCache.rJumpImageFrameData);
             fs.close();
-        }
-
-        // 앱데이터\버전\log 폴더를 탐색기로 염, 크래시가 없어서 폴더가 없으면 만들어서 엶
-        public static function openCrashLogFolder():void
-        {
-            if (dataFolderPath === null)
-            {
-                return;
-            }
-
-            const logFolder:File = dataFolderPath.resolvePath("log");
-            try
-            {
-                if (!logFolder.exists)
-                {
-                    logFolder.createDirectory();
-                }
-                logFolder.openWithDefaultApplication();
-            }
-            catch (error:Error)
-            {
-                trace("Open crash log folder failed: " + error);
-            }
         }
 
         public static function loadScratchPadImage():void
@@ -791,7 +658,7 @@ package Modules.L5App
             const fs:FileStream = new FileStream();
             const ba:ByteArray = new ByteArray();
             const bmpd:BitmapData = ColorPickerController.colorPickerBox.scratchPad.getBitmapData();
-            fs.open(scratchPadDataFilePath, FileMode.READ);
+            fs.open(AppDataPaths.scratchPadDataFilePath, FileMode.READ);
             var arr:Array = fs.readObject() as Array;
             fs.close();
             bmpd.lock();
@@ -806,7 +673,7 @@ package Modules.L5App
             const bmpd:BitmapData = ColorPickerController.colorPickerBox.scratchPad.getBitmapData();
             const newRectangle:Rectangle = new Rectangle(0, 0, bmpd.width, bmpd.height);
             bmpd.copyPixelsToByteArray(ColorPickerController.colorPickerBox.scratchPad.getBitmapData().rect, ba);
-            fs.open(scratchPadDataFilePath, FileMode.WRITE);
+            fs.open(AppDataPaths.scratchPadDataFilePath, FileMode.WRITE);
             fs.writeObject([ba, newRectangle.width, newRectangle.height]);
             fs.close();
         }
@@ -860,7 +727,7 @@ package Modules.L5App
 
         public static function loadUndoData():void
         {
-            if (undoDataFilePath.exists === false)
+            if (AppDataPaths.undoDataFilePath.exists === false)
             {
                 return;
             }
@@ -870,7 +737,7 @@ package Modules.L5App
             UIController.canvasInfoBox.setMirror(false);
 
             const fs:FileStream = new FileStream();
-            fs.open(undoDataFilePath, FileMode.READ);
+            fs.open(AppDataPaths.undoDataFilePath, FileMode.READ);
 
             const lastUndoIndex:int = fs.readInt();
             var arr:Array = fs.readObject() as Array; // undodata first
@@ -882,11 +749,11 @@ package Modules.L5App
             // 저장 없이 앱이 죽으면(정전, 강제 종료, 딥 언두로 파일이 잘린 뒤 종료 등) 리플레이 파일과 저장본이 서로 다른 시점이 됨
             // 저장한 파일 크기와 지금 크기가 다르거나 크기를 기록하지 않던 저장본이면 저장본(메모리 뭉치, 기준 이미지)은 버리고
             // 리플레이 파일을 처음부터 읽어서 캐시 이미지와 캔버스를 다시 만듬 (undo 기록은 사라짐)
-            const nowReplayFileSize:Number = replayDataFilePath.exists ? replayDataFilePath.size : 0;
+            const nowReplayFileSize:Number = AppDataPaths.replayDataFilePath.exists ? AppDataPaths.replayDataFilePath.size : 0;
 
             if (!(arr[6] is Number) || arr[7] !== nowReplayFileSize)
             {
-                writeCrashLog("Replay file does not match undo data: saved frame " + arr[6] + ", saved byte " + arr[7] + ", now byte " + nowReplayFileSize);
+                AppDataPaths.writeCrashLog("Replay file does not match undo data: saved frame " + arr[6] + ", saved byte " + arr[7] + ", now byte " + nowReplayFileSize);
                 fs.close();
                 bmpd.dispose();
                 bmpd1.dispose();
@@ -996,9 +863,9 @@ package Modules.L5App
             // ba.compress();
             // ba1.compress();
             // 레이어 1,레이어2,가로,세로,배경색, 미러, repdata 합계 프레임, repdata 파일 크기 (불러올때 저장 시점과 맞는지 확인하는데 씀)
-            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayState.getRFileDataTotalFrame(), replayDataFilePath.exists ? replayDataFilePath.size : 0];
+            var newArr:Array = [ba, ba1, arr[2], arr[3], arr[4], arr[5], ReplayState.getRFileDataTotalFrame(), AppDataPaths.replayDataFilePath.exists ? AppDataPaths.replayDataFilePath.size : 0];
 
-            fs.open(undoDataFilePath, FileMode.WRITE);
+            fs.open(AppDataPaths.undoDataFilePath, FileMode.WRITE);
             fs.writeInt(UndoHistory.undoDataIndex);
             fs.writeObject(newArr);
             fs.writeObject(ReplayState.rMemoryData);

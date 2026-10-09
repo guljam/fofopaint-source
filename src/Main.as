@@ -69,6 +69,7 @@
     import Modules.L4UI.PaletteController;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L1Data.AppDataPaths;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화
@@ -179,7 +180,7 @@
             // 입력 이벤트는 loadappdstate보다느려야함
             addGlobalEvents();
             DrawModeInput.addEvents();
-            const isNewReplayFile:Boolean = !AppStateManager.replayDataFilePath.exists;
+            const isNewReplayFile:Boolean = !AppDataPaths.replayDataFilePath.exists;
             ReplayFileCache.initializeReplayDataFile();
             if (isNewReplayFile)
             {
@@ -245,7 +246,7 @@
             {
                 e.preventDefault();
                 const errorObject:* = e.error;
-                AppStateManager.writeCrashLog(errorObject);
+                AppDataPaths.writeCrashLog(errorObject);
 
                 try
                 {

@@ -20,12 +20,12 @@ package Modules.L2Engine
     import Modules.ReplayEngine.ReplayState;
     import Modules.L5App.FileManager;
     import Modules.L4UI.LoadBoxController;
-    import Modules.L5App.AppStateManager;
     import Modules.CacheImageMetaData;
     import Modules.NativeCacheJobs;
     import Modules.NativeCore;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
+    import Modules.L1Data.AppDataPaths;
 
     // 층: L2 엔진 - 백그라운드 워커 시작·중지와 데이터 전달
     public final class BackgroundWorkerCoordinator
@@ -357,7 +357,7 @@ package Modules.L2Engine
 
             const jobId:int = ++cacheJobSeq;
             const generation:int = cacheGeneration;
-            const tempFile:File = AppStateManager.replayCacheImageTempFolderPath.resolvePath(jobId + ".tmp");
+            const tempFile:File = AppDataPaths.replayCacheImageTempFolderPath.resolvePath(jobId + ".tmp");
             undoDataQueue.push([jobId, generation, tempFile, metadata]);
 
             // 네이티브: 두 레이어 내부 버퍼를 복사하고 압축·쓰기는 네이티브 스레드에서 (내부 버퍼 원본 덤프라 손실 없음)
@@ -423,7 +423,7 @@ package Modules.L2Engine
                 {
                     // 세대 변경으로 인한 취소가 아닌 쓰기, 이동 실패만 기록해서 다음 캐시 간격 동안 재시도를 쉼
                     cacheFailedFrame = Math.max(cacheFailedFrame, job[3].nowFrame);
-                    AppStateManager.writeCrashLog("Cache image job " + jobId + " failed: " + result);
+                    AppDataPaths.writeCrashLog("Cache image job " + jobId + " failed: " + result);
                     deleteFileQuietly(tempFile);
                 }
             }
@@ -445,7 +445,7 @@ package Modules.L2Engine
         // 그래서 폴더는 두고 안의 파일만 지움, 확정은 작업별 임시 파일 하나만 옮기고 worker는 덮어쓰기로 쓰니 못 지운 파일이 남아도 결과는 같음
         private static function prepareCacheTempFolder():Boolean
         {
-            const folder:File = AppStateManager.replayCacheImageTempFolderPath;
+            const folder:File = AppDataPaths.replayCacheImageTempFolderPath;
 
             try
             {
@@ -466,7 +466,7 @@ package Modules.L2Engine
             }
             catch (error:Error)
             {
-                AppStateManager.writeCrashLog(error);
+                AppDataPaths.writeCrashLog(error);
             }
 
             return false;

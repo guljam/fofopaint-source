@@ -55,7 +55,6 @@ package Modules.L5App.ReplayEngine
     import Modules.L4UI.SidebarController;
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.KeyState;
-    import Modules.L5App.AppStateManager;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
     import Modules.L2Engine.ReplayEngine.ReplayClock;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
@@ -63,6 +62,7 @@ package Modules.L5App.ReplayEngine
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.UndoHistory;
+    import Modules.L1Data.AppDataPaths;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController
@@ -205,7 +205,7 @@ package Modules.L5App.ReplayEngine
             {
                 // repfile 초기화
                 UndoHistory.updateUndoBaseImageFromReplayMode();
-                fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE); // 파일 생성
+                fs.open(AppDataPaths.replayDataFilePath, FileMode.WRITE); // 파일 생성
                 fs.close();
                 ReplayDrawer.commandWindow.dispose();
                 FileManager.isFileAlreadySaved = false;
@@ -244,14 +244,14 @@ package Modules.L5App.ReplayEngine
                 var ba:ByteArray = new ByteArray();
                 var d:Array;
                 // 짤라서 ba에 넣어주기
-                fs.open(AppStateManager.replayDataFilePath, FileMode.READ);
+                fs.open(AppDataPaths.replayDataFilePath, FileMode.READ);
                 fs.position = ReplayState.rFileLastBytePosition;
                 fs.readBytes(ba, 0, fs.bytesAvailable);
                 fs.close();
                 // 시간 간격도 같은 프레임만큼 앞을 잘라줌
                 TimingSheetFile.cutBefore(ReplayState.rNowFrame);
                 // ba에 넣어준걸 다시 써주기
-                fs.open(AppStateManager.replayDataFilePath, FileMode.WRITE);
+                fs.open(AppDataPaths.replayDataFilePath, FileMode.WRITE);
                 fs.position = 0;
                 fs.writeBytes(ba, 0, ba.length);
                 fs.close();
@@ -305,7 +305,7 @@ package Modules.L5App.ReplayEngine
             {
                 ReplayDrawCommands.setFirstRCursorPosCurrent();
                 const fs:FileStream = new FileStream();
-                fs.open(AppStateManager.replayDataFilePath, FileMode.UPDATE);
+                fs.open(AppDataPaths.replayDataFilePath, FileMode.UPDATE);
                 fs.position = ReplayState.rFileLastBytePosition;
                 fs.truncate(); // 데이터 위에 짤라주고
                 fs.close();
@@ -695,7 +695,7 @@ package Modules.L5App.ReplayEngine
         {
             const fs:FileStream = new FileStream();
             const fs2:FileStream = new FileStream();
-            const totalSize:Number = AppStateManager.replayDataFilePath.size;
+            const totalSize:Number = AppDataPaths.replayDataFilePath.size;
             const deepUndoFlag:Boolean = UndoController.isDeepUndoEnabled;
             var rect:Rectangle;
             var _frameSum:Number = 0;
@@ -706,7 +706,7 @@ package Modules.L5App.ReplayEngine
             ReplayDrawer.rCanvasAnchorPoint.visible = false;
             CanvasNavigator.box.visible = false;
             ReplayDrawer.clearCanvasReplayMode(); // 리플레이 캔버스 먼저 깨끗하게
-            fs.open(AppStateManager.replayDataFilePath, FileMode.READ);
+            fs.open(AppDataPaths.replayDataFilePath, FileMode.READ);
 
             if (resumeIndex >= 0)
             {
@@ -775,7 +775,7 @@ package Modules.L5App.ReplayEngine
                     // 이진 탐색이 깨지지 않게 마지막 캐시보다 뒤 프레임만 받음, 옮기기에 실패하면 그 작업이 실패한 것으로 보고 대체 경로로
                     if (!(jumps.length > 0 && frame > jumps[jumps.length - 1]) || !ReplayFileCache.moveTempCacheImage(tempFile, index))
                     {
-                        AppStateManager.writeCrashLog("Replay cache image " + index + " commit failed (frame " + frame + ")");
+                        AppDataPaths.writeCrashLog("Replay cache image " + index + " commit failed (frame " + frame + ")");
                         ReplayFileCache.deleteFileQuietly(tempFile);
                         fallBackToSyncCache();
                         break;
@@ -828,7 +828,7 @@ package Modules.L5App.ReplayEngine
                 {
                     const index:int = nextCacheIndex;
                     const epoch:int = cacheEpoch;
-                    const tempFile:File = AppStateManager.replayCacheImageLoadTempFolderPath.resolvePath(runId + "_" + epoch + "_" + index);
+                    const tempFile:File = AppDataPaths.replayCacheImageLoadTempFolderPath.resolvePath(runId + "_" + epoch + "_" + index);
                     const result:int = NativeCacheJobs.start(tempFile.nativePath,
                             ReplayDrawer.rCanvasLayer1BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, metadata, cacheGeneration, false, function (r:Object):void
                             {
@@ -850,7 +850,7 @@ package Modules.L5App.ReplayEngine
                                 {
                                     if (r.status !== "cancelled")
                                     {
-                                        AppStateManager.writeCrashLog("Replay cache image " + index + " failed: " + r.status + " " + r.error);
+                                        AppDataPaths.writeCrashLog("Replay cache image " + index + " failed: " + r.status + " " + r.error);
                                     }
                                     ReplayFileCache.deleteFileQuietly(tempFile);
                                     fallBackToSyncCache();
@@ -918,7 +918,7 @@ package Modules.L5App.ReplayEngine
                             }
                             else if (getTimer() - pendingWaitStart > PENDING_CACHE_WAIT_LIMIT)
                             {
-                                AppStateManager.writeCrashLog("Replay cache image jobs timed out: " + pendingCacheJobs);
+                                AppDataPaths.writeCrashLog("Replay cache image jobs timed out: " + pendingCacheJobs);
                                 fallBackToSyncCache();
                             }
                             return;
@@ -1272,7 +1272,7 @@ package Modules.L5App.ReplayEngine
 
                 if (!ReplayState.rMemoryDataReadON)
                 {
-                    ReplayDrawer.rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
+                    ReplayDrawer.rFileStream.open(AppDataPaths.replayDataFilePath, FileMode.READ);
                     ReplayDrawer.rFileStream.position = ReplayState.rFileLastBytePosition;
                 }
             }
@@ -1760,7 +1760,7 @@ package Modules.L5App.ReplayEngine
 
             if (!ReplayState.rMemoryDataReadON)
             {
-                ReplayDrawer.rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
+                ReplayDrawer.rFileStream.open(AppDataPaths.replayDataFilePath, FileMode.READ);
                 ReplayDrawer.rFileStream.position = ReplayState.rFileLastBytePosition;
             }
 

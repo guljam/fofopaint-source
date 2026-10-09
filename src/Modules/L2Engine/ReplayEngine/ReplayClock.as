@@ -8,6 +8,7 @@ package Modules.L2Engine.ReplayEngine
     import Modules.L5App.AppStateManager;
     import Modules.ReplayEngine.ReplayState;
     import Modules.ReplayEngine.TimingSheet;
+    import Modules.L1Data.AppDataPaths;
 
     // 실시간 재생 시계. 타이밍 시트(TimingSheetFile)의 간격으로 프레임(명령)마다 녹화 시각을 알고,
     // 재생 시작 지점의 녹화 시각 R0와 그때의 getTimer T0를 기준으로 지금 녹화 시각 R = R0 + (getTimer() - T0) * 배속 를 구해서
@@ -184,7 +185,7 @@ package Modules.L2Engine.ReplayEngine
         // indexedFileFrames부터 to 프레임 앞까지만 읽어 파일 부분 색인을 이어서 갱신 (구간 경계마다 나눠 읽음)
         private static function readIntoFileIndex(to:Number):void
         {
-            const file:File = AppStateManager.replayTimingSheetFilePath;
+            const file:File = AppDataPaths.replayTimingSheetFilePath;
             var first:Number = indexedFileFrames;
 
             if (to > first && file.exists)
@@ -319,7 +320,7 @@ package Modules.L2Engine.ReplayEngine
         // 시트 끝 최대 32프레임(256바이트)의 해시. 요약이 이 시트의 것인지 확인용
         private static function sheetTailHash(frames:Number):uint
         {
-            const file:File = AppStateManager.replayTimingSheetFilePath;
+            const file:File = AppDataPaths.replayTimingSheetFilePath;
             var hash:uint = 2166136261;
 
             if (frames <= 0 || !file.exists)
@@ -343,8 +344,8 @@ package Modules.L2Engine.ReplayEngine
 
         public static function saveIndex():void
         {
-            const file:File = AppStateManager.replayTimingIndexFilePath;
-            const sheet:File = AppStateManager.replayTimingSheetFilePath;
+            const file:File = AppDataPaths.replayTimingIndexFilePath;
+            const sheet:File = AppDataPaths.replayTimingSheetFilePath;
 
             // 색인이 지금 시트와 맞지 않으면 옛 요약이 남지 않게 지움
             if (indexedFileFrames < 0 || indexedFileFrames !== ReplayState.getRFileDataTotalFrame() || indexedFileFrames !== TimingSheetFile.frameCount || indexLegacyFrames !== TimingSheetFile.legacyFrames || indexLegacyDelta !== currentLegacyDelta())
@@ -389,7 +390,7 @@ package Modules.L2Engine.ReplayEngine
         {
             resetIndexEmpty(); // 이전 상태가 남지 않게 비운 뒤 요약이 맞을 때만 채움
             indexedFileFrames = -1;
-            const file:File = AppStateManager.replayTimingIndexFilePath;
+            const file:File = AppDataPaths.replayTimingIndexFilePath;
             const frames:Number = ReplayState.getRFileDataTotalFrame();
 
             if (frames <= 0)
@@ -405,7 +406,7 @@ package Modules.L2Engine.ReplayEngine
 
             try
             {
-                const sheet:File = AppStateManager.replayTimingSheetFilePath;
+                const sheet:File = AppDataPaths.replayTimingSheetFilePath;
                 const fs:FileStream = new FileStream();
                 fs.open(file, FileMode.READ);
 

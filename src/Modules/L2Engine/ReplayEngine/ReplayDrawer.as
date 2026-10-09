@@ -21,13 +21,13 @@ package Modules.L2Engine.ReplayEngine
     import Modules.L5App.FileManager;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L3Feature.UndoController;
-    import Modules.L5App.AppStateManager;
     import Modules.ReplayEngine.ReplayAnim;
     import Modules.ReplayEngine.ReplayCursorFollow;
     import Modules.ReplayEngine.ReplayDrawCommands;
     import Modules.ReplayEngine.ReplayState;
     import Modules.ReplayEngine.ReplayViewport;
     import Modules.L1Data.UndoHistory;
+    import Modules.L1Data.AppDataPaths;
 
     // 층: L2 엔진 - 리플레이 캔버스에 명령을 그리고 프레임 이동
     public class ReplayDrawer
@@ -323,7 +323,7 @@ package Modules.L2Engine.ReplayEngine
 
             anim.clear();
 
-            rFileStream.open(AppStateManager.replayDataFilePath, FileMode.READ);
+            rFileStream.open(AppDataPaths.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame);
             const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);
             rFileStream.close();
