@@ -27,6 +27,8 @@ AGENTS.md
 CLAUDE.md
 /repdata_parser
 /artifacts
+/anesrc
+/.ane-debug
 
 make-air-package.ps1
 worker.swf_old
