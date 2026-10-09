@@ -20,8 +20,8 @@ package Modules
             _cursor.visible = false;
         }
 
-        private static const INVERT_THRESHOLD:Number = 3; // 커서 색과 밑 색의 차이가 이 값 이하면 반전
-        private static const CHECK_INTERVAL:Number = 0.5; // 밑 색 확인 간격(초)
+        private static const INVERT_THRESHOLD:Number = 21; // 커서 색과 밑 색의 차이가 이 값 이하면 반전
+        private static const CHECK_INTERVAL:Number = 0.3; // 밑 색 확인 간격(초)
         private static const CHECK_TIMER_NAME:String = "penCursorInvertTimer";
 
         private static const _cursor:PenCursorPreviewPixel = new PenCursorPreviewPixel(); // 펜사이즈 미리 보기
