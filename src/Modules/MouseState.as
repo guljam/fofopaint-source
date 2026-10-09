@@ -79,6 +79,7 @@ package Modules
         public static function onLeftDown():void
         {
             isLeftDown = true;
+            PenSizePreviewCursor.cancelPendingColorCheck();
         }
 
         public static function onLeftUp():void

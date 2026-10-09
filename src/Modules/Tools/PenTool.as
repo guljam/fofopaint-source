@@ -614,6 +614,7 @@ package Modules.Tools
 			penPoints.length = 0;
 
 			DrawingFinish.run();
+			PenSizePreviewCursor.checkColorNow(); // 획이 레이어에 반영된 뒤 커서 색 확인
 		}
 
 		public static function start():void
