@@ -8,6 +8,7 @@
             "preLaunchTask": "FOFO PAINT swf build and debug",
             "program": "${workspaceFolder}/fofoPaint-app.xml",
             "profile": "extendedDesktop",
+            "extdir": "${workspaceFolder}/.ane-debug",
             "runtimeExecutable": "D:/adobe_air_sdk_manager/AIRSDK_51.4.1/bin/adl.exe",
             "rootDirectory": "${workspaceFolder}"
         }
