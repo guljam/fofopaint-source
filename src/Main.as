@@ -74,8 +74,8 @@
         // todo: (중요) module 클래스는 정적 변수가 아니라 main에서 호출되어서 연결되어지는 클래스 인스턴스로 가는게맞는것같음
         // todo 앱 30 fps 전환 고려해보기, 예전에 24fps가 cpu도 덜먹고 선찢어지는 현상 덜해서 선택했었는데 지금은 좀 생각이 바뀌네
         public static var _instance:Main;
-        public const APP_VERSION:String = "28.01";
-        public const APP_STATE_VERSION:String = "2801";
+        public const APP_VERSION:String = "30.0.0";
+        public const APP_STATE_VERSION:String = "30.0.0";
         public static const ADOBE_AIR_SDK_VERSION:String = "51.4.1.1";
 
         public const STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT";
