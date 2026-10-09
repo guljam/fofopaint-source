@@ -19,6 +19,7 @@ package
     import Modules.SidebarController;
     import flash.utils.getTimer;
     import Modules.BackgroundWorkerCoordinator;
+    import Modules.NativeSave;
     import Modules.FileManager;
     import Modules.LoadBoxController;
     import Modules.AppUpdater;
@@ -164,6 +165,8 @@ package
             lastWindowDeactivateTime = getTimer();
         }
 
+        private static const NATIVE_SAVE_EXIT_WAIT:int = 120;
+
         public static function onWindowClosingEvent(e:Event):void
         {
             isAppClosing = true;
@@ -202,15 +205,25 @@ package
                 ReplayFileCache.saveCachePreview(LoadBoxController.loadMenuBox.getPreviewImage());
             }
 
-            if (BackgroundWorkerCoordinator.isWorkerBusy())
+            // worker와 네이티브 저장이 끝날때까지 기다린 뒤 종료 (네이티브 저장은 최대 NATIVE_SAVE_EXIT_WAIT초, 넘으면 로그를 남기고 종료)
+            if (BackgroundWorkerCoordinator.isWorkerBusy() || NativeSave.isBusy)
             {
+                const waitStart:int = getTimer();
+
                 if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
                 {
                     main.stage.nativeWindow.title = "Waiting for remaining tasks...";
                     LoadBoxController.openLoadMenuBoxOnClosing();
                     FOFOTimer.addByName("pollTimerWaitWorkerStop", BackgroundWorkerCoordinator.getWaitPollingInterval(), true, function ():Boolean
                         {
-                            if (BackgroundWorkerCoordinator.isWorkerStopped())
+                            const nativeTimedOut:Boolean = NativeSave.isBusy && getTimer() - waitStart > NATIVE_SAVE_EXIT_WAIT * 1000;
+
+                            if (nativeTimedOut)
+                            {
+                                AppStateManager.writeCrashLog("Exit while native save still running");
+                            }
+
+                            if (BackgroundWorkerCoordinator.isWorkerStopped() && (!NativeSave.isBusy || nativeTimedOut))
                             {
                                 FOFOTimer.remove("pollTimerWaitWorkerStop");
                                 AppStateManager.checkWindowMaximizedAndSaveAllData();

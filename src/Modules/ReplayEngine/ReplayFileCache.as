@@ -172,7 +172,7 @@ package Modules.ReplayEngine
             HintController.showMouseHintTemp("Saved (" + (getTimer() - FileManager.saveStartTime) + " ms, " + formatFileSize(savedFile.size) + ")",10.0);
         }
 
-        private static function formatFileSize(bytes:Number):String
+        public static function formatFileSize(bytes:Number):String
         {
             if (bytes >= 1048576)
             {

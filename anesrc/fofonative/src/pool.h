@@ -51,6 +51,7 @@ namespace budget
     // 비어있을때는 상한보다 커도 하나는 받아줌 (큰 캔버스 한 장이 상한보다 커도 진행되게)
     bool tryAcquire(uint64_t bytes);
     void acquire(uint64_t bytes); // 자리가 날때까지 기다림 (풀 스레드에서만)
+    void forceAcquire(uint64_t bytes); // 상한과 관계없이 잡음 (저장처럼 사용자가 기다리는 작업)
     void release(uint64_t bytes);
     uint64_t defaultLimit();
 }

@@ -886,6 +886,263 @@ package Modules
             refreshFileOperationButtonsTopbar();
         }
 
+        // 저장 시작: 네이티브(NativeSave)로 저장할 수 있으면 네이티브, 아니면 기존 worker 경로
+        // mergedImage는 소유권을 가져가서 처리 후 dispose함
+        private static function startSave(mergedImage:BitmapData, isContinueSave:Boolean):void
+        {
+            if (startNativeSave(mergedImage))
+            {
+                mergedImage.dispose();
+                return;
+            }
+
+            startWorkerSave(mergedImage, isContinueSave);
+        }
+
+        // 기존 경로: worker가 PNG 인코드와 이미지/리플레이 압축, main이 PNG와 .fofo를 씀
+        private static function startWorkerSave(mergedImage:BitmapData, isContinueSave:Boolean):void
+        {
+            BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
+            // 소유권을 Worker로 넘김, Worker 쪽에서 dispose함
+            BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage, DrawCanvas.CANVAS_BG_COLOR, false, false);
+            saveFOFOFile();
+            pollTimerWaitWorkerForImageSave(lastSaveFilePath, isContinueSave);
+        }
+
+        private static function pollTimerWaitWorkerForImageSave(lastPath:String, isContinueSave:Boolean):void
+        {
+            const fs:FileStream = new FileStream();
+
+            function onErrorSaveFileContinue(e:Event):void
+            {
+                fs.close();
+                fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
+                isFileAlreadySaved = false;
+                if (LoadBoxController.isLoadPendingAfterSaving)
+                {
+                    LoadBoxController.loadFileTo("canvas");
+                }
+                else
+                {
+                    openSaveFileBrowser(true, true);
+                }
+            }
+
+            if (isContinueSave)
+            {
+                fs.addEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
+            }
+            FOFOTimer.addByName("workerPNGSaveTimer", BackgroundWorkerCoordinator.WORKER_WAIT_INTERVAL, true, function (_path:String):Boolean
+                {
+                    if (BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker !== null)
+                    {
+                        fs.openAsync(new File(_path), FileMode.WRITE);
+                        fs.writeBytes(BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker);
+                        fs.close();
+                        if (isContinueSave)
+                        {
+                            fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
+                        }
+                        BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker.clear();
+                        BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
+                        return false;
+                    }
+                    return true;
+                }, [lastPath]);
+        }
+
+        // 테스트에서 저장 옵션을 바꿀때 씀 (1 = 리플레이 블록을 FRC2 대신 zlib)
+        public static var nativeSaveOptions:int = 0;
+
+        // 네이티브 저장: 지금 상태(비트맵 6개, repdata 길이, 메모리 뭉치, 메타)를 한 번에 넘기고 바로 돌아옴
+        // 저장 결과는 onNativeSaveDone, 끝날때까지 isSaveInProgress를 유지해서 repdata 자르기/초기화를 막음
+        private static function startNativeSave(mergedImage:BitmapData):Boolean
+        {
+            if (!NativeSave.isAvailable || !AppStateManager.replayDataFilePath.exists)
+            {
+                return false;
+            }
+
+            const first1:BitmapData = ReplayFileCache.rFirstImageLayer1BitmapData;
+            const first2:BitmapData = ReplayFileCache.rFirstImageLayer2BitmapData;
+            const current1:BitmapData = DrawCanvas.canvasLayer1BitmapData;
+            const current2:BitmapData = DrawCanvas.canvasLayer2BitmapData;
+            const reference:BitmapData = ReferenceLayerController.canvasRefLayerBitmapData;
+
+            // 기존 경로는 첫 레이어 크기, 캔버스 크기로 copyPixelsToByteArray를 했음, 비트맵 크기가 그와 다르면(일어나지 않아야 함) 기존 경로로
+            if (first2.width !== first1.width || first2.height !== first1.height
+                    || current1.width !== DrawCanvas.CANVAS_WIDTH || current1.height !== DrawCanvas.CANVAS_HEIGHT
+                    || current2.width !== DrawCanvas.CANVAS_WIDTH || current2.height !== DrawCanvas.CANVAS_HEIGHT)
+            {
+                return false;
+            }
+
+            saveStartTime = getTimer();
+            ReplayState.lastMirrorReadyFlag = ReplayState.mirrorCommandReady;
+
+            // 딥 언두면 읽은 바이트까지만 (0이면 리플레이 블록 없음), 아니면 지금 파일 전체 + 메모리 undo 뭉치
+            var repdataLength:Number = 0;
+            const memoryGroups:ByteArray = new ByteArray();
+
+            if (UndoController.isDeepUndoEnabled)
+            {
+                repdataLength = (ReplayState.rFileLastBytePosition > 0) ? ReplayState.rFileLastBytePosition : 0;
+            }
+            else
+            {
+                repdataLength = AppStateManager.replayDataFilePath.size;
+
+                for (var i:int = 0, len:int = UndoHistory.undoDataIndex;i <= len;i++)
+                {
+                    const data:Array = ReplayState.rMemoryData[i];
+
+                    if (data && data.length === 0)
+                    {
+                        continue;
+                    }
+                    memoryGroups.writeObject(data);
+                }
+            }
+
+            const memoryTime:int = getTimer();
+            // 타이밍 시트: 파일에 쓰는 프레임과 같은 범위 (saveFOFOFile과 같음)
+            const sheet:Array = TimingSheetFile.buildFileObject(
+                    UndoController.isDeepUndoEnabled ? ReplayState.rNowFrame : ReplayState.getRFileDataTotalFrame(),
+                    ReplayState.rMemoryDataTimingSheet,
+                    UndoController.isDeepUndoEnabled ? 0 : UndoHistory.undoDataIndex + 1,
+                    ReplayState.lastMirrorReadyFlag ? 1 : 0);
+            const timingBytes:ByteArray = new ByteArray();
+
+            if (sheet !== null)
+            {
+                timingBytes.writeObject(sheet);
+            }
+
+            const sheetTime:int = getTimer();
+            ReplaySaveMetaData.update();
+            const mirrorBytes:ByteArray = new ByteArray();
+
+            // 임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
+            if (ReplayState.lastMirrorReadyFlag)
+            {
+                mirrorBytes.writeObject([["mirror"]]);
+            }
+
+            const firstMeta:Array = [ReplaySaveMetaData.firstImageWidth, ReplaySaveMetaData.firstImageHeight, ReplaySaveMetaData.firstImageBG, ReplaySaveMetaData.firstImageMirrorFlag];
+            const finalMeta:Array = [ReplaySaveMetaData.finalImageWidth, ReplaySaveMetaData.finalImageHeight, ReplaySaveMetaData.finalImageBG];
+            const referenceMeta:Array = (reference !== null) ? [ReplaySaveMetaData.refImageWidth,
+                    ReplaySaveMetaData.refImageHeight,
+                    ReplaySaveMetaData.refImageBitmapX,
+                    ReplaySaveMetaData.refImageBitmapY,
+                    ReplaySaveMetaData.refImageBitmapRotation,
+                    ReplaySaveMetaData.refImageBitmapScaleX,
+                    ReplaySaveMetaData.refImageBitmapScaleY,
+                    ReplaySaveMetaData.refImageBitmapMirrorFlag,
+                    ReplaySaveMetaData.refImageBitmapMoveSum,
+                    ReplaySaveMetaData.refImageAlpha] : null;
+
+            // PNG는 worker encodePNG와 같은 합성 (배경색 비트맵 위에 그림), BitmapData.draw는 네이티브로 같게 만들기 어려워서 AS3로
+            const composite:BitmapData = new BitmapData(mergedImage.width, mergedImage.height, true, DrawCanvas.CANVAS_BG_COLOR);
+            composite.draw(mergedImage);
+            const compositeTime:int = getTimer();
+            const pngPath:String = lastSaveFilePath;
+            const started:Boolean = NativeSave.startSave(pngPath, ReplayFileCache.getReplayFileNameFromPath(pngPath), composite,
+                    first1, first2, current1, current2, reference,
+                    AppStateManager.replayDataFilePath.nativePath, repdataLength, memoryGroups, mirrorBytes, timingBytes,
+                    firstMeta, finalMeta, referenceMeta, nativeSaveOptions, onNativeSaveDone);
+            trace("Native save start: memory groups " + (memoryTime - saveStartTime) + "ms, timing sheet " + (sheetTime - memoryTime)
+                + "ms, composite " + (compositeTime - sheetTime) + "ms, native call " + (getTimer() - compositeTime) + "ms");
+            composite.dispose();
+            memoryGroups.clear();
+            mirrorBytes.clear();
+            timingBytes.clear();
+            return started;
+        }
+
+        private static function onNativeSaveDone(result:Object):void
+        {
+            trace("Native save " + result.status + " codec=" + result.codec + " encode=" + result.encodeMs + "ms write=" + result.writeMs + "ms " + result.message);
+
+            switch (result.status)
+            {
+                case NativeSave.STATUS_OK:
+                    finishSave(result.fofoSize, false);
+                    break;
+                case NativeSave.STATUS_RENAMED:
+                    // 원래 파일을 다른 프로그램이 잡고 있거나 읽기 전용이라 이름_new 쌍으로 저장함, 이후 저장도 새 이름으로
+                    lastSaveFilePath = result.pngPath;
+                    lastSaveFileName = getFileNameFromPath(lastSaveFilePath);
+                    AppWindowState.updateWindowTitle();
+                    AppStateManager.writeCrashLog("Save renamed to " + result.pngPath + " (" + result.message + ")");
+                    finishSave(result.fofoSize, true);
+                    break;
+                case NativeSave.STATUS_FAILED:
+                    handleSaveWriteFailed(result);
+                    break;
+                default:
+                    // 네이티브 내부 오류(메모리 부족 등)는 쓰기 실패가 아님, 이 저장을 기존 worker 경로로 다시 함 (지금 캔버스 기준)
+                    AppStateManager.writeCrashLog("Native save internal error, retry with worker: " + result.stage + " " + result.message);
+                    startWorkerSave(DrawCanvas.getMergedBitmapData(false, true, true, null), true);
+                    break;
+            }
+        }
+
+        private static function finishSave(fofoSize:Number, renamed:Boolean):void
+        {
+            BackgroundWorkerCoordinator.isSaveInProgress = 0;
+            refreshFileOperationButtonsTopbar();
+            HintController.showMouseHintTemp((renamed ? "Saved as " + stripExtension(lastSaveFileName) + " (file was in use) (" : "Saved (")
+                + (getTimer() - saveStartTime) + " ms, " + ReplayFileCache.formatFileSize(fofoSize) + ")", 10.0);
+
+            if (LoadBoxController.isLoadPendingAfterSaving)
+            {
+                // 다른 백그라운드 작업이 남아있으면 loadFileTo가 다시 대기로 돌리고, worker가 멈출때 불러옴
+                LoadBoxController.loadFileTo("canvas");
+            }
+            else if (AppUpdater.isUpdatePendingAfterSaving)
+            {
+                AppUpdater.startUpdate();
+            }
+        }
+
+        // 폴더 없음, 권한 없음, 디스크 부족처럼 이름을 바꿔도 안 되는 쓰기 실패: 재시도하지 않고 알림, 저장 안 됨 상태로 둠
+        private static function handleSaveWriteFailed(result:Object):void
+        {
+            AppStateManager.writeCrashLog("Save failed: stage=" + result.stage + " win32 error=" + result.error
+                + " png=" + result.pngPath + " fofo=" + result.fofoPath + " " + result.message);
+            BackgroundWorkerCoordinator.isSaveInProgress = 0;
+            isFileAlreadySaved = false;
+
+            if (LoadBoxController.isLoadPendingAfterSaving)
+            {
+                LoadBoxController.isLoadPendingAfterSaving = false;
+                LoadBoxController.closeLoadMenuBox();
+            }
+
+            refreshFileOperationButtonsTopbar();
+            AppWindowState.markWindowTitleAsDirty();
+            HintController.showMouseHintTemp("Save failed: " + describeWriteError(result.error), 10.0);
+        }
+
+        private static function describeWriteError(code:int):String
+        {
+            switch (code)
+            {
+                case 2: // ERROR_FILE_NOT_FOUND
+                case 3: // ERROR_PATH_NOT_FOUND
+                    return "folder not found";
+                case 5: // ERROR_ACCESS_DENIED
+                    return "no permission";
+                case 39: // ERROR_HANDLE_DISK_FULL
+                case 112: // ERROR_DISK_FULL
+                    return "disk is full";
+                case 123: // ERROR_INVALID_NAME
+                    return "invalid file name";
+                default:
+                    return "error " + code;
+            }
+        }
+
         private static function saveFOFOFile():void
         {
             saveStartTime = getTimer();
@@ -1066,10 +1323,48 @@ package Modules
                 if (BackgroundWorkerCoordinator.captureImageDataQueue === null)
                     BackgroundWorkerCoordinator.captureImageDataQueue = [];
                 lastSaveCaptureFilePath = getDirectoryOnly(e.target.nativePath) + File.separator + lastSaveFileName;
+
+                if (saveCaptureImageNative(file.name, e.target.nativePath))
+                {
+                    return;
+                }
+
                 BackgroundWorkerCoordinator.captureImageDataQueue.push([file.name, e.target.nativePath]);
                 BackgroundWorkerCoordinator.startPngEncodingWorker(CaptureController.getCaptrueImageBitmapdata(false), 0, true, CaptureController.isCaptureTransparentBGShowing);
                 BackgroundWorkerCoordinator.pollTimerWaitWorkerForSaveCaptureImage();
             }
+        }
+
+        // 캡처 이미지를 네이티브로 PNG 저장, 시작하지 못하면 false (기존 worker 경로)
+        private static function saveCaptureImageNative(fileName:String, filePath:String):Boolean
+        {
+            if (!NativeSave.isAvailable)
+            {
+                return false;
+            }
+
+            var path:String = filePath;
+
+            if (fileName.lastIndexOf(".png") === -1) // png를 안붙여 줬을때 (worker 경로와 같은 규칙)
+            {
+                path = filePath.replace(fileName, "") + fileName + ".png";
+            }
+
+            // worker encodePNG와 같은 합성: 투명 비트맵 위에 그림
+            const captureImage:BitmapData = CaptureController.getCaptrueImageBitmapdata(false);
+            const composite:BitmapData = new BitmapData(captureImage.width, captureImage.height, true, 0);
+            composite.draw(captureImage);
+            captureImage.dispose();
+            const started:Boolean = NativeSave.startPng(path, composite, function (result:Object):void
+                {
+                    if (result.status !== NativeSave.STATUS_OK)
+                    {
+                        AppStateManager.writeCrashLog("Capture save failed: stage=" + result.stage + " win32 error=" + result.error + " " + result.pngPath + " " + result.message);
+                        HintController.showMouseHintTemp("Capture save failed: " + describeWriteError(result.error), 10.0);
+                    }
+                });
+            composite.dispose();
+            return started;
         }
 
         private static function checkSaveFailedFileName(saveFailed:Boolean):File
@@ -1084,9 +1379,28 @@ package Modules
             var filePath:String = pathonly + fileName;
             if (saveFailed)
             {
-                // 파일 쓰기가 실패하면 뒤에 new 붙임
-                filePath = _path.substr(0, _path.length - (_name.length - stripExtension(_name).length)) + "_copy.png";
-                fileName = stripExtension(_name) + "_copy.png";
+                // 파일 쓰기가 실패하면 뒤에 _new, 이미 있으면 _new2, _new3 ... (네이티브 저장과 같은 규칙)
+                const basePath:String = _path.substr(0, _path.length - (_name.length - stripExtension(_name).length));
+                var suffix:String = "_new";
+
+                for (var number:int = 2;number < 1000;number++)
+                {
+                    try
+                    {
+                        if (!new File(basePath + suffix + ".png").exists && !new File(basePath + suffix + ".fofo").exists)
+                        {
+                            break;
+                        }
+                    }
+                    catch (error:Error)
+                    {
+                        break;
+                    }
+                    suffix = "_new" + number;
+                }
+
+                filePath = basePath + suffix + ".png";
+                fileName = stripExtension(_name) + suffix + ".png";
             }
             return (_name !== _path) ? new File(filePath) : File.desktopDirectory.resolvePath(fileName);
         }
@@ -1208,51 +1522,9 @@ package Modules
                 return;
             }
 
-            const fs:FileStream = new FileStream();
-
             if (nextPath !== lastSaveFilePath)
             {
                 lastSaveFilePath = nextPath;
-            }
-
-            function onErrorSaveFileContinue(e:Event):void
-            {
-                fs.close();
-                fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
-                isFileAlreadySaved = false;
-                if (LoadBoxController.isLoadPendingAfterSaving)
-                {
-                    LoadBoxController.loadFileTo("canvas");
-                }
-                else
-                {
-                    openSaveFileBrowser(true, true);
-                }
-            }
-
-            function pollTimerWaitWorkerForImageSave(lastPath:String, isContinueSave:Boolean):void
-            {
-                if (isContinueSave)
-                {
-                    fs.addEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
-                }
-                FOFOTimer.addByName("workerPNGSaveTimer", BackgroundWorkerCoordinator.WORKER_WAIT_INTERVAL, true, function (_path:String):Boolean
-                    {
-                        if (BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker !== null)
-                        {
-                            fs.openAsync(new File(_path), FileMode.WRITE);
-                            fs.writeBytes(BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker);
-                            fs.close();
-                            if (isContinueSave)
-                            {
-                                fs.removeEventListener(IOErrorEvent.IO_ERROR, onErrorSaveFileContinue);
-                            }
-                            BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker.clear();
-                            BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
-                            return false;
-                        }
-                        return true;
-                    }, [lastPath]);
             }
 
             if (continueFlag)
@@ -1260,14 +1532,11 @@ package Modules
                 if (rawFile.exists)
                 {
                     disableFileOperationButtonsTopbar();
-                    BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
-                    // 병합 이미지는 Worker 전송 후 Worker 쪽에서 dispose함
-                    BackgroundWorkerCoordinator.startPngEncodingWorker(DrawCanvas.getMergedBitmapData(false, true, true, null), DrawCanvas.CANVAS_BG_COLOR, false, false);
-                    saveFOFOFile();
+                    // 병합 이미지는 startSave가 처리 후 dispose함
+                    startSave(DrawCanvas.getMergedBitmapData(false, true, true, null), true);
                     AppWindowState.updateWindowTitle();
                     InputManager.clearKeyBuffer();
                     isFileAlreadySaved = true;
-                    pollTimerWaitWorkerForImageSave(lastSaveFilePath, true);
                 }
                 else // 파일을 못찾으면 새로 저장
                 {
@@ -1321,21 +1590,25 @@ package Modules
                 function onSelectEvent(e:Event):void
                 {
                     setFileBrowserIsOpen(false);
-                    disableFileOperationButtonsTopbar();
                     removeEvent();
-                    isFileAlreadySaved = true;
-                    isContinueSaveON = true;
-                    lastSaveFilePath = convertToPNGFilePath(e.target.nativePath);
-                    lastSaveFileName = getFileNameFromPath(lastSaveFilePath);
-                    BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
-                    // 소유권을 Worker로 넘김, Worker 쪽에서 dispose함
-                    BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage, DrawCanvas.CANVAS_BG_COLOR, false, false);
+                    // 소유권을 넘김, startSave가 처리 후 dispose함
+                    saveAsPath(e.target.nativePath, mergedImage);
                     mergedImage = null;
-                    saveFOFOFile();
-                    AppWindowState.updateWindowTitle();
-                    pollTimerWaitWorkerForImageSave(lastSaveFilePath, false);
                 }
             }
+        }
+
+        // 저장 대화상자에서 고른 경로로 저장 시작 (자동화 테스트도 이 함수로 대화상자 없이 저장함)
+        // mergedImage는 소유권을 가져가서 처리 후 dispose함
+        public static function saveAsPath(path:String, mergedImage:BitmapData):void
+        {
+            disableFileOperationButtonsTopbar();
+            isFileAlreadySaved = true;
+            isContinueSaveON = true;
+            lastSaveFilePath = convertToPNGFilePath(path);
+            lastSaveFileName = getFileNameFromPath(lastSaveFilePath);
+            startSave(mergedImage, false);
+            AppWindowState.updateWindowTitle();
         }
 
         public static function enterDrawModeOnLoadFile():void

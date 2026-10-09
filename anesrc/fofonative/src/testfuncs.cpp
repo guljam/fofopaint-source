@@ -4,6 +4,7 @@
 #include "pixels.h"
 #include "zstream.h"
 #include "png.h"
+#include "fileio.h"
 #include <stdio.h>
 
 // info():String  "포인터비트,논리코어,풀스레드,메모리상한MB,최고사용MB"
@@ -151,7 +152,58 @@ static FREObject FillRandomInternal(FREContext ctx, void* functionData, uint32_t
     return newInt(RESULT_OK);
 }
 
+// probeRead(path:String):int  지금 이 파일을 저장 파이프라인과 같은 공유 모드로 읽기 열 수 있는지 (0이면 됨, 아니면 Win32 오류)
+static FREObject ProbeRead(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
+{
+    char path[2048];
+
+    if (argc < 1 || !getString(argv[0], path, sizeof(path)))
+        return newInt(-1);
+
+    HANDLE file = CreateFileW(widePath(path).c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, 0, NULL);
+
+    if (file == INVALID_HANDLE_VALUE)
+        return newInt((int32_t)GetLastError());
+
+    CloseHandle(file);
+    return newInt(0);
+}
+
+// holdRead(path:String, ms:int):int  다른 스레드에서 같은 공유 모드로 ms 동안 읽기로 열어둠 (AIR 쪽 쓰기와 겹치는지 시험)
+static FREObject HoldRead(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
+{
+    char path[2048];
+    int32_t ms = 0;
+
+    if (argc < 2 || !getString(argv[0], path, sizeof(path)) || !getInt(argv[1], &ms))
+        return newInt(-1);
+
+    HANDLE file = CreateFileW(widePath(path).c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, 0, NULL);
+
+    if (file == INVALID_HANDLE_VALUE)
+        return newInt((int32_t)GetLastError());
+
+    struct Hold : public Task
+    {
+        HANDLE file;
+        int ms;
+        void run() override
+        {
+            Sleep(ms);
+            CloseHandle(file);
+        }
+    };
+
+    Hold* hold = new Hold();
+    hold->file = file;
+    hold->ms = ms;
+    pool::submit(hold, PRIORITY_CACHE);
+    return newInt(0);
+}
+
 static const NamedFunction gTestFunctions[] = {
+    { "probeRead", &ProbeRead },
+    { "holdRead", &HoldRead },
     { "fillRandomInternal", &FillRandomInternal },
     { "info", &Info },
     { "configure", &Configure },

@@ -364,6 +364,14 @@ namespace budget
         LeaveCriticalSection(&gBudgetLock);
     }
 
+    void forceAcquire(uint64_t bytes)
+    {
+        ensureBudget();
+        EnterCriticalSection(&gBudgetLock);
+        take(bytes);
+        LeaveCriticalSection(&gBudgetLock);
+    }
+
     void release(uint64_t bytes)
     {
         ensureBudget();

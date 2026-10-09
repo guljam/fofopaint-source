@@ -3,6 +3,7 @@
 // 모듈별 함수 목록을 모아서 컨텍스트에 등록함
 #include "common.h"
 #include "pool.h"
+#include "fileio.h"
 #include <vector>
 
 FREObject newInt(int32_t value)
@@ -129,14 +130,25 @@ static void ContextInitializer(void* extData, const uint8_t* ctxType, FREContext
         addFunctions(list, count);
         list = codecFunctions(&count);
         addFunctions(list, count);
+        list = saveFunctions(&count);
+        addFunctions(list, count);
+        list = jobFunctions(&count);
+        addFunctions(list, count);
     }
 
+    jobs::setContext(ctx);
     *numFunctions = (uint32_t)gFunctions.size();
     *functions = gFunctions.data();
 }
 
 static void ContextFinalizer(FREContext ctx)
 {
+    // 앱 종료: 진행 중인 저장은 끝날때까지 기다림 (AS3 쪽이 먼저 기다리므로 보통 바로 지나감), 최대 60초
+    for (int waited = 0; waited < 6000 && activeSaveCount() > 0; waited++)
+        Sleep(10);
+
+    // 이 뒤로는 완료 알림(FREDispatchStatusEventAsync)을 보내지 않음
+    jobs::setContext(NULL);
 }
 
 FOFO_EXPORT void NativeCoreExtInit(void** extData, FREContextInitializer* contextInitializer, FREContextFinalizer* contextFinalizer)
