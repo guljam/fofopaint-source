@@ -9,7 +9,7 @@ package Modules.L1Data
     // 층: L1 데이터 - 앱 데이터 파일 경로 모음, 크래시 로그, 불러오는 중 플래그
     public class AppDataPaths
     {
-        public static var dataFolderPath:File;
+        private static var dataFolderPath:File;
 
         private static var isWritingCrashLog:Boolean = false;
 
