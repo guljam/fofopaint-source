@@ -2,11 +2,9 @@ package Modules.DrawEngine
 {
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
-    import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
     import Modules.Tools.ZoomTool;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.UIController;
     import Modules.Utils;
 
     import flash.display.DisplayObjectContainer;
@@ -21,6 +19,8 @@ package Modules.DrawEngine
     import Modules.L4UI.ImageViewWindow;
     import Modules.L3Feature.Tools.LassoTool;
     import Modules.L4UI.SidebarController;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L4UI.UIEngine.UIController;
 
     // 드로우 모드 캔버스의 화면 배치: 앵커/패널 표시 트리, 이동, 줌, 회전/미러 화면 처리
     // 층: L2 엔진 - 드로우 모드 캔버스의 화면 배치 (이동, 줌, 회전·미러)

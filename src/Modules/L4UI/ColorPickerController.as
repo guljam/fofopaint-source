@@ -21,7 +21,6 @@ package Modules.L4UI
     import Modules.L5App.InputManager.InputManager;
     import Modules.InputPriority;
     import Modules.L3Feature.Tools.LineTool;
-    import Modules.PaletteController;
     import Modules.PenSizePreviewCursor;
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;

@@ -2,7 +2,6 @@
 {
 
 	import Modules.DrawEngine.DrawCanvas;
-	import Modules.UIEngine.UIController;
 	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
@@ -18,7 +17,6 @@
 
 	import Modules.AppUpdater;
 	import Modules.Utils;
-	import Modules.AboutBoxController;
 	import Modules.PenSizePreviewCursor;
 	import Modules.CaptureEngine.CaptureStamp;
 	import Modules.ReplayEngine.ReplayState;
@@ -26,6 +24,8 @@
 	import Modules.L3Feature.Tools.LassoTool;
 	import Modules.L5App.ReplayEngine.ReplayController;
 	import Modules.L4UI.SidebarController;
+	import Modules.L4UI.AboutBoxController;
+	import Modules.L4UI.UIEngine.UIController;
 
 	// 층: L4 UI - 상단 메뉴 화면 묶음
 	public class TopMenuSet extends Sprite

@@ -1,7 +1,6 @@
 package Modules.ReplayEngine
 {
     import Modules.MouseState;
-    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.Utils;
 
@@ -11,6 +10,10 @@ package Modules.ReplayEngine
     import flash.utils.getTimer;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L3Feature.UndoController;
+    import Modules.L2Engine.ReplayEngine.ReplayClock;
+    import Modules.L2Engine.ReplayEngine.ReplayCommandWindow;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L4UI.UIEngine.UIController;
 
     // 리플레이 캔버스를 옮겨서 곧 그려질 영역(연출 중이면 연출 영역, 아니면 커서)을 화면 안에 두는 카메라 (ReplayDrawer.cursorFollow)
     // 앵커를 한 번에 옮기지 않고 목표만 정한 뒤 별도 타이머에서 실제 시간 기준으로 감쇠하며 따라감

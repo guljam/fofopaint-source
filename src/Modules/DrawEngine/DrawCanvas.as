@@ -2,7 +2,6 @@ package Modules.DrawEngine
 {
     import Modules.ReferenceLayerController;
     import Modules.ReplayEngine.ReplayDrawCommands;
-    import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
@@ -19,6 +18,7 @@ package Modules.DrawEngine
     import Modules.L5App.FileManager;
     import Modules.L4UI.ImageViewWindow;
     import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
 
     // 드로우 모드 캔버스 데이터: 크기, 배경색, 레이어 1/2 비트맵, 미러 상태와 픽셀 처리
     // 층: L2 엔진 - 드로우 모드 캔버스 데이터 (크기, 배경색, 레이어 비트맵, 미러)

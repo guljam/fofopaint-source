@@ -6,11 +6,9 @@ package Modules.L3Feature.Tools
     import Modules.InputPriority;
     import Modules.ColorHistory;
     import Modules.DrawingFinish;
-    import Modules.PaletteController;
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.UndoHistory;
 
     import flash.display.CapsStyle;
     import flash.display.JointStyle;
@@ -23,6 +21,8 @@ package Modules.L3Feature.Tools
     import Modules.Tools.PenSettings;
     import Modules.Tools.PenTool;
     import Modules.L1Data.KeyState;
+    import Modules.L4UI.PaletteController;
+    import Modules.L1Data.UndoHistory;
 
     // 층: L3 기능 - 직선 그리기
     public class LineTool

@@ -6,7 +6,6 @@ package Modules.L5App.ReplayEngine
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
-    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.MouseState;
@@ -35,13 +34,10 @@ package Modules.L5App.ReplayEngine
     import Modules.CacheImageMetaData;
     import Modules.NativeCacheJobs;
     import Modules.NativeCore;
-    import Modules.BackgroundWorkerCoordinator;
     import Modules.CaptureEngine.CaptureController;
     import Modules.DragInteraction;
-    import Modules.AppStateManager;
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
-    import Modules.UndoHistory;
     import Modules.Utils;
     import Symbols.SeekBarSet;
     import Modules.L5App.AppWindowState;
@@ -51,18 +47,22 @@ package Modules.L5App.ReplayEngine
     import Modules.L5App.FileManager;
     import Modules.L4UI.ImageViewWindow;
     import Modules.L4UI.LoadBoxController;
-    import Modules.ReplayEngine.ReplayClock;
     import Modules.ReplayEngine.ReplayDrawCommands;
-    import Modules.ReplayEngine.ReplayDrawer;
-    import Modules.ReplayEngine.ReplayFileCache;
     import Modules.L5App.InputManager.ReplayModeInput;
     import Modules.ReplayEngine.ReplayMouseAutoHide;
     import Modules.ReplayEngine.ReplaySaveMetaData;
     import Modules.ReplayEngine.ReplayState;
     import Modules.L4UI.SidebarController;
-    import Modules.ReplayEngine.TimingSheetFile;
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.KeyState;
+    import Modules.L5App.AppStateManager;
+    import Modules.L2Engine.BackgroundWorkerCoordinator;
+    import Modules.L2Engine.ReplayEngine.ReplayClock;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L2Engine.ReplayEngine.ReplayFileCache;
+    import Modules.L2Engine.ReplayEngine.TimingSheetFile;
+    import Modules.L4UI.UIEngine.UIController;
+    import Modules.L1Data.UndoHistory;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController

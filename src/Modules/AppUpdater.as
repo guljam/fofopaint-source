@@ -1,12 +1,12 @@
 package Modules
 {
-    import Modules.UIEngine.UIController;
     import flash.events.Event;
     import flash.events.IOErrorEvent;
     import flash.filesystem.File;
     import flash.net.URLLoader;
     import flash.net.URLRequest;
     import flash.net.navigateToURL;
+    import Modules.L4UI.UIEngine.UIController;
 
     // GitHub의 versionInfo.txt로 새 버전이 있는지만 확인하고, 업데이트 버튼을 누르면 배포 사이트(GitHub 릴리스 페이지)를 엶
     // Windows bundle(captive runtime) 배포라 .air 내려받기와 flash.desktop.Updater 설치는 쓰지 않음

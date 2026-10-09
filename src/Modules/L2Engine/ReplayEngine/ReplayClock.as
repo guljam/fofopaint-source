@@ -1,11 +1,13 @@
-package Modules.ReplayEngine
+package Modules.L2Engine.ReplayEngine
 {
-    import Modules.AppStateManager;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
+    import Modules.L5App.AppStateManager;
+    import Modules.ReplayEngine.ReplayState;
+    import Modules.ReplayEngine.TimingSheet;
 
     // 실시간 재생 시계. 타이밍 시트(TimingSheetFile)의 간격으로 프레임(명령)마다 녹화 시각을 알고,
     // 재생 시작 지점의 녹화 시각 R0와 그때의 getTimer T0를 기준으로 지금 녹화 시각 R = R0 + (getTimer() - T0) * 배속 를 구해서

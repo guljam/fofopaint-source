@@ -1,4 +1,4 @@
-package Modules.ReplayEngine
+package Modules.L2Engine.ReplayEngine
 {
     import Modules.DrawEngine.DrawCanvas;
     import flash.display.BitmapData;
@@ -9,9 +9,7 @@ package Modules.ReplayEngine
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import Modules.UIEngine.HintController;
-    import Modules.BackgroundWorkerCoordinator;
     import Modules.CacheImageMetaData;
-    import Modules.AppStateManager;
     import Modules.ReplayDataCodec;
     import Modules.CacheImageFile;
     import Modules.PixelRestore;
@@ -19,6 +17,10 @@ package Modules.ReplayEngine
     import Modules.ReferenceLayerController;
     import Modules.Utils;
     import Modules.L5App.FileManager;
+    import Modules.L5App.AppStateManager;
+    import Modules.L2Engine.BackgroundWorkerCoordinator;
+    import Modules.ReplayEngine.ReplaySaveMetaData;
+    import Modules.ReplayEngine.ReplayState;
 
     // 층: L2 엔진 - 리플레이 파일(repdata) 쓰기와 캐시 이미지 생성·복원
     public class ReplayFileCache

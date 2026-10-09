@@ -14,6 +14,8 @@ package Modules.ReplayEngine
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import Modules.L2Engine.ReplayEngine.ReplayClock;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
 
     // 채우기(fill5), 올가미(lasso2), 이동(move, move1, move2) 명령을 실시간 재생할때 보여주는 연출
     // 길이는 타이밍 시트의 연출 길이(그 도구를 시작해서 끝낼때까지 걸린 시간)이고, 진행률은 시계의 녹화 시각으로 구함

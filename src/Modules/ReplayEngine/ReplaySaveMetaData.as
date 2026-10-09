@@ -2,6 +2,7 @@ package Modules.ReplayEngine
 {
     import Modules.DrawEngine.DrawCanvas;
     import Modules.ReferenceLayerController;
+    import Modules.L2Engine.ReplayEngine.ReplayFileCache;
 
     // 층: L1 데이터 - 저장할 첫·마지막·참조 이미지의 크기와 배경 정보
     public class ReplaySaveMetaData

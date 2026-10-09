@@ -1,14 +1,11 @@
-package Modules.UIEngine
+package Modules.L4UI.UIEngine
 {
     import Modules.CanvasViewport;
     import Modules.DrawEngine.CanvasView;
-    import Modules.AboutBoxController;
-    import Modules.AppStateManager;
     import Modules.CaptureEngine.CaptureController;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.ClipboardManager;
     import Modules.ReferenceLayerController;
-    import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
     import Modules.Utils;
     import Symbols.CanvasInfoSet;
@@ -32,6 +29,12 @@ package Modules.UIEngine
     import Modules.L4UI.SidebarController;
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L4UI.AboutBoxController;
+    import Modules.L5App.AppStateManager;
+    import Modules.UIEngine.CanvasNavigator;
+    import Modules.UIEngine.HintController;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.UIEngine.UITheme;
 
     // 스테이지 UI 배치: 표시 순서, 뷰포트 여백, 창 크기 변경 배치, UI 색상/스케일을 각 패널에 반영
     // 층: L4 UI - 스테이지 UI 배치와 UI 색상·스케일을 패널에 반영

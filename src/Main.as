@@ -1,10 +1,7 @@
 ﻿package
 {
-    import Modules.AboutBoxController;
-    import Modules.AppStateManager;
     import Modules.AppStateVars;
     import Modules.AppUpdater;
-    import Modules.BackgroundWorkerCoordinator;
     import Modules.CacheImageMetaData;
     import Modules.CanvasViewport;
     import Modules.CaptureEngine.CaptureArea;
@@ -16,16 +13,13 @@
     import Modules.DrawEngine.DrawCanvas;
     import Modules.InputPriority;
     import Modules.MouseState;
-    import Modules.PaletteController;
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
-    import Modules.ReplayEngine.ReplayFileCache;
     import Modules.Tools.MoveTool;
     import Modules.Tools.PenTool;
     import Modules.Tools.ZoomTool;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
-    import Modules.UIEngine.UIController;
     import Modules.Utils;
 
     import Symbols.HintBoxSet;
@@ -69,6 +63,12 @@
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.KeyState;
+    import Modules.L4UI.AboutBoxController;
+    import Modules.L5App.AppStateManager;
+    import Modules.L2Engine.BackgroundWorkerCoordinator;
+    import Modules.L4UI.PaletteController;
+    import Modules.L2Engine.ReplayEngine.ReplayFileCache;
+    import Modules.L4UI.UIEngine.UIController;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화

@@ -4,12 +4,10 @@ package Modules.CaptureEngine
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.HintController;
-    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.Utils;
     import Modules.PenSizePreviewCursor;
     import Modules.ReferenceLayerController;
-    import Modules.BackgroundWorkerCoordinator;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
     import flash.display.Bitmap;
@@ -19,7 +17,6 @@ package Modules.CaptureEngine
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L2Engine.DrawEngine.CanvasResizer;
@@ -31,6 +28,9 @@ package Modules.CaptureEngine
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L5App.InputManager.ReplayModeInput;
     import Modules.L4UI.SidebarController;
+    import Modules.L2Engine.BackgroundWorkerCoordinator;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L4UI.UIEngine.UIController;
 
     // 층: L3 기능 - 캡처 모드 진입·종료와 캡처 처리
     public class CaptureController

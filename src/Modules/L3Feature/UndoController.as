@@ -4,24 +4,24 @@ package Modules.L3Feature
     import Modules.DrawEngine.DrawCanvas;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
-    import Modules.UIEngine.UIController;
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
     import flash.geom.Point;
-    import Modules.ReplayEngine.ReplayClock;
     import Modules.ReplayEngine.ReplayDrawCommands;
-    import Modules.ReplayEngine.ReplayDrawer;
-    import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.ReplayEngine.TimingSheetFile;
-    import Modules.AppStateManager;
     import Modules.L5App.FileManager;
     import Modules.L4UI.ImageViewWindow;
     import Modules.ReferenceLayerController;
     import Modules.L5App.ReplayEngine.ReplayController;
-    import Modules.UndoHistory;
     import Modules.Utils;
     import Modules.L1Data.KeyState;
+    import Modules.L5App.AppStateManager;
+    import Modules.L2Engine.ReplayEngine.ReplayClock;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L2Engine.ReplayEngine.ReplayFileCache;
+    import Modules.L2Engine.ReplayEngine.TimingSheetFile;
+    import Modules.L4UI.UIEngine.UIController;
+    import Modules.L1Data.UndoHistory;
 
     // undo / redo / 딥 언두로 위치를 옮기고 그 위치의 캔버스를 다시 그려줌
     // 메모리 undo 데이터와 undo 위치 자체는 UndoHistory가 가지고 있음

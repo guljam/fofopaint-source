@@ -1,11 +1,10 @@
-package Modules
+package Modules.L5App
 {
     import Modules.Tools.PenSettings;
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.UIController;
     import Modules.UIEngine.HintController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
@@ -22,11 +21,7 @@ package Modules
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import Modules.ReplayEngine.ReplayDrawCommands;
-    import Modules.ReplayEngine.ReplayDrawer;
-    import Modules.ReplayEngine.ReplayFileCache;
-    import Modules.ReplayEngine.ReplayClock;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.ReplayEngine.TimingSheetFile;
     import Modules.ReplayEngine.ReplaySaveMetaData;
     import flash.trace.Trace;
     import Modules.L3Feature.ActivityWorkTimer;
@@ -42,6 +37,21 @@ package Modules
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
+    import Modules.L4UI.AboutBoxController;
+    import Modules.AppStateVars;
+    import Modules.CacheImageFile;
+    import Modules.CacheImageMetaData;
+    import Modules.ColorHistory;
+    import Modules.L4UI.PaletteController;
+    import Modules.PenSizePreviewCursor;
+    import Modules.PixelRestore;
+    import Modules.ReferenceLayerController;
+    import Modules.L2Engine.ReplayEngine.ReplayClock;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L2Engine.ReplayEngine.ReplayFileCache;
+    import Modules.L2Engine.ReplayEngine.TimingSheetFile;
+    import Modules.L4UI.UIEngine.UIController;
+    import Modules.L1Data.UndoHistory;
 
     // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager

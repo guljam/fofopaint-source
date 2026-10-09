@@ -1,12 +1,10 @@
 package Modules.L5App.InputManager
 {
-    import Modules.ReplayEngine.ReplayDrawer;
     import Modules.MouseState;
     import Modules.ClipboardManager;
     import Modules.InputPriority;
     import Modules.CaptureEngine.CaptureController;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.UIEngine.UIController;
 
     import flash.display.DisplayObject;
     import flash.events.KeyboardEvent;
@@ -18,6 +16,8 @@ package Modules.L5App.InputManager
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L3Feature.Tools.RotateTool;
     import Modules.L1Data.KeyState;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L4UI.UIEngine.UIController;
 
     // 리플레이 모드의 키보드/마우스 입력
     // 층: L5 앱 흐름 - 리플레이 모드의 키보드/마우스 입력

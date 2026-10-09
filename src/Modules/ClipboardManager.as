@@ -5,10 +5,10 @@ package Modules
     import flash.desktop.ClipboardFormats;
     import flash.display.BitmapData;
     import flash.filesystem.File;
-    import Modules.ReplayEngine.ReplayDrawer;
     import Modules.L5App.FileManager;
     import Modules.L4UI.LoadBoxController;
     import Modules.L5App.ReplayEngine.ReplayController;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
 
     // 층: L3 기능 - 클립보드 이미지 불러오기
     public class ClipboardManager

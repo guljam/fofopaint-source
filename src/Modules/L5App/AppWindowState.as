@@ -1,18 +1,13 @@
 package Modules.L5App
 {
     import Modules.UIEngine.HintController;
-    import Modules.UIEngine.UIController;
     import flash.events.Event;
-    import Modules.AppStateManager;
     import Modules.MouseState;
     import Modules.ClipboardManager;
-    import Modules.AboutBoxController;
     import flash.utils.getTimer;
-    import Modules.BackgroundWorkerCoordinator;
     import Modules.NativeSave;
     import Modules.ReplayEngine.ReplayState;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.ReplayEngine.ReplayFileCache;
     import flash.geom.Rectangle;
     import flash.display.Screen;
     import flash.display.NativeWindowDisplayState;
@@ -34,6 +29,10 @@ package Modules.L5App
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.KeyState;
+    import Modules.L4UI.AboutBoxController;
+    import Modules.L2Engine.BackgroundWorkerCoordinator;
+    import Modules.L2Engine.ReplayEngine.ReplayFileCache;
+    import Modules.L4UI.UIEngine.UIController;
 
     // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState

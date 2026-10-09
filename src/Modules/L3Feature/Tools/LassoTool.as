@@ -6,7 +6,6 @@ package Modules.L3Feature.Tools
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
-    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.MouseState;
@@ -31,8 +30,6 @@ package Modules.L3Feature.Tools
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Symbols.RotateCursorSet;
-    import Modules.UndoHistory;
-    import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
     import Modules.L4UI.ColorPickerController;
     import Modules.Tools.DottedLineTool;
@@ -45,6 +42,9 @@ package Modules.L3Feature.Tools
     import Modules.L3Feature.UndoController;
     import Modules.Tools.ZoomTool;
     import Modules.L1Data.KeyState;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L4UI.UIEngine.UIController;
+    import Modules.L1Data.UndoHistory;
 
     // 층: L3 기능 - 올가미 선택과 이동·회전·크기·미러
     public class LassoTool

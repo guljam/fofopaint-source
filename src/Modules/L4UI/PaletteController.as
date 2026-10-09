@@ -1,4 +1,4 @@
-package Modules
+package Modules.L4UI
 {
 
     import Modules.UIEngine.HintController;
@@ -14,6 +14,10 @@ package Modules
     import Modules.L4UI.ColorPickerController;
     import Modules.L5App.InputManager.InputManager;
     import Modules.L4UI.SidebarController;
+    import Modules.L5App.AppStateManager;
+    import Modules.ColorHistory;
+    import Modules.DragInteraction;
+    import Modules.InputPriority;
 
     // 층: L4 UI - My Palette 선택·추가·저장과 적용
     public final class PaletteController

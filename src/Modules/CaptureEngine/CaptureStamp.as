@@ -2,11 +2,9 @@ package Modules.CaptureEngine
 {
     import Modules.DrawEngine.CanvasView;
     import Modules.DrawEngine.DrawCanvas;
-    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
     import Modules.Utils;
-    import Modules.PaletteController;
     import flash.display.BitmapData;
     import flash.display.Bitmap;
     import flash.text.TextFormat;
@@ -19,9 +17,11 @@ package Modules.CaptureEngine
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.utils.getTimer;
-    import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
     import Modules.L5App.InputManager.InputManager;
+    import Modules.L4UI.PaletteController;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L4UI.UIEngine.UIController;
 
     // 층: L3 기능 - 캡처 도장(시간 스탬프)과 글꼴
     public class CaptureStamp

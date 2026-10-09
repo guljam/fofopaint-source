@@ -14,6 +14,7 @@ package Modules.ReplayEngine
     import flash.filters.BlurFilter;
     import Modules.Utils;
     import Modules.L3Feature.Tools.LassoTool;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
 
     // 층: L2 엔진 - 리플레이 그리기 명령 실행과 리플레이 커서 위치 관리
     public class ReplayDrawCommands

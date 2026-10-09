@@ -5,13 +5,13 @@ package Modules.DrawEngine
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.ZoomTool;
     import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.UIController;
 
     import flash.display.Bitmap;
     import flash.display.Sprite;
     import flash.geom.Point;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L3Feature.Tools.LassoTool;
+    import Modules.L4UI.UIEngine.UIController;
 
     // 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)
     // 층: L2 엔진 - 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)

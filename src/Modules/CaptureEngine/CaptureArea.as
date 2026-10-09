@@ -4,10 +4,8 @@ package Modules.CaptureEngine
     import Modules.DrawEngine.DrawCanvas;
     import Modules.InputPriority;
     import Modules.MouseState;
-    import Modules.ReplayEngine.ReplayDrawer;
     import Modules.ReplayEngine.ReplayState;
     import Modules.UIEngine.HintController;
-    import Modules.UIEngine.UIController;
 
     import flash.display.CapsStyle;
     import flash.display.LineScaleMode;
@@ -16,6 +14,8 @@ package Modules.CaptureEngine
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L4UI.UIEngine.UIController;
 
     // 층: L3 기능 - 캡처 영역 지정과 표시
     public class CaptureArea

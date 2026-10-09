@@ -5,7 +5,6 @@ package Modules.L5App
     import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.HintController;
-    import Modules.UIEngine.UIController;
     import Modules.UIEngine.UITheme;
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.CaptureEngine.CaptureController;
@@ -34,15 +33,9 @@ package Modules.L5App
     import libwebp.DecodeWebp;
     import flash.display.IBitmapDrawable;
     import flash.geom.Matrix;
-    import Modules.ReplayEngine.ReplayClock;
-    import Modules.ReplayEngine.TimingSheetFile;
     import Modules.ReplayEngine.ReplayDrawCommands;
-    import Modules.ReplayEngine.ReplayDrawer;
-    import Modules.ReplayEngine.ReplayFileCache;
     import Modules.ReplayEngine.ReplayState;
     import Modules.ReplayEngine.ReplaySaveMetaData;
-    import Modules.AppStateManager;
-    import Modules.BackgroundWorkerCoordinator;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L2Engine.DrawEngine.CanvasResizer;
     import Modules.ClipboardManager;
@@ -64,9 +57,15 @@ package Modules.L5App
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
-    import Modules.UndoHistory;
     import Modules.Utils;
     import Modules.L1Data.KeyState;
+    import Modules.L2Engine.BackgroundWorkerCoordinator;
+    import Modules.L2Engine.ReplayEngine.ReplayClock;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L2Engine.ReplayEngine.ReplayFileCache;
+    import Modules.L2Engine.ReplayEngine.TimingSheetFile;
+    import Modules.L4UI.UIEngine.UIController;
+    import Modules.L1Data.UndoHistory;
 
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager
