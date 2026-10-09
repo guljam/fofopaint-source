@@ -3,7 +3,7 @@
 /bin/
 /.agents/
 /.as3mxml-unpackaged-anes/
-/anesrc/pigmentmix/
+/anesrc
 /native
 /tests
 /test-output
