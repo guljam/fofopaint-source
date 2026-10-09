@@ -73,6 +73,7 @@
     import Modules.L3Feature.Tools.PenTool;
     import Modules.L3Feature.Tools.ZoomTool;
     import Modules.L1Data.ColorHistory;
+    import Modules.L2Engine.UndoHistory;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화
@@ -125,6 +126,12 @@
             PenSettings.onPenToolNeededFunc = ToolController.selectPenToolIfNotDrawingTool;
             CanvasView.onCanvasPanelResizedFunc = UIController.updateCanvasPanelLinkedUI;
             ColorHistory.onColorHistoryChangedFunc = PaletteController.updateColorHistory;
+            UndoHistory.onFileChangedFunc = function ():void
+            {
+                FileManager.isFileAlreadySaved = false;
+            };
+            UndoHistory.onUndoDataAddedFunc = FileManager.enableNewFileButton;
+            UndoHistory.onCanvasPreviewChangedFunc = UIController.updateCanvasPreviews;
         }
 
         public function initializeModule():void

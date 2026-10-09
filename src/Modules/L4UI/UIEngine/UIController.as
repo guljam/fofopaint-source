@@ -685,5 +685,17 @@ package Modules.L4UI.UIEngine
                 CanvasGridOverlay.drawGrid();
             }
         }
+
+        // 캔버스 네비게이터와 이미지 보기 창의 미리보기 이미지를 갱신함
+        public static function updateCanvasPreviews():void
+        {
+            CanvasNavigator.box.updateImage();
+
+            if (ImageViewWindow.isCanvasWindowON)
+            {
+                ImageViewWindow.updateCanvasWindowImage();
+            }
+        }
+
     }
 }

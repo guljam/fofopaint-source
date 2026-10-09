@@ -1,13 +1,10 @@
 package Modules.L2Engine
 {
-    import Modules.UIEngine.CanvasNavigator;
     import flash.display.BitmapData;
     import flash.filesystem.FileStream;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
     import Modules.ReplayEngine.ReplayState;
-    import Modules.L5App.FileManager;
-    import Modules.L4UI.ImageViewWindow;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
     import Modules.CacheImageMetaData;
     import Modules.L2Engine.ReplayEngine.ReplayClock;
@@ -16,12 +13,20 @@ package Modules.L2Engine
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L4UI.UIEngine.UIController;
 
     // 메모리 undo 데이터(ReplayState.rMemoryData)를 쌓고 자르는 일과 undo 위치, undo 기준 이미지를 맡음
     // undo 위치를 옮겨서 캔버스를 다시 그리는 일은 UndoController가 함
     // 층: L1 데이터 - 메모리 undo 데이터를 쌓고 자르는 일과 undo 위치·기준 이미지
     public class UndoHistory
     {
+        // undo 데이터가 새로 쌓여 파일이 저장된 상태가 아니게 됐다는 보고
+        public static var onFileChangedFunc:Function;
+        // undo 데이터를 쌓은 뒤 새 파일 버튼을 켜야 한다는 보고
+        public static var onUndoDataAddedFunc:Function;
+        // 캔버스 내용이 바뀌어 네비게이터와 이미지 보기 창의 미리보기를 갱신해야 한다는 보고
+        public static var onCanvasPreviewChangedFunc:Function;
+
         private static const NATIVE_UNDO_LIMIT_COUNT:int = 10;
 
         private static var _undoDataIndex:int = -1; // undo redo 상태 인덱스임
@@ -150,7 +155,7 @@ package Modules.L2Engine
             ReplayState.rMemoryDataBuffer = [];
             ReplayState.syncRNowFrameWithTotalFrame();
 
-            updateCanvasPreviews();
+            if (onCanvasPreviewChangedFunc != null) onCanvasPreviewChangedFunc();
         }
 
         public static function addNew():void
@@ -170,15 +175,15 @@ package Modules.L2Engine
                 ReplayState.rMemoryData.push(ReplayState.rMemoryDataBuffer);
                 ReplayState.rMemoryDataFrames.push(ReplayState.rMemoryDataBuffer.length);
                 ReplayState.rMemoryDataBuffer = [];
-                FileManager.isFileAlreadySaved = false;
+                if (onFileChangedFunc != null) onFileChangedFunc();
                 ReplayState.rMemoryDataReadON = true;
             }
 
             _undoDataIndex = ReplayState.rMemoryData.length - 1;
 
-            updateCanvasPreviews();
+            if (onCanvasPreviewChangedFunc != null) onCanvasPreviewChangedFunc();
             ReplayState.syncRNowFrameWithTotalFrame();
-            FileManager.enableNewFileButton();
+            if (onUndoDataAddedFunc != null) onUndoDataAddedFunc();
         }
 
         // undo 해서 뒤로 간 상태에서 새 데이터가 들어오면 지금 위치 뒤의 데이터는 버림, 끝에 있으면 아무것도 안 함
@@ -241,14 +246,5 @@ package Modules.L2Engine
             ReplayState.rMemoryDataTimingSheet.shift();
         }
 
-        private static function updateCanvasPreviews():void
-        {
-            CanvasNavigator.box.updateImage();
-
-            if (ImageViewWindow.isCanvasWindowON)
-            {
-                ImageViewWindow.updateCanvasWindowImage();
-            }
-        }
     }
 }
