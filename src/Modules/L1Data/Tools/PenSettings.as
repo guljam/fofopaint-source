@@ -421,5 +421,17 @@ package Modules.L1Data.Tools
             const index:int = parseInt(number);
             applyDrawingToolAlpha(penAlphaList[index]);
         }
+
+		// 에어브러시 크기(size)에 맞는 블러 크기를 2~30 범위로 계산함 (z는 배율)
+		public static function getBlurSize(size:Number, z:Number):Number
+		{
+			var blurSize:Number = size / 2;
+			if (blurSize <= 2)
+				blurSize = 2;
+			else if (blurSize > 30)
+				blurSize = 30;
+			return blurSize * z;
+		}
+
     }
 }

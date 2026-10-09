@@ -27,6 +27,7 @@ package Modules.L2Engine.ReplayEngine
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L3Feature.Tools.PenTool;
+    import Modules.L1Data.Tools.PenSettings;
 
     // 층: L2 엔진 - 리플레이 캔버스에 명령을 그리고 프레임 이동
     public class ReplayDrawer
@@ -395,7 +396,7 @@ package Modules.L2Engine.ReplayEngine
         // drawdone에서 줌된 blur사이즈가 아니 1배율 블러를 적용해야 제대로 되기 때문에 이거해줌
         public static function blurReplayCanvasByDefaultValue():void
         {
-            const blurSize:Number = PenTool.getBlurSize(ReplayState.rAirBrushSize, 1.0);
+            const blurSize:Number = PenSettings.getBlurSize(ReplayState.rAirBrushSize, 1.0);
             const blurf:BlurFilter = new BlurFilter(blurSize, blurSize, 3);
             rCanvasDrawShape.filters = [blurf];
         }
@@ -408,7 +409,7 @@ package Modules.L2Engine.ReplayEngine
 
         public static function blurReplayCanvasByValue(size:Number):void
         {
-            const blurSize:Number = PenTool.getBlurSize(size, ReplayState.rCanvasZoomMultiplier);
+            const blurSize:Number = PenSettings.getBlurSize(size, ReplayState.rCanvasZoomMultiplier);
             const blurf:BlurFilter = new BlurFilter(blurSize, blurSize, 3);
             ReplayState.rAirBrushSize = size;
             rCanvasDrawShape.filters = [blurf];

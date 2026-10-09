@@ -7,7 +7,6 @@ package Modules.L2Engine.DrawEngine
     import flash.display.BlendMode;
     import flash.display.Sprite;
     import flash.geom.Rectangle;
-    import Modules.L3Feature.Tools.LassoTool;
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
@@ -16,6 +15,7 @@ package Modules.L2Engine.DrawEngine
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.DrawEngine.StrokeBuffer;
+    import Modules.L2Engine.LassoLayers;
 
     // 드로우 모드 레이어 1/2: 선택, 잠금(체크), 스왑, 병합
     // 층: L2 엔진 - 드로우 모드 레이어 1/2 선택, 잠금, 스왑, 병합
@@ -151,7 +151,7 @@ package Modules.L2Engine.DrawEngine
             }
             else
             {
-                panel.addChildAt(StrokeBuffer.canvasDrawLayer, panel.getChildIndex(LassoTool.lassoLayer1) + 1);
+                panel.addChildAt(StrokeBuffer.canvasDrawLayer, panel.getChildIndex(LassoLayers.lassoLayer1) + 1);
             }
         }
 
@@ -162,7 +162,7 @@ package Modules.L2Engine.DrawEngine
 
             const panel:Sprite = CanvasView.canvasPanel;
             const current:int = panel.getChildIndex(StrokeBuffer.canvasDrawLayer);
-            const anchor:int = panel.getChildIndex(LassoTool.lassoLayer1);
+            const anchor:int = panel.getChildIndex(LassoLayers.lassoLayer1);
             const target:int = (current < anchor) ? anchor : anchor + 1; // setChildIndex는 이동 후의 인덱스를 받음
 
             if (current !== target)

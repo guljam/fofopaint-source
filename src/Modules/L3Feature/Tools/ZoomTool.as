@@ -14,6 +14,7 @@ package Modules.L3Feature.Tools
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L2Engine.LassoLayers;
 
     // 층: L3 기능 - 줌 툴
     public class ZoomTool
@@ -169,7 +170,7 @@ package Modules.L3Feature.Tools
 
                 if (LassoTool.isLassoMenuHiddenTemp === true)
                 {
-                    gp = LassoTool.lassoLayer1.localToGlobal(new Point(0, 0));
+                    gp = LassoLayers.lassoLayer1.localToGlobal(new Point(0, 0));
                     CanvasView.viewport.moveAnchorPoint(gp.x, gp.y);
                 }
                 else

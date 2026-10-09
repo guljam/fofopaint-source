@@ -40,7 +40,7 @@ package Modules.L3Feature
 
             if (PenSettings.airBrushSizeDrawMode > 0)
             {
-                const blurSize:Number = PenTool.getBlurSize(PenSettings.airBrushSizeDrawMode, 1.0);
+                const blurSize:Number = PenSettings.getBlurSize(PenSettings.airBrushSizeDrawMode, 1.0);
                 StrokeBuffer.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
                 StrokeBuffer.canvasDrawLayerBitmapData.draw(StrokeBuffer.canvasDrawLayerChild);
                 StrokeBuffer.canvasDrawLayerChild.filters = [];

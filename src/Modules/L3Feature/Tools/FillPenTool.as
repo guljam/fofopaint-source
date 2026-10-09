@@ -336,7 +336,7 @@ package Modules.L3Feature.Tools
         // 같은 크기의 필터가 이미 걸려 있으면 다시 걸지 않음
         private static function setBlurPreviewFilter():void
         {
-            const blurSize:Number = PenTool.getBlurSize(xAirBrushSize, xZoom);
+            const blurSize:Number = PenSettings.getBlurSize(xAirBrushSize, xZoom);
 
             if (blurSize === blurFilterSize && StrokeBuffer.canvasDrawLayerChild.filters.length > 0)
             {

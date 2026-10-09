@@ -40,6 +40,7 @@ package Modules.L4UI.UIEngine
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.L3Feature.Tools.ZoomTool;
+    import Modules.L2Engine.LassoLayers;
 
     // 스테이지 UI 배치: 표시 순서, 뷰포트 여백, 창 크기 변경 배치, UI 색상/스케일을 각 패널에 반영
     // 층: L4 UI - 스테이지 UI 배치와 UI 색상·스케일을 패널에 반영
@@ -570,14 +571,14 @@ package Modules.L4UI.UIEngine
             ReferenceLayerController.canvasRefLayer.name = "canvasRefLayer";
             CanvasGridOverlay.canvasGrid.name = "canvasGrid";
             CanvasView.canvasFlashEffect.name = "canvasFlash";
-            LassoTool.lassoLayer1.name = "lassoBox1";
-            LassoTool.lassoLayer1.addChild(LassoTool.lassoLayer1Bitmap);
-            LassoTool.lassoLayer1.addChild(LassoTool.lassoDraw);
-            LassoTool.lassoLayer1.addChild(LassoTool.lassoDrawCloseLine);
-            LassoTool.lassoLayer1.visible = false;
-            LassoTool.lassoLayer2.name = "lassoBox2";
-            LassoTool.lassoLayer2.addChild(LassoTool.lassoLayer2Bitmap);
-            LassoTool.lassoLayer2.visible = false;
+            LassoLayers.lassoLayer1.name = "lassoBox1";
+            LassoLayers.lassoLayer1.addChild(LassoLayers.lassoLayer1Bitmap);
+            LassoLayers.lassoLayer1.addChild(LassoLayers.lassoDraw);
+            LassoLayers.lassoLayer1.addChild(LassoLayers.lassoDrawCloseLine);
+            LassoLayers.lassoLayer1.visible = false;
+            LassoLayers.lassoLayer2.name = "lassoBox2";
+            LassoLayers.lassoLayer2.addChild(LassoLayers.lassoLayer2Bitmap);
+            LassoLayers.lassoLayer2.visible = false;
             // setCanvasBGColorDrawMode는 같은 색이면 바로 리턴하므로, 초기값(흰색)은 스크래치 패드에 전달되지 않아
             // 최초 실행시 패드 배경이 안 그려졌음. 초기 색은 직접 전달함
             ColorPickerController.colorPickerBox.scratchPad.updateBGColor(DrawCanvas.CANVAS_BG_COLOR);
@@ -591,9 +592,9 @@ package Modules.L4UI.UIEngine
             ReferenceLayerController.canvasRefHolder.addChild(ReferenceLayerController.canvasRefLayer);
             CanvasView.canvasPanel.addChild(ReferenceLayerController.canvasRefHolder);
             CanvasView.canvasPanel.addChild(DrawCanvas.canvasLayer2Bitmap);
-            CanvasView.canvasPanel.addChild(LassoTool.lassoLayer2);
+            CanvasView.canvasPanel.addChild(LassoLayers.lassoLayer2);
             CanvasView.canvasPanel.addChild(DrawCanvas.canvasLayer1Bitmap);
-            CanvasView.canvasPanel.addChild(LassoTool.lassoLayer1);
+            CanvasView.canvasPanel.addChild(LassoLayers.lassoLayer1);
             CanvasView.canvasPanel.addChild(StrokeBuffer.canvasDrawLayer);
             CanvasView.canvasPanel.addChild(CanvasGridOverlay.canvasGrid);
             CanvasView.canvasPanel.addChild(ReplayDrawer.rReplayFOFOCursor);

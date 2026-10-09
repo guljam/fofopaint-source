@@ -83,7 +83,6 @@ package Modules.L3Feature.Tools
 		public static var isTransparentPenColor:Boolean = false; // 펜 컬러 투명 켜졌을때 올려줌
 		public static var penLastSizeAndShape:Array = [null, null]; // updatePenSizeCursor 중복 사용 방지를 위해서 마지막 크기 저장해놓고 같으면 건너뜀
 
-
 		public static var airBrushClipRectOffsetData:Array = [0, 4, 2, 2, 0, 0, 0, -2, -5, -5, -10, -16, -43];
 
 		public static function getClipRectOffsetAirBrush(size:int):Number
@@ -97,16 +96,6 @@ package Modules.L3Feature.Tools
 				}
 			}
 			return 0;
-		}
-
-		public static function getBlurSize(size:Number, z:Number):Number
-		{
-			var blurSize:Number = size / 2;
-			if (blurSize <= 2)
-				blurSize = 2;
-			else if (blurSize > 30)
-				blurSize = 30;
-			return blurSize * z;
 		}
 
 		public static function getRefinedPoint(mx:Number, my:Number):Point
@@ -451,7 +440,7 @@ package Modules.L3Feature.Tools
 
 					if (PenSettings.airBrushSizeDrawMode > 0)
 					{
-						const blurSize:Number = PenTool.getBlurSize(PenSettings.airBrushSizeDrawMode, 1.0);
+						const blurSize:Number = PenSettings.getBlurSize(PenSettings.airBrushSizeDrawMode, 1.0);
 						StrokeBuffer.canvasDrawLayerChild.filters = [new BlurFilter(blurSize, blurSize, 3)];
 						StrokeBuffer.canvasDrawLayerBitmapData.draw(StrokeBuffer.canvasDrawLayerChild, null, null, "layer");
 						StrokeBuffer.canvasDrawLayerChild.filters = [];

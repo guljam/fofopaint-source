@@ -11,11 +11,11 @@ package Modules.L2Engine.ReplayEngine
     import flash.geom.Matrix;
     import flash.filters.BlurFilter;
     import Modules.Utils;
-    import Modules.L3Feature.Tools.LassoTool;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L3Feature.Tools.PenTool;
     import Modules.ReplayEngine.ReplayState;
+    import Modules.L2Engine.LassoLayers;
+    import Modules.L1Data.Tools.PenSettings;
 
     // 층: L2 엔진 - 리플레이 그리기 명령 실행과 리플레이 커서 위치 관리
     public class ReplayDrawCommands
@@ -893,26 +893,26 @@ package Modules.L2Engine.ReplayEngine
 
         public static function resetLassoVars():void
         {
-            LassoTool.lassoLayer1Bitmap.filters = [];
-            LassoTool.lassoLayer2Bitmap.filters = [];
+            LassoLayers.lassoLayer1Bitmap.filters = [];
+            LassoLayers.lassoLayer2Bitmap.filters = [];
 
-            if (LassoTool.lassoLayer1Bitmap.bitmapData)
-                LassoTool.lassoLayer1Bitmap.bitmapData.dispose();
+            if (LassoLayers.lassoLayer1Bitmap.bitmapData)
+                LassoLayers.lassoLayer1Bitmap.bitmapData.dispose();
 
-            if (LassoTool.lassoLayer2Bitmap.bitmapData)
-                LassoTool.lassoLayer2Bitmap.bitmapData.dispose();
-            LassoTool.lassoLayer1.x = 0;
-            LassoTool.lassoLayer1.y = 0;
-            LassoTool.lassoLayer1.scaleX = 1.0;
-            LassoTool.lassoLayer1.scaleY = 1.0;
-            LassoTool.lassoLayer1.rotation = 0;
-            LassoTool.lassoLayer1.visible = false;
-            LassoTool.lassoLayer2.x = 0;
-            LassoTool.lassoLayer2.y = 0;
-            LassoTool.lassoLayer2.scaleX = 1.0;
-            LassoTool.lassoLayer2.scaleY = 1.0;
-            LassoTool.lassoLayer2.rotation = 0;
-            LassoTool.lassoLayer2.visible = false;
+            if (LassoLayers.lassoLayer2Bitmap.bitmapData)
+                LassoLayers.lassoLayer2Bitmap.bitmapData.dispose();
+            LassoLayers.lassoLayer1.x = 0;
+            LassoLayers.lassoLayer1.y = 0;
+            LassoLayers.lassoLayer1.scaleX = 1.0;
+            LassoLayers.lassoLayer1.scaleY = 1.0;
+            LassoLayers.lassoLayer1.rotation = 0;
+            LassoLayers.lassoLayer1.visible = false;
+            LassoLayers.lassoLayer2.x = 0;
+            LassoLayers.lassoLayer2.y = 0;
+            LassoLayers.lassoLayer2.scaleX = 1.0;
+            LassoLayers.lassoLayer2.scaleY = 1.0;
+            LassoLayers.lassoLayer2.rotation = 0;
+            LassoLayers.lassoLayer2.visible = false;
         }
 
         // 성능 문제로 샤픈 안해줌
@@ -929,20 +929,20 @@ package Modules.L2Engine.ReplayEngine
                 {
                     // (["lasso",point1,point2,null,lassoInfo]); 초기 버전 데이터 구조 3번이 비어있음
                     // (["lasso",point1,point2,[],lassoInfo]);
-                    imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], false, true, true);
+                    imageMovedToLasso = LassoLayers.moveSelectedAreaToLassoBox(true, data[1], data[2], false, true, true);
                 }
                 else if (data[3].length === 7)
                 {
                     // (["lasso",point1,point2,lassoInfo]); 2019년판 구버전
                     // (["lasso",point1,point2,lassoInfo,lassoCopyON])
-                    imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], true, true);
+                    imageMovedToLasso = LassoLayers.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], true, true);
                 }
             }
             else
             {
                 // (["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터 길이가 6이상임
                 // ["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,command] // 신버전 데이터
-                imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], data[5], data[6]);
+                imageMovedToLasso = LassoLayers.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], data[5], data[6]);
             }
 
             if (imageMovedToLasso && !clearOnly)
@@ -964,14 +964,14 @@ package Modules.L2Engine.ReplayEngine
                 {
                     setRCursorPos(boxX, boxY);
                 }
-                LassoTool.lassoLayer1Bitmap.smoothing = true;
-                LassoTool.lassoLayer2Bitmap.smoothing = true;
+                LassoLayers.lassoLayer1Bitmap.smoothing = true;
+                LassoLayers.lassoLayer2Bitmap.smoothing = true;
 
                 if (data[7] as Boolean)
                 {
                     if (data[7] === true)
                     {
-                        LassoTool.swapLassoImage();
+                        LassoLayers.swapLassoImage();
                     }
                 }
                 else if (data[7] as Array)
@@ -982,29 +982,29 @@ package Modules.L2Engine.ReplayEngine
                     {
                         if (data[7][i] === 0)
                         {
-                            LassoTool.swapLassoImage();
+                            LassoLayers.swapLassoImage();
                         }
                         else if (data[7][i] === 1)
                         {
-                            LassoTool.mergeLassoImage();
+                            LassoLayers.mergeLassoImage();
                         }
                     }
                 }
 
                 if (data[5] || !data[5] && !data[6])
                 {
-                    ReplayDrawer.rCanvasLayer1BitmapData.draw(LassoTool.lassoLayer1Bitmap, mat);
+                    ReplayDrawer.rCanvasLayer1BitmapData.draw(LassoLayers.lassoLayer1Bitmap, mat);
                     ReplayDrawer.rCanvasLayer1Bitmap.bitmapData = ReplayDrawer.rCanvasLayer1BitmapData;
                 }
 
                 if (data[6])
                 {
-                    ReplayDrawer.rCanvasLayer2BitmapData.draw(LassoTool.lassoLayer2Bitmap, mat);
+                    ReplayDrawer.rCanvasLayer2BitmapData.draw(LassoLayers.lassoLayer2Bitmap, mat);
                     ReplayDrawer.rCanvasLayer2Bitmap.bitmapData = ReplayDrawer.rCanvasLayer2BitmapData;
                 }
 
                 // 연출이 준비된 명령이면 올가미 모양대로 덮개를 올림 (올가미 비트맵이 지워지기 전에 같은 행렬로 만들어야 함)
-                ReplayDrawer.anim.startLasso(mat, (data[5] || !data[5] && !data[6]) ? LassoTool.lassoLayer1Bitmap : null, data[6] ? LassoTool.lassoLayer2Bitmap : null);
+                ReplayDrawer.anim.startLasso(mat, (data[5] || !data[5] && !data[6]) ? LassoLayers.lassoLayer1Bitmap : null, data[6] ? LassoLayers.lassoLayer2Bitmap : null);
             }
 
             resetLassoVars();
@@ -1022,20 +1022,20 @@ package Modules.L2Engine.ReplayEngine
                 {
                     // (["lasso",point1,point2,null,lassoInfo]); 초기 버전 데이터 구조 3번이 비어있음
                     // (["lasso",point1,point2,[],lassoInfo]);
-                    imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], false, true, true);
+                    imageMovedToLasso = LassoLayers.moveSelectedAreaToLassoBox(true, data[1], data[2], false, true, true);
                 }
                 else if (data[3].length === 7)
                 {
                     // (["lasso",point1,point2,lassoInfo]); 2019년판 구버전
                     // (["lasso",point1,point2,lassoInfo,lassoCopyON])
-                    imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], true, true);
+                    imageMovedToLasso = LassoLayers.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], true, true);
                 }
             }
             else
             {
                 // (["lasso",point1,point2,lassoInfo,lassoCopyON,canvas1Bitmap.visible,canvas11Bitmap.visible,lassoLayerSwappedFlag]); 신버전 데이터 길이가 6이상임
                 // ["lasso",point1,point2,lassoInfo,lassoCopyON,checklayer1,checklayer2,command] // 신버전 데이터
-                imageMovedToLasso = LassoTool.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], data[5], data[6]);
+                imageMovedToLasso = LassoLayers.moveSelectedAreaToLassoBox(true, data[1], data[2], data[4], data[5], data[6]);
             }
 
             if (imageMovedToLasso && !clearOnly)
@@ -1057,14 +1057,14 @@ package Modules.L2Engine.ReplayEngine
                 {
                     setRCursorPos(boxX, boxY);
                 }
-                LassoTool.lassoLayer1Bitmap.smoothing = true;
-                LassoTool.lassoLayer2Bitmap.smoothing = true;
+                LassoLayers.lassoLayer1Bitmap.smoothing = true;
+                LassoLayers.lassoLayer2Bitmap.smoothing = true;
 
                 if (data[7] as Boolean)
                 {
                     if (data[7] === true)
                     {
-                        LassoTool.swapLassoImage();
+                        LassoLayers.swapLassoImage();
                     }
                 }
                 else if (data[7] as Array)
@@ -1075,29 +1075,29 @@ package Modules.L2Engine.ReplayEngine
                     {
                         if (data[7][i] === 0)
                         {
-                            LassoTool.swapLassoImage();
+                            LassoLayers.swapLassoImage();
                         }
                         else if (data[7][i] === 1)
                         {
-                            LassoTool.mergeLassoImage();
+                            LassoLayers.mergeLassoImage();
                         }
                     }
                 }
 
                 if (bmpScaleX !== 1 || bmpAngle !== 0)
                 {
-                    LassoTool.applyLassoShapen(bmpScaleX);
+                    LassoLayers.applyLassoShapen(bmpScaleX);
                 }
 
                 if (data[5] || !data[5] && !data[6])
                 {
-                    ReplayDrawer.rCanvasLayer1BitmapData.draw(LassoTool.lassoLayer1Bitmap, mat);
+                    ReplayDrawer.rCanvasLayer1BitmapData.draw(LassoLayers.lassoLayer1Bitmap, mat);
                     ReplayDrawer.rCanvasLayer1Bitmap.bitmapData = ReplayDrawer.rCanvasLayer1BitmapData;
                 }
 
                 if (data[6])
                 {
-                    ReplayDrawer.rCanvasLayer2BitmapData.draw(LassoTool.lassoLayer2Bitmap, mat);
+                    ReplayDrawer.rCanvasLayer2BitmapData.draw(LassoLayers.lassoLayer2Bitmap, mat);
                     ReplayDrawer.rCanvasLayer2Bitmap.bitmapData = ReplayDrawer.rCanvasLayer2BitmapData;
                 }
             }
@@ -1142,7 +1142,7 @@ package Modules.L2Engine.ReplayEngine
         {
             if (ReplayState.rAirBrushSize2 > 0)
             {
-                const blurSize:Number = PenTool.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
+                const blurSize:Number = PenSettings.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
                 ReplayDrawer.rCanvasDrawShape.filters = [new BlurFilter(blurSize, blurSize, 3)];
                 ReplayDrawer.rCanvasDrawLayerBitmapData.draw(ReplayDrawer.rCanvasDrawShape);
                 StrokeBuffer.canvasDrawLayerChild.filters = [];
@@ -1211,7 +1211,7 @@ package Modules.L2Engine.ReplayEngine
 
             if (ReplayState.rAirBrushSize2 > 0)
             {
-                const blurSize:Number = PenTool.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
+                const blurSize:Number = PenSettings.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
                 ReplayDrawer.rCanvasDrawShape.filters = [new BlurFilter(blurSize, blurSize, 3)];
                 ReplayDrawer.rCanvasDrawLayerBitmapData.draw(ReplayDrawer.rCanvasDrawShape);
                 ReplayDrawer.rCanvasDrawShape.filters = [];
@@ -1252,7 +1252,7 @@ package Modules.L2Engine.ReplayEngine
 
             if (ReplayState.rAirBrushSize2 > 0)
             {
-                const blurSize:Number = PenTool.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
+                const blurSize:Number = PenSettings.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
                 ReplayDrawer.rCanvasDrawLayerBitmapData.applyFilter(ReplayDrawer.rCanvasDrawLayerBitmapData, ReplayDrawer.rCanvasDrawLayerClipRect, new Point(ReplayDrawer.rCanvasDrawLayerClipRect.x, ReplayDrawer.rCanvasDrawLayerClipRect.y), new BlurFilter(blurSize, blurSize, 3));
                 ReplayDrawer.rCanvasDrawLayerBitmap.bitmapData = ReplayDrawer.rCanvasDrawLayerBitmapData;
             }
