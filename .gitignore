@@ -1,7 +1,6 @@
 # 폴더 전체 제외
 /fla_unpacked/
 /bin/
-/.vscode/
 /.agents/
 /.as3mxml-unpackaged-anes/
 /anesrc/pigmentmix/

@@ -1,0 +1,42 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compile Worker SWF",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/build-worker.ps1"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "FOFO PAINT swf build and debug",
+            "type": "actionscript",
+            "debug": true,
+            "dependsOn": [
+                "Compile Worker SWF"
+            ]
+        },
+        {
+            "label": "Make and Install AIR Package",
+            "type": "shell",
+            "command": "pwsh",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "& '${workspaceFolder}\\make-air-package.ps1'; if ($LASTEXITCODE -eq 0) { Start-Sleep -Seconds 1; Start-Process 'E:\\fofopaint-source\\bin\\fofoPaint.air' }"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        }
+    ]
+}

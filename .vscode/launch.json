@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "fofo paint debugging",
+            "type": "swf",
+            "request": "launch",
+            "preLaunchTask": "FOFO PAINT swf build and debug",
+            "program": "${workspaceFolder}/fofoPaint-app.xml",
+            "profile": "desktop",
+            "runtimeExecutable": "D:/adobe_air_sdk_manager/AIRSDK_51.3.4/bin/adl.exe",
+            "rootDirectory": "${workspaceFolder}"
+        }
+    ]
+}
