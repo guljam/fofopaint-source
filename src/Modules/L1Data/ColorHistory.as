@@ -1,4 +1,4 @@
-package Modules
+package Modules.L1Data
 {
     import flash.display.Graphics;
     import flash.display.Sprite;
@@ -6,6 +6,7 @@ package Modules
     import Modules.L4UI.ColorPickerController;
     import Modules.L4UI.PaletteController;
     import Modules.L3Feature.Tools.PenTool;
+    import Modules.DragInteraction;
 
     // 최근에 쓴 색 10개. My Palette와 완전히 별개의 배열을 쓰며 저장은 PaletteController.saveMypPaletteList가 함께 해줌
     // 층: L1 데이터 - 최근에 쓴 색 10개

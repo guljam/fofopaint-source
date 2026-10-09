@@ -3,7 +3,6 @@ package Modules.L3Feature.Tools
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.InputPriority;
     import Modules.MouseState;
-	import Modules.ColorHistory;
 	import Modules.ReferenceLayerController;
 
 	import flash.display.CapsStyle;
@@ -29,6 +28,7 @@ package Modules.L3Feature.Tools
 	import Modules.L2Engine.DrawEngine.CanvasLayers;
 	import Modules.Tools.DotTool;
 	import Modules.Tools.PenStabilizer;
+	import Modules.L1Data.ColorHistory;
 
 	// 층: L3 기능 - 펜 그리기와 지우개
 	public final class PenTool
