@@ -19,7 +19,6 @@ package Modules.L3Feature.Tools
 	import Modules.L4UI.ColorPickerController;
 	import Modules.L5App.ReplayEngine.ReplayController;
 	import Modules.L4UI.PaletteController;
-	import Modules.L1Data.UndoHistory;
 	import Modules.L3Feature.DrawingFinish;
 	import Modules.L1Data.Tools.PenSettings;
 	import Modules.L4UI.PenSizePreviewCursor;
@@ -29,6 +28,7 @@ package Modules.L3Feature.Tools
 	import Modules.Tools.DotTool;
 	import Modules.Tools.PenStabilizer;
 	import Modules.L1Data.ColorHistory;
+	import Modules.L2Engine.UndoHistory;
 
 	// 층: L3 기능 - 펜 그리기와 지우개
 	public final class PenTool

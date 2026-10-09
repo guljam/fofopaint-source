@@ -42,7 +42,6 @@ package Modules.L5App
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L4UI.UIEngine.UIController;
-    import Modules.L1Data.UndoHistory;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L4UI.PenSizePreviewCursor;
@@ -52,6 +51,7 @@ package Modules.L5App
     import Modules.L3Feature.Tools.PenTool;
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
     import Modules.L1Data.ColorHistory;
+    import Modules.L2Engine.UndoHistory;
 
     // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager

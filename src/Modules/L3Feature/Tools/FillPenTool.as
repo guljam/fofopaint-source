@@ -24,7 +24,6 @@ package Modules.L3Feature.Tools
     import Modules.L1Data.KeyState;
     import Modules.L4UI.PaletteController;
     import Modules.L4UI.UIEngine.UIController;
-    import Modules.L1Data.UndoHistory;
     import Modules.L3Feature.DrawingFinish;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L1Data.ToolState;
@@ -32,6 +31,7 @@ package Modules.L3Feature.Tools
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L1Data.ColorHistory;
+    import Modules.L2Engine.UndoHistory;
 
     // 층: L3 기능 - 채우기 펜
     public class FillPenTool

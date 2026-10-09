@@ -58,7 +58,6 @@ package Modules.L5App
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L4UI.UIEngine.UIController;
-    import Modules.L1Data.UndoHistory;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.PenSizePreviewCursor;
@@ -67,6 +66,7 @@ package Modules.L5App
     import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L3Feature.Tools.PenTool;
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
+    import Modules.L2Engine.UndoHistory;
 
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager

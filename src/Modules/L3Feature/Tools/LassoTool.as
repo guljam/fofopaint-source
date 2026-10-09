@@ -33,13 +33,13 @@ package Modules.L3Feature.Tools
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
-    import Modules.L1Data.UndoHistory;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L2Engine.LassoLayers;
+    import Modules.L2Engine.UndoHistory;
 
     // 층: L3 기능 - 올가미 선택과 이동·회전·크기·미러
     public class LassoTool

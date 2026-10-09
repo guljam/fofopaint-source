@@ -15,13 +15,13 @@ package Modules.L3Feature.Tools
     import Modules.L4UI.ColorPickerController;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.PaletteController;
-    import Modules.L1Data.UndoHistory;
     import Modules.L3Feature.DrawingFinish;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L1Data.ColorHistory;
+    import Modules.L2Engine.UndoHistory;
 
     // 층: L3 기능 - 직선 그리기
     public class LineTool

@@ -7,12 +7,12 @@ package Modules.L3Feature
     import Modules.ReplayEngine.ReplayState;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L3Feature.UndoController;
-    import Modules.L1Data.UndoHistory;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L3Feature.Tools.PenTool;
+    import Modules.L2Engine.UndoHistory;
 
     // 층: L3 기능 - 획이 끝났을 때 임시 그리기 버퍼를 레이어에 합치고 undo 기록을 준비
     public class DrawingFinish

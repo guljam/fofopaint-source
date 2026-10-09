@@ -13,11 +13,11 @@ package Modules.Tools
     import Modules.L3Feature.Tools.LassoTool;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L3Feature.UndoController;
-    import Modules.L1Data.UndoHistory;
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.DrawEngine.CanvasLayers;
+    import Modules.L2Engine.UndoHistory;
 
     // 층: L3 기능 - 이동 툴
     public class MoveTool
