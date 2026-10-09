@@ -200,7 +200,7 @@ package Modules.InputManager
                     break;
                 case "updateButton":
                     {
-                        AppUpdater.prepareUpdate();
+                        AppUpdater.openReleasePage();
                     }
                     break;
                 case "sideBarPositionButton":

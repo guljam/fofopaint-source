@@ -1101,10 +1101,6 @@ package Modules
                 // 다른 백그라운드 작업이 남아있으면 loadFileTo가 다시 대기로 돌리고, worker가 멈출때 불러옴
                 LoadBoxController.loadFileTo("canvas");
             }
-            else if (AppUpdater.isUpdatePendingAfterSaving)
-            {
-                AppUpdater.startUpdate();
-            }
         }
 
         // 폴더 없음, 권한 없음, 디스크 부족처럼 이름을 바꿔도 안 되는 쓰기 실패: 재시도하지 않고 알림, 저장 안 됨 상태로 둠
@@ -1504,11 +1500,7 @@ package Modules
 
             if (nextPath === lastSaveFilePath && isFileAlreadySaved && continueFlag && rawFile.exists)
             {
-                if (AppUpdater.isUpdatePendingAfterSaving)
-                {
-                    AppUpdater.startUpdate();
-                }
-                else if (LoadBoxController.isLoadPendingAfterSaving)
+                if (LoadBoxController.isLoadPendingAfterSaving)
                 {
                     LoadBoxController.loadFileTo("canvas");
                 }
@@ -1555,8 +1547,7 @@ package Modules
                 const file:File = checkSaveFailedFileName(saveFailed);
                 const saveWindowTitle:String = (saveFailed) ? "Failed to save file! save with new name"
                     : (asFlag === true) ? "Save file As.."
-                    : (LoadBoxController.isLoadPendingAfterSaving) ? "Save file before load file"
-                    : (AppUpdater.isUpdatePendingAfterSaving) ? "Save file before update" : "Save file";
+                    : (LoadBoxController.isLoadPendingAfterSaving) ? "Save file before load file" : "Save file";
                 // 대화상자 연 시점의 이미지로 저장, 선택하면 Worker로 넘기고 취소하면 여기서 dispose
                 var mergedImage:BitmapData = DrawCanvas.getMergedBitmapData(false, true, true, null);
                 file.addEventListener(IOErrorEvent.IO_ERROR, onErrorEvent);
@@ -1583,10 +1574,6 @@ package Modules
                     if (LoadBoxController.isLoadPendingAfterSaving)
                     {
                         LoadBoxController.loadFileTo("canvas");
-                    }
-                    else if (AppUpdater.isUpdatePendingAfterSaving)
-                    {
-                        AppUpdater.startUpdate();
                     }
                 }
                 function onSelectEvent(e:Event):void

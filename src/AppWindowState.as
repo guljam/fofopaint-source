@@ -22,7 +22,6 @@ package
     import Modules.NativeSave;
     import Modules.FileManager;
     import Modules.LoadBoxController;
-    import Modules.AppUpdater;
     import Modules.ReplayEngine.ReplayState;
     import Modules.UndoController;
     import Modules.ColorPickerController;
@@ -137,7 +136,6 @@ package
                     && !BackgroundWorkerCoordinator.isSaveInProgress
                     && !FileManager.isFileBrowserOpened
                     && !LoadBoxController.isLoadPendingAfterSaving
-                    && !AppUpdater.isUpdatePendingAfterSaving
                     && !LoadBoxController.loadMenuBox.visible
                     && !ReplayState.isGeneratingCacheImages())
             {

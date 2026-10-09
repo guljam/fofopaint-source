@@ -1,19 +1,15 @@
 package Modules
 {
-    import Modules.UIEngine.HintController;
     import Modules.UIEngine.UIController;
-    import flash.filesystem.File;
-    import flash.net.navigateToURL;
-    import flash.net.URLRequest;
-    import flash.desktop.Updater;
     import flash.events.Event;
     import flash.events.IOErrorEvent;
-    import flash.filesystem.FileStream;
-    import flash.filesystem.FileMode;
+    import flash.filesystem.File;
     import flash.net.URLLoader;
-    import flash.net.URLLoaderDataFormat;
-    import flash.utils.ByteArray;
+    import flash.net.URLRequest;
+    import flash.net.navigateToURL;
 
+    // GitHub의 versionInfo.txt로 새 버전이 있는지만 확인하고, 업데이트 버튼을 누르면 배포 사이트(GitHub 릴리스 페이지)를 엶
+    // Windows bundle(captive runtime) 배포라 .air 내려받기와 flash.desktop.Updater 설치는 쓰지 않음
     public final class AppUpdater
     {
         public static var main:Main;
@@ -24,65 +20,24 @@ package Modules
 
         private static const FLAG_NO_UPDATE:int = 0;
         private static const FLAG_CHECKING_UPDATE:int = (1 << 0);
-        private static const FLAG_UPDATE_READY:int = (1 << 1);
-        private static const FLAG_NEED_UPDATE_MANUAL:int = (1 << 2);
+        private static const FLAG_UPDATE_AVAILABLE:int = (1 << 1);
         private static const UPDATE_VERSION_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/master/versionInfo.txt";
-        private static const UPDATE_FILE_URL:String = "https://github.com/guljam/2020FlashPaint/releases/download/update2/fofoPaint.air";
-        private static const UPDATE_MAX_DOWNLOAD_RETRY:int = 5;
-        private static const UPDATE_RETRY_DELAY:Number = 3.0;
+        private static const RELEASE_PAGE_URL:String = "https://github.com/guljam/2020FlashPaint/releases/latest";
         private static var status:int = FLAG_NO_UPDATE; // 새버전 나왔을때 올려주는 플래그
         public static var newVersionStr:String = ""; // 새버전 문자열 저장
 
-        private static const updateFilePath:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
-        public static var isUpdatePendingAfterSaving:Boolean = false; // 업데이트 버튼 눌렀을 때 저장 후 대기 플래그
-
         public static function needUpdate():Boolean
         {
-            return status !== FLAG_NO_UPDATE;
+            return status === FLAG_UPDATE_AVAILABLE;
         }
 
-        public static function prepareUpdate():void
+        // 업데이트 버튼
+        public static function openReleasePage():void
         {
-            LoadBoxController.prepareOpenLoadBox(true, false, null, null, null);
-            isUpdatePendingAfterSaving = true;
-            FileManager.openSaveFileBrowser(false);
-        }
-
-        public static function startUpdate():void
-        {
-            LoadBoxController.closeLoadMenuBox();
-            isUpdatePendingAfterSaving = false;
             UIController.topBar.hideUpdateButton();
-
-            if (status === FLAG_UPDATE_READY)
-            {
-                FOFOTimer.add(0.5, false, function ():void
-                    {
-                        installNewVersion();
-                    });
-            }
-            else if (status === FLAG_NEED_UPDATE_MANUAL)
-            {
-                navigateToURL(new URLRequest(AboutBoxController.FOFOPAINT_GITHUB_URL));
-            }
-            navigateToURL(new URLRequest(AboutBoxController.FOFOPAINT_RELEASE_NOTE_URL));
+            navigateToURL(new URLRequest(RELEASE_PAGE_URL));
         }
 
-        private static function installNewVersion():void
-        {
-            try
-            {
-                if (updateFilePath.exists)
-                {
-                    var updater:Updater = new Updater();
-                    updater.update(updateFilePath, newVersionStr);
-                }
-            }
-            catch (err)
-            {
-                HintController.showMouseHintTemp("Skip update (debub mode)");
-            }
-        }
         private static function isNewVersion(newVersion:String):Boolean
         {
             var currentStr:String = main.APP_VERSION; // 또는 APP_VERSION.toString()
@@ -146,102 +101,44 @@ package Modules
             }
         }
 
-        private static function tryUpdate(versionStr:String):void
-        {
-            if (!isNewVersion(versionStr))
-            {
-                status = FLAG_NO_UPDATE;
-
-                // 최신 버전이면 이미 받아놓은 업데이트 파일 삭제
-                try
-                {
-                    if (updateFilePath.exists)
-                    {
-                        updateFilePath.deleteFile();
-                    }
-                }
-                catch(err)
-                {
-                    return;
-                }
-                return;
-            }
-
-            // 3. 여기부터 실제 업데이트가 필요한 경우
-            newVersionStr = versionStr;
-
-            var tryCount:uint = 0;
-            var fileLoader:URLLoader = new URLLoader();
-            const updateRequest:URLRequest = new URLRequest(UPDATE_FILE_URL);
-
-            fileLoader.dataFormat = URLLoaderDataFormat.BINARY;
-            fileLoader.addEventListener(Event.COMPLETE, onDownloadSuccess);
-            fileLoader.addEventListener(IOErrorEvent.IO_ERROR, onDownloadFailed);
-
-            function onUpdateFinished(updateState:int):void
-            {
-                fileLoader.removeEventListener(Event.COMPLETE, onDownloadSuccess);
-                fileLoader.removeEventListener(IOErrorEvent.IO_ERROR, onDownloadFailed);
-                fileLoader = null;
-
-                status = updateState;
-                UIController.topBar.showUpdateButton();
-            }
-
-            function onDownloadFailed(e:Event):void
-            {
-                if (tryCount < UPDATE_MAX_DOWNLOAD_RETRY)
-                {
-                    FOFOTimer.addByName("updateRetryTimer", UPDATE_RETRY_DELAY, false, function ():void
-                        {
-                            tryCount++;
-                            fileLoader.load(updateRequest);
-                        });
-                }
-                else
-                {
-                    onUpdateFinished(FLAG_NEED_UPDATE_MANUAL);
-                }
-            }
-
-            function onDownloadSuccess(e:Event):void
-            {
-                var fs:FileStream = new FileStream();
-                fs.open(updateFilePath, FileMode.WRITE);
-                fs.writeBytes(fileLoader.data as ByteArray);
-                fs.close();
-
-                onUpdateFinished(FLAG_UPDATE_READY);
-            }
-
-            // 4. 실제 다운로드 시작 여부
-            if (Updater.isSupported)
-            {
-                fileLoader.load(updateRequest);
-            }
-            else
-            {
-                onUpdateFinished(FLAG_NEED_UPDATE_MANUAL);
-            }
-        }
-
         public static function checkUpdate():void
         {
             if (status === FLAG_CHECKING_UPDATE)
                 return;
 
             status = FLAG_CHECKING_UPDATE;
+            deleteOldUpdateFile();
 
             getVersionFileFromGithub(function (versionStr:String):void
                 {
-                    if (!versionStr)
+                    if (!versionStr || !isNewVersion(versionStr))
                     {
                         status = FLAG_NO_UPDATE;
                         return;
                     }
 
-                    tryUpdate(versionStr);
+                    newVersionStr = versionStr;
+                    status = FLAG_UPDATE_AVAILABLE;
+                    UIController.topBar.showUpdateButton();
                 });
+        }
+
+        // 이전 버전의 .air 자동 업데이트가 받아두었던 파일이 남아있으면 지움
+        private static function deleteOldUpdateFile():void
+        {
+            try
+            {
+                const oldFile:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
+
+                if (oldFile.exists)
+                {
+                    oldFile.deleteFile();
+                }
+            }
+            catch (error:Error)
+            {
+                trace("Old update file delete failed: " + error);
+            }
         }
     }
 }

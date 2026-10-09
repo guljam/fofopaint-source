@@ -191,10 +191,6 @@ package Modules
                 {
                     LoadBoxController.loadFileTo("canvas");
                 }
-                else if (AppUpdater.isUpdatePendingAfterSaving)
-                {
-                    AppUpdater.startUpdate();
-                }
 
                 // worker가 완전히 멈춘 뒤에만 파일 불러오기, 새 파일, 리플레이 데이터 삭제 잠금을 풀어줌
                 FileManager.refreshFileOperationButtonsTopbar();
