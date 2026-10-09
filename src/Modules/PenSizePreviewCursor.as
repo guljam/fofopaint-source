@@ -23,12 +23,12 @@ package Modules
 
         // 밑 색 밝기(L*)가 검은 커서면 이 값 이하, 흰 커서면 100 - 이 값 이상일 때 "커서와 비슷함"
         // 반드시 50 미만이어야 함. 50 이상이면 같은 밝기에서 두 조건이 동시에 참이 되어 확인할 때마다 검정<->흰색이 오감
-        private static const LIGHTNESS_THRESHOLD:Number = 21;
+        private static const LIGHTNESS_THRESHOLD:Number = 49;
         // 화면 기준 커서 지름(펜 크기 x 줌)이 이 값 미만이면 중심 1점만, 이 값 이상이면 중심 + 4점
         private static const SAMPLE_5_MIN_DIAMETER:Number = 16;
         // 이 값 이상이면 중심 + 8점 (총 개수는 1/5/9로 홀수라 동점이 없음)
         private static const SAMPLE_9_MIN_DIAMETER:Number = 40;
-        private static const CHECK_INTERVAL:Number = 0.3; // 밑 색 확인 간격(초)
+        private static const CHECK_INTERVAL:Number = 0.4; // 밑 색 확인 간격(초)
         private static const CHECK_TIMER_NAME:String = "penCursorInvertTimer";
 
         private static const _cursor:PenCursorPreviewPixel = new PenCursorPreviewPixel(); // 펜사이즈 미리 보기
@@ -141,7 +141,10 @@ package Modules
                 _cursor.x = Math.floor(mx);
                 _cursor.y = Math.floor(my);
                 checkCursorVisibility();
+                const nt:int = getTimer();
+                
                 requestColorCheck();
+                trace("time = ",getTimer()-nt);
             }
         }
 
