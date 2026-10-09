@@ -72,6 +72,7 @@
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L3Feature.Tools.PenTool;
     import Modules.L3Feature.Tools.ZoomTool;
+    import Modules.L1Data.ColorHistory;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화
@@ -123,6 +124,7 @@
             PenSettings.onCursorSizeChangedFunc = PenSizePreviewCursor.updateCursorSize;
             PenSettings.onPenToolNeededFunc = ToolController.selectPenToolIfNotDrawingTool;
             CanvasView.onCanvasPanelResizedFunc = UIController.updateCanvasPanelLinkedUI;
+            ColorHistory.onColorHistoryChangedFunc = PaletteController.updateColorHistory;
         }
 
         public function initializeModule():void

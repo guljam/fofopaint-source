@@ -27,6 +27,7 @@ package Modules.L3Feature.Tools
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.DrawEngine.CanvasLayers;
+    import Modules.L1Data.ColorHistory;
 
     // 층: L3 기능 - 스포이드 툴
     public class EyeDropperTool
@@ -256,7 +257,7 @@ package Modules.L3Feature.Tools
             {
                 const pickedColor:uint = pickColor(true);
                 PenTool.penColor = pickedColor;
-                ColorPickerController.pickerIgnoreHistoryColor = pickedColor;
+                ColorHistory.pickerIgnoreHistoryColor = pickedColor;
                 ColorPickerController.updateColorPickerCursorPosAndRGBInfo(pickedColor);
             }
 

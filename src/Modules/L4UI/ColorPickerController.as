@@ -43,7 +43,6 @@ package Modules.L4UI
         private static var isColorPickerModeResetEventAdded:Boolean = false; // 배경색 선택하고 나서 커서가 사이드바를 나가면 리셋해주는 이벤트를 올려주는 플래그
 
         public static var isColorPickerBoxPositionSwapped:Boolean = false; // 마이팔래트랑 컬러피커박스 위치 바뀌면 올려줌
-        public static var pickerIgnoreHistoryColor:* = null; // 히스토리 색 등록 할때 여기에 등록된 색은 등록 안하게함
         private static var lastRGBInfoColorPartIndex:int = -1; // 처음 클릭했을때 R G B중 어느 영역을 클릭했는지
         public static var isHSVInfoTextMode:Boolean = false; // true가 되면 hsv false이면 rgb
         private static var numpadInputBuffer:String = ""; // 숫자키 누르면 어기다가 저장해주고 필터링해줘서 rgbinfotext에 갱신해줌
@@ -58,7 +57,7 @@ package Modules.L4UI
             colorPickerBox.applyTransparentColorBrightness(UITheme.getUIColorIndex());
 
             PaletteController.updateMyPaletteList();
-            ColorHistory.update();
+            PaletteController.updateColorHistory();
 
             if (PenTool.isTransparentPenColor)
             {
@@ -1001,7 +1000,7 @@ package Modules.L4UI
                             break;
 
                         case "colorHistoryBox":
-                            ColorHistory.select();
+                            PaletteController.selectColorHistory();
                             break;
 
                         case "myPaletteBox":
@@ -1063,7 +1062,7 @@ package Modules.L4UI
             {
                 if (PaletteController.myPalettePresetType === 0)
                 {
-                    ColorHistory.startDragging();
+                    PaletteController.startDraggingColorHistory();
                 }
             }
 

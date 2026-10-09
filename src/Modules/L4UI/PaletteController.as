@@ -5,6 +5,7 @@ package Modules.L4UI
 
     import flash.display.DisplayObject;
     import flash.display.Graphics;
+    import flash.display.Sprite;
     import flash.events.MouseEvent;
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
@@ -256,7 +257,7 @@ package Modules.L4UI
 
         public static function initializeMyPaletteList():void
         {
-            ColorHistory.update();
+            PaletteController.updateColorHistory();
             updateMyPaletteList();
 
             if (!AppDataPaths.myPaletteDataFilePath.exists)
@@ -665,5 +666,141 @@ package Modules.L4UI
             g.lineTo(px + 5, py + hh - 5);
             g.lineStyle(0, 0, 0);
         }
+
+        private static function getColorHistoryIndexByMousePos():int
+        {
+            const box:Sprite = ColorPickerController.colorPickerBox.colorHistoryBox;
+
+            return calcColorHistoryIndex(box.mouseX, box.mouseY);
+        }
+
+        public static function calcColorHistoryIndex(localX:Number, localY:Number):int
+        {
+            const xLineIndex:int = Math.floor(localX / PaletteController.myPaletteColorWidth);
+            const yLineIndex:int = Math.floor(localY / PaletteController.myPaletteColorHeight);
+
+            if (yLineIndex !== 0 || xLineIndex < 0 || xLineIndex >= ColorHistory.HISTORY_COUNT)
+            {
+                return -1;
+            }
+
+            return xLineIndex; // 화면 칸 순서가 list와 반대
+        }
+
+        public static function selectColorHistory():void
+        {
+            const index:int = getColorHistoryIndexByMousePos();
+
+            if (index < 0 || PaletteController.myPaletteDragStarted)
+            {
+                return;
+            }
+
+            // 빈 칸은 투명색조차 선택하지 않음
+            if (ColorHistory.isEmpty(index))
+            {
+                return;
+            }
+
+            const pickedColor:uint = ColorHistory.list[index];
+
+            if (pickedColor === ColorPickerController.colorPickerBox.getRGBInfoBGColor() && !PenTool.isTransparentPenColor)
+            {
+                return;
+            }
+
+            ColorPickerController.pickColor(pickedColor);
+        }
+
+        public static function updateColorHistory(ignoreIndex:int = -1):void
+        {
+            const g:Graphics = ColorPickerController.colorPickerBox.colorHistoryBox.graphics;
+            const ww:Number = PaletteController.myPaletteColorWidth;
+            const hh:Number = PaletteController.myPaletteColorHeight;
+
+            g.clear();
+
+            for (var i:uint = 0;i < ColorHistory.HISTORY_COUNT;i++)
+            {
+                if (i === ignoreIndex)
+                {
+                    PaletteController.drawRedXMark(g, ww * i, 0, ww, hh);
+                    continue;
+                }
+
+                if (ColorHistory.isEmpty(i))
+                {
+                    g.beginBitmapFill(ColorPickerController.colorPickerBox.myPaletteTransBGBmpd);
+                }
+                else
+                {
+                    g.beginFill(ColorHistory.list[i]);
+                }
+
+                g.drawRect(ww * i, 0, ww, hh);
+            }
+
+            g.endFill();
+            g.lineStyle(1, 0, 0.2);
+
+            for (i = 1;i < ColorHistory.HISTORY_COUNT;i++)
+            {
+                g.moveTo(ww * i, 0);
+                g.lineTo(ww * i, hh);
+            }
+        }
+
+        // 히스토리 색을 드래그해서 my palette에 복제해 놓음 (히스토리는 그대로)
+        public static function startDraggingColorHistory():void
+        {
+            const index:int = getColorHistoryIndexByMousePos();
+
+            function onDragStart():void
+            {
+                PaletteController.myPaletteDragClickedIndex = -1;
+                PaletteController.myPaletteDragClickedColor = ColorHistory.list[index];
+                PaletteController.myPaletteClickPos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
+                PaletteController.myPaletteMovePos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
+            }
+
+            function onMouseMove():void
+            {
+                if (Point.distance(PaletteController.myPaletteClickPos, PaletteController.myPaletteMovePos) >= 4)
+                {
+                    if (PaletteController.myPaletteDragStarted === false)
+                    {
+                        PaletteController.myPaletteDragStarted = true;
+                        ColorPickerController.colorPickerBox.updateDragColor(PaletteController.myPaletteDragClickedColor, PaletteController.myPaletteColorWidth, PaletteController.myPaletteColorHeight);
+                    }
+
+                    PaletteController.updateDragColorPosition();
+                }
+                else
+                {
+                    PaletteController.myPaletteMovePos.setTo(ColorPickerController.colorPickerBox.mouseX, ColorPickerController.colorPickerBox.mouseY);
+                }
+            }
+
+            function onMouseUp():void
+            {
+                if (PaletteController.myPaletteDragStarted === true)
+                {
+                    PaletteController.myPaletteDragStarted = false;
+
+                    if (ColorPickerController.colorPickerBox.myPaletteBox.hitTestPoint(PaletteController.main.mouseX, PaletteController.main.mouseY))
+                    {
+                        PaletteController.putColorToMyPalette(PaletteController.myPaletteDragClickedColor, PaletteController.getMyPaletteIndexByMousePosLimitBound(), false);
+                    }
+                }
+
+                ColorPickerController.colorPickerBox.removeDragColor();
+            }
+
+            if (index >= 0 && !ColorHistory.isEmpty(index))
+            {
+                DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
+            }
+        }
+
     }
 }

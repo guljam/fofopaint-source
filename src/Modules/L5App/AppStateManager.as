@@ -515,7 +515,7 @@ package Modules.L5App
                         if (appStateObject.myPalettePresetType > 0)
                             ColorPickerController.activeColorPreset(appStateObject.myPalettePresetType);
 
-                        ColorHistory.update();
+                        PaletteController.updateColorHistory();
                         PaletteController.isMyPaletteExpended = appStateObject.isMyPaletteExpended;
 
                         if (PaletteController.myPalettePresetType === 0 && appStateObject.isMyPaletteExpended)
