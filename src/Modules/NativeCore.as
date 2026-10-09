@@ -16,6 +16,13 @@ package Modules
         public static var isDisabled:Boolean = false;
         private static var bridge:Object = null;
         private static var isOpenTried:Boolean = false;
+        private static var jobSeq:int = 0;
+
+        // 네이티브 작업 번호 (저장, 캐시 작업의 결과를 같은 표에 보관하므로 한곳에서 발급)
+        public static function nextJobId():int
+        {
+            return ++jobSeq;
+        }
 
         public static function get isAvailable():Boolean
         {

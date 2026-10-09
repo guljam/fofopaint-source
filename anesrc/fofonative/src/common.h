@@ -60,3 +60,6 @@ const NamedFunction* codecFunctions(uint32_t* count);
 const NamedFunction* saveFunctions(uint32_t* count);
 const NamedFunction* jobFunctions(uint32_t* count);
 int activeSaveCount();
+const NamedFunction* cacheFunctions(uint32_t* count);
+int activeCacheJobCount();
+void cancelAllCacheJobs();

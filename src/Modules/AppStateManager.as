@@ -208,7 +208,23 @@ package Modules
             const firstCachedImage:File = replayCacheImageFolderPath.resolvePath("0");
 
             // 앱 경로에 마지막 저장 파일이 있으면 끄기전의 상태로 세팅해줌
-            if (firstCachedImage.exists)
+            if (firstCachedImage.exists && CacheImageFile.isNewFormatFile(firstCachedImage))
+            {
+                // 새 형식 (네이티브 덤프 또는 AS3 straight)
+                const cached:Object = CacheImageFile.read(firstCachedImage);
+                metaData = cached.metadata as CacheImageMetaData;
+
+                if (ReplayFileCache.rFirstImageLayer1BitmapData)
+                    ReplayFileCache.rFirstImageLayer1BitmapData.dispose();
+                if (ReplayFileCache.rFirstImageLayer2BitmapData)
+                    ReplayFileCache.rFirstImageLayer2BitmapData.dispose();
+
+                ReplayFileCache.rFirstImageLayer1BitmapData = cached.bmpd1;
+                ReplayFileCache.rFirstImageLayer2BitmapData = cached.bmpd2;
+                ReplaySaveMetaData.firstImageBG = metaData.bgColor;
+                ReplaySaveMetaData.firstImageMirrorFlag = metaData.mirrorFlag;
+            }
+            else if (firstCachedImage.exists)
             {
                 fs.open(firstCachedImage, FileMode.READ);
                 arr = fs.readObject() as Array;

@@ -761,9 +761,11 @@ package Modules
         // worker의 저장, 캡처, undo 캐시 작업 결과가 바뀐 리플레이 데이터에 섞이지 않도록
         // worker가 완전히 멈출때까지 리플레이 데이터를 초기화하거나 잘라내는 작업을 막음
         // (파일 불러오기, 새 파일, 리플레이 앞/뒤 삭제, 현재 프레임으로 새 파일)
+        // 네이티브 undo 캐시 작업(undoDataQueue)도 worker 작업처럼 잠금, 불러오기 캐시 작업은 캐시 생성 상태가 따로 막음
         public static function isReplayDataLocked():Boolean
         {
-            return BackgroundWorkerCoordinator.isSaveInProgress !== 0 || BackgroundWorkerCoordinator.isWorkerBusy();
+            return BackgroundWorkerCoordinator.isSaveInProgress !== 0 || BackgroundWorkerCoordinator.isWorkerBusy()
+                || BackgroundWorkerCoordinator.undoDataQueue !== null;
         }
 
         public static function showReplayDataLockedHint():void

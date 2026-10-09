@@ -14,7 +14,9 @@ package Modules.ReplayEngine
     import Modules.FileManager;
     import Modules.AppStateManager;
     import Modules.ReplayDataCodec;
+    import Modules.CacheImageFile;
     import Modules.PixelRestore;
+    import Modules.CacheImageFormat;
     import Modules.ReferenceLayerController;
     import Modules.Utils;
 
@@ -187,34 +189,10 @@ package Modules.ReplayEngine
             return bytes + " B";
         }
 
+        // {bmpd1, bmpd2, metadata}, 새 형식(네이티브 덤프)과 옛 형식 모두 읽음 (CacheImageFile)
         public static function loadReplayCacheImage(index:int):Object
         {
-            const file:File = AppStateManager.replayCacheImageFolderPath.resolvePath(String(index));
-            const fs:FileStream = new FileStream();
-            fs.open(file, FileMode.READ);
-
-            const data:Array = fs.readObject() as Array;
-            fs.close();
-
-            data[0].uncompress();
-            data[1].uncompress();
-
-            const metadata:CacheImageMetaData = data[2] as CacheImageMetaData;
-            const rect:Rectangle = new Rectangle(0, 0, metadata.bmpdWidth, metadata.bmpdHeight);
-            const layer1:BitmapData = new BitmapData(metadata.bmpdWidth,metadata.bmpdHeight,true,0);
-            const layer2:BitmapData = new BitmapData( metadata.bmpdWidth,metadata.bmpdHeight,true,0);
-
-            PixelRestore.setPixels(layer1, rect, data[0]);
-            PixelRestore.setPixels(layer2, rect, data[1]);
-
-            data[0].clear();
-            data[1].clear();
-
-            return {
-                bmpd1:layer1,
-                bmpd2:layer2,
-                metadata:metadata
-            };
+            return CacheImageFile.read(AppStateManager.replayCacheImageFolderPath.resolvePath(String(index)));
         }
 
         // 캐시 이미지 만드는 도중에 앱을 닫아도 다음 실행때 이어서 만들수 있게 지금까지 확정된 캐시 번호 목록을 기록
@@ -229,7 +207,8 @@ package Modules.ReplayEngine
             try
             {
                 fs.open(tempFile, FileMode.WRITE);
-                fs.writeObject([dataFile.size, dataFile.modificationDate.getTime(), rJumpImageFrameData.concat()]);
+                // 마지막은 캐시 파일 형식 버전, 다르면 이어 만들지 않고 처음부터 다시 만듦
+                fs.writeObject([dataFile.size, dataFile.modificationDate.getTime(), rJumpImageFrameData.concat(), CacheImageFormat.VERSION]);
                 fs.close();
                 tempFile.moveTo(AppStateManager.replayCacheProgressFilePath, true);
             }
@@ -340,7 +319,7 @@ package Modules.ReplayEngine
                 const progress:Array = fs.readObject() as Array;
                 fs.close();
 
-                if (progress === null || progress.length !== 3
+                if (progress === null || progress.length !== 4 || progress[3] !== CacheImageFormat.VERSION
                         || progress[0] !== dataFile.size
                         || progress[1] !== dataFile.modificationDate.getTime())
                 {
@@ -354,7 +333,7 @@ package Modules.ReplayEngine
                     return -1;
                 }
 
-                // 번호마다 파일이 온전한지, 기록된 프레임과 맞는지 확인
+                // 번호마다 파일이 새 형식으로 온전한지(헤더만 읽음), 기록된 프레임과 맞는지 확인
                 var lastByte:Number = 0;
 
                 for (var i:int = 0;i < frames.length;i++)
@@ -364,13 +343,9 @@ package Modules.ReplayEngine
                         return -1;
                     }
 
-                    fs.open(AppStateManager.replayCacheImageFolderPath.resolvePath(String(i)), FileMode.READ);
-                    const data:Array = fs.readObject() as Array;
-                    fs.close();
+                    const metadata:CacheImageMetaData = CacheImageFile.readNewFormatMetadata(AppStateManager.replayCacheImageFolderPath.resolvePath(String(i)));
 
-                    const metadata:CacheImageMetaData = data[2] as CacheImageMetaData;
-
-                    if (!(data[0] is ByteArray) || !(data[1] is ByteArray) || metadata === null
+                    if (metadata === null
                             || metadata.nowFrame !== frames[i]
                             || metadata.lastByte < lastByte
                             || metadata.lastByte > dataFile.size
@@ -423,33 +398,23 @@ package Modules.ReplayEngine
                 AppStateManager.replayCacheImageFolderPath.createDirectory();
             }
 
-            var ba1:ByteArray = new ByteArray();
-            var ba2:ByteArray = new ByteArray();
             const w:Number = bmpd1.width;
             const h:Number = bmpd1.height;
-            const newRectangle:Rectangle = new Rectangle(0, 0, w, h);
-
-            //배열 버리고 새로 만들어주는데 메모메와 gc면에서 나은것같음
-            rJumpImageFrameData = [];
-            bmpd1.copyPixelsToByteArray(newRectangle, ba1);
-            ba1.compress();
-            rFirstImageLayer1BitmapData = DrawCanvas.updateBitmapData(rFirstImageLayer1BitmapData, bmpd1, null);
 
             if (bmpd2 === null)
             {
                 bmpd2 = new BitmapData(w, h, true, 0);
             }
 
-            bmpd2.copyPixelsToByteArray(newRectangle, ba2);
-            ba2.compress();
+            // 캐시 0번 (첫 이미지)은 바로 읽히므로 호출 안에서 다 씀, 네이티브면 내부 버퍼 원본 덤프
+            //배열 버리고 새로 만들어주는데 메모메와 gc면에서 나은것같음
+            rJumpImageFrameData = [0];
+            CacheImageFile.writeSync(AppStateManager.replayCacheImageFolderPath.resolvePath("0"), bmpd1, bmpd2, new CacheImageMetaData(w, h, bgColor, 0, 0, 0, mirrorFlag, 0.0, 0.0));
+            rFirstImageLayer1BitmapData = DrawCanvas.updateBitmapData(rFirstImageLayer1BitmapData, bmpd1, null);
             rFirstImageLayer2BitmapData = DrawCanvas.updateBitmapData(rFirstImageLayer2BitmapData, bmpd2, null);
 
             ReplaySaveMetaData.firstImageMirrorFlag = mirrorFlag;
             ReplaySaveMetaData.firstImageBG= bgColor;
-
-            createCacheImage(ba1, ba2, new CacheImageMetaData(w, h, bgColor, 0, 0, 0, mirrorFlag, 0.0, 0.0));
-            ba1.clear();
-            ba2.clear();
         }
 
         public static function refreshRFrameTempCachedImages():void
@@ -515,13 +480,11 @@ package Modules.ReplayEngine
                 });
         }
 
-        public static function createCacheImage(bmpd1:ByteArray, bmpd2:ByteArray, metadata:CacheImageMetaData):void
+        // 다음 번호로 캐시 이미지를 호출 안에서 씀 (네이티브 병렬 작업을 못 쓸때의 불러오기 캐시)
+        public static function createCacheImage(layer1:BitmapData, layer2:BitmapData, metadata:CacheImageMetaData):void
         {
-            const fs:FileStream = new FileStream();
             rJumpImageFrameData.push(metadata.nowFrame);
-            fs.open(AppStateManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length - 1)), FileMode.WRITE);
-            fs.writeObject([bmpd1, bmpd2, metadata]);
-            fs.close();
+            CacheImageFile.writeSync(AppStateManager.replayCacheImageFolderPath.resolvePath(String(rJumpImageFrameData.length - 1)), layer1, layer2, metadata);
         }
 
         // worker가 임시 파일로 써둔 캐시 이미지를 다음 번호로 확정해줌

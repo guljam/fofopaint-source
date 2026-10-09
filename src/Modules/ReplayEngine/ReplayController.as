@@ -34,6 +34,9 @@ package Modules.ReplayEngine
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import Modules.CacheImageMetaData;
+    import Modules.NativeCacheJobs;
+    import Modules.NativeCore;
+    import Modules.BackgroundWorkerCoordinator;
     import Modules.CanvasGridOverlay;
     import Modules.CaptureEngine.CaptureController;
     import Modules.ColorPickerController;
@@ -727,6 +730,103 @@ package Modules.ReplayEngine
             ReplayFileCache.saveCacheProgress();
             LoadBoxController.loadMenuBox.visible = false;
 
+            // 네이티브로 쓸 수 있으면 구간마다 스냅샷(두 레이어 내부 버퍼 복사)만 넘기고 바로 다음 구간을 그림, 압축·쓰기는 네이티브 스레드에서 병렬
+            // 번호는 스냅샷때 정하고, 완료는 순서가 섞여도 앞에서부터 이어진 번호까지만 rJumpImageFrameData와 진행 기록에 확정 (이어 만들기는 확정된 번호까지만 믿음)
+            var useNativeCache:Boolean = NativeCacheJobs.isAvailable;
+            var isStopped:Boolean = false;
+            var nextCacheIndex:int = ReplayFileCache.rJumpImageFrameData.length;
+            var pendingCacheJobs:int = 0;
+            var waitingSnapshot:CacheImageMetaData = null; // 메모리 상한 때문에 아직 못 넘긴 스냅샷, 넘길때까지 다음 구간을 그리지 않음
+            const snapshotFrames:Object = {}; // 번호 -> nowFrame (확정 전)
+            const doneCacheIndexes:Object = {}; // 다 썼지만 앞 번호가 아직이라 확정 못 한 번호
+            const cacheGeneration:int = BackgroundWorkerCoordinator.getCacheGeneration();
+
+            function confirmDoneCaches():void
+            {
+                var confirmed:Boolean = false;
+
+                while (doneCacheIndexes[ReplayFileCache.rJumpImageFrameData.length] === true)
+                {
+                    const index:int = ReplayFileCache.rJumpImageFrameData.length;
+                    delete doneCacheIndexes[index];
+                    ReplayFileCache.rJumpImageFrameData.push(snapshotFrames[index]);
+                    delete snapshotFrames[index];
+                    confirmed = true;
+                }
+
+                if (confirmed)
+                {
+                    ReplayFileCache.saveCacheProgress();
+                }
+            }
+
+            // 네이티브 작업이 실패하면 그 번호부터는 확정할 수 없으므로 남은 작업을 취소하고 확정된 다음 번호부터 AS3로 씀
+            function fallBackToSyncCache():void
+            {
+                if (!useNativeCache)
+                {
+                    return;
+                }
+
+                useNativeCache = false;
+                BackgroundWorkerCoordinator.cancelPendingCacheImages();
+                nextCacheIndex = ReplayFileCache.rJumpImageFrameData.length;
+            }
+
+            // 지금 리플레이 캔버스로 캐시 이미지 하나, 메모리 상한이라 못 넘겼으면 false (다음 프레임에 다시)
+            function writeCacheSnapshot(metadata:CacheImageMetaData):Boolean
+            {
+                if (useNativeCache)
+                {
+                    const index:int = nextCacheIndex;
+                    const result:int = NativeCacheJobs.start(AppStateManager.replayCacheImageFolderPath.resolvePath(String(index)).nativePath,
+                            ReplayDrawer.rCanvasLayer1BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, metadata, cacheGeneration, false, function (r:Object):void
+                            {
+                                pendingCacheJobs--;
+
+                                if (isStopped)
+                                {
+                                    return;
+                                }
+
+                                if (r.status === "done")
+                                {
+                                    doneCacheIndexes[index] = true;
+                                    confirmDoneCaches();
+                                }
+                                else
+                                {
+                                    if (r.status !== "cancelled")
+                                    {
+                                        AppStateManager.writeCrashLog("Replay cache image " + index + " failed: " + r.status + " " + r.error);
+                                    }
+                                    fallBackToSyncCache();
+                                }
+                            });
+
+                    if (result === NativeCacheJobs.RESULT_BUSY)
+                    {
+                        return false;
+                    }
+
+                    if (result === NativeCore.OK)
+                    {
+                        snapshotFrames[index] = metadata.nowFrame;
+                        nextCacheIndex++;
+                        pendingCacheJobs++;
+                        return true;
+                    }
+
+                    fallBackToSyncCache();
+                }
+
+                // 확정된 다음 번호로 호출 안에서 씀
+                ReplayFileCache.createCacheImage(ReplayDrawer.rCanvasLayer1BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, metadata);
+                nextCacheIndex = ReplayFileCache.rJumpImageFrameData.length;
+                ReplayFileCache.saveCacheProgress();
+                return true;
+            }
+
             function printPrograssHint(bytes:Number):void
             {
                 const perc:Number = Math.round(((totalSize - bytes) / totalSize) * 100);
@@ -739,12 +839,30 @@ package Modules.ReplayEngine
 
             function onFrameEnter(e:Event):void
             {
+                if (waitingSnapshot !== null)
+                {
+                    if (!writeCacheSnapshot(waitingSnapshot))
+                    {
+                        printPrograssHint(fs.bytesAvailable);
+                        return;
+                    }
+
+                    waitingSnapshot = null;
+                }
+
                 while (true)
                 {
                     const namojiBytes:Number = fs.bytesAvailable;
 
                     if (namojiBytes === 0)
                     {
+                        // 네이티브 작업이 다 확정된 뒤에 끝냄
+                        if (pendingCacheJobs > 0)
+                        {
+                            return;
+                        }
+
+                        isStopped = true;
                         handleReplayCacheImageGenerateComplete(fs, onFrameEnter, _frameSum, _LastframeSum, finalizeFunc);
                         return;
                     }
@@ -765,34 +883,29 @@ package Modules.ReplayEngine
 
                     if (dataWriteCount > ReplayFileCache.REPLAY_DISK_CACHE_FRAME_INTERVAL)
                     {
-                        var imgData1:ByteArray = new ByteArray();
-                        var imgData2:ByteArray = new ByteArray();
                         dataWriteCount = 0;
-                        rect = new Rectangle(0, 0, ReplayDrawer.rCanvasLayer1BitmapData.width, ReplayDrawer.rCanvasLayer1BitmapData.height);
-                        ReplayDrawer.rCanvasLayer1BitmapData.copyPixelsToByteArray(rect, imgData1);
-                        ReplayDrawer.rCanvasLayer2BitmapData.copyPixelsToByteArray(rect, imgData2);
-                        imgData1.compress();
-                        imgData2.compress();
-                        ReplayFileCache.createCacheImage(
-                                imgData1,
-                                imgData2,
-                                new CacheImageMetaData
-                                (
-                                    ReplayDrawer.rCanvasLayer1BitmapData.width,
-                                    ReplayDrawer.rCanvasLayer1BitmapData.height,
-                                    ReplayState.RCANVAS_BG_COLOR,
-                                    fs.position,
-                                    _LastframeSum,
-                                    _frameSum,
-                                    ReplayState.rMirrorON
-                                ));
-                        imgData1.clear();
-                        imgData2.clear();
-                        ReplayFileCache.saveCacheProgress();
+                        // 메타데이터는 지금(커서 위치 포함) 만들어 둠, 메모리 상한이면 다음 프레임에 같은 상태로 다시 시도
+                        const snapshot:CacheImageMetaData = new CacheImageMetaData
+                            (
+                                ReplayDrawer.rCanvasLayer1BitmapData.width,
+                                ReplayDrawer.rCanvasLayer1BitmapData.height,
+                                ReplayState.RCANVAS_BG_COLOR,
+                                fs.position,
+                                _LastframeSum,
+                                _frameSum,
+                                ReplayState.rMirrorON
+                            );
 
                         if (ReplayController.seekBarBox.prograssBar.width > 0)
                         {
                             ReplayController.seekBarBox.resetReplayPrograssBarWidth();
+                        }
+
+                        if (!writeCacheSnapshot(snapshot))
+                        {
+                            waitingSnapshot = snapshot;
+                            printPrograssHint(fs.bytesAvailable);
+                            return;
                         }
                     }
                 }
@@ -803,6 +916,13 @@ package Modules.ReplayEngine
             {
                 main.stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
                 fs.close();
+                isStopped = true;
+
+                // 아직 쓰는 중인 네이티브 캐시는 취소 (진행 기록에는 확정된 번호만 있어서 다음 실행때 그 뒤부터 다시 만듦)
+                if (pendingCacheJobs > 0)
+                {
+                    BackgroundWorkerCoordinator.cancelPendingCacheImages();
+                }
             };
         }
 

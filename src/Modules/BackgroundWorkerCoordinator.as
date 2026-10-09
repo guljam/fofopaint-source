@@ -299,8 +299,14 @@ package Modules
         {
             const oldGeneration:int = cacheGeneration++;
             cacheGenerationShared.atomicCompareAndSwapIntAt(0, oldGeneration, cacheGeneration);
+            NativeCacheJobs.setGeneration(cacheGeneration);
             // 캐시를 잘라내거나 새로 만들면 프레임 기준이 바뀌므로 실패 기록도 버림
             cacheFailedFrame = 0;
+        }
+
+        public static function getCacheGeneration():int
+        {
+            return cacheGeneration;
         }
 
         // 마지막으로 만들었거나 만들고 있거나 만들지 못한 캐시 이미지의 프레임, 취소된 이전 세대 작업은 빼고 봄
@@ -346,6 +352,20 @@ package Modules
                 undoDataQueue = [];
             }
 
+            const jobId:int = ++cacheJobSeq;
+            const generation:int = cacheGeneration;
+            const tempFile:File = AppStateManager.replayCacheImageTempFolderPath.resolvePath(jobId + ".tmp");
+            undoDataQueue.push([jobId, generation, tempFile, metadata]);
+
+            // 네이티브: 두 레이어 내부 버퍼를 복사하고 압축·쓰기는 네이티브 스레드에서 (내부 버퍼 원본 덤프라 손실 없음)
+            if (NativeCacheJobs.start(tempFile.nativePath, layer1, layer2, metadata, generation, true, function (result:Object):void
+                    {
+                        finishCacheImageJob(jobId, (result.status === "done") ? "done" : (result.status === "cancelled") ? "cancelled:native" : "error:native " + result.error);
+                    }) === NativeCore.OK)
+            {
+                return;
+            }
+
             const rect:Rectangle = new Rectangle(0, 0, metadata.bmpdWidth, metadata.bmpdHeight);
             // shareable로 넘기면 채널에서 복사가 안일어나서 메모리 최고치가 줄어듬
             var data:ByteArray = new ByteArray();
@@ -354,11 +374,6 @@ package Modules
             data1.shareable = true;
             layer1.copyPixelsToByteArray(rect, data);
             layer2.copyPixelsToByteArray(rect, data1);
-
-            const jobId:int = ++cacheJobSeq;
-            const generation:int = cacheGeneration;
-            const tempFile:File = AppStateManager.replayCacheImageTempFolderPath.resolvePath(jobId + ".tmp");
-            undoDataQueue.push([jobId, generation, tempFile, metadata]);
 
             sendDataToWorker(function ():void
                 {
@@ -413,6 +428,13 @@ package Modules
             if (undoDataQueue.length === 0)
             {
                 undoDataQueue = null;
+                // 잠금이 풀렸으니 대기 중인 불러오기를 이어감 (worker 작업이면 worker가 멈출때 stopWorkerIfIdle이 함)
+                FileManager.refreshFileOperationButtonsTopbar();
+
+                if (LoadBoxController.isLoadPendingAfterSaving && !FileManager.isReplayDataLocked())
+                {
+                    LoadBoxController.loadFileTo("canvas");
+                }
             }
         }
 

@@ -14,7 +14,6 @@ package Modules
         public static const STATUS_FAILED:String = "failed"; // 폴더 없음, 권한 없음, 디스크 부족 등 쓰기 실패
         public static const STATUS_INTERNAL:String = "internal"; // 네이티브 내부 오류, 기존 worker 경로로 다시 저장해야 함
 
-        private static var jobSeq:int = 0;
         private static var isListening:Boolean = false;
         private static const handlers:Object = {}; // 작업 번호 -> function(result:Object):void
         private static var pendingCount:int = 0;
@@ -47,7 +46,7 @@ package Modules
                 return false;
             }
 
-            const id:int = ++jobSeq;
+            const id:int = NativeCore.nextJobId();
             const result:int = NativeCore.callResult("saveStart", id, pngPath, fofoPath, composite, first1, first2, current1, current2, reference,
                     repdataPath, repdataLength, memoryGroups, mirrorBytes, timingBytes, firstMeta, finalMeta, referenceMeta, options);
 
@@ -69,7 +68,7 @@ package Modules
                 return false;
             }
 
-            const id:int = ++jobSeq;
+            const id:int = NativeCore.nextJobId();
             const result:int = NativeCore.callResult("pngStart", id, path, image, 6);
 
             if (result !== NativeCore.OK)

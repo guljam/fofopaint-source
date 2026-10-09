@@ -134,6 +134,8 @@ static void ContextInitializer(void* extData, const uint8_t* ctxType, FREContext
         addFunctions(list, count);
         list = jobFunctions(&count);
         addFunctions(list, count);
+        list = cacheFunctions(&count);
+        addFunctions(list, count);
     }
 
     jobs::setContext(ctx);
@@ -143,8 +145,11 @@ static void ContextInitializer(void* extData, const uint8_t* ctxType, FREContext
 
 static void ContextFinalizer(FREContext ctx)
 {
-    // 앱 종료: 진행 중인 저장은 끝날때까지 기다림 (AS3 쪽이 먼저 기다리므로 보통 바로 지나감), 최대 60초
-    for (int waited = 0; waited < 6000 && activeSaveCount() > 0; waited++)
+    // 앱 종료: 캐시 작업은 취소 (세대를 바꾸면 블록 사이에서 멈춤, 남은 캐시는 다음 실행때 다시 만듦)
+    cancelAllCacheJobs();
+
+    // 진행 중인 저장은 끝날때까지 기다림 (AS3 쪽이 먼저 기다리므로 보통 바로 지나감), 최대 60초
+    for (int waited = 0; waited < 6000 && (activeSaveCount() > 0 || activeCacheJobCount() > 0); waited++)
         Sleep(10);
 
     // 이 뒤로는 완료 알림(FREDispatchStatusEventAsync)을 보내지 않음

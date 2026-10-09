@@ -2,6 +2,7 @@ package worker
 {
     import Modules.ReplayDataCodec;
     import Modules.PixelRestore;
+    import Modules.CacheImageFormat;
     import flash.display.BitmapData;
     import flash.display.PNGEncoderOptions;
     import flash.display.Sprite;
@@ -89,21 +90,19 @@ package worker
             if (isCacheGenerationChanged(generation))
                 return "cancelled:0";
 
-            const compressed1:ByteArray = copyAndCompress(layer1);
+            const copy1:ByteArray = copyLayer(layer1);
+            const copy2:ByteArray = copyLayer(layer2);
+            // 새 캐시 형식 (Modules.CacheImageFormat, straight + zlib), 메타데이터는 alias "CacheImageMetaData"로 써서 main에서 CacheImageMetaData로 읽힘
+            const metadataBytes:ByteArray = new ByteArray();
+            metadataBytes.writeObject(metadata);
+            const encoded:ByteArray = CacheImageFormat.encodeStraight(copy1, copy2, metadata.bmpdWidth, metadata.bmpdHeight, metadataBytes);
+            copy1.clear();
+            copy2.clear();
 
             if (isCacheGenerationChanged(generation))
             {
-                compressed1.clear();
+                encoded.clear();
                 return "cancelled:1";
-            }
-
-            const compressed2:ByteArray = copyAndCompress(layer2);
-
-            if (isCacheGenerationChanged(generation))
-            {
-                compressed1.clear();
-                compressed2.clear();
-                return "cancelled:2";
             }
 
             const fs:FileStream = new FileStream();
@@ -111,26 +110,23 @@ package worker
             try
             {
                 fs.open(new File(path), FileMode.WRITE);
-                fs.writeObject([compressed1, compressed2, metadata]);
+                fs.writeBytes(encoded);
             }
             finally
             {
                 fs.close();
-                compressed1.clear();
-                compressed2.clear();
+                encoded.clear();
             }
 
             return "done";
         }
 
-        // shareable ByteArray는 compress를 못해서(Error #3735) worker 메모리로 복사한 뒤 압축
-        // 원본은 복사 직후 바로 놓아서 두 레이어 원본과 복사본이 동시에 올라가지 않게 함
-        private function copyAndCompress(source:ByteArray):ByteArray
+        // shareable ByteArray는 compress를 못해서(Error #3735) worker 메모리로 복사, 원본은 복사 직후 바로 놓음
+        private function copyLayer(source:ByteArray):ByteArray
         {
             const copy:ByteArray = new ByteArray();
             copy.writeBytes(source);
             source.clear();
-            copy.compress();
             return copy;
         }
 

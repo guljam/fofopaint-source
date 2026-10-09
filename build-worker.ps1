@@ -1,6 +1,6 @@
 $src = "${PSScriptRoot}\src\worker\BackgroundImageProcessor.as"
 $out = "${PSScriptRoot}\worker.swf"
-$inputs = @(Get-ChildItem -Path "${PSScriptRoot}\src\worker" -Filter *.as) + @(Get-Item -Path "${PSScriptRoot}\src\Modules\PixelRestore.as", "${PSScriptRoot}\src\Modules\NativeCore.as") +@(Get-Item -Path "${PSScriptRoot}\src\Modules\ReplayDataCodec.as")
+$inputs = @(Get-ChildItem -Path "${PSScriptRoot}\src\worker" -Filter *.as) + @(Get-Item -Path "${PSScriptRoot}\src\Modules\PixelRestore.as", "${PSScriptRoot}\src\Modules\NativeCore.as", "${PSScriptRoot}\src\Modules\CacheImageFormat.as") +@(Get-Item -Path "${PSScriptRoot}\src\Modules\ReplayDataCodec.as")
 
 if (-not (Test-Path -Path $out) -or ($inputs | Where-Object { $_.LastWriteTime -gt (Get-Item -Path $out).LastWriteTime })) {
     Write-Host "Compiling BackgroundImageProcessor.as..."
