@@ -6,6 +6,7 @@ package Modules
     import Modules.DrawEngine.CanvasResizer;
     import Modules.Tools.PenTool;
     import Modules.DrawEngine.DrawCanvas;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.getTimer;
 
@@ -20,12 +21,22 @@ package Modules
             _cursor.visible = false;
         }
 
-        private static const INVERT_THRESHOLD:Number = 21; // 커서 색과 밑 색의 차이가 이 값 이하면 반전
+        // 밑 색 밝기(L*)가 검은 커서면 이 값 이하, 흰 커서면 100 - 이 값 이상일 때 "커서와 비슷함"
+        // 반드시 50 미만이어야 함. 50 이상이면 같은 밝기에서 두 조건이 동시에 참이 되어 확인할 때마다 검정<->흰색이 오감
+        private static const LIGHTNESS_THRESHOLD:Number = 21;
+        // 화면 기준 커서 지름(펜 크기 x 줌)이 이 값 미만이면 중심 1점만, 이 값 이상이면 중심 + 4점
+        private static const SAMPLE_5_MIN_DIAMETER:Number = 16;
+        // 이 값 이상이면 중심 + 8점 (총 개수는 1/5/9로 홀수라 동점이 없음)
+        private static const SAMPLE_9_MIN_DIAMETER:Number = 40;
         private static const CHECK_INTERVAL:Number = 0.3; // 밑 색 확인 간격(초)
         private static const CHECK_TIMER_NAME:String = "penCursorInvertTimer";
 
         private static const _cursor:PenCursorPreviewPixel = new PenCursorPreviewPixel(); // 펜사이즈 미리 보기
         private static var lastCheckTime:int = -1000000;
+
+        // 테두리 샘플 방향: 상하좌우 4개 다음에 대각선 4개
+        private static const SAMPLE_DIR:Vector.<Number> = new <Number>[1, 0, 0, 1, -1, 0, 0, -1, Math.SQRT1_2, Math.SQRT1_2, -Math.SQRT1_2, Math.SQRT1_2, -Math.SQRT1_2, -Math.SQRT1_2, Math.SQRT1_2, -Math.SQRT1_2];
+        private static const samplePoint:Point = new Point();
         private static var _cursorSize:Number = PenSettings.penSize;
         private static var _cursorShape:Boolean = PenSettings.penIsSquare;
         private static var cursorSize:Number = 3.0;
@@ -213,17 +224,9 @@ package Modules
             }
         }
 
-        // 커서 중심 1픽셀 밑의 색(레이어2를 배경 위에, 레이어1을 그 위에 합성)을 구해 반전 여부를 정함
-        private static function checkColor():void
+        // 캔버스 좌표 (px, py) 한 점의 합성색: 배경 위에 레이어2, 그 위에 레이어1 (숨긴 레이어는 건너뜀)
+        private static function compositeAt(px:int, py:int):uint
         {
-            lastCheckTime = getTimer();
-            const px:int = Math.floor(CanvasView.canvasPanel.mouseX);
-            const py:int = Math.floor(CanvasView.canvasPanel.mouseY);
-            if (px < 0 || py < 0 || px >= DrawCanvas.CANVAS_WIDTH || py >= DrawCanvas.CANVAS_HEIGHT)
-            {
-                return; // 캔버스 밖은 직전 색을 유지
-            }
-
             const bg:uint = DrawCanvas.CANVAS_BG_COLOR;
             var r:Number = (bg >>> 16) & 0xFF;
             var g:Number = (bg >>> 8) & 0xFF;
@@ -245,12 +248,69 @@ package Modules
                 g = (((c1 >>> 8) & 0xFF) * a1 + g * (255 - a1)) / 255;
                 b = ((c1 & 0xFF) * a1 + b * (255 - a1)) / 255;
             }
+            return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b);
+        }
 
-            const composite:uint = (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b);
-            const cursorColor:uint = _cursor.isInverted ? 0xFFFFFF : 0x000000;
-            if (Utils.getColorDifferenceForHuman(cursorColor, composite) <= INVERT_THRESHOLD)
+        // 샘플 i(1~)의 커서 로컬 좌표를 samplePoint에 넣음. 원은 반지름 위, 납작한 사각형은 변의 중점/꼭짓점 (본선 위)
+        private static function setSampleLocal(i:int, diameter:Number):void
+        {
+            const dx:Number = SAMPLE_DIR[(i - 1) * 2];
+            const dy:Number = SAMPLE_DIR[(i - 1) * 2 + 1];
+            if (_cursorShape === false)
             {
-                _cursor.setInverted(!_cursor.isInverted);
+                const radius:Number = Math.max(diameter / 2 - 0.5, 0);
+                samplePoint.setTo(dx * radius, dy * radius);
+            }
+            else
+            {
+                const halfW:Number = Math.max(diameter / 2 - 0.5, 0);
+                const halfH:Number = Math.max(diameter / 8 - 0.5, 0);
+                samplePoint.setTo((dx > 0 ? halfW : (dx < 0 ? -halfW : 0)), (dy > 0 ? halfH : (dy < 0 ? -halfH : 0)));
+            }
+        }
+
+        // 커서 중심과 테두리 여러 점 밑의 밝기(L*)를 보고, 엄격한 과반이 커서와 비슷하면 반전 상태를 뒤집음
+        private static function checkColor():void
+        {
+            lastCheckTime = getTimer();
+            const diameter:Number = _cursorSize * CanvasView.canvasZoomMultiplier;
+            const count:int = (diameter < SAMPLE_5_MIN_DIAMETER) ? 1 : ((diameter < SAMPLE_9_MIN_DIAMETER) ? 5 : 9);
+            const isInverted:Boolean = _cursor.isInverted;
+            var valid:int = 0;
+            var similar:int = 0;
+
+            for (var i:int = 0; i < count; i++)
+            {
+                var px:int;
+                var py:int;
+                if (i === 0)
+                {
+                    px = Math.floor(CanvasView.canvasPanel.mouseX);
+                    py = Math.floor(CanvasView.canvasPanel.mouseY);
+                }
+                else
+                {
+                    // 줌, 캔버스 회전, 미러, 커서 회전이 한 번에 반영됨
+                    setSampleLocal(i, diameter);
+                    const canvasPos:Point = CanvasView.canvasPanel.globalToLocal(_cursor.localToGlobal(samplePoint));
+                    px = Math.floor(canvasPos.x);
+                    py = Math.floor(canvasPos.y);
+                }
+                if (px < 0 || py < 0 || px >= DrawCanvas.CANVAS_WIDTH || py >= DrawCanvas.CANVAS_HEIGHT)
+                {
+                    continue; // 캔버스 밖 점은 세지 않음
+                }
+                valid++;
+                const lightness:Number = Utils.getLightness(compositeAt(px, py));
+                if (isInverted ? (lightness >= 100 - LIGHTNESS_THRESHOLD) : (lightness <= LIGHTNESS_THRESHOLD))
+                {
+                    similar++;
+                }
+            }
+
+            if (valid > 0 && similar * 2 > valid)
+            {
+                _cursor.setInverted(!isInverted);
             }
         }
     }

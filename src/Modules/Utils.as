@@ -200,6 +200,28 @@ package Modules
             return i < 0 ? 0 : Math.sqrt(i);
         }
 
+        // sRGB 채널값(0~255) -> 선형값 표 (getLightness에서 조회)
+        private static const LINEAR_TABLE:Vector.<Number> = buildLinearTable();
+
+        private static function buildLinearTable():Vector.<Number>
+        {
+            const table:Vector.<Number> = new Vector.<Number>(256, true);
+            for (var i:int = 0; i < 256; i++)
+            {
+                const c:Number = i / 255;
+                table[i] = (c <= 0.04045) ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+            }
+            return table;
+        }
+
+        // CIELAB 밝기 L* (0~100, sRGB D65). 무채색 커서와의 대비처럼 밝기만 필요할 때 사용
+        public static function getLightness(rgb:uint):Number
+        {
+            const y:Number = 0.2126 * LINEAR_TABLE[(rgb >>> 16) & 0xFF] + 0.7152 * LINEAR_TABLE[(rgb >>> 8) & 0xFF] + 0.0722 * LINEAR_TABLE[rgb & 0xFF];
+            const f:Number = (y > 0.008856) ? Math.pow(y, 1 / 3) : 7.787 * y + 16 / 116;
+            return 116 * f - 16;
+        }
+
         // 요소 colortransform바꾸기
         public static function setColorTransform(target:DisplayObject, color:uint, customAlpha:Number = NaN):void
         {
