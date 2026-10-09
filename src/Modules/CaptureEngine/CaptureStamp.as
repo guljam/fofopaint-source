@@ -15,13 +15,13 @@ package Modules.CaptureEngine
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.utils.getTimer;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.L5App.InputManager.InputManager;
     import Modules.L4UI.PaletteController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 층: L3 기능 - 캡처 도장(시간 스탬프)과 글꼴
     public class CaptureStamp

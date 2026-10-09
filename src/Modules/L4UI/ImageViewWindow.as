@@ -20,11 +20,11 @@ package Modules.L4UI
     import flash.events.NativeWindowBoundsEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.L5App.AppWindowState;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 층: L4 UI - 캔버스 이미지를 별도 창으로 보여주는 창
     public final class ImageViewWindow

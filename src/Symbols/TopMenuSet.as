@@ -17,7 +17,6 @@
 	import Modules.AppUpdater;
 	import Modules.Utils;
 	import Modules.CaptureEngine.CaptureStamp;
-	import Modules.ReplayEngine.ReplayState;
 	import Modules.L4UI.ImageViewWindow;
 	import Modules.L3Feature.Tools.LassoTool;
 	import Modules.L5App.ReplayEngine.ReplayController;
@@ -26,6 +25,7 @@
 	import Modules.L4UI.UIEngine.UIController;
 	import Modules.L4UI.PenSizePreviewCursor;
 	import Modules.L2Engine.DrawEngine.DrawCanvas;
+	import Modules.L2Engine.ReplayEngine.ReplayState;
 
 	// 층: L4 UI - 상단 메뉴 화면 묶음
 	public class TopMenuSet extends Sprite

@@ -17,7 +17,6 @@ package Modules.L2Engine.ReplayEngine
     import Modules.L5App.FileManager;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
     import Modules.ReplayEngine.ReplaySaveMetaData;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L2Engine.DrawEngine.DrawCanvas;

@@ -13,7 +13,6 @@ package Modules.L2Engine.ReplayEngine
     import Modules.Utils;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.L2Engine.LassoLayers;
     import Modules.L1Data.Tools.PenSettings;
 

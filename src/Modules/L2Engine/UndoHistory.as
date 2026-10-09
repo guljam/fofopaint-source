@@ -4,7 +4,6 @@ package Modules.L2Engine
     import flash.filesystem.FileStream;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
     import Modules.CacheImageMetaData;
     import Modules.L2Engine.ReplayEngine.ReplayClock;
@@ -14,6 +13,7 @@ package Modules.L2Engine
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 메모리 undo 데이터(ReplayState.rMemoryData)를 쌓고 자르는 일과 undo 위치, undo 기준 이미지를 맡음
     // undo 위치를 옮겨서 캔버스를 다시 그리는 일은 UndoController가 함

@@ -1,7 +1,6 @@
 package Modules.L4UI
 {
     import Modules.CaptureEngine.CaptureController;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.UIEngine.UITheme;
 
     import flash.display.Bitmap;
@@ -12,6 +11,7 @@ package Modules.L4UI
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.Utils;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 캔버스 하나(드로우 또는 리플레이)의 화면 배치: 앵커 이동, 배율, 가운데 정렬, 화면 안으로 끌어오기
     // 드로우는 DrawViewport(CanvasView.viewport), 리플레이는 ReplayViewport(ReplayDrawer.viewport)가 모드별 값과 동작을 재정의함

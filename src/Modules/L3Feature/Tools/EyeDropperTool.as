@@ -13,7 +13,6 @@ package Modules.L3Feature.Tools
     import flash.events.MouseEvent;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
-    import Modules.ReplayEngine.ReplayState;
     import flash.events.Event;
     import Modules.L4UI.ColorPickerController;
     import Modules.L5App.FileManager;
@@ -28,6 +27,7 @@ package Modules.L3Feature.Tools
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L1Data.ColorHistory;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 층: L3 기능 - 스포이드 툴
     public class EyeDropperTool

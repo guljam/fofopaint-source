@@ -12,7 +12,6 @@ package Modules.CaptureEngine
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L5App.InputManager.CaptureModeInput;
     import Modules.L4UI.ColorPickerController;
@@ -31,6 +30,7 @@ package Modules.CaptureEngine
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L4UI.CanvasViewport;
     import Modules.L4UI.DrawEngine.CanvasResizer;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 층: L3 기능 - 캡처 모드 진입·종료와 캡처 처리
     public class CaptureController

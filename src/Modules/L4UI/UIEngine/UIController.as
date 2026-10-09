@@ -4,7 +4,6 @@ package Modules.L4UI.UIEngine
     import Modules.CaptureEngine.CaptureStamp;
     import Modules.ClipboardManager;
     import Modules.ReferenceLayerController;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.Utils;
     import Symbols.CanvasInfoSet;
     import Symbols.RotateCursorSet;
@@ -41,6 +40,7 @@ package Modules.L4UI.UIEngine
     import Modules.L2Engine.LassoLayers;
     import Modules.L4UI.CanvasViewport;
     import Modules.L4UI.DrawEngine.CanvasResizer;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 스테이지 UI 배치: 표시 순서, 뷰포트 여백, 창 크기 변경 배치, UI 색상/스케일을 각 패널에 반영
     // 층: L4 UI - 스테이지 UI 배치와 UI 색상·스케일을 패널에 반영

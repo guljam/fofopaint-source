@@ -15,7 +15,6 @@ package Modules.L3Feature.Tools
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.getTimer;
-	import Modules.ReplayEngine.ReplayState;
 	import Modules.L4UI.ColorPickerController;
 	import Modules.L5App.ReplayEngine.ReplayController;
 	import Modules.L4UI.PaletteController;
@@ -29,6 +28,7 @@ package Modules.L3Feature.Tools
 	import Modules.Tools.PenStabilizer;
 	import Modules.L1Data.ColorHistory;
 	import Modules.L2Engine.UndoHistory;
+	import Modules.L2Engine.ReplayEngine.ReplayState;
 
 	// 층: L3 기능 - 펜 그리기와 지우개
 	public final class PenTool

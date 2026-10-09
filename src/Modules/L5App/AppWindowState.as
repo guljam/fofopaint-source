@@ -5,7 +5,6 @@ package Modules.L5App
     import Modules.ClipboardManager;
     import flash.utils.getTimer;
     import Modules.NativeSave;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.CaptureEngine.CaptureController;
     import flash.geom.Rectangle;
     import flash.display.Screen;
@@ -34,6 +33,7 @@ package Modules.L5App
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.DrawEngine.CanvasResizer;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState

@@ -16,7 +16,6 @@ package Modules.L3Feature.Tools
     import Symbols.FillPenMenuSet;
     import flash.geom.Rectangle;
     import flash.filters.BlurFilter;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.L4UI.ColorPickerController;
     import Modules.Tools.DottedLineTool;
     import Modules.L4UI.SidebarController;
@@ -32,6 +31,7 @@ package Modules.L3Feature.Tools
     import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L1Data.ColorHistory;
     import Modules.L2Engine.UndoHistory;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 층: L3 기능 - 채우기 펜
     public class FillPenTool

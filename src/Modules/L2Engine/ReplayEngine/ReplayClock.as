@@ -6,7 +6,6 @@ package Modules.L2Engine.ReplayEngine
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import Modules.L5App.AppStateManager;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.ReplayEngine.TimingSheet;
     import Modules.L1Data.AppDataPaths;
 

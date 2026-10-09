@@ -21,7 +21,6 @@ package Modules.L3Feature.Tools
     import flash.geom.Matrix;
     import flash.geom.Point;
     import Symbols.RotateCursorSet;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.L4UI.ColorPickerController;
     import Modules.Tools.DottedLineTool;
     import Modules.L5App.InputManager.DrawModeInput;
@@ -40,6 +39,7 @@ package Modules.L3Feature.Tools
     import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L2Engine.LassoLayers;
     import Modules.L2Engine.UndoHistory;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 층: L3 기능 - 올가미 선택과 이동·회전·크기·미러
     public class LassoTool

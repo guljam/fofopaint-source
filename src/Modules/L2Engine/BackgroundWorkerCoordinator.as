@@ -15,7 +15,6 @@ package Modules.L2Engine
     import flash.system.WorkerDomain;
     import flash.system.MessageChannel;
     import flash.utils.ByteArray;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.L5App.FileManager;
     import Modules.L4UI.LoadBoxController;
     import Modules.CacheImageMetaData;
@@ -26,6 +25,7 @@ package Modules.L2Engine
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 층: L2 엔진 - 백그라운드 워커 시작·중지와 데이터 전달
     public final class BackgroundWorkerCoordinator

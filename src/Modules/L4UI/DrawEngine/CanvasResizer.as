@@ -4,7 +4,6 @@ package Modules.L4UI.DrawEngine
     import Modules.MouseState;
     import Modules.Utils;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.UIEngine.UITheme;
 
     import flash.display.Shape;
@@ -22,6 +21,7 @@ package Modules.L4UI.DrawEngine
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 캔버스 상하좌우 리사이즈 버튼과 드래그로 캔버스 크기 조절
     // 층: L2 엔진 - 캔버스 상하좌우 리사이즈 버튼과 드래그로 크기 조절

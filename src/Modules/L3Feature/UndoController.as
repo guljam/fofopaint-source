@@ -4,7 +4,6 @@ package Modules.L3Feature
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
     import flash.geom.Point;
-    import Modules.ReplayEngine.ReplayState;
     import Modules.L5App.FileManager;
     import Modules.L4UI.ImageViewWindow;
     import Modules.ReferenceLayerController;
@@ -22,6 +21,7 @@ package Modules.L3Feature
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
     import Modules.L2Engine.UndoHistory;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // undo / redo / 딥 언두로 위치를 옮기고 그 위치의 캔버스를 다시 그려줌
     // 메모리 undo 데이터와 undo 위치 자체는 UndoHistory가 가지고 있음
