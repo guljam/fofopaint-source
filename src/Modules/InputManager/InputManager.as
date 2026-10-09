@@ -28,6 +28,7 @@ package Modules.InputManager
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.DrawEngine.HandDrawnLine;
     import Modules.ReplayEngine.ReplayController;
+    import Symbols.TopMenuSet;
 
     public class InputManager
     {
@@ -543,7 +544,7 @@ package Modules.InputManager
             // 디버그 확인용
             if (isPressedKey(KEY.f12))
             {
-                HandDrawnLine.drawRect(StrokeBuffer.canvasDrawLayerChild.graphics, 2, 0, 1.0, 150, 150, 300, 300, 0xcccccc, 0.5);
+                UIController.topBar.showUpdateButton();
             }
 
             checkInvalidKey();

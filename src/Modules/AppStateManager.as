@@ -40,7 +40,7 @@ package Modules
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
-            dataFolderPath = File.applicationStorageDirectory.resolvePath(main.APP_STATE_VERSION);
+            dataFolderPath = File.applicationStorageDirectory.resolvePath("portable_"+main.APP_STATE_VERSION);
             appStateFilePath = dataFolderPath.resolvePath("appstate" + main.APP_STATE_VERSION);
             scratchPadDataFilePath = dataFolderPath.resolvePath("scratchdata");
             undoDataFilePath = dataFolderPath.resolvePath("undodata");

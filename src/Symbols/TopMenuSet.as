@@ -20,7 +20,6 @@
 	import Modules.AppUpdater;
 	import Modules.ImageViewWindow;
 	import Modules.Utils;
-	import Modules.CaptureEngine.CaptureController;
 	import Modules.Tools.LassoTool;
 	import Modules.AboutBoxController;
 	import Modules.PenSizePreviewCursor;
@@ -30,7 +29,6 @@
 
 	public class TopMenuSet extends Sprite
 	{
-
 		public const BARSIZE:Number = 38;
 
 		// 버튼 추가시 해야할거
@@ -263,13 +261,11 @@
 		public function hideUpdateButton():void
 		{
 			updateButton.visible = false;
-			aboutButton.visible = true;
 		}
 
 		public function showUpdateButton():void
 		{
 			updateButton.visible = true;
-			aboutButton.visible = false;
 		}
 
 		public function updateTimerPos(stw:Number):void
@@ -569,9 +565,6 @@
 			sideBarONButton2.x = sideBarOFFButton.x;
 			sideBarONButton2.y = sideBarOFFButton.y;
 
-			updateButton.x = aboutButton.x;
-			updateButton.y = aboutButton.y;
-
 			replaySpeedSliderWrapper.y = 4;
 		}
 
@@ -707,6 +700,7 @@
 			sideBarONButton.visible = false;
 			sideBarONButton2.visible = false;
 
+			//세로로 읽어야함 각줄 첫요소가 한세트임
 			buttonOrder = [
 					[replayModeButton, drawModeButton, capOff],
 					[captureButton, repCaptureButton, capSave],
@@ -720,7 +714,8 @@
 					[topBarColorButton, replayRepeatButton, capStampFont],
 					[dpiButton, replaySpeedSliderWrapper, captureInputWarpper],
 					[newWindowButton, newWindowCloseButton],
-					[aboutButton]
+					[aboutButton],
+					[updateButton]
 				];
 
 			drawModeButtons = [
@@ -741,7 +736,8 @@
 					sideBarONButton2,
 					newWindowButton,
 					newWindowCloseButton,
-					aboutButton
+					aboutButton,
+					updateButton
 				];
 
 			replayModeButtons = [

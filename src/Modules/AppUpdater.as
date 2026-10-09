@@ -21,8 +21,9 @@ package Modules
         private static const FLAG_NO_UPDATE:int = 0;
         private static const FLAG_CHECKING_UPDATE:int = (1 << 0);
         private static const FLAG_UPDATE_AVAILABLE:int = (1 << 1);
-        private static const UPDATE_VERSION_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/master/versionInfo.txt";
-        private static const RELEASE_PAGE_URL:String = "https://github.com/guljam/2020FlashPaint/releases/latest";
+        private static const UPDATE_VERSION_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/refs/heads/master/versionInfov2.txt";
+        private static const RELEASE_NOTE_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/refs/heads/master/releasenotev2.txt";
+        private static const RELEASE_PAGE_URL:String = "https://github.com/guljam/2020FlashPaint/releases";
         private static var status:int = FLAG_NO_UPDATE; // 새버전 나왔을때 올려주는 플래그
         public static var newVersionStr:String = ""; // 새버전 문자열 저장
 
@@ -37,37 +38,52 @@ package Modules
             UIController.topBar.hideUpdateButton();
             navigateToURL(new URLRequest(RELEASE_PAGE_URL));
         }
-
+        
+        //gemini 생성 파일 a.b.c 형식비교
         private static function isNewVersion(newVersion:String):Boolean
         {
-            var currentStr:String = main.APP_VERSION; // 또는 APP_VERSION.toString()
-            var current:Array = currentStr.split(".");
-            const newVersionArray:Array = newVersion.split(".");
+            if (!newVersion)
+                return false;
 
-            // 최소 2자리인지 확인
-            if (newVersionArray.length < 2 || current.length < 2)
+            var currentStr:String = main.APP_VERSION;
+            var current:Array = currentStr.split(".");
+            var newVersionArray:Array = newVersion.split(".");
+
+            // 3자리(a.b.c) 형식인지 확인
+            if (newVersionArray.length !== 3 || current.length !== 3)
             {
                 return false;
             }
 
             var newMajor:int = parseInt(newVersionArray[0], 10);
             var newMinor:int = parseInt(newVersionArray[1], 10);
+            var newPatch:int = parseInt(newVersionArray[2], 10);
+
             var curMajor:int = parseInt(current[0], 10);
             var curMinor:int = parseInt(current[1], 10);
+            var curPatch:int = parseInt(current[2], 10);
 
             // NaN 체크
-            if (isNaN(newMajor) || isNaN(newMinor) || isNaN(curMajor) || isNaN(curMinor))
+            if (isNaN(newMajor) || isNaN(newMinor) || isNaN(newPatch) ||
+                    isNaN(curMajor) || isNaN(curMinor) || isNaN(curPatch))
             {
                 return false;
             }
 
-            if (newMajor > curMajor)
-                return true;
-            if (newMajor < curMajor)
-                return false;
+            // 1. Major 비교
+            if (newMajor !== curMajor)
+            {
+                return newMajor > curMajor;
+            }
 
-            // major가 같으면 minor 비교
-            return newMinor > curMinor;
+            // 2. Minor 비교
+            if (newMinor !== curMinor)
+            {
+                return newMinor > curMinor;
+            }
+
+            // 3. Patch 비교
+            return newPatch > curPatch;
         }
 
         private static function getVersionFileFromGithub(onComplete:Function):void
@@ -107,7 +123,6 @@ package Modules
                 return;
 
             status = FLAG_CHECKING_UPDATE;
-            deleteOldUpdateFile();
 
             getVersionFileFromGithub(function (versionStr:String):void
                 {
@@ -121,24 +136,6 @@ package Modules
                     status = FLAG_UPDATE_AVAILABLE;
                     UIController.topBar.showUpdateButton();
                 });
-        }
-
-        // 이전 버전의 .air 자동 업데이트가 받아두었던 파일이 남아있으면 지움
-        private static function deleteOldUpdateFile():void
-        {
-            try
-            {
-                const oldFile:File = File.applicationStorageDirectory.resolvePath("updateTmpFile.air");
-
-                if (oldFile.exists)
-                {
-                    oldFile.deleteFile();
-                }
-            }
-            catch (error:Error)
-            {
-                trace("Old update file delete failed: " + error);
-            }
         }
     }
 }
