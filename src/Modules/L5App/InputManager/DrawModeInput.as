@@ -1,6 +1,5 @@
 package Modules.L5App.InputManager
 {
-    import Modules.DrawEngine.CanvasLayers;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.MouseState;
     import Modules.AppUpdater;
@@ -11,7 +10,6 @@ package Modules.L5App.InputManager
     import Modules.Utils;
     import Modules.CaptureEngine.CaptureController;
     import Modules.Tools.MoveTool;
-    import Modules.Tools.ZoomTool;
     import Modules.UIEngine.UITheme;
 
     import flash.display.DisplayObject;
@@ -45,6 +43,8 @@ package Modules.L5App.InputManager
     import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L2Engine.DrawEngine.CanvasLayers;
+    import Modules.L3Feature.Tools.ZoomTool;
 
     // 드로우 모드의 키보드/마우스 입력 (툴 단축키, 툴박스2, 드로우 모드 버튼)
     // 층: L5 앱 흐름 - 드로우 모드의 키보드/마우스 입력

@@ -5,7 +5,6 @@ package Modules.L2Engine.ReplayEngine
     import flash.filesystem.FileStream;
     import flash.utils.Dictionary;
     import flash.utils.getTimer;
-    import Modules.ReplayEngine.ReplayDrawCommands;
     import Modules.ReplayEngine.ReplayState;
     import Modules.L1Data.AppDataPaths;
 

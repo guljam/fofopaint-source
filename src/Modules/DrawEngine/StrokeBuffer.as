@@ -1,6 +1,5 @@
 package Modules.DrawEngine
 {
-    import Modules.Tools.PenTool;
 
     import flash.display.Bitmap;
     import flash.display.BitmapData;
@@ -10,6 +9,7 @@ package Modules.DrawEngine
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L3Feature.Tools.PenTool;
 
     // 획을 레이어에 합치기 전에 임시로 그리는 버퍼와 갱신 영역(클립 사각형)
     // 층: L2 엔진 - 획을 레이어에 합치기 전의 임시 그리기 버퍼와 갱신 영역

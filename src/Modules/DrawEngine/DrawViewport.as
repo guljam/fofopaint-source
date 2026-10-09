@@ -2,7 +2,6 @@ package Modules.DrawEngine
 {
     import Modules.CanvasViewport;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.Tools.ZoomTool;
     import Modules.UIEngine.CanvasNavigator;
 
     import flash.display.Bitmap;
@@ -14,6 +13,7 @@ package Modules.DrawEngine
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L3Feature.Tools.ZoomTool;
 
     // 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)
     // 층: L2 엔진 - 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)

@@ -39,7 +39,7 @@ package Modules.L4UI.UIEngine
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.DrawEngine.StrokeBuffer;
-    import Modules.Tools.ZoomTool;
+    import Modules.L3Feature.Tools.ZoomTool;
 
     // 스테이지 UI 배치: 표시 순서, 뷰포트 여백, 창 크기 변경 배치, UI 색상/스케일을 각 패널에 반영
     // 층: L4 UI - 스테이지 UI 배치와 UI 색상·스케일을 패널에 반영

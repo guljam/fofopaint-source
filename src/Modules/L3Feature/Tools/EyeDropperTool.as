@@ -1,6 +1,5 @@
 package Modules.L3Feature.Tools
 {
-    import Modules.DrawEngine.CanvasLayers;
     import Modules.MouseState;
     import Modules.InputPriority;
     import Modules.CaptureEngine.CaptureController;
@@ -18,7 +17,6 @@ package Modules.L3Feature.Tools
     import flash.events.Event;
     import Modules.L4UI.ColorPickerController;
     import Modules.L5App.FileManager;
-    import Modules.Tools.PenTool;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
@@ -28,6 +26,7 @@ package Modules.L3Feature.Tools
     import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L2Engine.DrawEngine.CanvasLayers;
 
     // 층: L3 기능 - 스포이드 툴
     public class EyeDropperTool

@@ -1,7 +1,6 @@
-package Modules.ReplayEngine
+package Modules.L2Engine.ReplayEngine
 {
     import Modules.DrawEngine.StrokeBuffer;
-    import Modules.Tools.PenTool;
     import flash.geom.Point;
     import flash.display.LineScaleMode;
     import flash.display.CapsStyle;
@@ -15,6 +14,8 @@ package Modules.ReplayEngine
     import Modules.L3Feature.Tools.LassoTool;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L3Feature.Tools.PenTool;
+    import Modules.ReplayEngine.ReplayState;
 
     // 층: L2 엔진 - 리플레이 그리기 명령 실행과 리플레이 커서 위치 관리
     public class ReplayDrawCommands

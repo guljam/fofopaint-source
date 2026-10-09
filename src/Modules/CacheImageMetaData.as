@@ -2,7 +2,7 @@ package Modules
 {
     import flash.display.BitmapData;
     import flash.geom.Point;
-    import Modules.ReplayEngine.ReplayDrawCommands;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
 
     // 층: L1 데이터 - 캐시 이미지 파일에 저장하는 메타 정보
     public class CacheImageMetaData

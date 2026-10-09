@@ -1,6 +1,5 @@
 package Modules.Tools
 {
-    import Modules.DrawEngine.CanvasLayers;
     import Modules.InputPriority;
     import Modules.MouseState;
     import flash.events.MouseEvent;
@@ -18,6 +17,7 @@ package Modules.Tools
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L2Engine.DrawEngine.CanvasLayers;
 
     // 층: L3 기능 - 이동 툴
     public class MoveTool
