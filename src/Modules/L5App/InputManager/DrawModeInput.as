@@ -465,7 +465,7 @@ package Modules.L5App.InputManager
                     {
                         if (CanvasView.canvasAnchorPoint.rotation !== 0.0)
                         {
-                            CanvasView.resetRotationDrawMode();
+                            UIController.resetRotationDrawMode();
                             CanvasNavigator.updateCursor();
                         }
                     }
@@ -475,7 +475,7 @@ package Modules.L5App.InputManager
                     {
                         if (CanvasView.canvasZoomMultiplier !== 1.0)
                         {
-                            CanvasView.resetZoomDrawMode();
+                            UIController.resetZoomDrawMode();
                             CanvasNavigator.updateCursor();
                         }
                     }
@@ -576,7 +576,7 @@ package Modules.L5App.InputManager
                 case KeyState.KEY.a:
                 case KeyState.KEY.l:
                     {
-                        CanvasView.mirrorCanvas();
+                        UIController.mirrorCanvas();
                         ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_MIRROR);
                     }
                     break;
@@ -897,7 +897,7 @@ package Modules.L5App.InputManager
                     {
                         if (CanvasView.canvasZoomMultiplier !== 1.0)
                         {
-                            CanvasView.resetZoomDrawMode();
+                            UIController.resetZoomDrawMode();
                             CanvasNavigator.updateCursor();
                         }
                     }
@@ -917,7 +917,7 @@ package Modules.L5App.InputManager
                     {
                         if (CanvasView.canvasAnchorPoint.rotation !== 0.0)
                         {
-                            CanvasView.resetRotationDrawMode();
+                            UIController.resetRotationDrawMode();
                             CanvasNavigator.updateCursor();
                         }
                     }

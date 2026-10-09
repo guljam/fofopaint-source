@@ -470,7 +470,7 @@ package Modules.L5App
                             );
 
                         if (DrawCanvas.mirrorON !== appStateObject.isCanvasMirrored)
-                            CanvasView.mirrorCanvas(true);
+                            UIController.mirrorCanvas(true);
 
                         // Grid Overlay
                         CanvasGridOverlay.gridGapMultiplier = appStateObject.gridValue;

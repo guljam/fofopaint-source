@@ -666,8 +666,8 @@ package Modules.L5App
             DrawCanvas.clearCanvas();
             ReplayDrawer.viewport.centerIn("replay");
             CanvasView.viewport.centerIn("draw");
-            CanvasView.resetZoomDrawMode();
-            CanvasView.resetRotationDrawMode();
+            UIController.resetZoomDrawMode();
+            UIController.resetRotationDrawMode();
             ReplayController.resetCanvasAndReplayData();
 
             // reset vars보다 뒤에 와야함

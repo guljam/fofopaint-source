@@ -342,7 +342,7 @@ package Modules.L4UI.Tools
                         break;
                     case "toolMirror":
                         {
-                            CanvasView.mirrorCanvas();
+                            UIController.mirrorCanvas();
                         }
                         break;
                     case "toolMove":
@@ -650,7 +650,7 @@ package Modules.L4UI.Tools
                     break;
                 case "toolMirror":
                     {
-                        CanvasView.mirrorCanvas();
+                        UIController.mirrorCanvas();
                         showNowToolIconToCursorTemp(ToolState.TOOL_MIRROR);
                     }
                     break;

@@ -807,7 +807,7 @@ package Modules.L3Feature.Tools
             {
                 if (CanvasView.canvasZoomMultiplier !== 1.0)
                 {
-                    CanvasView.resetZoomDrawMode();
+                    UIController.resetZoomDrawMode();
                     CanvasNavigator.updateCursor();
                 }
                 return;
@@ -816,7 +816,7 @@ package Modules.L3Feature.Tools
             {
                 if (CanvasView.canvasAnchorPoint.rotation !== 0.0)
                 {
-                    CanvasView.resetRotationDrawMode();
+                    UIController.resetRotationDrawMode();
                     CanvasNavigator.updateCursor();
                 }
                 return;

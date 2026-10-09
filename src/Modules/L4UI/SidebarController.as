@@ -223,7 +223,7 @@ package Modules.L4UI
                 case "toolZoomOut":
                     if (CanvasView.canvasZoomMultiplier !== 1.0)
                     {
-                        CanvasView.resetZoomDrawMode();
+                        UIController.resetZoomDrawMode();
                         CanvasNavigator.updateCursor();
                     }
                     break;
@@ -231,7 +231,7 @@ package Modules.L4UI
                 case "toolRotate":
                     if (CanvasView.canvasAnchorPoint.rotation !== 0.0)
                     {
-                        CanvasView.resetRotationDrawMode();
+                        UIController.resetRotationDrawMode();
                         CanvasNavigator.updateCursor();
                     }
                     break;

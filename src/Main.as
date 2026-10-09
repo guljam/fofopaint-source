@@ -122,6 +122,7 @@
             PenSettings.onCursorPosChangedFunc = PenSizePreviewCursor.updatePosAndVisibility;
             PenSettings.onCursorSizeChangedFunc = PenSizePreviewCursor.updateCursorSize;
             PenSettings.onPenToolNeededFunc = ToolController.selectPenToolIfNotDrawingTool;
+            CanvasView.onCanvasPanelResizedFunc = UIController.updateCanvasPanelLinkedUI;
         }
 
         public function initializeModule():void
@@ -193,7 +194,7 @@
             AppWindowState.updateWindowTitle();
             AppWindowState.markWindowTitleAsDirty();
             initializeStageSettings();
-            CanvasView.init();
+            UIController.initializeCanvasView();
             ReplayController.initializeReplayCanvas();
             UIController.initializeAppMenus();
             CanvasResizer.init();

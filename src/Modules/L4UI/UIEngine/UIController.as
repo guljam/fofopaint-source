@@ -12,6 +12,7 @@ package Modules.L4UI.UIEngine
     import Symbols.TopMenuSet;
 
     import flash.display.DisplayObject;
+    import flash.display.Graphics;
     import flash.display.Sprite;
     import flash.geom.Point;
     import flash.geom.Rectangle;
@@ -34,6 +35,11 @@ package Modules.L4UI.UIEngine
     import Modules.UIEngine.UITheme;
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L4UI.CanvasGridOverlay;
+    import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L4UI.PenSizePreviewCursor;
+    import Modules.DrawEngine.StrokeBuffer;
+    import Modules.Tools.ZoomTool;
 
     // 스테이지 UI 배치: 표시 순서, 뷰포트 여백, 창 크기 변경 배치, UI 색상/스케일을 각 패널에 반영
     // 층: L4 UI - 스테이지 UI 배치와 UI 색상·스케일을 패널에 반영
@@ -548,6 +554,135 @@ package Modules.L4UI.UIEngine
                 canvasRotateCursor.rotateArrow.rotation = deg;
                 return Math.round(deg);
             };
+        }
+
+        // 드로우 모드 캔버스 패널과 화면 객체를 스테이지에 조립함 (표시 순서 포함)
+        public static function initializeCanvasView():void
+        {
+            var g:Graphics;
+            CanvasView.canvasPanel.name = "canvasPanel";
+            CanvasView.canvasAnchorPoint.name = "canvasAnchorPoint";
+            DrawCanvas.canvasLayer1Bitmap.name = "canvasLayer1Bitmap";
+            DrawCanvas.canvasLayer2Bitmap.name = "canvasLayer2Bitmap";
+            StrokeBuffer.canvasDrawLayer.name = "canvasDrawLayer";
+            StrokeBuffer.canvasDrawLayerChild.name = "canvasDrawShape";
+            UIController.stageBG.name = "stageBG";
+            ReferenceLayerController.canvasRefLayer.name = "canvasRefLayer";
+            CanvasGridOverlay.canvasGrid.name = "canvasGrid";
+            CanvasView.canvasFlashEffect.name = "canvasFlash";
+            LassoTool.lassoLayer1.name = "lassoBox1";
+            LassoTool.lassoLayer1.addChild(LassoTool.lassoLayer1Bitmap);
+            LassoTool.lassoLayer1.addChild(LassoTool.lassoDraw);
+            LassoTool.lassoLayer1.addChild(LassoTool.lassoDrawCloseLine);
+            LassoTool.lassoLayer1.visible = false;
+            LassoTool.lassoLayer2.name = "lassoBox2";
+            LassoTool.lassoLayer2.addChild(LassoTool.lassoLayer2Bitmap);
+            LassoTool.lassoLayer2.visible = false;
+            // setCanvasBGColorDrawMode는 같은 색이면 바로 리턴하므로, 초기값(흰색)은 스크래치 패드에 전달되지 않아
+            // 최초 실행시 패드 배경이 안 그려졌음. 초기 색은 직접 전달함
+            ColorPickerController.colorPickerBox.scratchPad.updateBGColor(DrawCanvas.CANVAS_BG_COLOR);
+            CanvasView.updateCanvasPanelMask(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
+            ReferenceLayerController.canvasRefLayer.alpha = ReferenceLayerController.refLayerLastAlpha;
+            ReferenceLayerController.canvasRefLayer.addChild(ReferenceLayerController.canvasRefLayerBitmap);
+            StrokeBuffer.canvasDrawLayer.addChild(StrokeBuffer.canvasDrawLayerBitmap);
+            StrokeBuffer.canvasDrawLayer.addChild(StrokeBuffer.canvasDrawLayerChild);
+            StrokeBuffer.canvasDrawLayer.blendMode = "layer"; // 캔버스1이랑 알파 불투명도가 겹치지 않게 layer모드로 해줌
+            ReplayDrawer.rReplayFOFOCursor.visible = false;
+            ReferenceLayerController.canvasRefHolder.addChild(ReferenceLayerController.canvasRefLayer);
+            CanvasView.canvasPanel.addChild(ReferenceLayerController.canvasRefHolder);
+            CanvasView.canvasPanel.addChild(DrawCanvas.canvasLayer2Bitmap);
+            CanvasView.canvasPanel.addChild(LassoTool.lassoLayer2);
+            CanvasView.canvasPanel.addChild(DrawCanvas.canvasLayer1Bitmap);
+            CanvasView.canvasPanel.addChild(LassoTool.lassoLayer1);
+            CanvasView.canvasPanel.addChild(StrokeBuffer.canvasDrawLayer);
+            CanvasView.canvasPanel.addChild(CanvasGridOverlay.canvasGrid);
+            CanvasView.canvasPanel.addChild(ReplayDrawer.rReplayFOFOCursor);
+            // canvasrotate가 중점으로 올수있게 위치를 절반으로세팅
+            CanvasView.canvasPanel.x = Math.floor(-CanvasView.canvasPanel.width / 2);
+            CanvasView.canvasPanel.y = Math.floor(-CanvasView.canvasPanel.height / 2);
+            CanvasView.canvasAnchorPoint.addChild(CanvasView.canvasPanel);
+            main.stage.addChild(UIController.stageBG);
+            main.stage.addChild(EyeDropperTool.eyedropperLens);
+            main.stage.addChild(LassoTool._lassoMenuBox);
+            main.stage.addChild(CanvasView.canvasAnchorPoint);
+            main.stage.addChild(PenSizePreviewCursor.getCursorShape());
+            main.stage.setChildIndex(CanvasView.canvasAnchorPoint, 0);
+            main.stage.setChildIndex(UIController.stageBG, 0);
+        }
+
+        // 드로우 모드 캔버스를 좌우 반전하고 관련 UI를 갱신함
+        public static function mirrorCanvas(canvasOnly:Boolean = false):void
+        {
+            // canvaspanel로 하면 중점이 안맞아서 canvas1로함
+            const p:Point = CanvasView.getCanvasPanelMidPos();
+            DrawCanvas.mirrorON = !DrawCanvas.mirrorON;
+            ReplayState.mirrorCommandReady = !ReplayState.mirrorCommandReady;
+            DrawCanvas.mirrorBmpdDrawmode();
+            UIController.canvasInfoBox.setMirror(DrawCanvas.mirrorON);
+            // 회전각 부호를 바꿔야 제대로 mirror가됨
+            CanvasView.viewport.moveAnchorPoint(p.x, p.y); // regpoint를 회전한 캔버스 중점으로 두고
+            if (canvasOnly === false) // 보통 미러할때, canvasonly가 true일때는 appdata에서 바꿔줄때 밖에 없음
+            {
+                CanvasView.canvasAnchorPoint.rotation = -CanvasView.canvasAnchorPoint.rotation; // 반대각으로 세팅
+                ReplayDrawer.setRcursorRotation(CanvasView.canvasAnchorPoint.rotation);
+                ReferenceLayerController.mirrorRefLayerImage();
+            }
+            CanvasGridOverlay.updateGridMirror(DrawCanvas.mirrorON);
+            const halfCanvas:Number = (main.stage.stageWidth - SidebarController.sideBar.getWidth()) / 2;
+            var stageHalf:Number = (SidebarController.sideBar.visible === false) ? main.stage.stageWidth / 2
+                : (SidebarController.isRightSidebar) ? halfCanvas
+                : UIController.STAGE_LEFT_OFFSET + halfCanvas;
+            // 창 절반을 기준점으로 앵커포인트 x축 이동.
+            CanvasView.canvasAnchorPoint.x += Math.round((stageHalf - p.x) * 2);
+            CanvasNavigator.updateCursor();
+            FileManager.isFileAlreadySaved = false; // 미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
+            ReplayDrawer.mirrorRCursorPos();
+
+            CanvasNavigator.box.updateImage();
+            if (ImageViewWindow.isCanvasWindowON)
+            {
+                ImageViewWindow.updateCanvasWindowImage();
+            }
+        }
+
+        // 캔버스 회전을 0으로 되돌림 (화면 중심 기준)
+        public static function resetRotationDrawMode():void
+        {
+            const center:Point = UIController.getStageCenterPos("draw");
+            PenSizePreviewCursor.updateSizeAndShape();
+            CanvasView.viewport.moveAnchorPoint(center.x, center.y);
+            CanvasView.canvasAnchorPoint.rotation = 0;
+            ReplayDrawer.setRcursorRotation(0);
+            UIController.canvasInfoBox.setRotate(0);
+        }
+
+        // 캔버스 배율을 100%로 되돌림 (화면 중심 기준)
+        public static function resetZoomDrawMode():void
+        {
+            if (CanvasView.canvasZoomMultiplier !== 1.0)
+            {
+                const center:Point = UIController.getStageCenterPos("draw");
+                const gcenter:Point = CanvasView.canvasPanel.globalToLocal(new Point(center.x, center.y));
+                const gp:Point = CanvasView.canvasPanel.localToGlobal(new Point(0, 0));
+                const panelLimitedPos:Point = ZoomTool.getCanvasBoundLimitPoint(CanvasView.canvasPanel, gcenter.x, gcenter.y, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, CanvasView.canvasAnchorPoint.scaleY, -CanvasView.canvasAnchorPoint.rotation);
+                CanvasView.viewport.moveAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y);
+                CanvasView.canvasZoomIndex = CanvasView.canvasZoomMultiplierList.indexOf(1.0);
+                CanvasView.viewport.setScale(1.0);
+                PenSizePreviewCursor.updateSizeAndShape();
+                CanvasGridOverlay.drawGrid();
+            }
+        }
+
+        // 캔버스 패널이 바뀐 뒤 네비게이터 배경색, 캔버스 정보 크기, 격자를 갱신함
+        public static function updateCanvasPanelLinkedUI():void
+        {
+            CanvasNavigator.box.changeprevBitmapBGColor(DrawCanvas.CANVAS_BG_COLOR);
+            UIController.canvasInfoBox.setSize(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
+
+            if (CanvasGridOverlay.gridGapMultiplier > 0)
+            {
+                CanvasGridOverlay.drawGrid();
+            }
         }
     }
 }
