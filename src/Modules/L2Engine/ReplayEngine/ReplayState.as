@@ -2,7 +2,6 @@ package Modules.L2Engine.ReplayEngine
 {
     import flash.utils.Dictionary;
     import flash.utils.getTimer;
-    import Modules.L3Feature.UndoController;
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L2Engine.UndoHistory;
     import Modules.ReplayEngine.TimingSmoother;
@@ -236,27 +235,7 @@ package Modules.L2Engine.ReplayEngine
             return times;
         }
 
-        public static function addUndoBGColorData(color:uint):void
-        {
-            if (hasLastRMemoryDataCommand("bgColor"))
-            {
-                rMemoryDataBuffer.push(["bgColor", color]);
-                updateLastRMemoryDataCommand("bgColor");
-                UndoHistory.addContinue();
-            }
-            else
-            {
-                if (UndoController.isDeepUndoEnabled)
-                {
-                    UndoController.applyDeepUndo();
-                }
-
-                rMemoryDataBuffer.push(["bgColor", color]);
-                UndoHistory.addNew();
-            }
-        }
-
-        private static function updateLastRMemoryDataCommand(command:String):void
+        public static function updateLastRMemoryDataCommand(command:String):void
         {
             const index:int = UndoHistory.undoDataIndex;
             if (index < 0 || index >= rMemoryData.length)

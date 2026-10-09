@@ -279,5 +279,27 @@ package Modules.L3Feature
             CanvasNavigator.updateCursor();
             FileManager.enableNewFileButton();
         }
+
+        // 배경색 변경을 undo 데이터에 기록함 (직전 명령이 배경색이면 이어 붙임)
+        public static function addUndoBGColorData(color:uint):void
+        {
+            if (ReplayState.hasLastRMemoryDataCommand("bgColor"))
+            {
+                ReplayState.rMemoryDataBuffer.push(["bgColor", color]);
+                ReplayState.updateLastRMemoryDataCommand("bgColor");
+                UndoHistory.addContinue();
+            }
+            else
+            {
+                if (UndoController.isDeepUndoEnabled)
+                {
+                    UndoController.applyDeepUndo();
+                }
+
+                ReplayState.rMemoryDataBuffer.push(["bgColor", color]);
+                UndoHistory.addNew();
+            }
+        }
+
     }
 }

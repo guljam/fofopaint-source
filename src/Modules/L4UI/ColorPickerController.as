@@ -24,7 +24,7 @@ package Modules.L4UI
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L3Feature.Tools.PenTool;
     import Modules.L1Data.ColorHistory;
-    import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L3Feature.UndoController;
 
     // 층: L4 UI - 색 선택기 박스와 숫자패드, 색 프리셋 선택 처리
     public class ColorPickerController
@@ -500,7 +500,7 @@ package Modules.L4UI
                 ImageViewWindow.updateCanvasWindowBGColor(DrawCanvas.CANVAS_BG_COLOR, ImageViewWindow.canvasWindowLayer1Bitmap.bitmapData);
             }
 
-            ReplayState.addUndoBGColorData(color);
+            UndoController.addUndoBGColorData(color);
         }
 
         // rgbInfoText와 그 뒤의 rgbInfoBG 공용. 5px 이내로 떼면 클릭, 5px 넘게 움직이면 배경색을 my palette로 드래그
