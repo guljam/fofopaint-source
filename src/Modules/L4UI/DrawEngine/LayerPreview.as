@@ -23,6 +23,7 @@ package Modules.L4UI.DrawEngine
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.MouseState;
     import Modules.L4UI.ReferenceLayerController;
+    import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.FOFOTimer;
     import Modules.L1Data.UIEngine.UITheme;
 
@@ -92,12 +93,24 @@ package Modules.L4UI.DrawEngine
             // ROLL_OVER/OUT은 버튼 사이 빈틈이나 자식 경계에서 켜졌다 꺼지기를 반복하므로 쓰지 않고,
             // 마우스가 컨트롤 박스의 경계 사각형 안에 있는지로 켜고 끔
             optionsBox.layerButtonWrapper.addEventListener(MouseEvent.MOUSE_OVER, onlayerButtonWrapperMouseOver);
+            ToolPanel.toolBox.toolRefLayer.addEventListener(MouseEvent.MOUSE_OVER, onlayerButtonWrapperMouseOver);
+            ToolPanel.toolBox2.toolRefLayer.addEventListener(MouseEvent.MOUSE_OVER, onlayerButtonWrapperMouseOver);
             CanvasView.main.stage.addEventListener(MouseEvent.MOUSE_OUT, onlayerButtonWrapperMouseOut);
         }
 
+        private static function isMouseOverRefLayerButton():Boolean
+        {
+            const sx:Number = CanvasView.main.stage.mouseX;
+            const sy:Number = CanvasView.main.stage.mouseY;
+            return (ToolPanel.toolBox.visible && ToolPanel.toolBox.toolRefLayer.hitTestPoint(sx, sy))
+                || (ToolPanel.toolBox2.visible && ToolPanel.toolBox2.toolRefLayer.hitTestPoint(sx, sy));
+        }
+
+        // 레이어 버튼 영역이나 툴박스의 참조 레이어 버튼 위에 마우스가 있는지
         private static function isMouseOverLayerButtonWrapper():Boolean
         {
-            return optionsBoxRef.layerButtonWrapper.hitTestPoint(CanvasView.main.stage.mouseX, CanvasView.main.stage.mouseY);
+            return optionsBoxRef.layerButtonWrapper.hitTestPoint(CanvasView.main.stage.mouseX, CanvasView.main.stage.mouseY)
+                || isMouseOverRefLayerButton();
         }
 
         // hover 후 SHOW_DELAY 뒤에도 마우스가 wrapper 위에 있을 때만 켬
@@ -176,7 +189,8 @@ package Modules.L4UI.DrawEngine
         private static function onStageMouseDown(e:MouseEvent):void
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if (target !== null && optionsBoxRef.layerButtonWrapper.contains(target))
+            if (target !== null && (optionsBoxRef.layerButtonWrapper.contains(target)
+                || target === ToolPanel.toolBox.toolRefLayer || target === ToolPanel.toolBox2.toolRefLayer))
             {
                 return;
             }
@@ -343,7 +357,7 @@ package Modules.L4UI.DrawEngine
                 endKeyPreview(keyPreviewKey);
             }
             // 닫히는 도중 마우스가 다시 들어왔는데 MOUSE_OVER를 놓친 경우를 대비해, 실제 위치로 닫힘을 취소함
-            if (isClosing && !isKeyPreview &&optionsBoxRef.layerButtonWrapper.hitTestPoint(CanvasView.main.stage.mouseX, CanvasView.main.stage.mouseY))
+            if (isClosing && !isKeyPreview && isMouseOverLayerButtonWrapper())
             {
                 isClosing = false;
             }
@@ -377,7 +391,8 @@ package Modules.L4UI.DrawEngine
             updateRefPlane(w, h);
 
             // 파란 테두리와 궤도 움직임은 실제로 선택된 레이어에 표시
-            highlightDepth = DrawCanvas.isLayer2Selected ? DEPTH_LAYER2 : DEPTH_LAYER1;
+            // 참조 레이어 버튼 위에 마우스가 있으면 참조 층을 강조
+            highlightDepth = isMouseOverRefLayerButton() ? DEPTH_REF : (DrawCanvas.isLayer2Selected ? DEPTH_LAYER2 : DEPTH_LAYER1);
             if (highlightDepth !== orbitDepth)
             {
                 orbitDepth = highlightDepth;
