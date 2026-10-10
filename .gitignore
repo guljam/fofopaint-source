@@ -6,7 +6,8 @@
 /tests
 /test-output
 /test_sample
-/docs
+/docs/*
+!/docs/glossary-refactor-new.md
 
 # 개별 파일 제외
 /_make_air_file.ps1
