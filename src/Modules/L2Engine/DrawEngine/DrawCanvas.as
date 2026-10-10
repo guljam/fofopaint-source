@@ -11,7 +11,6 @@ package Modules.L2Engine.DrawEngine
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
     import Modules.L2Engine.ReplayEngine.ReplayState;
-    import Modules.L3Feature.DrawEngine.CanvasLayers;
     import Modules.L1Data.Utils;
 
     // 드로우 모드 캔버스 데이터: 크기, 배경색, 레이어 1/2 비트맵, 미러 상태와 픽셀 처리

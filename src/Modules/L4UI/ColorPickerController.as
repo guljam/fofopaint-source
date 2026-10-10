@@ -21,7 +21,6 @@ package Modules.L4UI
     import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L3Feature.Tools.PenTool;
-    import Modules.L1Data.ColorHistory;
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.DragInteraction;
     import Modules.L1Data.Utils;
