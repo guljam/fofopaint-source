@@ -67,6 +67,7 @@ package Modules.L5App
     import Modules.L4UI.DrawEngine.CanvasResizer;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.ReplayEngine.ReplaySaveMetaData;
+    import Modules.L4UI.HintStrings;
 
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager

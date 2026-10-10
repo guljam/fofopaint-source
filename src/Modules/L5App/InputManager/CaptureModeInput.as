@@ -13,6 +13,7 @@ package Modules.L5App.InputManager
     import Modules.L5App.FileManager;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
+    import Modules.L4UI.HintStrings;
 
     // 캡처 모드의 키보드/마우스 입력
     // 층: L5 앱 흐름 - 캡처 모드의 키보드/마우스 입력

@@ -40,6 +40,7 @@ package Modules.L3Feature.Tools
     import Modules.L2Engine.LassoLayers;
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L4UI.HintStrings;
 
     // 층: L3 기능 - 올가미 선택과 이동·회전·크기·미러
     public class LassoTool

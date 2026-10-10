@@ -18,6 +18,7 @@ package Modules.L5App.InputManager
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L4UI.HintStrings;
 
     // 리플레이 모드의 키보드/마우스 입력
     // 층: L5 앱 흐름 - 리플레이 모드의 키보드/마우스 입력

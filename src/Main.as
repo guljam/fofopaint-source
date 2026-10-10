@@ -74,6 +74,7 @@
     import Modules.L2Engine.UndoHistory;
     import Modules.L4UI.CanvasViewport;
     import Modules.L4UI.DrawEngine.CanvasResizer;
+    import Modules.L4UI.HintStrings;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화
