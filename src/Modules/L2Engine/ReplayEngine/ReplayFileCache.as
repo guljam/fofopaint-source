@@ -6,18 +6,13 @@ package Modules.L2Engine.ReplayEngine
     import flash.filesystem.FileStream;
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
-    import flash.utils.getTimer;
     import Modules.CacheImageMetaData;
-    import Modules.ReplayDataCodec;
     import Modules.CacheImageFile;
     import Modules.PixelRestore;
     import Modules.CacheImageFormat;
-    import Modules.ReferenceLayerController;
     import Modules.Utils;
-    import Modules.L5App.FileManager;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
     import Modules.L1Data.AppDataPaths;
-    import Modules.L4UI.UIEngine.HintController;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L1Data.ReplayEngine.ReplaySaveMetaData;
 
@@ -44,7 +39,7 @@ package Modules.L2Engine.ReplayEngine
 
         public static function initializeReplayDataFile(overWrite:Boolean = false):void // 기본 리플레이 파일 만들어줌
         {
-            FileManager.initializeRepTempFile();
+            ReplayFileCache.initializeRepTempFile();
 
             if (AppDataPaths.replayDataFilePath.exists === false || overWrite === true)
             {
@@ -54,126 +49,6 @@ package Modules.L2Engine.ReplayEngine
                 ReplayDrawer.commandWindow.dispose(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
                 TimingSheetFile.reset();
             }
-        }
-
-        public static function writeReplayFile(
-                firstImageLayer1:ByteArray,
-                firstImageLayer2:ByteArray,
-                finalImageLayer1:ByteArray,
-                finalImageLayer2:ByteArray,
-                referenceImage:ByteArray,
-                replayFileByteArray:ByteArray):void
-        {
-            const fs:FileStream = new FileStream();
-            var isWritten:Boolean = true;
-
-            try
-            {
-                // 실제 저장할 파일을 다시 써줌
-                fs.open(FileManager.repFileTemp, FileMode.WRITE);
-                fs.position = 0;
-                // 파일 헤더, 리플레이 블록이 코덱 형식이면 이전 버전과 구분되게 V2FOFOPAINT
-                fs.writeUTFBytes(ReplayDataCodec.isEncoded(replayFileByteArray) ? FileManager.REPLAY_FILE_HEADER_V2 : FileManager.REPLAY_FILE_HEADER_V1);
-                fs.writeUnsignedInt(replayFileByteArray.length); // 뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
-                fs.writeBytes(replayFileByteArray);
-
-                // 임시 미러 플래그임
-                if (ReplayState.lastMirrorReadyFlag) // 임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
-                {
-                    const tempMirrorData:Array = [["mirror"]];
-                    fs.writeObject(tempMirrorData);
-                }
-
-                fs.writeObject(["rFirstImage", firstImageLayer1,
-                                            firstImageLayer2,
-                                            ReplaySaveMetaData.firstImageWidth,
-                                            ReplaySaveMetaData.firstImageHeight,
-                                            ReplaySaveMetaData.firstImageBG,
-                                            ReplaySaveMetaData.firstImageMirrorFlag]);
-                fs.writeObject(["rFinalImage", finalImageLayer1, finalImageLayer2, ReplaySaveMetaData.finalImageWidth,ReplaySaveMetaData.finalImageHeight,ReplaySaveMetaData.finalImageBG]);
-
-                if (ReferenceLayerController.canvasRefLayerBitmapData)
-                {
-                    fs.writeObject(["refimage", referenceImage, // 1
-                                ReplaySaveMetaData.refImageWidth,
-                                ReplaySaveMetaData.refImageHeight,
-                                ReplaySaveMetaData.refImageBitmapX,
-                                ReplaySaveMetaData.refImageBitmapY,
-                                ReplaySaveMetaData.refImageBitmapRotation,
-                                ReplaySaveMetaData.refImageBitmapScaleX,
-                                ReplaySaveMetaData.refImageBitmapScaleY,
-                                ReplaySaveMetaData.refImageBitmapMirrorFlag,
-                                ReplaySaveMetaData.refImageBitmapMoveSum,
-                                ReplaySaveMetaData.refImageAlpha]);
-                }
-
-                // 타이밍 시트는 파일 맨 뒤에 둠. 읽을때 이 객체가 없으면 시트 없는 파일로 봄
-                if (rTimingSheetFileObject !== null)
-                {
-                    fs.writeObject(rTimingSheetFileObject);
-                }
-
-                fs.close();
-            }
-            catch (writeErr:Error)
-            {
-                // 임시 파일 쓰기 실패(디스크 부족, 잠김 등), 아래에서 저장 잠금을 풀고 새 파일로 저장해줌
-                isWritten = false;
-
-                try
-                {
-                    fs.close();
-                }
-                catch (closeErr:Error)
-                {
-                }
-            }
-
-            rTimingSheetFileObject = null;
-            firstImageLayer1.clear();
-            firstImageLayer2.clear();
-            finalImageLayer1.clear();
-            finalImageLayer2.clear();
-            referenceImage.clear();
-            replayFileByteArray.clear();
-            firstImageLayer1 = null;
-            firstImageLayer2 = null;
-            finalImageLayer1 = null;
-            finalImageLayer2 = null;
-            referenceImage = null;
-            replayFileByteArray = null;
-
-            var savedFile:File;
-
-            try
-            {
-                if (isWritten === false)
-                {
-                    throw new Error("replay temp file write failed");
-                }
-                const newPath:String = getReplayFileNameFromPath(FileManager.lastSaveFilePath);
-                savedFile = new File(newPath);
-                FileManager.repFileTemp.moveTo(savedFile, true);
-            }
-            catch (err:Error)
-            {
-                // 파일 엑세스가 불가하므로 새로운 파일로 저장해줌
-
-                if (BackgroundWorkerCoordinator.isSaveInProgress === 1)
-                {
-                    BackgroundWorkerCoordinator.isSaveInProgress = 0;
-                }
-
-                FileManager.openSaveFileBrowser(true, true);
-                return;
-            }
-
-            if (BackgroundWorkerCoordinator.isSaveInProgress === 1)
-            {
-                BackgroundWorkerCoordinator.isSaveInProgress = 0;
-            }
-
-            HintController.showMouseHintTemp("Saved (" + (getTimer() - FileManager.saveStartTime) + " ms, " + formatFileSize(savedFile.size) + ")",10.0);
         }
 
         public static function formatFileSize(bytes:Number):String
@@ -598,5 +473,14 @@ package Modules.L2Engine.ReplayEngine
             // framedata도 인덱스 이후꺼 날려줌
             rJumpImageFrameData.splice(index + 1);
         }
+
+        public static var repFileTemp:File; // 파일을 저장하거나 불러올때 씀
+
+        // 파일을 저장하거나 불러올 때 쓸 임시 파일 경로를 새로 정함
+        public static function initializeRepTempFile():void
+        {
+            repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_" + Utils.getRandomString(32));
+        }
+
     }
 }

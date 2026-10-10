@@ -15,8 +15,6 @@ package Modules.L2Engine
     import flash.system.WorkerDomain;
     import flash.system.MessageChannel;
     import flash.utils.ByteArray;
-    import Modules.L5App.FileManager;
-    import Modules.L4UI.LoadBoxController;
     import Modules.CacheImageMetaData;
     import Modules.NativeCacheJobs;
     import Modules.NativeCore;
@@ -30,6 +28,15 @@ package Modules.L2Engine
     // 층: L2 엔진 - 백그라운드 워커 시작·중지와 데이터 전달
     public final class BackgroundWorkerCoordinator
     {
+        // worker가 리플레이 데이터 압축을 끝내 .fofo 파일에 써야 한다는 보고 (인자: 첫 이미지 레이어 1, 2, 마지막 이미지 레이어 1, 2, 참조 이미지, 리플레이 데이터)
+        public static var onReplayDataCompressedFunc:Function;
+        // worker가 완전히 멈췄으니 대기 중인 불러오기를 이어가고 파일 버튼 잠금을 풀어야 한다는 보고
+        public static var onWorkerStoppedFunc:Function;
+        // worker가 시작되어 파일 불러오기, 새 파일, 리플레이 데이터 삭제 버튼을 잠가야 한다는 보고
+        public static var onWorkerStartedFunc:Function;
+        // undo 캐시 작업이 모두 끝나 잠금을 풀고 대기 중인 불러오기를 이어가야 한다는 보고
+        public static var onUndoJobsFinishedFunc:Function;
+
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -101,13 +108,7 @@ package Modules.L2Engine
             else if (command === "compress_ReplayDataDone")
             {
                 workerDataReceiveCount++;
-                ReplayFileCache.writeReplayFile(backToMain.receive(true)
-                        , backToMain.receive(true)
-                        , backToMain.receive(true)
-                        , backToMain.receive(true)
-                        , backToMain.receive(true)
-                        , backToMain.receive(true)
-                    );
+                if (onReplayDataCompressedFunc != null) onReplayDataCompressedFunc(backToMain.receive(true), backToMain.receive(true), backToMain.receive(true), backToMain.receive(true), backToMain.receive(true), backToMain.receive(true));
             }
             else if (command === "compress_UndoDataDone")
             {
@@ -194,13 +195,7 @@ package Modules.L2Engine
                     worker = null;
                 }
 
-                if (LoadBoxController.isLoadPendingAfterSaving)
-                {
-                    LoadBoxController.loadFileTo("canvas");
-                }
-
-                // worker가 완전히 멈춘 뒤에만 파일 불러오기, 새 파일, 리플레이 데이터 삭제 잠금을 풀어줌
-                FileManager.refreshFileOperationButtonsTopbar();
+                if (onWorkerStoppedFunc != null) onWorkerStoppedFunc();
                 return false;
             }
             return true;
@@ -220,7 +215,7 @@ package Modules.L2Engine
                 worker.setSharedProperty("cacheGeneration", cacheGenerationShared);
                 worker.start();
                 // worker가 시작되는 즉시 파일 불러오기, 새 파일, 리플레이 데이터 삭제를 잠금
-                FileManager.refreshFileOperationButtonsTopbar();
+                if (onWorkerStartedFunc != null) onWorkerStartedFunc();
             }
         }
 
@@ -432,12 +427,7 @@ package Modules.L2Engine
             {
                 undoDataQueue = null;
                 // 잠금이 풀렸으니 대기 중인 불러오기를 이어감 (worker 작업이면 worker가 멈출때 stopWorkerIfIdle이 함)
-                FileManager.refreshFileOperationButtonsTopbar();
-
-                if (LoadBoxController.isLoadPendingAfterSaving && !FileManager.isReplayDataLocked())
-                {
-                    LoadBoxController.loadFileTo("canvas");
-                }
+                if (onUndoJobsFinishedFunc != null) onUndoJobsFinishedFunc();
             }
         }
 

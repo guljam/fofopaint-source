@@ -237,9 +237,9 @@ package Modules.L5App.ReplayEngine
             {
                 // make jumpimage에서 변경해주기 때문에
 
-                if (FileManager.repFileTemp.exists) // 이미 있으면 지워주고
+                if (ReplayFileCache.repFileTemp.exists) // 이미 있으면 지워주고
                 {
-                    FileManager.repFileTemp.deleteFile();
+                    ReplayFileCache.repFileTemp.deleteFile();
                 }
 
                 var ba:ByteArray = new ByteArray();

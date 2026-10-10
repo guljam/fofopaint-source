@@ -156,6 +156,27 @@
                 }
             };
             DrawCanvas.onMouseHintTempFunc = HintController.showMouseHintTemp;
+            BackgroundWorkerCoordinator.onReplayDataCompressedFunc = FileManager.writeReplayFile;
+            BackgroundWorkerCoordinator.onWorkerStoppedFunc = function ():void
+            {
+                if (LoadBoxController.isLoadPendingAfterSaving)
+                {
+                    LoadBoxController.loadFileTo("canvas");
+                }
+            
+                // worker가 완전히 멈춘 뒤에만 파일 불러오기, 새 파일, 리플레이 데이터 삭제 잠금을 풀어줌
+                FileManager.refreshFileOperationButtonsTopbar();
+            };
+            BackgroundWorkerCoordinator.onWorkerStartedFunc = FileManager.refreshFileOperationButtonsTopbar;
+            BackgroundWorkerCoordinator.onUndoJobsFinishedFunc = function ():void
+            {
+                FileManager.refreshFileOperationButtonsTopbar();
+            
+                if (LoadBoxController.isLoadPendingAfterSaving && !FileManager.isReplayDataLocked())
+                {
+                    LoadBoxController.loadFileTo("canvas");
+                }
+            };
         }
 
         public function initializeModule():void

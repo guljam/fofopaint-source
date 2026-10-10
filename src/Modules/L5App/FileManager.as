@@ -77,7 +77,6 @@ package Modules.L5App
         {
             main = instance;
         }
-        public static var repFileTemp:File; // 파일을 저장하거나 불러올때 씀
         public static const REPLAY_FILE_HEADER_V1:String = "FOFOPAINT"; // 리플레이 블록이 zlib
         public static const REPLAY_FILE_HEADER_V2:String = "V2FOFOPAINT"; // 리플레이 블록이 ReplayDataCodec, 이전 버전 앱에서 못 읽음
 
@@ -113,7 +112,7 @@ package Modules.L5App
             var bg:uint = 0;
             const rect:Rectangle = new Rectangle();
             ReplayFileCache.initializeReplayDataFile(true); // 일단 썸네일 이미지랑 리플레이 데이터 청소\
-            oldFile.copyTo(repFileTemp, true); // repdata.c3p를 복사 덮어씌우기
+            oldFile.copyTo(ReplayFileCache.repFileTemp, true); // repdata.c3p를 복사 덮어씌우기
 
             if (ReferenceLayerController.refLayerRawTransformData)
             {
@@ -122,7 +121,7 @@ package Modules.L5App
                 ReferenceLayerController.refLayerRawTransformData = null;
             }
 
-            fs.open(repFileTemp, FileMode.READ);
+            fs.open(ReplayFileCache.repFileTemp, FileMode.READ);
             ReplayFileCache.rJumpImageFrameData = [0];
             var d:Array;
             var ba:ByteArray;
@@ -251,18 +250,18 @@ package Modules.L5App
             else
             {
                 // 이미지직전까지 바이트를 기준으로 짤라줌, 즉 뒤에 붙은 첫 이미지 + 마지막 이미지를 지워줌
-                fs.open(repFileTemp, FileMode.UPDATE);
+                fs.open(ReplayFileCache.repFileTemp, FileMode.UPDATE);
                 fs.position = imgStartByte;
                 fs.truncate();
                 fs.close();
-                repFileTemp.moveTo(AppDataPaths.replayDataFilePath, true);
+                ReplayFileCache.repFileTemp.moveTo(AppDataPaths.replayDataFilePath, true);
             }
 
             ReplayDrawer.commandWindow.dispose(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
 
-            if (repFileTemp.exists)
+            if (ReplayFileCache.repFileTemp.exists)
             {
-                repFileTemp.deleteFile();
+                ReplayFileCache.repFileTemp.deleteFile();
             }
 
             replayData.clear();
@@ -448,11 +447,6 @@ package Modules.L5App
             LoadBoxController.lastLoadedFile = null;
             LoadBoxController.isLoadPendingAfterSaving = false;
             LoadBoxController.closeLoadMenuBox();
-        }
-
-        public static function initializeRepTempFile():void
-        {
-            repFileTemp = File.applicationStorageDirectory.resolvePath("tmp\\tmp_" + Utils.getRandomString(32));
         }
 
         public static function setFileBrowserIsOpen(flag:Boolean):void
@@ -1194,7 +1188,7 @@ package Modules.L5App
                     ReferenceLayerController.canvasRefLayerBitmapData.copyPixelsToByteArray(newRectangle, ReferenceLayerController.refLayerImageData);
                 }
                 // 리플레이 파일을 임시파일로 복사해서 이 내부의 바이트만 읽어서 워커에게 보냄
-                AppDataPaths.replayDataFilePath.copyTo(repFileTemp, true);
+                AppDataPaths.replayDataFilePath.copyTo(ReplayFileCache.repFileTemp, true);
 
                 const fs:FileStream = new FileStream();
 
@@ -1205,7 +1199,7 @@ package Modules.L5App
                     // ReplayController.rFileLastBytePosition = 0이면 안읽는것이 아니고 전체 바이트를 읽음그래서 0이면 안읽게 해주어야함
                     if (ReplayState.rFileLastBytePosition > 0)
                     {
-                        fs.open(repFileTemp, FileMode.READ);
+                        fs.open(ReplayFileCache.repFileTemp, FileMode.READ);
                         fs.position = 0;
                         fs.readBytes(replayDataReadBytes, 0, ReplayState.rFileLastBytePosition);
                         fs.close();
@@ -1214,7 +1208,7 @@ package Modules.L5App
                 else
                 {
                     // 그게 아니면 전체 리플레이 데이터 끝까지 읽고 undo데이터까지 넣어줌
-                    fs.open(repFileTemp, FileMode.READ);
+                    fs.open(ReplayFileCache.repFileTemp, FileMode.READ);
                     fs.position = 0;
                     fs.readBytes(replayDataReadBytes, 0, fs.bytesAvailable);
                     fs.close();
@@ -1647,6 +1641,128 @@ package Modules.L5App
             ReplaySaveMetaData.refImageBitmapMirrorFlag = Boolean(ReferenceLayerController.canvasRefLayer.scaleX < 0);
             ReplaySaveMetaData.refImageBitmapMoveSum = ReferenceLayerController.refLayerMenuDragXMoveSum;
             ReplaySaveMetaData.refImageAlpha = ReferenceLayerController.refLayerLastAlpha;
+        }
+
+
+        // worker가 압축한 이미지와 리플레이 데이터를 .fofo 파일 형식으로 임시 파일에 쓴 뒤 저장 경로로 옮기고 저장 힌트를 보여줌
+        public static function writeReplayFile(
+                firstImageLayer1:ByteArray,
+                firstImageLayer2:ByteArray,
+                finalImageLayer1:ByteArray,
+                finalImageLayer2:ByteArray,
+                referenceImage:ByteArray,
+                replayFileByteArray:ByteArray):void
+        {
+            const fs:FileStream = new FileStream();
+            var isWritten:Boolean = true;
+
+            try
+            {
+                // 실제 저장할 파일을 다시 써줌
+                fs.open(ReplayFileCache.repFileTemp, FileMode.WRITE);
+                fs.position = 0;
+                // 파일 헤더, 리플레이 블록이 코덱 형식이면 이전 버전과 구분되게 V2FOFOPAINT
+                fs.writeUTFBytes(ReplayDataCodec.isEncoded(replayFileByteArray) ? FileManager.REPLAY_FILE_HEADER_V2 : FileManager.REPLAY_FILE_HEADER_V1);
+                fs.writeUnsignedInt(replayFileByteArray.length); // 뒤에 압축된 바이트를 얼마나 건너 뛰어야 하는지 저장
+                fs.writeBytes(replayFileByteArray);
+
+                // 임시 미러 플래그임
+                if (ReplayState.lastMirrorReadyFlag) // 임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
+                {
+                    const tempMirrorData:Array = [["mirror"]];
+                    fs.writeObject(tempMirrorData);
+                }
+
+                fs.writeObject(["rFirstImage", firstImageLayer1,
+                                            firstImageLayer2,
+                                            ReplaySaveMetaData.firstImageWidth,
+                                            ReplaySaveMetaData.firstImageHeight,
+                                            ReplaySaveMetaData.firstImageBG,
+                                            ReplaySaveMetaData.firstImageMirrorFlag]);
+                fs.writeObject(["rFinalImage", finalImageLayer1, finalImageLayer2, ReplaySaveMetaData.finalImageWidth,ReplaySaveMetaData.finalImageHeight,ReplaySaveMetaData.finalImageBG]);
+
+                if (ReferenceLayerController.canvasRefLayerBitmapData)
+                {
+                    fs.writeObject(["refimage", referenceImage, // 1
+                                ReplaySaveMetaData.refImageWidth,
+                                ReplaySaveMetaData.refImageHeight,
+                                ReplaySaveMetaData.refImageBitmapX,
+                                ReplaySaveMetaData.refImageBitmapY,
+                                ReplaySaveMetaData.refImageBitmapRotation,
+                                ReplaySaveMetaData.refImageBitmapScaleX,
+                                ReplaySaveMetaData.refImageBitmapScaleY,
+                                ReplaySaveMetaData.refImageBitmapMirrorFlag,
+                                ReplaySaveMetaData.refImageBitmapMoveSum,
+                                ReplaySaveMetaData.refImageAlpha]);
+                }
+
+                // 타이밍 시트는 파일 맨 뒤에 둠. 읽을때 이 객체가 없으면 시트 없는 파일로 봄
+                if (ReplayFileCache.rTimingSheetFileObject !== null)
+                {
+                    fs.writeObject(ReplayFileCache.rTimingSheetFileObject);
+                }
+
+                fs.close();
+            }
+            catch (writeErr:Error)
+            {
+                // 임시 파일 쓰기 실패(디스크 부족, 잠김 등), 아래에서 저장 잠금을 풀고 새 파일로 저장해줌
+                isWritten = false;
+
+                try
+                {
+                    fs.close();
+                }
+                catch (closeErr:Error)
+                {
+                }
+            }
+
+            ReplayFileCache.rTimingSheetFileObject = null;
+            firstImageLayer1.clear();
+            firstImageLayer2.clear();
+            finalImageLayer1.clear();
+            finalImageLayer2.clear();
+            referenceImage.clear();
+            replayFileByteArray.clear();
+            firstImageLayer1 = null;
+            firstImageLayer2 = null;
+            finalImageLayer1 = null;
+            finalImageLayer2 = null;
+            referenceImage = null;
+            replayFileByteArray = null;
+
+            var savedFile:File;
+
+            try
+            {
+                if (isWritten === false)
+                {
+                    throw new Error("replay temp file write failed");
+                }
+                const newPath:String = ReplayFileCache.getReplayFileNameFromPath(FileManager.lastSaveFilePath);
+                savedFile = new File(newPath);
+                ReplayFileCache.repFileTemp.moveTo(savedFile, true);
+            }
+            catch (err:Error)
+            {
+                // 파일 엑세스가 불가하므로 새로운 파일로 저장해줌
+
+                if (BackgroundWorkerCoordinator.isSaveInProgress === 1)
+                {
+                    BackgroundWorkerCoordinator.isSaveInProgress = 0;
+                }
+
+                FileManager.openSaveFileBrowser(true, true);
+                return;
+            }
+
+            if (BackgroundWorkerCoordinator.isSaveInProgress === 1)
+            {
+                BackgroundWorkerCoordinator.isSaveInProgress = 0;
+            }
+
+            HintController.showMouseHintTemp("Saved (" + (getTimer() - FileManager.saveStartTime) + " ms, " + ReplayFileCache.formatFileSize(savedFile.size) + ")",10.0);
         }
 
     }
