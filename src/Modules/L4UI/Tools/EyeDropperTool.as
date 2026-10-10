@@ -30,7 +30,7 @@ package Modules.L4UI.Tools
     import Modules.L4UI.Tools.PenTool;
     import Modules.L4UI.CaptureEngine.CaptureController;
 
-    // 층: L3 기능 - 스포이드 툴
+    // 층: L4 UI - 스포이드 툴
     public class EyeDropperTool
     {
         public static var main:Main;

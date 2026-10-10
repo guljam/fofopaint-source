@@ -17,7 +17,7 @@ package Modules.L4UI.Tools
     import Modules.L1Data.MouseState;
     import Modules.L4UI.Tools.LassoTool;
 
-    // 층: L3 기능 - 손 툴(캔버스 끌어 이동)
+    // 층: L4 UI - 손 툴(캔버스 끌어 이동)
     public class HandTool
     {
         public static var main:Main;

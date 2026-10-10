@@ -16,7 +16,7 @@ package Modules.L2Engine
 
     // 메모리 undo 데이터(ReplayState.rMemoryData)를 쌓고 자르는 일과 undo 위치, undo 기준 이미지를 맡음
     // undo 위치를 옮겨서 캔버스를 다시 그리는 일은 UndoController가 함
-    // 층: L1 데이터 - 메모리 undo 데이터를 쌓고 자르는 일과 undo 위치·기준 이미지
+    // 층: L2 엔진 - 메모리 undo 데이터를 쌓고 자르는 일과 undo 위치·기준 이미지
     public class UndoHistory
     {
         // 딥 언두(파일에 쌓인 구간까지 undo)로 가 있는 상태인지. UndoController가 켜고 끔

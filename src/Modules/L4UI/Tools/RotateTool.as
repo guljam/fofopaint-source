@@ -15,7 +15,7 @@ package Modules.L4UI.Tools
     import Modules.L1Data.DragInteraction;
     import Modules.L4UI.Tools.LassoTool;
 
-    // 층: L3 기능 - 회전 툴
+    // 층: L4 UI - 회전 툴
     public class RotateTool
     {
         public static var main:Main;

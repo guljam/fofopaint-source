@@ -18,7 +18,7 @@ package Modules.L4UI.CaptureEngine
     import Modules.L1Data.MouseState;
     import Modules.L4UI.CaptureEngine.CaptureController;
 
-    // 층: L3 기능 - 캡처 영역 지정과 표시
+    // 층: L4 UI - 캡처 영역 지정과 표시
     public class CaptureArea
     {
         public static var main:Main;

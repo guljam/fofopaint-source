@@ -16,7 +16,7 @@ package Modules.L4UI.DrawEngine
     import Modules.L4UI.CaptureEngine.CaptureController;
 
     // 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)
-    // 층: L2 엔진 - 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)
+    // 층: L4 UI - 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)
     public class DrawViewport extends CanvasViewport
     {
         override public function get anchor():Sprite

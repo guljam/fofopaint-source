@@ -24,7 +24,7 @@ package Modules.L4UI.DrawEngine
     import Modules.L4UI.CaptureEngine.CaptureController;
 
     // 캔버스 상하좌우 리사이즈 버튼과 드래그로 캔버스 크기 조절
-    // 층: L2 엔진 - 캔버스 상하좌우 리사이즈 버튼과 드래그로 크기 조절
+    // 층: L4 UI - 캔버스 상하좌우 리사이즈 버튼과 드래그로 크기 조절
     public class CanvasResizer
     {
         public static var main:Main;

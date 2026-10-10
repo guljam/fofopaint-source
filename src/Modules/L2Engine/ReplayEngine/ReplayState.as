@@ -6,7 +6,7 @@ package Modules.L2Engine.ReplayEngine
     import Modules.L2Engine.UndoHistory;
     import Modules.ReplayEngine.TimingSmoother;
 
-    // 층: L1 데이터 - 리플레이 프레임 번호와 메모리 데이터 등 리플레이 상태
+    // 층: L2 엔진 - 리플레이 프레임 번호와 메모리 데이터 등 리플레이 상태
     public class ReplayState
     {
         public static var REPLAY_MAX_SPEED:Number = 0.0;

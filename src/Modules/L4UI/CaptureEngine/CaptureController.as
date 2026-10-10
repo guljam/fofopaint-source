@@ -32,7 +32,7 @@ package Modules.L4UI.CaptureEngine
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.Utils;
 
-    // 층: L3 기능 - 캡처 모드 진입·종료와 캡처 처리
+    // 층: L4 UI - 캡처 모드 진입·종료와 캡처 처리
     public class CaptureController
     {
         public static var main:Main;

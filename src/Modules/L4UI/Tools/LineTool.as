@@ -23,7 +23,7 @@ package Modules.L4UI.Tools
     import Modules.L2Engine.DrawEngine.StrokeBuffer;
     import Modules.L4UI.Tools.PenTool;
 
-    // 층: L3 기능 - 직선 그리기
+    // 층: L4 UI - 직선 그리기
     public class LineTool
     {
         public static var main:Main;

@@ -17,7 +17,7 @@ package Modules.L4UI.Tools
     import Modules.L4UI.Tools.RotateTool;
     import Modules.L4UI.Tools.EyeDropperTool;
 
-    // 층: L3 기능 - 현재 툴 선택과 툴 전환
+    // 층: L4 UI - 현재 툴 선택과 툴 전환
     public class ToolController
     {
         public static var main:Main;

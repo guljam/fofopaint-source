@@ -11,7 +11,7 @@ package Modules.L4UI
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.ReferenceLayerController;
 
-    // 층: L3 기능 - 클립보드 이미지 불러오기
+    // 층: L4 UI - 클립보드 이미지 불러오기
     public class ClipboardManager
     {
         public static var main:Main;

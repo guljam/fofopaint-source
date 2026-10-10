@@ -5,7 +5,7 @@ package Modules.L4UI.Tools
     import Modules.L2Engine.DrawEngine.StrokeBuffer;
     import Modules.L1Data.Utils;
 
-    // 층: L3 기능 - 점 찍기
+    // 층: L4 UI - 점 찍기
     public class DotTool
     {
         private static var cmd:Vector.<int> = new Vector.<int>();

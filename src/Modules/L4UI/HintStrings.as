@@ -14,7 +14,7 @@
     import Modules.L4UI.Tools.ToolController;
     import Modules.L4UI.CaptureEngine.CaptureController;
 
-    // 층: L1 데이터 - 힌트 문구 모음
+    // 층: L4 UI - 힌트 문구 모음
     public class HintStrings
     {
         static private var main:Main;

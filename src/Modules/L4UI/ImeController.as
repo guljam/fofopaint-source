@@ -18,7 +18,7 @@ package Modules.L4UI
     // IME 상태의 단일 관리자
     //  - 규칙: 텍스트 입력 필드에 포커스가 있으면 IME를 켜고, 그 외(캔버스 단축키 영역)에서는 끔
     //  - 끄기에 실패하거나 OS가 되돌려서 IME가 키를 가져가면(keyCode 229 등) 단축키로 처리하지 않고 안내 힌트를 띄움
-    // 층: L3 기능 - IME 상태의 단일 관리자 (입력 필드 포커스에 따라 켜고 끔)
+    // 층: L4 UI - IME 상태의 단일 관리자 (입력 필드 포커스에 따라 켜고 끔)
     public class ImeController
     {
         public static var main:Main;

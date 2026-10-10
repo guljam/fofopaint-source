@@ -7,7 +7,7 @@ package Modules.L4UI
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.MouseState;
 
-    // 층: L3 기능 - 앱 실행 시간과 작업 시간 측정
+    // 층: L4 UI - 앱 실행 시간과 작업 시간 측정
     public class ActivityWorkTimer
     {
         public static var main:Main;
