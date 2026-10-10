@@ -1,5 +1,6 @@
 package Modules.L5App
 {
+    import Modules.L1Data.AppContext;
 
 
     import flash.display.BitmapData;
@@ -34,12 +35,6 @@ package Modules.L5App
     // 층: L5 앱 흐름 - 불러오기 메뉴(로드박스) 열기·닫기와 버튼 처리
     public class LoadBoxController
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         public static var isLoadPendingAfterSaving:Boolean = false;
         public static var lastLoadedFile:File; // invoke나 파일 드래그 드롭했을때 저장해줘서 같은 파일을 다시 열지 않게 함
         private static var loadMenuBoxBitmapData:BitmapData;
@@ -48,7 +43,7 @@ package Modules.L5App
 
         public static function closeLoadMenuBox():void
         {
-            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox);
             UIController.loadMenuBox.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
             UIController.loadMenuBox.visible = false;
         }
@@ -67,7 +62,7 @@ package Modules.L5App
                 }
 
                 UIController.loadMenuBox.showPleaseWaitTextOrCustomText("Closing fofo paint...");
-                UIController.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
+                UIController.loadMenuBox.updateClickBlockerSize(AppContext.stage.stageWidth, AppContext.stage.stageHeight);
                 Utils.setAsTopChild(UIController.loadMenuBox);
                 UIController.loadMenuBox.visible = true;
             }
@@ -77,11 +72,11 @@ package Modules.L5App
         {
             if (UIController.loadMenuBox.visible === false)
             {
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox, false, InputPriority.DEFAULT);
+                AppContext.stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox, false, InputPriority.DEFAULT);
                 UIController.loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
                 UIController.loadMenuBox.visible = true;
             }
-            UIController.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
+            UIController.loadMenuBox.updateClickBlockerSize(AppContext.stage.stageWidth, AppContext.stage.stageHeight);
             Utils.setAsTopChild(UIController.loadMenuBox);
         }
 
@@ -156,8 +151,8 @@ package Modules.L5App
         {
             isLoadPendingAfterSaving = false;
             HintController.showMouseHintTemp("Load failed");
-            HintController.mouseHint.y = main.stage.mouseY;
-            HintController.mouseHint.x = main.stage.mouseX;
+            HintController.mouseHint.y = AppContext.stage.mouseY;
+            HintController.mouseHint.x = AppContext.stage.mouseX;
         }
 
         private static function keyDownLoadMenuBox(e:KeyboardEvent):void
@@ -230,7 +225,7 @@ package Modules.L5App
             if (bmpd)
             {
                 UIController.loadMenuBox.setPreviewImage(bmpd);
-                UIController.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
+                UIController.loadMenuBox.updateClickBlockerSize(AppContext.stage.stageWidth, AppContext.stage.stageHeight);
             }
             if (UIController.loadMenuBox.visible === false)
             {

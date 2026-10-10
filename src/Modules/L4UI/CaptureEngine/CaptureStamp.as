@@ -1,5 +1,6 @@
 package Modules.L4UI.CaptureEngine
 {
+    import Modules.L1Data.AppContext;
     import flash.display.BitmapData;
     import flash.display.Bitmap;
     import flash.text.TextFormat;
@@ -27,11 +28,6 @@ package Modules.L4UI.CaptureEngine
     // 층: L4 UI - 캡처 도장(시간 스탬프)과 글꼴
     public class CaptureStamp
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
         public static var captureStampFontListBox:CapStampFontListSet = new CapStampFontListSet();
         private static var captrueStampBMPD:BitmapData = new BitmapData(1, 1, false, 0);
         private static var captureStampBitmap:Bitmap = new Bitmap(captrueStampBMPD);
@@ -138,13 +134,13 @@ package Modules.L4UI.CaptureEngine
 
         public static function hideStampFontList():void
         {
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList);
             captureStampFontListBox.visible = false;
         }
 
         private static function onMouseDownShowStampFontList(e:MouseEvent):void
         {
-            if (!(captureStampFontListBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) || UIController.topBar.capStampFont.hitTestPoint(main.stage.mouseX, main.stage.mouseY)))
+            if (!(captureStampFontListBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) || UIController.topBar.capStampFont.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY)))
             {
                 hideStampFontList();
             }
@@ -161,7 +157,7 @@ package Modules.L4UI.CaptureEngine
                 captureStampFontListBox.setScale(UITheme.getUIScale());
                 Utils.setAsTopChild(captureStampFontListBox);
                 captureStampFontListBox.visible = true;
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownShowStampFontList, false, InputPriority.MODE);
             }
         }
 
@@ -233,7 +229,7 @@ package Modules.L4UI.CaptureEngine
         {
             return "FOFO PAINT"
                 + ((newLine) ? "\n" : " ")
-                + main.APP_VERSION;
+                + AppContext.appVersion;
         }
 
         private static function getTextWidthText(text:String, offset:Number):Number

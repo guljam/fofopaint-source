@@ -1,5 +1,6 @@
 package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
     import flash.utils.Timer;
     import flash.utils.getTimer;
     import flash.events.TimerEvent;
@@ -10,12 +11,6 @@ package Modules.L4UI
     // 층: L4 UI - 앱 실행 시간과 작업 시간 측정
     public class ActivityWorkTimer
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         private static var workTimer:Timer = new Timer(1000);
         private static var totalWorkTime:int = 0;
         private static var lastWorkTime:int = 0; // 마지막 시간 저장해줌
@@ -36,7 +31,7 @@ package Modules.L4UI
             lastAppUpTime += lastWorkTime / 1000;
             totalWorkTime = 0;
             UIController.topBar.timer.text = "00:00:00";
-            UIController.topBar.updateTimerPos(main.stage.stageWidth);
+            UIController.topBar.updateTimerPos(AppContext.stage.stageWidth);
         }
 
         public static function setRunningTime(newTime:int):void
@@ -96,27 +91,27 @@ package Modules.L4UI
         {
             UIController.topBar.timer.text = getFormattedWorkTime();
             UIController.topBar.timerAFkDot.visible = false;
-            UIController.topBar.updateTimerPos(main.stage.stageWidth);
+            UIController.topBar.updateTimerPos(AppContext.stage.stageWidth);
         }
 
         private static function onTimer(event:TimerEvent):Boolean
         {
             const nowTime:int = getTimer();
             const subTime:int = nowTime - lastWorkTime;
-            if (!main.stage.nativeWindow.active
+            if (!AppContext.stage.nativeWindow.active
                     || (!MouseState.isLeftDown && !MouseState.isRightDown && !KeyState.isKeyPressed()
-                        && main.stage.mouseX === lastMousePosX && main.stage.mouseY === lastMousePosY))
+                        && AppContext.stage.mouseX === lastMousePosX && AppContext.stage.mouseY === lastMousePosY))
             {
                 UIController.topBar.timerAFkDot.visible = !UIController.topBar.timerAFkDot.visible;
-                UIController.topBar.updateTimerPos(main.stage.stageWidth);
+                UIController.topBar.updateTimerPos(AppContext.stage.stageWidth);
             }
             else
             {
                 totalWorkTime += subTime;
                 update();
             }
-            lastMousePosX = main.stage.mouseX;
-            lastMousePosY = main.stage.mouseY;
+            lastMousePosX = AppContext.stage.mouseX;
+            lastMousePosY = AppContext.stage.mouseY;
             lastWorkTime = nowTime;
             return true;
         }

@@ -1,5 +1,6 @@
 package Modules.L4UI.Tools
 {
+    import Modules.L1Data.AppContext;
 
     import Symbols.LassoMenuSet;
 
@@ -56,12 +57,6 @@ package Modules.L4UI.Tools
         public static var onDrawEventsRemovedFunc:Function;
 
         // todo: 포멧팅 필요
-
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         private static const LASSO_1PX_MOVE_UP:int = (1 << 0);
         private static const LASSO_1PX_MOVE_DOWN:int = (1 << 1);
@@ -263,10 +258,10 @@ package Modules.L4UI.Tools
         {
             if (!_isStarted)
             {
-                main.stage.removeEventListener(MouseEvent.MOUSE_OVER, lassoMenuHintONEvent);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_OVER, lassoMenuHintONEvent);
                 return;
             }
-            if (_lassoMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            if (_lassoMenuBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false)
             {
                 if (_lassoMenuBox.getHintStr() !== "Lasso tool")
                 {
@@ -377,7 +372,7 @@ package Modules.L4UI.Tools
             }
             function onMouseMove():void
             {
-                const scale:Number = getScale(main.stage.mouseX, main.stage.mouseY);
+                const scale:Number = getScale(AppContext.stage.mouseX, AppContext.stage.mouseY);
                 LassoLayers.lassoLayer1.scaleX = scale * mirrorScale;
                 LassoLayers.lassoLayer1.scaleY = scale;
                 LassoLayers.lassoLayer2.scaleX = LassoLayers.lassoLayer1.scaleX;
@@ -504,8 +499,8 @@ package Modules.L4UI.Tools
                 lassoLayer2LastBitmapdata = DrawCanvas.canvasLayer2BitmapData.clone();
             }
 
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLassoSelection);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoSelection, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLassoSelection);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoSelection, false, InputPriority.DEFAULT);
             isLassoSelecting = true;
             MouseState.beginDrag(SELECTION_DRAG_OWNER, finishLassoSelection);
         }
@@ -561,8 +556,8 @@ package Modules.L4UI.Tools
         private static function setDefaultLassoMenuPos(lassoMenu:LassoMenuSet):void
         {
             const g:Point = LassoLayers.lassoLayer1.localToGlobal(new Point(0, 0));
-            const lassoW:Number = (lassoMenu.width > main.stage.stageWidth)
-                ? main.stage.stageWidth : lassoMenu.width;
+            const lassoW:Number = (lassoMenu.width > AppContext.stage.stageWidth)
+                ? AppContext.stage.stageWidth : lassoMenu.width;
             lassoMenu.x = Math.floor(g.x - lassoW / 2);
             lassoMenu.y = Math.floor(g.y + (((LassoLayers.lassoLayer1.height) / 2) * CanvasView.canvasZoomMultiplier + 20));
         }
@@ -603,8 +598,8 @@ package Modules.L4UI.Tools
             isLassoSelecting = false;
             MouseState.endDrag(SELECTION_DRAG_OWNER);
             FOFOTimer.remove(LASSO_PREVIEW_TIMER);
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLassoSelection);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoSelection);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveLassoSelection);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoSelection);
 
             const rect:Vector.<Number> = lassoSelectRect;
 
@@ -1040,7 +1035,7 @@ package Modules.L4UI.Tools
                 return;
             }
             const targetName:String = target.name;
-            if (UIController.isCursorInDrawArea() && _lassoMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            if (UIController.isCursorInDrawArea() && _lassoMenuBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false)
             {
                 if (_isLassoMenuHiddenTemp)
                 {
@@ -1289,7 +1284,7 @@ package Modules.L4UI.Tools
             {
                 return;
             }
-            if (lassoMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false || targetName === "lassoOK")
+            if (lassoMenuBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false || targetName === "lassoOK")
             {
                 applyLassoImageToCanvas();
                 return;
@@ -1306,24 +1301,24 @@ package Modules.L4UI.Tools
 
         private static function removeInputEventsLassoTool():void
         {
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpLassoTool);
-            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLassoTool);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLassoTool);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpLassoTool);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLassoTool);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLassoTool);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool);
             if (onDrawEventsAddedFunc != null) onDrawEventsAddedFunc();
         }
 
         private static function addInputEventsLassoTool():void
         {
-            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLassoTool, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLassoTool, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLassoTool, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool, false, InputPriority.MODE);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.MOUSE_OVER, lassoMenuHintONEvent);
+            AppContext.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLassoTool, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLassoTool, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLassoTool, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool, false, InputPriority.MODE);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_OVER, lassoMenuHintONEvent);
             if (onDrawEventsRemovedFunc != null) onDrawEventsRemovedFunc();
         }
 
@@ -1385,7 +1380,7 @@ package Modules.L4UI.Tools
         // 마우스 드래그로 이미지 배율을 정하는 함수를 만들어 돌려줌 (0.1~4.0배로 제한)
         public static function updateImageScaleMouseDrag(sc:Number):Function
         {
-            const stage:Stage = main.stage;
+            const stage:Stage = AppContext.stage;
             var clickX:Number = stage.mouseX;
             var clickY:Number = stage.mouseY;
             var scale:Number = Math.abs(sc);
@@ -1451,15 +1446,15 @@ package Modules.L4UI.Tools
         {
             var oldX:Number = target.x;
             var oldY:Number = target.y;
-            var mx:Number = main.stage.mouseX;
-            var my:Number = main.stage.mouseY;
+            var mx:Number = AppContext.stage.mouseX;
+            var my:Number = AppContext.stage.mouseY;
             const zoom:Number = CanvasView.canvasZoomMultiplier;
             const angle:Number = targetAngle;
 
             return function ():Point
             {
-                const dx:Number = main.stage.mouseX - mx;
-                const dy:Number = main.stage.mouseY - my;
+                const dx:Number = AppContext.stage.mouseX - mx;
+                const dy:Number = AppContext.stage.mouseY - my;
                 const newPos:Point = Utils.rotatePoint(dx, dy, angle);
 
                 newPos.setTo(Math.round(oldX + newPos.x / zoom / customScaleX), Math.round(oldY + newPos.y / zoom / customScaleY));

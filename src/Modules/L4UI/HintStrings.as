@@ -1,5 +1,6 @@
 ﻿package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
     import Main;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L4UI.ColorPickerController;
@@ -17,10 +18,8 @@
     // 층: L4 UI - 힌트 문구 모음
     public class HintStrings
     {
-        static private var main:Main;
-        public static function setMainInstance(mainclass:Main):void
+        public static function initialize():void
         {
-            main = mainclass;
             initSizeAndAlphaButtonHintString();
         }
 
@@ -169,7 +168,7 @@
 
         public static function getLineToolToolBoxHintString():String
         {
-            if (main === null || ToolPanel.toolBox2.visible)
+            if (AppContext.stage === null || ToolPanel.toolBox2.visible)
             {
                 return "Line [shift]";
             }
@@ -184,7 +183,7 @@
 
         static private function initSizeAndAlphaButtonHintString():void
         {
-            if (main === null)
+            if (AppContext.stage === null)
             {
                 return;
             }
@@ -206,7 +205,7 @@
 
         static private function getRedoButtonHintString():String
         {
-            if (main === null || ToolPanel.toolBox2.visible)
+            if (AppContext.stage === null || ToolPanel.toolBox2.visible)
             {
                 return "Redo [x / ,]";
             }
@@ -216,7 +215,7 @@
 
         static private function getUndoButtonHintString():String
         {
-            if (main === null || ToolPanel.toolBox2.visible)
+            if (AppContext.stage === null || ToolPanel.toolBox2.visible)
             {
                 return "Undo [z / .]";
             }
@@ -241,7 +240,7 @@
 
         static private function getPenSmoothingValueString():String
         {
-            if (main === null)
+            if (AppContext.stage === null)
             {
                 return "";
             }
@@ -251,7 +250,7 @@
 
         static private function getRGBorHSVString():String
         {
-            if (main === null)
+            if (AppContext.stage === null)
             {
                 return "";
             }
@@ -260,7 +259,7 @@
 
         static private function getCaptureSaveHintString():String
         {
-            if (main === null)
+            if (AppContext.stage === null)
             {
                 return "";
             }
@@ -274,7 +273,7 @@
 
         static private function getTrackBarHintString():String
         {
-            if (main === null)
+            if (AppContext.stage === null)
             {
                 return "";
             }
@@ -288,7 +287,7 @@
 
         static private function getGridGapHintString():String
         {
-            if (main === null)
+            if (AppContext.stage === null)
             {
                 return "";
             }
@@ -308,7 +307,7 @@
 
         static private function getCurrentColorHintString():String
         {
-            if (main === null)
+            if (AppContext.stage === null)
             {
                 return "";
             }
@@ -369,7 +368,7 @@
 
         public static function getLassoMenuHintSwapLayer():String
         {
-            if (main === null)
+            if (AppContext.stage === null)
             {
                 return "";
             }
@@ -465,7 +464,7 @@
 
         public static function getHintFromTargetNameCaptureMode(targetName:String):String
         {
-            if (main === null || !hintsCaptureMode.hasOwnProperty(targetName))
+            if (AppContext.stage === null || !hintsCaptureMode.hasOwnProperty(targetName))
             {
                 return null;
             }
@@ -532,7 +531,7 @@
 
         public static function getHintFromTargetName(targetName:String):String
         {
-            if (main === null || !hints.hasOwnProperty(targetName))
+            if (AppContext.stage === null || !hints.hasOwnProperty(targetName))
             {
                 return null;
             }

@@ -1,5 +1,6 @@
 package Modules.L5App.InputManager
 {
+    import Modules.L1Data.AppContext;
     import Modules.L1Data.KeyState;
 
     import flash.events.Event;
@@ -32,12 +33,6 @@ package Modules.L5App.InputManager
     // 층: L5 앱 흐름 - 키보드·마우스 입력을 받아 모드별 입력 처리로 나눠줌
     public class InputManager
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         // handle mouse click 이벤트에서 이벤트 한번만 추가되게 하기
         public static var handMouseClickEventStarted:Boolean = false;
 
@@ -54,7 +49,7 @@ package Modules.L5App.InputManager
             {
                 function onMouseUpAboutBox(e:MouseEvent):void
                 {
-                    main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox);
+                    AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox);
                     const upTargetName:String = e.target.name;
                     if (targetName === upTargetName)
                     {
@@ -62,13 +57,13 @@ package Modules.L5App.InputManager
                     }
                     handMouseClickEventStarted = false;
                 }
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox, false, InputPriority.DEFAULT);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpAboutBox, false, InputPriority.DEFAULT);
                 return;
             }
 
             function onMouseUp(e:MouseEvent):void
             {
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
                 handMouseClickEventStarted = false;
                 const upTargetName:String = e.target.name;
                 if (targetName === upTargetName)
@@ -83,7 +78,7 @@ package Modules.L5App.InputManager
                     }
                 }
             }
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp, false, InputPriority.DEFAULT);
         }
 
         // 드로우 모드와 리플레이 모드가 같이 쓰는 상단바 버튼

@@ -1,5 +1,6 @@
 package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
     import flash.display.InteractiveObject;
     import flash.events.FocusEvent;
     import flash.events.IMEEvent;
@@ -22,12 +23,6 @@ package Modules.L4UI
     // 층: L4 UI - IME 상태의 단일 관리자 (입력 필드 포커스에 따라 켜고 끔)
     public class ImeController
     {
-        public static var main:Main;
-
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         // Windows VK_PROCESSKEY: IME가 가져간 키. 이 상태에서는 keyCode로 실제 키를 알 수 없음
         private static const VK_PROCESSKEY:int = 229;
@@ -51,8 +46,8 @@ package Modules.L4UI
         public static function init():void
         {
             // 포커스 이동은 모든 텍스트 필드에서 한곳으로 감지함 (필드를 추가해도 따로 등록할 필요 없음)
-            main.stage.addEventListener(FocusEvent.FOCUS_IN, onFocusChanged, true);
-            main.stage.addEventListener(FocusEvent.FOCUS_OUT, onFocusChanged, true);
+            AppContext.stage.addEventListener(FocusEvent.FOCUS_IN, onFocusChanged, true);
+            AppContext.stage.addEventListener(FocusEvent.FOCUS_OUT, onFocusChanged, true);
 
             ImeDiagnostics.checkMarker();
             attachCompositionLog();
@@ -74,7 +69,7 @@ package Modules.L4UI
 
         public static function isTextInputFocused():Boolean
         {
-            const f:InteractiveObject = main.stage.focus;
+            const f:InteractiveObject = AppContext.stage.focus;
             return (f is TextField) && (f as TextField).type === TextFieldType.INPUT;
         }
 
@@ -197,7 +192,7 @@ package Modules.L4UI
 
         private static function describeFocus():String
         {
-            return describeObject(main.stage.focus);
+            return describeObject(AppContext.stage.focus);
         }
 
         private static function describeObject(o:InteractiveObject):String

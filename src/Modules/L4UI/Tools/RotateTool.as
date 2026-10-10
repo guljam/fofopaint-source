@@ -20,12 +20,6 @@ package Modules.L4UI.Tools
         // 리플레이 캔버스를 화면에 맞춰야 한다는 보고
         public static var onReplayCanvasFitNeededFunc:Function;
 
-        public static var main:Main;
-
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         private static var isReplayMode:Boolean;
         private static var xAnc:Sprite;

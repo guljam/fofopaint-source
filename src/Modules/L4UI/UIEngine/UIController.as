@@ -1,5 +1,6 @@
 package Modules.L4UI.UIEngine
 {
+    import Modules.L1Data.AppContext;
     import Symbols.CanvasInfoSet;
     import Symbols.RotateCursorSet;
     import Symbols.TopMenuSet;
@@ -56,12 +57,6 @@ package Modules.L4UI.UIEngine
         // 파일이 저장된 상태가 아니게 됐다는 보고
         public static var onFileChangedFunc:Function;
 
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         // todo 커스텀 마우스 커서랑 최종적으로 앱 상세 살정할수있는 작은 옵션 버튼들 창 만들어야함, 현재 계속 누르고 있는 확인은 실제 확인창 만들어서 그냥 쉽게 선택하게 하기
         public static const stageBG:Sprite = new Sprite(); // 드래그 불러오기가 stage공백에서는 안되서 수동으로 전체바탕으로 만들어줌
         public static const topBar:TopMenuSet = new TopMenuSet();
@@ -101,24 +96,24 @@ package Modules.L4UI.UIEngine
 
             CaptureStamp.captureStampFontListBox.y = 100;
 
-            topBar.updateTimerPos(main.stage.stageWidth);
+            topBar.updateTimerPos(AppContext.stage.stageWidth);
             topBar.replayFitToWindowButton.alpha = UITheme.OFFALPHA;
 
             ToolPanel.selectedToolViewBitmap.name = "selectedToolViewBitmap";
             ToolPanel.selectedToolViewBitmap.visible = false;
 
-            main.stage.addChild(UIController.loadMenuBox);
-            main.stage.addChild(ReferenceLayerController.refLayerMenuBox);
-            main.stage.addChild(AboutBoxController.aboutBox);
-            main.stage.addChild(SidebarController.sideBar);
-            main.stage.addChild(FillPenTool.fillPenBox);
-            main.stage.addChild(ToolPanel.toolBox2);
-            main.stage.addChild(canvasRotateCursor);
-            main.stage.addChild(ColorPickerController.numPadBox);
-            main.stage.addChild(CaptureStamp.captureStampFontListBox);
-            main.stage.addChild(topBar);
+            AppContext.stage.addChild(UIController.loadMenuBox);
+            AppContext.stage.addChild(ReferenceLayerController.refLayerMenuBox);
+            AppContext.stage.addChild(AboutBoxController.aboutBox);
+            AppContext.stage.addChild(SidebarController.sideBar);
+            AppContext.stage.addChild(FillPenTool.fillPenBox);
+            AppContext.stage.addChild(ToolPanel.toolBox2);
+            AppContext.stage.addChild(canvasRotateCursor);
+            AppContext.stage.addChild(ColorPickerController.numPadBox);
+            AppContext.stage.addChild(CaptureStamp.captureStampFontListBox);
+            AppContext.stage.addChild(topBar);
             HintController.initialize();
-            main.stage.addChild(ToolPanel.selectedToolViewBitmap);
+            AppContext.stage.addChild(ToolPanel.selectedToolViewBitmap);
         }
 
         public static function updateTopbarIconsDrawMode():void
@@ -138,8 +133,8 @@ package Modules.L4UI.UIEngine
 
         public static function getViewportRect():Rectangle
         {
-            const stw:int = main.stage.stageWidth;
-            const sth:int = main.stage.stageHeight;
+            const stw:int = AppContext.stage.stageWidth;
+            const sth:int = AppContext.stage.stageHeight;
             const rect:Rectangle = new Rectangle(0, 0, stw, sth);
 
             rect.y += STAGE_TOP_OFFSET;
@@ -201,14 +196,14 @@ package Modules.L4UI.UIEngine
         public static function applyUIScale():void
         {
             const scale:Number = UITheme.getUIScale();
-            const stw:Number = main.stage.stageWidth;
-            const sth:Number = main.stage.stageHeight;
+            const stw:Number = AppContext.stage.stageWidth;
+            const sth:Number = AppContext.stage.stageHeight;
 
             SidebarController.sideBar.setScale(scale);
             SidebarController.setSidebarDefaultPos();
             topBar.setScale(scale);
             topBar.updateTopbarBG(stw);
-            topBar.updateTimerPos(main.stage.stageWidth);
+            topBar.updateTimerPos(AppContext.stage.stageWidth);
             UIController.seekBarBox.setScale(scale);
             canvasRotateCursor.setScale(scale);
             HintController.mouseHint.setScale(scale);
@@ -254,8 +249,8 @@ package Modules.L4UI.UIEngine
                 return;
             }
 
-            const dx:Number = Math.round((main.stage.nativeWindow.width - UIController.lastAppWindowSize.width) / 1.75);
-            const dy:Number = Math.round((main.stage.nativeWindow.height - UIController.lastAppWindowSize.height) / 1.75);
+            const dx:Number = Math.round((AppContext.stage.nativeWindow.width - UIController.lastAppWindowSize.width) / 1.75);
+            const dy:Number = Math.round((AppContext.stage.nativeWindow.height - UIController.lastAppWindowSize.height) / 1.75);
 
             if (dx === 0 && dy === 0 && !force)
             {
@@ -331,7 +326,7 @@ package Modules.L4UI.UIEngine
 
             if (ReplayState.isReplayModeON)
             {
-                UIController.seekBarBox.updatePos(main.stage.stageWidth);
+                UIController.seekBarBox.updatePos(AppContext.stage.stageWidth);
                 ReplayDrawer.cursorFollow.updateBounds();
 
                 if (ReplayState.isReplayCanvasFitToWindow)
@@ -340,8 +335,8 @@ package Modules.L4UI.UIEngine
                 }
             }
 
-            topBar.updateTopbarBG(main.stage.stageWidth);
-            topBar.updateTimerPos(main.stage.stageWidth);
+            topBar.updateTopbarBG(AppContext.stage.stageWidth);
+            topBar.updateTimerPos(AppContext.stage.stageWidth);
 
             SidebarController.sideBar.updateSideBGSize(SidebarController.getSideBarBGHeight());
 
@@ -359,7 +354,7 @@ package Modules.L4UI.UIEngine
 
             if (UIController.loadMenuBox.visible === true)
             {
-                UIController.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
+                UIController.loadMenuBox.updateClickBlockerSize(AppContext.stage.stageWidth, AppContext.stage.stageHeight);
             }
 
             if (ToolPanel.selectedToolViewBitmap.visible)
@@ -378,7 +373,7 @@ package Modules.L4UI.UIEngine
         {
             UIController.stageBG.graphics.clear();
             UIController.stageBG.graphics.beginFill(0, 0.0);
-            UIController.stageBG.graphics.drawRect(-2, -2, main.stage.stageWidth + 4, main.stage.stageHeight + 4);
+            UIController.stageBG.graphics.drawRect(-2, -2, AppContext.stage.stageWidth + 4, AppContext.stage.stageHeight + 4);
             UIController.stageBG.graphics.endFill();
             if (UIController.stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
             {
@@ -391,22 +386,22 @@ package Modules.L4UI.UIEngine
         // 뒤늦게 적용되어 위치가 밀리는 것을 막을 수 있다.
         public static function rebaseLayout():void
         {
-            UIController.lastAppWindowSize.setTo(0, 0, main.stage.nativeWindow.width, main.stage.nativeWindow.height);
+            UIController.lastAppWindowSize.setTo(0, 0, AppContext.stage.nativeWindow.width, AppContext.stage.nativeWindow.height);
         }
 
         public static function keepBoxInsideViewPort(target:DisplayObject):void
         {
-            const rect:Rectangle = target.getBounds(main.stage);
+            const rect:Rectangle = target.getBounds(AppContext.stage);
 
             if (rect.x < STAGE_LEFT_OFFSET)
                 target.x = STAGE_LEFT_OFFSET;
-            else if (rect.x + rect.width > main.stage.stageWidth - STAGE_RIGHT_OFFSET)
-                target.x = main.stage.stageWidth - rect.width - STAGE_RIGHT_OFFSET;
+            else if (rect.x + rect.width > AppContext.stage.stageWidth - STAGE_RIGHT_OFFSET)
+                target.x = AppContext.stage.stageWidth - rect.width - STAGE_RIGHT_OFFSET;
 
             if (rect.y < STAGE_TOP_OFFSET)
                 target.y = STAGE_TOP_OFFSET;
-            else if (rect.y + rect.height > main.stage.stageHeight - STAGE_BOTTOM_OFFSET)
-                target.y = main.stage.stageHeight - rect.height - STAGE_BOTTOM_OFFSET;
+            else if (rect.y + rect.height > AppContext.stage.stageHeight - STAGE_BOTTOM_OFFSET)
+                target.y = AppContext.stage.stageHeight - rect.height - STAGE_BOTTOM_OFFSET;
         }
 
         public static function getStageCenterPos(mode:String):Point
@@ -417,23 +412,23 @@ package Modules.L4UI.UIEngine
 
             if (mode === "draw")
             {
-                center.setTo((!SidebarController.isSidebarVisible) ? Math.floor(main.stage.stageWidth / 2)
-                        : (SidebarController.isRightSidebar) ? Math.floor((main.stage.stageWidth - STAGE_RIGHT_OFFSET) / 2)
-                        : Math.floor(STAGE_LEFT_OFFSET + (main.stage.stageWidth - STAGE_LEFT_OFFSET) / 2)
-                        , Math.floor(topBarOffset + (main.stage.stageHeight - topBarOffset) / 2));
+                center.setTo((!SidebarController.isSidebarVisible) ? Math.floor(AppContext.stage.stageWidth / 2)
+                        : (SidebarController.isRightSidebar) ? Math.floor((AppContext.stage.stageWidth - STAGE_RIGHT_OFFSET) / 2)
+                        : Math.floor(STAGE_LEFT_OFFSET + (AppContext.stage.stageWidth - STAGE_LEFT_OFFSET) / 2)
+                        , Math.floor(topBarOffset + (AppContext.stage.stageHeight - topBarOffset) / 2));
             }
             else if (mode === "replay")
             {
                 topBarOffset = topBarOffset;
-                center.setTo(main.stage.stageWidth / 2, Math.floor(topBarOffset + (main.stage.stageHeight - topBarOffset) / 2));
+                center.setTo(AppContext.stage.stageWidth / 2, Math.floor(topBarOffset + (AppContext.stage.stageHeight - topBarOffset) / 2));
             }
             else if (mode === "capture")
             {
-                center.setTo(main.stage.stageWidth / 2, Math.floor(topBarOffset + (main.stage.stageHeight - topBarOffset) / 2));
+                center.setTo(AppContext.stage.stageWidth / 2, Math.floor(topBarOffset + (AppContext.stage.stageHeight - topBarOffset) / 2));
             }
             else
             {
-                center.setTo(main.stage.stageWidth / 2, main.stage.stageHeight / 2);
+                center.setTo(AppContext.stage.stageWidth / 2, AppContext.stage.stageHeight / 2);
             }
 
             return center;
@@ -443,7 +438,7 @@ package Modules.L4UI.UIEngine
         {
             const color:uint = UITheme.getUIStageColor();
 
-            main.stage.color = color;
+            AppContext.stage.color = color;
             STAGE_BG_COLOR = color;
         }
 
@@ -510,8 +505,8 @@ package Modules.L4UI.UIEngine
         public static function showCanvasRotateCursorMouseDrag(target:DisplayObject):Function
         {
             const snapThreshold:Number = 82;
-            canvasRotateCursor.x = main.stage.mouseX;
-            canvasRotateCursor.y = main.stage.mouseY + (65 * UITheme.getUIScale());
+            canvasRotateCursor.x = AppContext.stage.mouseX;
+            canvasRotateCursor.y = AppContext.stage.mouseY + (65 * UITheme.getUIScale());
             canvasRotateCursor.rotateArrow.rotation = target.rotation;
             Utils.setAsTopChild(canvasRotateCursor);
             canvasRotateCursor.visible = true;
@@ -521,14 +516,14 @@ package Modules.L4UI.UIEngine
 
             var sumAng:Number = target.rotation;
             // 각도 차이 구하기 위해서 넣어줌, 초기 값은 마우스 클릭한 위치의 각도값
-            var lastAng:Number = Math.atan2(main.stage.mouseX - canvasRotateCursor.x, main.stage.mouseY - canvasRotateCursor.y) * toDeg;
+            var lastAng:Number = Math.atan2(AppContext.stage.mouseX - canvasRotateCursor.x, AppContext.stage.mouseY - canvasRotateCursor.y) * toDeg;
             var activateSnapFlag:Boolean = false;
             var ignoreSnapFlag:Boolean = true;
             var snappedAng:Number = 0;
 
             return function ():Number
             {
-                const nowAng:Number = Math.atan2(main.stage.mouseX - canvasRotateCursor.x, main.stage.mouseY - canvasRotateCursor.y) * toDeg;
+                const nowAng:Number = Math.atan2(AppContext.stage.mouseX - canvasRotateCursor.x, AppContext.stage.mouseY - canvasRotateCursor.y) * toDeg;
                 const subAng:Number = lastAng - nowAng;
 
                 lastAng = nowAng;
@@ -612,13 +607,13 @@ package Modules.L4UI.UIEngine
             CanvasView.canvasPanel.x = Math.floor(-CanvasView.canvasPanel.width / 2);
             CanvasView.canvasPanel.y = Math.floor(-CanvasView.canvasPanel.height / 2);
             CanvasView.canvasAnchorPoint.addChild(CanvasView.canvasPanel);
-            main.stage.addChild(UIController.stageBG);
-            main.stage.addChild(EyeDropperTool.eyedropperLens);
-            main.stage.addChild(LassoTool._lassoMenuBox);
-            main.stage.addChild(CanvasView.canvasAnchorPoint);
-            main.stage.addChild(PenSizePreviewCursor.getCursorShape());
-            main.stage.setChildIndex(CanvasView.canvasAnchorPoint, 0);
-            main.stage.setChildIndex(UIController.stageBG, 0);
+            AppContext.stage.addChild(UIController.stageBG);
+            AppContext.stage.addChild(EyeDropperTool.eyedropperLens);
+            AppContext.stage.addChild(LassoTool._lassoMenuBox);
+            AppContext.stage.addChild(CanvasView.canvasAnchorPoint);
+            AppContext.stage.addChild(PenSizePreviewCursor.getCursorShape());
+            AppContext.stage.setChildIndex(CanvasView.canvasAnchorPoint, 0);
+            AppContext.stage.setChildIndex(UIController.stageBG, 0);
         }
 
         // 드로우 모드 캔버스를 좌우 반전하고 관련 UI를 갱신함
@@ -639,8 +634,8 @@ package Modules.L4UI.UIEngine
                 ReferenceLayerController.mirrorRefLayerImage();
             }
             CanvasGridOverlay.updateGridMirror(DrawCanvas.mirrorON);
-            const halfCanvas:Number = (main.stage.stageWidth - SidebarController.sideBar.getWidth()) / 2;
-            var stageHalf:Number = (SidebarController.sideBar.visible === false) ? main.stage.stageWidth / 2
+            const halfCanvas:Number = (AppContext.stage.stageWidth - SidebarController.sideBar.getWidth()) / 2;
+            var stageHalf:Number = (SidebarController.sideBar.visible === false) ? AppContext.stage.stageWidth / 2
                 : (SidebarController.isRightSidebar) ? halfCanvas
                 : UIController.STAGE_LEFT_OFFSET + halfCanvas;
             // 창 절반을 기준점으로 앵커포인트 x축 이동.
@@ -711,9 +706,9 @@ package Modules.L4UI.UIEngine
         //커서가 드로우 영역에 있는지 검사
         public static function isCursorInDrawArea():Boolean
         {
-            return !(UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY)
-                    || (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
-                    || (UIController.seekBarBox.visible && UIController.seekBarBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY)));
+            return !(UIController.topBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY)
+                    || (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
+                    || (UIController.seekBarBox.visible && UIController.seekBarBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY)));
         }
 
 

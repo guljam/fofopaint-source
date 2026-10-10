@@ -1,5 +1,6 @@
 package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
     import flash.events.Event;
     import flash.events.IOErrorEvent;
     import flash.filesystem.File;
@@ -13,12 +14,6 @@ package Modules.L4UI
     // 층: L4 UI - GitHub의 새 버전 확인과 배포 사이트 열기
     public final class AppUpdater
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         private static const FLAG_NO_UPDATE:int = 0;
         private static const FLAG_CHECKING_UPDATE:int = (1 << 0);
         private static const FLAG_UPDATE_AVAILABLE:int = (1 << 1);
@@ -46,7 +41,7 @@ package Modules.L4UI
             if (!newVersion)
                 return false;
 
-            var currentStr:String = main.APP_VERSION;
+            var currentStr:String = AppContext.appVersion;
             var current:Array = currentStr.split(".");
             var newVersionArray:Array = newVersion.split(".");
 

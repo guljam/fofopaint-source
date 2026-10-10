@@ -1,5 +1,6 @@
 package Modules.L4UI.Tools
 {
+    import Modules.L1Data.AppContext;
     import flash.geom.Point;
     import flash.display.SimpleButton;
     import flash.events.KeyboardEvent;
@@ -41,12 +42,6 @@ package Modules.L4UI.Tools
         // todo 다른 메서드들도 마찬가지지만 클래스 정적 변수 직접 접근하는 부분은 메서드로 호출하게 만들어야함
         // todo 왼쪽 클릭 뭔가 타이밍 잘맞춰서하면 선이 캔버스에 그려지는 버그있음 초반에 버그 구현되다가 갑자기 안됨
         // 새로 추가한 라인툴 이벤트랑 섞였을 가능성도 있음
-        public static var main:Main;
-
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         public static const fillPenBox:FillPenMenuSet = new FillPenMenuSet();
 
@@ -99,8 +94,8 @@ package Modules.L4UI.Tools
         {
             const scale:Number = fillPenBox.getScale();
 
-            fillPenBox.x = Math.floor(main.stage.mouseX - (lastFillPenBoxUsedButton.x + lastFillPenBoxUsedButton.width / 2) * scale);
-            fillPenBox.y = Math.floor(main.stage.mouseY - (lastFillPenBoxUsedButton.y + lastFillPenBoxUsedButton.height / 2) * scale);
+            fillPenBox.x = Math.floor(AppContext.stage.mouseX - (lastFillPenBoxUsedButton.x + lastFillPenBoxUsedButton.width / 2) * scale);
+            fillPenBox.y = Math.floor(AppContext.stage.mouseY - (lastFillPenBoxUsedButton.y + lastFillPenBoxUsedButton.height / 2) * scale);
             fillPenBox.visible = true;
 
             Utils.setAsTopChild(fillPenBox);
@@ -113,7 +108,7 @@ package Modules.L4UI.Tools
 
         private static function setPreviewOFFTimerCount():void
         {
-            turnOffFillPenPreviewTimerCount = main.stage.frameRate;
+            turnOffFillPenPreviewTimerCount = AppContext.stage.frameRate;
         }
 
         private static function resetPreviewOFFTimerCount():void
@@ -192,7 +187,7 @@ package Modules.L4UI.Tools
 
                         return false;
                     }
-                    else if (!MouseState.isLeftDown && !SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                    else if (!MouseState.isLeftDown && !SidebarController.sideBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                     {
                         turnOffFillPenPreviewTimerCount--;
 
@@ -221,7 +216,7 @@ package Modules.L4UI.Tools
 
             const targetName:String = target.name;
 
-            if (!FOFOTimer.hasTimer("fillColorUpdateTimer") && SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (!FOFOTimer.hasTimer("fillColorUpdateTimer") && SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
             {
                 startFillColorUpdateTimer();
             }
@@ -642,7 +637,7 @@ package Modules.L4UI.Tools
                 return;
             }
 
-            if (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
             {
                 if (targetName === "penColorButton" || targetName === "paperColorButton" || targetName === "rgbInfoText" || targetName === "currentColor")
                 {
@@ -725,7 +720,7 @@ package Modules.L4UI.Tools
             }
             else if (UIController.isCursorInDrawArea() && SidebarController.isQuickSidebarActive === false)
             {
-                main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
                 MouseState.beginDrag(FILLPEN_DRAG_OWNER, finishFillPenDrag);
 
                 const filteredPos:Point = PenTool.getRefinedPoint(StrokeBuffer.canvasDrawLayerChild.mouseX, StrokeBuffer.canvasDrawLayerChild.mouseY);
@@ -765,26 +760,26 @@ package Modules.L4UI.Tools
         {
             // 드래그 도중 FillPen이 종료되면(파일 로드로 취소 등) onMouseUpFillPen이 안 불리므로 여기서 등록을 해제함
             MouseState.endDrag(FILLPEN_DRAG_OWNER);
-            main.stage.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverFillPenHint);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownFillPen);
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpFillPen);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownFillPen);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpFillPen);
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpFillPen);
-            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeydownFillPen);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverFillPenHint);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownFillPen);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpFillPen);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownFillPen);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpFillPen);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpFillPen);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeydownFillPen);
         }
 
         private static function addEventsFillPen():void
         {
-            main.stage.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverFillPenHint);
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownFillPen, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpFillPen, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownFillPen, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpFillPen, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpFillPen, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeydownFillPen, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverFillPenHint);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownFillPen, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpFillPen, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownFillPen, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpFillPen, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpFillPen, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeydownFillPen, false, InputPriority.DEFAULT);
         }
 
         private static function onRightMouseDownFillPen(e:MouseEvent):void
@@ -823,7 +818,7 @@ package Modules.L4UI.Tools
                 return;
             }
 
-            if (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
             {
                 return;
             }
@@ -846,7 +841,7 @@ package Modules.L4UI.Tools
             MouseState.endDrag(FILLPEN_DRAG_OWNER);
             FOFOTimer.remove("previewFilledColorUpdateTimer");
             cancelBlurPreview();
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
 
             // 드래그 도중 FillPen이 이미 종료됐다면(등록이 남은 경우) 미리보기를 다시 그리지 않음
             if (isStarted && !fillPenBox.visible)
@@ -871,7 +866,7 @@ package Modules.L4UI.Tools
             MouseState.endDrag(FILLPEN_DRAG_OWNER);
             FOFOTimer.remove("previewFilledColorUpdateTimer");
             cancelBlurPreview();
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
 
             if (clickedButtonName === targetName)
             {
@@ -1025,7 +1020,7 @@ package Modules.L4UI.Tools
         {
             const target:DisplayObject = e.target as DisplayObject;
 
-            if (!target as DisplayObject || target === SidebarController.sideBarScrollBar || SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (!target as DisplayObject || target === SidebarController.sideBarScrollBar || SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
             {
                 return;
             }

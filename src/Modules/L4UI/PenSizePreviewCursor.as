@@ -1,5 +1,6 @@
 package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.getTimer;
@@ -18,10 +19,8 @@ package Modules.L4UI
     public class PenSizePreviewCursor
     {
 
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
+        public static function initialize():void
         {
-            main = instance;
             _cursor.name = "penSizeCursor";
             _cursor.visible = false;
         }
@@ -125,8 +124,8 @@ package Modules.L4UI
 
         public static function updatePosAndVisibility():void
         {
-            const mx:Number = main.stage.mouseX;
-            const my:Number = main.stage.mouseY;
+            const mx:Number = AppContext.stage.mouseX;
+            const my:Number = AppContext.stage.mouseY;
             // 아마 이거 preview커서 박스 커서가 커져서 sidebar 바운더리가 커졌을때
             // 제대로 확인못해서 썼던걸거임
             // || (!quickSidebarON && !isCursorInDrawArea())

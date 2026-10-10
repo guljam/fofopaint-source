@@ -1,5 +1,6 @@
 package Modules.L2Engine.ReplayEngine
 {
+    import Modules.L1Data.AppContext;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
@@ -133,7 +134,7 @@ package Modules.L2Engine.ReplayEngine
         // 옛 구간 간격 = 앱 프레임 하나의 길이. 옛 앱은 명령을 프레임마다 하나씩 그렸음
         private static function currentLegacyDelta():Number
         {
-            return TimingSheetFile.legacyFrames > 0 ? 1000 / AppStateManager.main.stage.frameRate : 0;
+            return TimingSheetFile.legacyFrames > 0 ? 1000 / AppContext.stage.frameRate : 0;
         }
 
         private static function captureLegacy():void

@@ -1,5 +1,6 @@
 package Modules.L5App.InputManager
 {
+    import Modules.L1Data.AppContext;
 
     import flash.display.DisplayObject;
     import flash.events.KeyboardEvent;
@@ -25,12 +26,6 @@ package Modules.L5App.InputManager
     // 층: L5 앱 흐름 - 리플레이 모드의 키보드/마우스 입력
     public class ReplayModeInput
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         private static var isEventsAdded:Boolean = false; // 이벤트 중복 추가 방지
 
         // rotate hand zoom에서 쓰임
@@ -39,20 +34,20 @@ package Modules.L5App.InputManager
             if (isEventsAdded === false)
             {
                 isEventsAdded = true;
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode, false, InputPriority.MODE);
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode, false, InputPriority.MODE);
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownReplayMode, false, InputPriority.MODE);
-                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpReplayMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownReplayMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpReplayMode, false, InputPriority.MODE);
             }
         }
 
         public static function removeEvents():void
         {
             isEventsAdded = false;
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode);
-            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownReplayMode);
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpReplayMode);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownReplayMode);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReplayMode);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownReplayMode);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpReplayMode);
         }
 
         // 리플레이 버튼은 누른 버튼에서 마우스를 뗐을때 실행됨 (InputManager.handleMouseClickStage가 호출)
@@ -398,7 +393,7 @@ package Modules.L5App.InputManager
             const targetName:String = target.name;
             if (ReplayState.isReplayRestartTimerON)
             {
-                if (UIController.seekBarBox.trackBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                if (UIController.seekBarBox.trackBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                 {
                     ReplayController.cancelReplayRestartTimer();
                     return;

@@ -1,5 +1,6 @@
 package Modules.L4UI.ReplayEngine
 {
+    import Modules.L1Data.AppContext;
 
     import flash.display.Stage;
     import flash.geom.Point;
@@ -88,7 +89,7 @@ package Modules.L4UI.ReplayEngine
         private function viewportRect():Rectangle
         {
             const top:Number = UIController.topBar.BARSIZE * UITheme.getUIScale();
-            const stage:Stage = UIController.main.stage;
+            const stage:Stage = AppContext.stage;
             return new Rectangle(0, top, stage.stageWidth, stage.stageHeight - top);
         }
 

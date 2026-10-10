@@ -1,5 +1,6 @@
 package Modules.L4UI.UIEngine
 {
+    import Modules.L1Data.AppContext;
     import Symbols.CanvasNavigatorBoxSet;
 
     import flash.display.DisplayObject;
@@ -21,12 +22,6 @@ package Modules.L4UI.UIEngine
     // 층: L4 UI - 사이드바 캔버스 미리보기(네비게이터)와 클릭·드래그 이동
     public class CanvasNavigator
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         public static const box:CanvasNavigatorBoxSet = new CanvasNavigatorBoxSet();
 
         // 네비게이터로 캔버스 이동 이벤트 한번만 올려주기
@@ -66,8 +61,8 @@ package Modules.L4UI.UIEngine
             const gp:Point = DrawCanvas.canvasLayer1Bitmap.globalToLocal(new Point(newLeftOffset, UIController.STAGE_TOP_OFFSET));
             const zoom:Number = CanvasView.canvasZoomMultiplier;
             box.updateCursor(gp.x * zoom, gp.y * zoom
-                    , main.stage.stageWidth - newRightOffset - newLeftOffset
-                    , main.stage.stageHeight - UIController.STAGE_TOP_OFFSET - UIController.STAGE_BOTTOM_OFFSET
+                    , AppContext.stage.stageWidth - newRightOffset - newLeftOffset
+                    , AppContext.stage.stageHeight - UIController.STAGE_TOP_OFFSET - UIController.STAGE_BOTTOM_OFFSET
                     , DrawCanvas.CANVAS_WIDTH * zoom, CanvasView.canvasAnchorPoint.rotation);
         }
 
@@ -109,8 +104,8 @@ package Modules.L4UI.UIEngine
                         LassoTool.showLassoMenuBox();
                     }
                 }
-                main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator);
                 canvasMoveEventStarted = false;
             }
 
@@ -138,14 +133,14 @@ package Modules.L4UI.UIEngine
             // 클릭한 지점이 커서 바깥부분일때 강제로 캔버스 중심으로 옮겨줌
             if (!navCursorClicked)
             {
-                centerCanvas(main.stage.mouseX, main.stage.mouseY);
+                centerCanvas(AppContext.stage.mouseX, AppContext.stage.mouseY);
             }
 
             if (canvasMoveEventStarted === false)
             {
                 canvasMoveEventStarted = true;
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator, false, InputPriority.DEFAULT);
-                main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator, false, InputPriority.DEFAULT);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
                 MouseState.beginDrag("canvasNavigator", function ():void
                     {
                         onMouseUpCanvasNavigator(null);

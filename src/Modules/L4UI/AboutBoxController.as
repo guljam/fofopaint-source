@@ -1,5 +1,6 @@
 package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
     import Symbols.AboutWindowSet;
 
     import flash.events.MouseEvent;
@@ -34,15 +35,13 @@ package Modules.L4UI
         // 리플레이 모드의 입력 이벤트를 빼야 한다는 보고
         public static var onReplayEventsRemovedFunc:Function;
 
-        public static var main:Main;
 
-        public static function setMainInstance(instance:Main):void
+        public static function initialize():void
         {
-            main = instance;
 
             _aboutBox = new AboutWindowSet();
             _aboutBox.name = "aboutPanel";
-            _aboutBox.setVersionInfo(main.APP_VERSION);
+            _aboutBox.setVersionInfo(AppContext.appVersion);
         }
 
         private static var _aboutBox:AboutWindowSet;
@@ -59,7 +58,7 @@ package Modules.L4UI
                 case "resetAppButton":
                     {
                         resetApp();
-                        main.stage.nativeWindow.close();
+                        AppContext.stage.nativeWindow.close();
                     }
                     break;
                 case "versionInfo":
@@ -130,7 +129,7 @@ package Modules.L4UI
 
                 FOFOTimer.addByName("openAboutPanelOFFTimer", 1.0, false, function ():void
                     {
-                        main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown, false, InputPriority.DEFAULT);
+                        AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown, false, InputPriority.DEFAULT);
                     });
             }
             else
@@ -138,7 +137,7 @@ package Modules.L4UI
                 _aboutBox.resetAppButton.visible = true;
 
                 AppUpdater.checkUpdate();
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown, false, InputPriority.DEFAULT);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown, false, InputPriority.DEFAULT);
             }
 
             _aboutBox.randomLogo();
@@ -148,7 +147,7 @@ package Modules.L4UI
 
         public static function closeAboutBox():void
         {
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown);
 
             if (onCaptureEventsRemovedFunc != null) onCaptureEventsRemovedFunc();
             if (onReplayEventsRemovedFunc != null) onReplayEventsRemovedFunc();
@@ -199,8 +198,8 @@ package Modules.L4UI
         {
             // 테두리가 원점 기준 대칭이 아니므로 실제 내용 범위의 중심을 기준으로 맞춤
             const localBounds:Rectangle = _aboutBox.getBounds(_aboutBox);
-            _aboutBox.x = Math.floor(main.stage.stageWidth / 2) + Math.floor(-(localBounds.x + localBounds.width / 2) * _aboutBox.scaleX);
-            _aboutBox.y = Math.floor((main.stage.stageHeight - 39) / 2) + Math.floor(-(localBounds.y + localBounds.height / 2) * _aboutBox.scaleY);
+            _aboutBox.x = Math.floor(AppContext.stage.stageWidth / 2) + Math.floor(-(localBounds.x + localBounds.width / 2) * _aboutBox.scaleX);
+            _aboutBox.y = Math.floor((AppContext.stage.stageHeight - 39) / 2) + Math.floor(-(localBounds.y + localBounds.height / 2) * _aboutBox.scaleY);
         }
     }
 }

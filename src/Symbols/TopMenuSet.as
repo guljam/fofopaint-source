@@ -570,7 +570,6 @@
 
 		public function updateIconsByMode(mode:int):void
 		{
-			const main:Main = UIController.main;
 			if (LassoTool.isStarted === true || AboutBoxController.isAboutBoxOpened === true)
 			{
 				return;

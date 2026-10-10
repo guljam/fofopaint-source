@@ -16,12 +16,6 @@ package Modules.L2Engine.DrawEngine
         // 캔버스 패널의 색이나 크기를 다시 그린 뒤 연동된 UI를 갱신하라는 보고
         public static var onCanvasPanelResizedFunc:Function;
 
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         public static const canvasFlashEffect:Sprite = new Sprite();
         public static var canvasAnchorPoint:Sprite = new Sprite(); // 회전 스프라이트 부모
         public static var canvasPanel:Sprite = new Sprite(); // 회색 부분을 제외한 그리기 영역 추가

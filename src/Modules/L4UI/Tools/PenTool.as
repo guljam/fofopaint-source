@@ -1,5 +1,6 @@
 package Modules.L4UI.Tools
 {
+    import Modules.L1Data.AppContext;
 
 	import flash.display.CapsStyle;
 	import flash.display.Graphics;
@@ -33,12 +34,6 @@ package Modules.L4UI.Tools
 	// 층: L4 UI - 펜 그리기와 지우개
 	public final class PenTool
 	{
-		public static var main:Main;
-		public static function setMainInstance(instance:Main):void
-		{
-			main = instance;
-		}
-
 		private static const clickPos:Point = new Point(); // 점찍어 줄 때 판단하는 클릭한 자리 저장
 		private static const clickPosDot:Point = new Point(); // 점 찍어주는지 검사할때 sharpline offset이 적용된 지점을 비교하는 변수
 		private static const smoothPos:Point = new Point(); // 선이 시작되는 좌표 저장 (스무딩 없을때는 마지막 커서 위치)
@@ -110,7 +105,7 @@ package Modules.L4UI.Tools
 
 		private static function setCanUndoDataFlagON():void
 		{
-			if (DrawCanvas.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
+			if (DrawCanvas.canvasLayer1Bitmap.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY, true))
 			{
 				UndoHistory.canAddUndoData = true;
 			}
@@ -550,8 +545,8 @@ package Modules.L4UI.Tools
 		{
 			isStrokeActive = false;
 			MouseState.endDrag(STROKE_DRAG_OWNER);
-			main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
-			main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
+			AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool);
+			AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
 
 			ReferenceLayerController.hideMemoryTrainingMask();
 			CanvasLayers.endEraserToolPreview(); // DrawingFinish가 레이어를 갱신하기 전에 원래 순서로 복귀
@@ -726,8 +721,8 @@ package Modules.L4UI.Tools
 				FOFOTimer.addByName("penStabilizerTimer", 0, true, onStabilizerTimer);
 			}
 
-			main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
-			main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool, false, InputPriority.DEFAULT);
+			AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenTool);
+			AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenTool, false, InputPriority.DEFAULT);
 			isStrokeActive = true;
 			MouseState.beginDrag(STROKE_DRAG_OWNER, finishStroke);
 		}

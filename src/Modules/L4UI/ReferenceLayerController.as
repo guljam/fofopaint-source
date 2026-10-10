@@ -1,5 +1,6 @@
 package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
 
     import Symbols.RefLayerMenuSet;
 
@@ -45,10 +46,8 @@ package Modules.L4UI
         // 파일이 저장된 상태가 아니게 됐다는 보고
         public static var onFileChangedFunc:Function;
 
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
+        public static function initialize():void
         {
-            main = instance;
             setRefLayerMenuButtonsOff();
         }
         public static const REFLAYER_VISIBLE_DELAY:Number = 0.7;
@@ -156,11 +155,11 @@ package Modules.L4UI
         {
             if (!isRefLayerMenuON)
             {
-                main.stage.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverRefLayerMenuHint);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverRefLayerMenuHint);
                 return;
             }
 
-            if (refLayerMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            if (refLayerMenuBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false)
             {
                 if (refLayerMenuBox.getHintStr() !== "Reference layer")
                 {
@@ -250,8 +249,8 @@ package Modules.L4UI
         public static function openRefLayerMenu():void // load clip버튼에서 눌러줬을때 틀여줌
         {
             refLayerMenuBox.hint("Reference layer");
-            refLayerMenuBox.x = Math.floor(main.stage.mouseX - refLayerMenuBox.width / 2);
-            refLayerMenuBox.y = Math.floor(main.stage.mouseY - 8);
+            refLayerMenuBox.x = Math.floor(AppContext.stage.mouseX - refLayerMenuBox.width / 2);
+            refLayerMenuBox.y = Math.floor(AppContext.stage.mouseY - 8);
             refLayerMenuBox.visible = true;
 
             UIController.keepBoxInsideViewPort(refLayerMenuBox);
@@ -259,7 +258,7 @@ package Modules.L4UI
             if (isRefLayerMenuON === false)
             {
                 refLayerMenuBox.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpRefLayerMenu);
-                main.stage.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverRefLayerMenuHint);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverRefLayerMenuHint);
             }
 
             isRefLayerMenuON = true;
@@ -314,7 +313,7 @@ package Modules.L4UI
 
         public static function setCanvasRefLayerVisibleSlowly(flag:Boolean):void
         {
-            var fadeStep:Number = Math.round(refLayerLastAlpha / (main.stage.frameRate * 2) * 256) / 256;
+            var fadeStep:Number = Math.round(refLayerLastAlpha / (AppContext.stage.frameRate * 2) * 256) / 256;
 
             if (fadeStep <= 0.04)
             {
@@ -600,7 +599,7 @@ package Modules.L4UI
 
             function onMouseMove():void
             {
-                const scale:Number = getscale(main.mouseX, main.mouseY);
+                const scale:Number = getscale(AppContext.stage.mouseX, AppContext.stage.mouseY);
                 if (scale)
                     canvasRefLayer.scaleX = (canvasRefLayer.scaleX < 0) ? -scale : scale;
                 canvasRefLayer.scaleY = scale;

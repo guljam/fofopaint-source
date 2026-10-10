@@ -1,5 +1,6 @@
 package Modules.L4UI.Tools
 {
+    import Modules.L1Data.AppContext;
     import flash.geom.Point;
     import flash.display.Sprite;
     import flash.display.Bitmap;
@@ -20,12 +21,6 @@ package Modules.L4UI.Tools
     // 층: L4 UI - 손 툴(캔버스 끌어 이동)
     public class HandTool
     {
-        public static var main:Main;
-
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         private static const old:Point = new Point(0, 0);
 
@@ -44,10 +39,10 @@ package Modules.L4UI.Tools
         private static function finishHandTool():void
         {
             MouseState.endDrag(DRAG_OWNER);
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHandTool);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpHandTool);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpHandTool);
-            main.stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHandTool);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpHandTool);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpHandTool);
+            AppContext.stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
 
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
             CanvasViewport.forMode(isReplayMode).keepInStage();
@@ -85,10 +80,10 @@ package Modules.L4UI.Tools
                 return;
             }
 
-            xAnc.x += (main.stage.mouseX - old.x);
-            xAnc.y += (main.stage.mouseY - old.y);
+            xAnc.x += (AppContext.stage.mouseX - old.x);
+            xAnc.y += (AppContext.stage.mouseY - old.y);
 
-            old.setTo(main.stage.mouseX, main.stage.mouseY);
+            old.setTo(AppContext.stage.mouseX, AppContext.stage.mouseY);
         }
 
         public static function startInDrawMode():void
@@ -117,7 +112,7 @@ package Modules.L4UI.Tools
 
             xAnc = CanvasViewport.forMode(isReplayMode).anchor;
 
-            old.setTo(main.stage.mouseX, main.stage.mouseY);
+            old.setTo(AppContext.stage.mouseX, AppContext.stage.mouseY);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             
             if (!fromReplayMode)
@@ -128,13 +123,13 @@ package Modules.L4UI.Tools
 
             if (fromWheelClick)
             {
-                main.stage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
+                AppContext.stage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
             }
 
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHandTool);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpHandTool, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHandTool);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpHandTool, false, InputPriority.DEFAULT);
             // 윈도우 바깥에서 up을 하면 hand가 안꺼져서 오른쪽 마우스 뗄떼도 꺼주게함
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpHandTool, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpHandTool, false, InputPriority.DEFAULT);
             MouseState.beginDrag(DRAG_OWNER, finishHandTool);
         };
     }

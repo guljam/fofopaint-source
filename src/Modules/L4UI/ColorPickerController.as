@@ -1,5 +1,6 @@
 package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
     import Symbols.ColorPickerSet;
     import Symbols.NumPadSet;
     import flash.display.BitmapData;
@@ -31,12 +32,6 @@ package Modules.L4UI
     {
         // 드로우 모드의 입력 이벤트를 다시 달아야 한다는 보고
         public static var onDrawEventsAddedFunc:Function;
-
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         public static const colorPickerBox:ColorPickerSet = new ColorPickerSet();
         public static const numPadBox:NumPadSet = new NumPadSet();
@@ -89,7 +84,7 @@ package Modules.L4UI
 
             if (numpadInputBuffer.length >= 3)
             {
-                main.stage.focus = null;
+                AppContext.stage.focus = null;
                 return;
             }
 
@@ -206,7 +201,7 @@ package Modules.L4UI
         {
             FOFOTimer.addByName("keepRGBInfoTextPartFocusTimer", 0.0, false, function ():void
                 {
-                    main.stage.focus = colorPickerBox.rgbInfoText;
+                    AppContext.stage.focus = colorPickerBox.rgbInfoText;
                     selectRGBInfoTextByIndex(lastRGBInfoColorPartIndex);
                 });
         }
@@ -337,8 +332,8 @@ package Modules.L4UI
 
                 KeyState.resetLastKey();
 
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad, false, InputPriority.LATE);
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad, false, InputPriority.LATE);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad, false, InputPriority.LATE);
+                AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad, false, InputPriority.LATE);
             }
         }
 
@@ -351,8 +346,8 @@ package Modules.L4UI
 
             numPadBox.off();
 
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownNumPad);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownNumPad);
 
             FOFOTimer.addByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function ():void
                 {
@@ -364,7 +359,7 @@ package Modules.L4UI
         {
             function onMouseUpNumpad(e:MouseEvent):void
             {
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpNumpad);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpNumpad);
 
                 if (oldTargetName === e.target.name)
                 {
@@ -396,7 +391,7 @@ package Modules.L4UI
                 }
             }
 
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpNumpad, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpNumpad, false, InputPriority.DEFAULT);
         }
 
         private static function onRightMouseDownNumPad(e:MouseEvent):void
@@ -413,7 +408,7 @@ package Modules.L4UI
 
             const targetName:String = e.target.name;
 
-            if (!numPadBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) && !colorPickerBox.rgbInfoText.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (!numPadBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) && !colorPickerBox.rgbInfoText.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
             {
                 if (numPadBox.visible)
                 {
@@ -578,7 +573,7 @@ package Modules.L4UI
 
         private static function selectRGBInfoTextColorPart(clickedIndex:int):void
         {
-            main.stage.focus = colorPickerBox.rgbInfoText;
+            AppContext.stage.focus = colorPickerBox.rgbInfoText;
 
             var clickedRGBPart:int = getRGBInfoTextCursorPos(clickedIndex);
 
@@ -631,7 +626,7 @@ package Modules.L4UI
             if (UIController.isCursorInDrawArea())
             {
                 isColorPickerModeResetEventAdded = false;
-                main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF);
 
                 switchColorPickerModePen();
             }
@@ -654,7 +649,7 @@ package Modules.L4UI
             if (isColorPickerModeResetEventAdded === false)
             {
                 isColorPickerModeResetEventAdded = true;
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF, false, InputPriority.DEFAULT);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF, false, InputPriority.DEFAULT);
             }
         }
 
@@ -676,7 +671,7 @@ package Modules.L4UI
             {
 
                 isColorPickerModeResetEventAdded = false;
-                main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF);
             }
         }
 
@@ -980,7 +975,7 @@ package Modules.L4UI
         {
             function onMouseUpColorPickerBox(e:MouseEvent):void
             {
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpColorPickerBox);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpColorPickerBox);
 
                 const upTargetName:String = e.target.name;
 
@@ -1039,7 +1034,7 @@ package Modules.L4UI
                 }
             }
 
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpColorPickerBox, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpColorPickerBox, false, InputPriority.DEFAULT);
         }
 
         public static function handleColorPickerBoxMouseDown(target:DisplayObject):Boolean

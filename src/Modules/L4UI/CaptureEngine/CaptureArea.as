@@ -1,5 +1,6 @@
 package Modules.L4UI.CaptureEngine
 {
+    import Modules.L1Data.AppContext;
 
     import flash.display.CapsStyle;
     import flash.display.LineScaleMode;
@@ -22,12 +23,6 @@ package Modules.L4UI.CaptureEngine
     // 층: L4 UI - 캡처 영역 지정과 표시
     public class CaptureArea
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         public static var captureDragAreaOverlay:Shape = new Shape(); // 스크린샷 박스 미리보기 그려줌
         private static var xPanel:Sprite;
         private static var mouseMoved:Boolean = false;
@@ -172,7 +167,7 @@ package Modules.L4UI.CaptureEngine
                 return EDGE_NONE;
             }
 
-            if (UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) || CaptureStamp.captureStampFontListBox.visible)
+            if (UIController.topBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) || CaptureStamp.captureStampFontListBox.visible)
             {
                 return EDGE_NONE;
             }
@@ -203,12 +198,12 @@ package Modules.L4UI.CaptureEngine
 
         public static function startHoverTracking():void
         {
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHover);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHover);
         }
 
         public static function stopHoverTracking():void
         {
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHover);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveHover);
             highlightEdge = EDGE_NONE;
         }
 
@@ -353,10 +348,10 @@ package Modules.L4UI.CaptureEngine
 
         private static function removeCaptureAreaEvents():void
         {
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawCaptureArea);
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveAreaMove);
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveEdge);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveDrawCaptureArea);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveAreaMove);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveEdge);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea);
         }
 
         public static function updateDrawArea(forceFlag:Boolean = false):void
@@ -518,8 +513,8 @@ package Modules.L4UI.CaptureEngine
             isDragging = true;
             mouseMoved = false;
             clickPos.setTo(mx, my);
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, moveListener);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, moveListener);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCaptureArea, false, InputPriority.DEFAULT);
             MouseState.beginDrag(DRAG_OWNER, finishCaptureAreaDrag);
         }
 
@@ -543,7 +538,7 @@ package Modules.L4UI.CaptureEngine
 
         public static function start():void
         {
-            if (UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            if (UIController.topBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false)
             {
                 const mx:Number = xPanel.mouseX;
                 const my:Number = xPanel.mouseY;

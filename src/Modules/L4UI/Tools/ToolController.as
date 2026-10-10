@@ -20,12 +20,6 @@ package Modules.L4UI.Tools
     // 층: L4 UI - 현재 툴 선택과 툴 전환
     public class ToolController
     {
-        public static var main:Main;
-
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         public static function selectPenToolIfNotDrawingTool(checkErase:Boolean):void
         {

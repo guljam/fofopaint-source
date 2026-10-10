@@ -1,5 +1,6 @@
 package Modules.L4UI.Tools
 {
+    import Modules.L1Data.AppContext;
 
     import flash.display.CapsStyle;
     import flash.display.JointStyle;
@@ -27,12 +28,6 @@ package Modules.L4UI.Tools
     // 층: L4 UI - 직선 그리기
     public class LineTool
     {
-        public static var main:Main;
-
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         private static const toDeg:Number = 180 / Math.PI;
         // const oldPoint:Point = new Point(0,0);
@@ -140,14 +135,14 @@ package Modules.L4UI.Tools
         public static function removeEventsAndResetVar():void
         {
             FOFOTimer.remove("updateLineToolTimer");
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool);
-            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool);
 
             if (startFromShortCut)
             {
                 startFromShortCut = false;
-                main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpLineTool);
+                AppContext.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpLineTool);
             }
 
             command = new Vector.<int>();
@@ -362,9 +357,9 @@ package Modules.L4UI.Tools
                     ReferenceLayerController.showMemoryTrainingMask();
                 }
 
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool, false, InputPriority.DEFAULT);
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool, false, InputPriority.DEFAULT);
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool, false, InputPriority.LATE);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLineTool, false, InputPriority.DEFAULT);
+                AppContext.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownLineTool, false, InputPriority.DEFAULT);
+                AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLineTool, false, InputPriority.LATE);
                 hasLineTouchedCanvas = checkPointInsideCanvas(mx, my);
 
                 FOFOTimer.addByName("updateLineToolTimer", 0.1, true, function ():Boolean
@@ -376,7 +371,7 @@ package Modules.L4UI.Tools
                 if (KeyState.isPressingShift())
                 {
                     startFromShortCut = true;
-                    main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLineTool, false, InputPriority.DEFAULT);
+                    AppContext.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpLineTool, false, InputPriority.DEFAULT);
                 }
             }
         }

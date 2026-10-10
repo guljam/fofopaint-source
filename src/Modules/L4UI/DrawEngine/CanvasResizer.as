@@ -1,5 +1,6 @@
 package Modules.L4UI.DrawEngine
 {
+    import Modules.L1Data.AppContext;
 
     import flash.display.Shape;
     import flash.display.Sprite;
@@ -28,12 +29,6 @@ package Modules.L4UI.DrawEngine
     // 층: L4 UI - 캔버스 상하좌우 리사이즈 버튼과 드래그로 크기 조절
     public class CanvasResizer
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         private static const CANVAS_MIN_SIZE:Number = 100;
         private static const RATIO_LIST:Array = [
                 "1:2", (1.0 / 2.0),
@@ -123,11 +118,11 @@ package Modules.L4UI.DrawEngine
             }
 
             updateButtonVisible(false);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, resizeButtonMouseUpEvent, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, resizeButtonMouseUpEvent, false, InputPriority.DEFAULT);
             if (rightMouseupEventON === false)
             {
                 rightMouseupEventON = true;
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent, false, InputPriority.DEFAULT);
+                AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent, false, InputPriority.DEFAULT);
             }
             var onMouseMove:Function;
             if (targetName === "resizeButtonL")
@@ -138,7 +133,7 @@ package Modules.L4UI.DrawEngine
                 onMouseMove = onMouseMoveReizeButtonU;
             else if (targetName === "resizeButtonD")
                 onMouseMove = onMouseMoveReizeButtonD;
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
         }
 
         public static function exit():void
@@ -148,20 +143,20 @@ package Modules.L4UI.DrawEngine
                 started = false;
                 if (targetName !== null)
                 {
-                    main.stage.removeEventListener(MouseEvent.MOUSE_UP, resizeButtonMouseUpEvent);
+                    AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, resizeButtonMouseUpEvent);
                     if (!MouseState.isRightDown)
                     {
                         rightMouseupEventON = false;
-                        main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent);
+                        AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent);
                     }
                     if (targetName === "resizeButtonL")
-                        main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveReizeButtonL);
+                        AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveReizeButtonL);
                     else if (targetName === "resizeButtonR")
-                        main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveReizeButtonR);
+                        AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveReizeButtonR);
                     else if (targetName === "resizeButtonU")
-                        main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveReizeButtonU);
+                        AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveReizeButtonU);
                     else if (targetName === "resizeButtonD")
-                        main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveReizeButtonD);
+                        AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveReizeButtonD);
                 }
                 canvasSizeChanging = false;
                 HintController.hideMouseHint();
@@ -192,7 +187,7 @@ package Modules.L4UI.DrawEngine
             {
                 updateButtonVisible(false);
                 rightMouseupEventON = false;
-                main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent);
+                AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, resizeButtonRightMouseUpEvent);
             }
         }
 
@@ -484,7 +479,7 @@ package Modules.L4UI.DrawEngine
 
         private static function isMouseCursorInStage():Boolean
         {
-            return main.stage.mouseX >= 0 && main.stage.mouseY >= 0 && main.stage.mouseX <= main.stage.stageWidth && main.stage.mouseY <= main.stage.stageHeight;
+            return AppContext.stage.mouseX >= 0 && AppContext.stage.mouseY >= 0 && AppContext.stage.mouseX <= AppContext.stage.stageWidth && AppContext.stage.mouseY <= AppContext.stage.stageHeight;
         }
 
         private static function resizeButtonRightMouseUpEvent(e:MouseEvent):void
@@ -531,7 +526,7 @@ package Modules.L4UI.DrawEngine
                 subY = max - oldHeight;
             else if (height === min)
                 subY = min - oldHeight;
-            if (resizePreviewRatioRect.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
+            if (resizePreviewRatioRect.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY, true))
             {
                 const info:Array = getNearestRatio(height);
                 if (info)
@@ -561,7 +556,7 @@ package Modules.L4UI.DrawEngine
                 subX = max - oldWidth;
             else if (width === min)
                 subX = min - oldWidth;
-            if (resizePreviewRatioRect.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
+            if (resizePreviewRatioRect.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY, true))
             {
                 const info:Array = getNearestRatio(width);
                 if (info)

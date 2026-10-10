@@ -1,5 +1,6 @@
 package Modules.L5App
 {
+    import Modules.L1Data.AppContext;
     import flash.events.Event;
     import flash.utils.getTimer;
     import flash.geom.Rectangle;
@@ -37,12 +38,6 @@ package Modules.L5App
     // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState
     {
-                public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
         public static var lastWindowDeactivateTime:int = 0;
                 // 앱종료할때 올려줌 창 최대화 되어있는 상태를 원래대로 하고 window resize이벤트에서 마지막에 종료 호출
@@ -135,7 +130,7 @@ package Modules.L5App
         {
             isAppClosing = true;
             e.preventDefault();
-            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, AppWindowState.onWindowDeactivate);
+            AppContext.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, AppWindowState.onWindowDeactivate);
             CaptureModeInput.removeEvents();
             DrawModeInput.removeEvents();
             ReplayModeInput.removeEvents();
@@ -176,7 +171,7 @@ package Modules.L5App
 
                 if (!FOFOTimer.hasTimer("pollTimerWaitWorkerStop"))
                 {
-                    main.stage.nativeWindow.title = "Waiting for remaining tasks...";
+                    AppContext.stage.nativeWindow.title = "Waiting for remaining tasks...";
                     LoadBoxController.openLoadMenuBoxOnClosing();
                     FOFOTimer.addByName("pollTimerWaitWorkerStop", BackgroundWorkerCoordinator.getWaitPollingInterval(), true, function ():Boolean
                         {
@@ -205,7 +200,7 @@ package Modules.L5App
 
         public static function updateWindowTitle():void
         {
-            main.stage.nativeWindow.title = FileManager.stripExtension(FileManager.lastSaveFileName) + main.STRING_TITLE_FOFOPAINT;
+            AppContext.stage.nativeWindow.title = FileManager.stripExtension(FileManager.lastSaveFileName) + AppContext.titleString;
             if (ImageViewWindow.isCanvasWindowON)
             {
                 ImageViewWindow.copyMainWindowTitleToCanvasWindow();
@@ -214,12 +209,12 @@ package Modules.L5App
 
         public static function markWindowTitleAsDirty():void
         {
-            const titleEndStr:int = main.stage.nativeWindow.title.lastIndexOf(main.STRING_TITLE_FOFOPAINT);
+            const titleEndStr:int = AppContext.stage.nativeWindow.title.lastIndexOf(AppContext.titleString);
 
-            if (titleEndStr > 0 && main.stage.nativeWindow.title.charAt(titleEndStr - 1) !== "*")
+            if (titleEndStr > 0 && AppContext.stage.nativeWindow.title.charAt(titleEndStr - 1) !== "*")
             {
-                const starFileName:String = main.stage.nativeWindow.title.slice(0, titleEndStr) + "*";
-                main.stage.nativeWindow.title = starFileName + main.STRING_TITLE_FOFOPAINT;
+                const starFileName:String = AppContext.stage.nativeWindow.title.slice(0, titleEndStr) + "*";
+                AppContext.stage.nativeWindow.title = starFileName + AppContext.titleString;
 
                 if (ImageViewWindow.isCanvasWindowON)
                 {
@@ -244,7 +239,7 @@ package Modules.L5App
             isCloseRequested = true;
             AppStateManager.deleteTempDirectory();
             AppStateManager.saveAllAppData();
-            main.stage.nativeWindow.close();
+            AppContext.stage.nativeWindow.close();
         }
     }
 }

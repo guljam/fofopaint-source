@@ -15,12 +15,6 @@ package Modules.L5App
     // 층: L5 앱 흐름 - 클립보드 이미지 불러오기
     public class ClipboardManager
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         public static var isClipBoardButtonActivated:Boolean = false;
 
         public static function tryLoadClipboardImage(toRefLayer:Boolean):void

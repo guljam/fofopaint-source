@@ -70,11 +70,6 @@ package Modules.L5App
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
         public static const REPLAY_FILE_HEADER_V1:String = "FOFOPAINT"; // 리플레이 블록이 zlib
         public static const REPLAY_FILE_HEADER_V2:String = "V2FOFOPAINT"; // 리플레이 블록이 ReplayDataCodec, 이전 버전 앱에서 못 읽음
 

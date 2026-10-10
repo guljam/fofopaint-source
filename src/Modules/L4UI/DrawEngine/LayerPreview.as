@@ -1,5 +1,6 @@
 package Modules.L4UI.DrawEngine
 {
+    import Modules.L1Data.AppContext;
 
     import flash.display.Bitmap;
     import flash.display.BitmapData;
@@ -95,13 +96,13 @@ package Modules.L4UI.DrawEngine
             optionsBox.layerButtonWrapper.addEventListener(MouseEvent.MOUSE_OVER, onlayerButtonWrapperMouseOver);
             ToolPanel.toolBox.toolRefLayer.addEventListener(MouseEvent.MOUSE_OVER, onlayerButtonWrapperMouseOver);
             ToolPanel.toolBox2.toolRefLayer.addEventListener(MouseEvent.MOUSE_OVER, onlayerButtonWrapperMouseOver);
-            CanvasView.main.stage.addEventListener(MouseEvent.MOUSE_OUT, onlayerButtonWrapperMouseOut);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_OUT, onlayerButtonWrapperMouseOut);
         }
 
         private static function isMouseOverRefLayerButton():Boolean
         {
-            const sx:Number = CanvasView.main.stage.mouseX;
-            const sy:Number = CanvasView.main.stage.mouseY;
+            const sx:Number = AppContext.stage.mouseX;
+            const sy:Number = AppContext.stage.mouseY;
             return (ToolPanel.toolBox.visible && ToolPanel.toolBox.toolRefLayer.hitTestPoint(sx, sy))
                 || (ToolPanel.toolBox2.visible && ToolPanel.toolBox2.toolRefLayer.hitTestPoint(sx, sy));
         }
@@ -109,7 +110,7 @@ package Modules.L4UI.DrawEngine
         // 레이어 버튼 영역이나 툴박스의 참조 레이어 버튼 위에 마우스가 있는지
         private static function isMouseOverLayerButtonWrapper():Boolean
         {
-            return optionsBoxRef.layerButtonWrapper.hitTestPoint(CanvasView.main.stage.mouseX, CanvasView.main.stage.mouseY)
+            return optionsBoxRef.layerButtonWrapper.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY)
                 || isMouseOverRefLayerButton();
         }
 
@@ -262,11 +263,11 @@ package Modules.L4UI.DrawEngine
             stage.addChildAt(container, stage.getChildIndex(CanvasView.canvasAnchorPoint) + 1);
             CanvasView.canvasPanel.visible = false;
             container.addEventListener(Event.ENTER_FRAME, onFrame);
-            CanvasView.main.stage.addEventListener(Event.DEACTIVATE, onDeactivate);
+            AppContext.stage.addEventListener(Event.DEACTIVATE, onDeactivate);
             // 캔버스 입력은 캡처 단계에서 먼저 받아서, 입력 처리보다 앞서 프리뷰를 걷어냄
-            CanvasView.main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onStageMouseDown, true, MOUSE_DOWN_PRIORITY);
-            CanvasView.main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onStageMouseDown, true, MOUSE_DOWN_PRIORITY);
-            CanvasView.main.stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, onStageMouseDown, true, MOUSE_DOWN_PRIORITY);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onStageMouseDown, true, MOUSE_DOWN_PRIORITY);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onStageMouseDown, true, MOUSE_DOWN_PRIORITY);
+            AppContext.stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, onStageMouseDown, true, MOUSE_DOWN_PRIORITY);
             update();
         }
 
@@ -299,10 +300,10 @@ package Modules.L4UI.DrawEngine
             t = 0.0;
             highlightDepth = -1;
             container.removeEventListener(Event.ENTER_FRAME, onFrame);
-            CanvasView.main.stage.removeEventListener(Event.DEACTIVATE, onDeactivate);
-            CanvasView.main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onStageMouseDown, true);
-            CanvasView.main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onStageMouseDown, true);
-            CanvasView.main.stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, onStageMouseDown, true);
+            AppContext.stage.removeEventListener(Event.DEACTIVATE, onDeactivate);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onStageMouseDown, true);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onStageMouseDown, true);
+            AppContext.stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, onStageMouseDown, true);
             if (container.parent)
             {
                 container.parent.removeChild(container);

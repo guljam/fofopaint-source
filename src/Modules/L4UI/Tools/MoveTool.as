@@ -1,5 +1,6 @@
 package Modules.L4UI.Tools
 {
+    import Modules.L1Data.AppContext;
     import flash.events.MouseEvent;
     import flash.utils.getTimer;
     import flash.display.BitmapData;
@@ -21,12 +22,6 @@ package Modules.L4UI.Tools
     // 층: L4 UI - 이동 툴
     public class MoveTool
     {
-        public static var main:Main;
-
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         private static var getMovedPos:Function;
 
@@ -49,9 +44,9 @@ package Modules.L4UI.Tools
         private static function finishMoveTool():void
         {
             MouseState.endDrag(DRAG_OWNER);
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMoveTool);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMoveTool);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool);
 
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
 
@@ -204,9 +199,9 @@ package Modules.L4UI.Tools
             getMovedPos = LassoTool.updateImagePosMouseDrag(DrawCanvas.canvasLayer1Bitmap, CanvasView.canvasAnchorPoint.rotation);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
 
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMoveTool, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpMoveTool, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMoveTool, false, InputPriority.DEFAULT);
             MouseState.beginDrag(DRAG_OWNER, finishMoveTool);
         };
     }

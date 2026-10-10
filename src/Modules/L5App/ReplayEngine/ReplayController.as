@@ -1,5 +1,6 @@
 package Modules.L5App.ReplayEngine
 {
+    import Modules.L1Data.AppContext;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
     import flash.desktop.NativeDragManager;
@@ -68,7 +69,6 @@ package Modules.L5App.ReplayEngine
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController
     {
-        public static var main:Main;
 
         private static const REPLAY_SLIDESHOW_ACTIVE_SPEED:Number = 60;
         private static const REPLAY_DRAW_CHUNK_FRAMES:Number = 200; // 시계를 따라가려고 한번에 그리는 프레임 수 단위
@@ -86,9 +86,8 @@ package Modules.L5App.ReplayEngine
         public static var lastReplayTimeBoxYPos:Number = 0; // 리플레이 재생해줄때 WorkspaceView.topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
         private static var isReplayWaitingBoxShown:Boolean = false;
 
-        public static function setMainInstance(instance:Main):void
+        public static function initialize():void
         {
-            main = instance;
             ReplayDrawer.rReplayFOFOCursor.initWaitingTextBox(UIController.seekBarBox.prograssInfo.defaultTextFormat, UIController.seekBarBox.prograssInfo.embedFonts);
         }
 
@@ -182,7 +181,7 @@ package Modules.L5App.ReplayEngine
 
                 if (files && files.length == 1)
                 {
-                    NativeDragManager.acceptDragDrop(main.stage);
+                    NativeDragManager.acceptDragDrop(AppContext.stage);
                 }
             }
         }
@@ -616,7 +615,7 @@ package Modules.L5App.ReplayEngine
 
         private static function handleReplayCacheImageGenerateComplete(fs:FileStream, onFrameEnter:Function, _frameSum:Number, _frameSumLast:Number, finalizeFunc:Function):void
         {
-            main.stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
+            AppContext.stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
             fs.close();
             stopGeneratingCacheImageFunc = null;
             ReplayDrawCommands.clearData();
@@ -973,10 +972,10 @@ package Modules.L5App.ReplayEngine
                 }
             }
 
-            main.stage.addEventListener(Event.ENTER_FRAME, onFrameEnter);
+            AppContext.stage.addEventListener(Event.ENTER_FRAME, onFrameEnter);
             stopGeneratingCacheImageFunc = function ():void
             {
-                main.stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
+                AppContext.stage.removeEventListener(Event.ENTER_FRAME, onFrameEnter);
                 fs.close();
                 isStopped = true;
 
@@ -1531,8 +1530,8 @@ package Modules.L5App.ReplayEngine
                     updateReplayPrograssText(ReplayState.isReplayFinished, ReplayState.isReplayFinished ? ReplayState.TOTAL_FRAME : NaN);
                 }
 
-                main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent);
 
                 // 창 비활성화로 불린 경우도 여기서 재개 (시크바 드래그의 onMouseUp과 같은 조건)
                 if (wasReplayRunning && !ReplayState.isReplayFinished)
@@ -1551,8 +1550,8 @@ package Modules.L5App.ReplayEngine
             moveButton(UIController.topBar.replaySpeedSliderWrapper.mouseX);
             setSpeed(UIController.topBar.replaySpeedSliderWrapper.mouseX);
             updateReplayPrograssText();
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, replaySpeedButtomMoveEvent);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, replaySpeedButtomUpEvent, false, InputPriority.DEFAULT);
             MouseState.beginDrag("replaySpeed", function ():void
                 {
                     replaySpeedButtomUpEvent(null);
@@ -1669,7 +1668,7 @@ package Modules.L5App.ReplayEngine
             }
             else if(UIController.topBar.visible === false)
             {
-                if(main.stage.mouseY <= UIController.STAGE_TOP_OFFSET)
+                if(AppContext.stage.mouseY <= UIController.STAGE_TOP_OFFSET)
                 {
                     showTopbarOnPlayback();
                 }
@@ -1910,7 +1909,7 @@ package Modules.L5App.ReplayEngine
             updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame()); // 최대 속도 계산
             updateReplayPrograssBarAndText();
             updateReplaySpeedSliderAlpha();
-            UIController.seekBarBox.updatePos(main.stage.stageWidth);
+            UIController.seekBarBox.updatePos(AppContext.stage.stageWidth);
             ReplayDrawer.cursorFollow.updateBounds();
             ReplayDrawer.updateReplayCursorScale(ReplayState.rCanvasZoomMultiplier);
 
@@ -2040,10 +2039,10 @@ package Modules.L5App.ReplayEngine
 
         public static function setReplayCompleteCanvasCenter():void
         {
-            rCanvasCompleteAnchorPoint.width = main.stage.stageWidth + 200;
-            rCanvasCompleteAnchorPoint.height = main.stage.stageHeight + 200;
-            rCanvasCompleteAnchorPoint.x = main.stage.stageWidth / 2;
-            rCanvasCompleteAnchorPoint.y = main.stage.stageHeight / 2;
+            rCanvasCompleteAnchorPoint.width = AppContext.stage.stageWidth + 200;
+            rCanvasCompleteAnchorPoint.height = AppContext.stage.stageHeight + 200;
+            rCanvasCompleteAnchorPoint.x = AppContext.stage.stageWidth / 2;
+            rCanvasCompleteAnchorPoint.y = AppContext.stage.stageHeight / 2;
             rCanvasCompleteBitmap.x = -rCanvasCompleteBitmap.width / 2;
             rCanvasCompleteBitmap.y = -rCanvasCompleteBitmap.height / 2;
         }
@@ -2143,8 +2142,8 @@ package Modules.L5App.ReplayEngine
             ReplayDrawer.rCanvasPanel.y = Math.floor(-ReplayDrawer.rCanvasPanel.height / 2);
             ReplayDrawer.rCanvasAnchorPoint.addChild(ReplayDrawer.rCanvasPanel);
             ReplayDrawer.rCanvasAnchorPoint.visible = false;
-            main.stage.addChild(ReplayDrawer.rCanvasAnchorPoint);
-            main.stage.addChild(UIController.seekBarBox);
+            AppContext.stage.addChild(ReplayDrawer.rCanvasAnchorPoint);
+            AppContext.stage.addChild(UIController.seekBarBox);
             UIController.seekBarBox.x = 0;
         }
 

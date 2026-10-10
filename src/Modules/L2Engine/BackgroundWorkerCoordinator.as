@@ -1,5 +1,6 @@
 package Modules.L2Engine
 {
+    import Modules.L1Data.AppContext;
     import flash.display.Sprite;
     import flash.display.BitmapData;
     import flash.events.Event;
@@ -35,12 +36,6 @@ package Modules.L2Engine
         public static var onWorkerStartedFunc:Function;
         // undo 캐시 작업이 모두 끝나 잠금을 풀고 대기 중인 불러오기를 이어가야 한다는 보고
         public static var onUndoJobsFinishedFunc:Function;
-
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         public static const WORKER_WAIT_INTERVAL:Number = 1.0,
             WORKER_STATE_STOPPED:int = 0,
@@ -134,7 +129,7 @@ package Modules.L2Engine
                 {
                     if (worker === null)
                     {
-                        main.stage.removeEventListener(Event.ENTER_FRAME, waitWorkerReady);
+                        AppContext.stage.removeEventListener(Event.ENTER_FRAME, waitWorkerReady);
                         waitWorkerReadyEnterFrameEventStarted = false;
                         workerWaitCount = 0;
                         workerState = WORKER_STATE_STOPPED;
@@ -148,7 +143,7 @@ package Modules.L2Engine
                         {
                             workerWaitCount = 0;
                             workerState = WORKER_STATE_RUNNING;
-                            main.stage.removeEventListener(Event.ENTER_FRAME, waitWorkerReady);
+                            AppContext.stage.removeEventListener(Event.ENTER_FRAME, waitWorkerReady);
                             waitWorkerReadyEnterFrameEventStarted = false;
                             while (workerFunctionsBeforeStart.length)
                             {
@@ -166,7 +161,7 @@ package Modules.L2Engine
                 if (waitWorkerReadyEnterFrameEventStarted === false)
                 {
                     waitWorkerReadyEnterFrameEventStarted = true;
-                    main.stage.addEventListener(Event.ENTER_FRAME, waitWorkerReady);
+                    AppContext.stage.addEventListener(Event.ENTER_FRAME, waitWorkerReady);
                 }
 
                 if (workerState === WORKER_STATE_STOPPED)

@@ -1,5 +1,6 @@
 package Modules.L5App
 {
+    import Modules.L1Data.AppContext;
 
     import Modules.L1Data.AppDataPaths;
     import flash.display.BitmapData;
@@ -57,11 +58,9 @@ package Modules.L5App
     // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
+        public static function initialize():void
         {
-            main = instance;
-            AppDataPaths.initialize(main.APP_STATE_VERSION);
+            AppDataPaths.initialize(AppContext.appStateVersion);
         }
 
         private static var isRebuildFromReplayFileNeeded:Boolean = false; // loadUndoData에서 저장본이 리플레이 파일과 맞지 않아 쓰지 못했을때
@@ -108,9 +107,9 @@ package Modules.L5App
             appStateObject.eraserIsSquare = PenSettings.eraserIsSquare;
             appStateObject.eraseAlpha = PenSettings.eraserAlpha;
 
-            var windowBounds:Rectangle = main.stage.nativeWindow.bounds;
+            var windowBounds:Rectangle = AppContext.stage.nativeWindow.bounds;
 
-            if (main.stage.nativeWindow.displayState !== NativeWindowDisplayState.MINIMIZED)
+            if (AppContext.stage.nativeWindow.displayState !== NativeWindowDisplayState.MINIMIZED)
             {
                 AppWindowState.lastNormalWindowBounds = windowBounds.clone();
             }
@@ -353,10 +352,10 @@ package Modules.L5App
                     {
                         // Window Size & Position
                         const windowBounds:Rectangle = Utils.getVisibleWindowBounds(new Rectangle(appStateObject.stageNativeWindowX, appStateObject.stageNativeWindowY, appStateObject.stageNativeWindowWidth, appStateObject.stageNativeWindowHeight), 1000, 800);
-                        main.stage.nativeWindow.width = windowBounds.width;
-                        main.stage.nativeWindow.height = windowBounds.height;
-                        main.stage.nativeWindow.x = windowBounds.x;
-                        main.stage.nativeWindow.y = windowBounds.y;
+                        AppContext.stage.nativeWindow.width = windowBounds.width;
+                        AppContext.stage.nativeWindow.height = windowBounds.height;
+                        AppContext.stage.nativeWindow.x = windowBounds.x;
+                        AppContext.stage.nativeWindow.y = windowBounds.y;
                         AppWindowState.lastNormalWindowBounds = windowBounds.clone();
 
                         UIController.lastAppWindowSize.width = windowBounds.width;
@@ -497,7 +496,7 @@ package Modules.L5App
                                     appStateObject.newWindowInfo3
                                 ];
                             ImageViewWindow.openImageViewWindow();
-                            main.stage.nativeWindow.activate();
+                            AppContext.stage.nativeWindow.activate();
                         }
 
                         ReplayState.rMemoryDataIndex = UndoHistory.undoDataIndex;
@@ -588,7 +587,7 @@ package Modules.L5App
                         // 캔버스 위치까지 전부 다해준 다음에 이전 상태가 풀스크린이었으면 세팅해줌
                         if (appStateObject.lastWindowState === 1)
                         {
-                            main.stage.nativeWindow.maximize();
+                            AppContext.stage.nativeWindow.maximize();
 
                             // 최대화 완료 RESIZE 이벤트가 오지 않아도 화면이 갱신되도록 한 번 더 예약해둔다.
                             // applyLayout은 멱등이라 이벤트가 먼저 처리했으면 dx 0으로 지나간다.
@@ -624,7 +623,7 @@ package Modules.L5App
 
                 FOFOTimer.add(0.3, true, function ():Boolean
                     {
-                        if (main.stage.nativeWindow.width === 1000 && main.stage.nativeWindow.height === 800)
+                        if (AppContext.stage.nativeWindow.width === 1000 && AppContext.stage.nativeWindow.height === 800)
                         {
                             CanvasView.viewport.centerIn("draw");
                             CanvasNavigator.updateCursor();
@@ -635,8 +634,8 @@ package Modules.L5App
                             return false;
                         }
 
-                        main.stage.nativeWindow.width = UIController.lastAppWindowSize.width;
-                        main.stage.nativeWindow.height = UIController.lastAppWindowSize.height;
+                        AppContext.stage.nativeWindow.width = UIController.lastAppWindowSize.width;
+                        AppContext.stage.nativeWindow.height = UIController.lastAppWindowSize.height;
                         return true;
                     });
 
@@ -712,17 +711,17 @@ package Modules.L5App
 
         public static function checkWindowMaximizedAndSaveAllData():void
         {
-            if (main.stage.nativeWindow.displayState === "maximized")
+            if (AppContext.stage.nativeWindow.displayState === "maximized")
             {
                 AppWindowState.lastAppWindowState = 1;
-                main.stage.nativeWindow.restore();
+                AppContext.stage.nativeWindow.restore();
             }
             else
             {
                 AppWindowState.lastAppWindowState = 0;
                 deleteTempDirectory();
                 saveAllAppData();
-                main.stage.nativeWindow.close();
+                AppContext.stage.nativeWindow.close();
             }
         }
 

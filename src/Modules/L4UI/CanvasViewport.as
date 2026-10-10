@@ -1,5 +1,6 @@
 package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
 
     import flash.display.Bitmap;
     import flash.display.Sprite;
@@ -19,12 +20,6 @@ package Modules.L4UI
     // 층: L4 UI - 캔버스 하나의 화면 배치 공통 동작 (앵커 이동, 배율, 가운데 정렬)
     public class CanvasViewport
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         public static function forMode(isReplayMode:Boolean):CanvasViewport
         {
             return (isReplayMode) ? ReplayDrawer.viewport : CanvasView.viewport;
@@ -162,9 +157,9 @@ package Modules.L4UI
             const offset:int = 100; // 최소 100픽셀 은 보여야함
             const bounds:Object = Utils.getBoundRect(layer1Bitmap);
             const leftLimit:Number = UIController.STAGE_LEFT_OFFSET + offset;
-            const rightLimit:Number = main.stage.stageWidth - (UIController.STAGE_RIGHT_OFFSET + offset);
+            const rightLimit:Number = AppContext.stage.stageWidth - (UIController.STAGE_RIGHT_OFFSET + offset);
             const topLimit:Number = UIController.STAGE_TOP_OFFSET + offset;
-            const bottomLimit:Number = main.stage.stageHeight - (UIController.STAGE_BOTTOM_OFFSET + offset);
+            const bottomLimit:Number = AppContext.stage.stageHeight - (UIController.STAGE_BOTTOM_OFFSET + offset);
             // getbound는 보이는 그대로 사각형 끝점 좌표를 반환함
             const left:Number = bounds.left;
             const top:Number = bounds.top;
@@ -191,15 +186,15 @@ package Modules.L4UI
             const uiscale:Number = UITheme.getUIScale();
             const offsetX:Number = 44 + UIController.STAGE_LEFT_OFFSET + UIController.STAGE_RIGHT_OFFSET;
             const offsetY:Number = (CaptureController.isCaptureModeON) ? (UIController.topBar.BARSIZE) * uiscale + 42 * uiscale : (UIController.topBar.BARSIZE) * uiscale + 42 * uiscale;
-            const stw:int = main.stage.stageWidth - offsetX;
-            const sth:int = main.stage.stageHeight - offsetY - UIController.STAGE_BOTTOM_OFFSET;
+            const stw:int = AppContext.stage.stageWidth - offsetX;
+            const sth:int = AppContext.stage.stageHeight - offsetY - UIController.STAGE_BOTTOM_OFFSET;
             var fitWidth:Number = canvasWidth;
             var fitHeight:Number = canvasHeight;
             if (ReplayState.isReplayModeON && fitting)
             {
                 anchor.scaleX = 1.0;
                 anchor.scaleY = 1.0; // 크기를 원래대로 해놓고 해야 길이 측정이 됨
-                const b:Rectangle = layer1Bitmap.getBounds(main.stage);
+                const b:Rectangle = layer1Bitmap.getBounds(AppContext.stage);
                 fitWidth = b.right - b.left;
                 fitHeight = b.bottom - b.top;
             }

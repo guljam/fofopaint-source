@@ -1,5 +1,6 @@
 package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
 
     import flash.display.Bitmap;
     import flash.display.BitmapData;
@@ -30,12 +31,6 @@ package Modules.L4UI
     // 층: L4 UI - 캔버스 이미지를 별도 창으로 보여주는 창
     public final class ImageViewWindow
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         public static var canvasWindowInfo:Array = [0, 0, 400, 400]; // x, y, 너비, 높이
         private static var _isCanvasWindowON:Boolean = false; // 캔버스 새창 켜졌을 때
         public static var canvasWindow:NativeWindow; // 참조된 새 창
@@ -130,7 +125,7 @@ package Modules.L4UI
 
         public static function copyMainWindowTitleToCanvasWindow():void
         {
-            canvasWindow.title = main.stage.nativeWindow.title;
+            canvasWindow.title = AppContext.stage.nativeWindow.title;
         }
 
         private static function fitCanvasWindowSizeToImage():void
@@ -179,7 +174,7 @@ package Modules.L4UI
                 UIController.topBar.newWindowButton.visible = true;
                 UIController.topBar.newWindowCloseButton.visible = false;
             }
-            main.stage.nativeWindow.activate();
+            AppContext.stage.nativeWindow.activate();
         }
 
         private static function onKeyDownCanvasWindow(e:KeyboardEvent):void
@@ -201,7 +196,7 @@ package Modules.L4UI
             var windowOptions:NativeWindowInitOptions = new NativeWindowInitOptions();
             windowOptions.systemChrome = NativeWindowSystemChrome.STANDARD;
             windowOptions.type = NativeWindowType.NORMAL;
-            windowOptions.owner = main.stage.nativeWindow;
+            windowOptions.owner = AppContext.stage.nativeWindow;
             windowOptions.renderMode = "direct";
 
             canvasWindow = new NativeWindow(windowOptions);
@@ -255,8 +250,8 @@ package Modules.L4UI
                 if (canvasWindowInfo[0] === 0)
                 {
 
-                    canvasWindowInfo[0] = main.stage.nativeWindow.x + UIController.topBar.newWindowButton.x - canvasWindowInfo[2] / 2;
-                    canvasWindowInfo[1] = main.stage.nativeWindow.y;
+                    canvasWindowInfo[0] = AppContext.stage.nativeWindow.x + UIController.topBar.newWindowButton.x - canvasWindowInfo[2] / 2;
+                    canvasWindowInfo[1] = AppContext.stage.nativeWindow.y;
                 }
                 const bounds:Rectangle = Utils.getVisibleWindowBounds(new Rectangle(canvasWindowInfo[0], canvasWindowInfo[1], canvasWindowInfo[2], canvasWindowInfo[3]), canvasWindowInfo[2], canvasWindowInfo[3]);
                 canvasWindow.bounds = bounds;

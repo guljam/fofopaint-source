@@ -1,5 +1,6 @@
 package Modules.L4UI.Tools
 {
+    import Modules.L1Data.AppContext;
     import Symbols.ToolMenuSet;
     import Symbols.ToolMenuSet2;
     import Symbols.ToolOptionsSet;
@@ -49,12 +50,6 @@ package Modules.L4UI.Tools
         // 우클릭 툴박스의 입력 이벤트를 다시 달아야 한다는 보고
         public static var onToolBox2EventsAddedFunc:Function;
 
-        public static var main:Main;
-
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         private static const TOOL_BOX_ON_DELAY_TIME:Number = 0.12;
         public static const toolBox:ToolMenuSet = new ToolMenuSet();
@@ -205,8 +200,8 @@ package Modules.L4UI.Tools
             function onMouseUpPenSmoothing(e:MouseEvent):void
             {
                 MouseState.endDrag("penSmoothing");
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing);
-                main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
             }
 
             function adjustPenSmoothingValue():void
@@ -253,8 +248,8 @@ package Modules.L4UI.Tools
                 adjustPenSmoothingValue();
             }
             adjustPenSmoothingValue();
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpPenSmoothing, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMovePenSmoothing);
             MouseState.beginDrag("penSmoothing", function ():void
                 {
                     onMouseUpPenSmoothing(null);
@@ -265,7 +260,7 @@ package Modules.L4UI.Tools
         {
             function onMouseUpToolBox(e:MouseEvent):void
             {
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox);
 
                 if (ReplayState.isGeneratingCacheImages())
                 {
@@ -377,8 +372,8 @@ package Modules.L4UI.Tools
                             if (ReferenceLayerController.isRefLayerMenuON === false)
                             {
                                 ReferenceLayerController.openRefLayerMenu();
-                                // mouseY에서 main.stage.mouseY로 바꾸었는데 동작 이상하면 체크해야함
-                                ReferenceLayerController.refLayerMenuBox.y = main.stage.mouseY - 60;
+                                // mouseY에서 AppContext.stage.mouseY로 바꾸었는데 동작 이상하면 체크해야함
+                                ReferenceLayerController.refLayerMenuBox.y = AppContext.stage.mouseY - 60;
                             }
                             else
                             {
@@ -390,7 +385,7 @@ package Modules.L4UI.Tools
                 PenSizePreviewCursor.updatePosAndVisibility();
             }
             // main.undo키 반복이 있어서 우선순위 1로 약간 높여줌
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox, false, InputPriority.STAGE_ROOT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpToolBox, false, InputPriority.STAGE_ROOT);
         }
 
         // ---- 도구가 선택됐을 때의 표시 (ToolController.select*Tool이 상태를 바꾼 뒤 호출) ----
@@ -748,8 +743,8 @@ package Modules.L4UI.Tools
             var pos:Point = toolBox2.getLastUsedToolPos();
             const scale:Number = UITheme.getUIScale();
 
-            toolBox2.x = Math.floor(main.stage.mouseX - pos.x * scale);
-            toolBox2.y = Math.floor(main.stage.mouseY - pos.y * scale);
+            toolBox2.x = Math.floor(AppContext.stage.mouseX - pos.x * scale);
+            toolBox2.y = Math.floor(AppContext.stage.mouseY - pos.y * scale);
             toolBox2.alpha = 1.0;
             toolBox2.visible = true;
             isToolBox2Showing = true;
@@ -765,7 +760,7 @@ package Modules.L4UI.Tools
 
                     if (CanvasResizer.isButtonVisible())
                     {
-                        if (!toolBox2.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                        if (!toolBox2.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                         {
                             toolBox2.alpha = 0.6;
                         }
@@ -1044,8 +1039,8 @@ package Modules.L4UI.Tools
             lastDragOptionButton = startButtonName;
 
             box.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverOptionButtonDrag);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, endOptionButtonDrag, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(Event.MOUSE_LEAVE, endOptionButtonDrag);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, endOptionButtonDrag, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(Event.MOUSE_LEAVE, endOptionButtonDrag);
             MouseState.beginDrag("optionButton", cancelOptionButtonDrag);
         }
 
@@ -1083,8 +1078,8 @@ package Modules.L4UI.Tools
             isOptionButtonDragging = false;
 
             optionDragBox.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverOptionButtonDrag);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, endOptionButtonDrag);
-            main.stage.removeEventListener(Event.MOUSE_LEAVE, endOptionButtonDrag);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, endOptionButtonDrag);
+            AppContext.stage.removeEventListener(Event.MOUSE_LEAVE, endOptionButtonDrag);
             optionDragBox = null;
             optionDragApply = null;
         }

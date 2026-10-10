@@ -29,6 +29,7 @@
     import Modules.L5App.InputManager.ReplayModeInput;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
+    import Modules.L1Data.AppContext;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.AboutBoxController;
     import Modules.L5App.AppStateManager;
@@ -250,8 +251,8 @@
             AboutBoxController.onButtonPressedFunc = InputManager.handleMouseClickStage;
             AboutBoxController.onWindowListenersRemovedFunc = function ():void
             {
-                AboutBoxController.main.stage.nativeWindow.removeEventListener(Event.CLOSING, AppWindowState.onWindowClosingEvent);
-                AboutBoxController.main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, AppWindowState.onWindowDeactivate);
+                AppContext.stage.nativeWindow.removeEventListener(Event.CLOSING, AppWindowState.onWindowClosingEvent);
+                AppContext.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, AppWindowState.onWindowDeactivate);
             };
             LassoTool.onDrawModeButtonPressedFunc = function (targetName:String):void
             {
@@ -270,60 +271,25 @@
             registerClassAlias("AppStateVars", AppStateVars);
             registerClassAlias("CacheImageMetaData", CacheImageMetaData);
             // main ui가 호출되기전에 이것부터 stage 연결시켜주어야함 그냥 상단에 고정
+            AppContext.stage = this.stage;
+            AppContext.appVersion = APP_VERSION;
+            AppContext.appStateVersion = APP_STATE_VERSION;
+            AppContext.titleString = STRING_TITLE_FOFOPAINT;
             HintBoxSet.setMainStage(this.stage);
 
-            AboutBoxController.setMainInstance(this);
-            AppUpdater.setMainInstance(this);
-            AppStateManager.setMainInstance(this);
-            AppWindowState.setMainInstance(this);
-            ImeController.setMainInstance(this);
-            ActivityWorkTimer.setMainInstance(this);
-            BackgroundWorkerCoordinator.setMainInstance(this);
-            CanvasGridOverlay.setMainInstance(this);
-            CaptureController.setMainInstance(this);
-            CaptureStamp.setMainInstance(this);
-            CaptureArea.setMainInstance(this);
+            AboutBoxController.initialize();
+            AppStateManager.initialize();
+            CanvasGridOverlay.initialize();
 
-            CanvasView.setMainInstance(this);
-            CanvasViewport.setMainInstance(this);
-            CanvasResizer.setMainInstance(this);
-            CanvasNavigator.setMainInstance(this);
-            ClipboardManager.setMainInstance(this);
-            ColorPickerController.setMainInstance(this);
-            DragInteraction.setMainInstance(this);
-            FileManager.setMainInstance(this);
-            LoadBoxController.setMainInstance(this);
-            ImageViewWindow.setMainInstance(this);
-            HintController.setMainInstance(this);
-            UIController.setMainInstance(this);
-            PaletteController.setMainInstance(this);
-            PenSizePreviewCursor.setMainInstance(this);
-            ReferenceLayerController.setMainInstance(this);
-            SidebarController.setMainInstance(this);
-            ToolController.setMainInstance(this);
-            ToolPanel.setMainInstance(this);
-            Utils.setMainInstance(this);
-            ReplayController.setMainInstance(this);
-            ReplayMouseAutoHide.setMainInstance(this);
-            InputManager.setMainInstance(this);
-            KeyState.setMainInstance(this);
-            DrawModeInput.setMainInstance(this);
-            CaptureModeInput.setMainInstance(this);
-            ReplayModeInput.setMainInstance(this);
+            PenSizePreviewCursor.initialize();
+            ReferenceLayerController.initialize();
+            ReplayController.initialize();
+            ReplayMouseAutoHide.initialize();
             registerSlots();
         }
 
         public function initializeTools():void
         {
-            PenTool.setMainInstance(this);
-            LassoTool.setMainInstance(this);
-            LineTool.setMainInstance(this);
-            HandTool.setMainInstance(this);
-            ZoomTool.setMainInstance(this);
-            MoveTool.setMainInstance(this);
-            RotateTool.setMainInstance(this);
-            FillPenTool.setMainInstance(this);
-            EyeDropperTool.setMainInstance(this);
         }
 
         public function initializeStage():void
@@ -358,7 +324,7 @@
             SidebarController.moveSideBar("left"); // 컨트롤 박스 크기가 set pentool 이후에 제대로 바뀜 원인 모름
             stage.addChild(SidebarController.fofo);
             stage.setChildIndex(SidebarController.fofo, stage.getChildIndex(SidebarController.sideBar) + (stage.getChildIndex(SidebarController.fofo) < stage.getChildIndex(SidebarController.sideBar) ? 0 : 1));
-            HintStrings.setMainInstance(this);
+            HintStrings.initialize();
             HintController.bottomHint.visible = true;
             ToolController.selectPenTool();
             ToolPanel.addHintEventToolBox2();

@@ -9,12 +9,6 @@ package Modules.L1Data
     // 층: L1 데이터 - 키 눌림 상태와 키코드 표, 키 반복
     public class KeyState
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         public static const KEY:Object = {
                 a: 65,
                 b: 66,
@@ -130,7 +124,7 @@ package Modules.L1Data
         {
             FOFOTimer.addByName("checkKeyRepeatStop", 0.0, true, function ():Boolean
                 {
-                    if (!target.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                    if (!target.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                     {
                         removeKeyRepeatEvents(null);
                         return false;
@@ -287,12 +281,12 @@ package Modules.L1Data
         // 키 반복을 멈추게 하는 이벤트(마우스 누름, 키 뗌, 창 비활성)를 등록함
         public static function addKeyRepeatEvents():void
         {
-            main.stage.nativeWindow.addEventListener(Event.DEACTIVATE, removeKeyRepeatEvents);
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
+            AppContext.stage.nativeWindow.addEventListener(Event.DEACTIVATE, removeKeyRepeatEvents);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents, false, InputPriority.DEFAULT);
         }
 
         // 키 반복 타이머와 멈춤 이벤트를 모두 제거함
@@ -301,12 +295,12 @@ package Modules.L1Data
             FOFOTimer.remove("checkKeyRepeatStop");
             FOFOTimer.remove("keyHoldWaitTimer");
             FOFOTimer.remove("keyHoldRepeatTimer");
-            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, removeKeyRepeatEvents);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, removeKeyRepeatEvents);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, removeKeyRepeatEvents);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, removeKeyRepeatEvents);
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents);
+            AppContext.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, removeKeyRepeatEvents);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, removeKeyRepeatEvents);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, removeKeyRepeatEvents);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, removeKeyRepeatEvents);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, removeKeyRepeatEvents);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_UP, removeKeyRepeatEvents);
         }
 
         // 눌린 키가 expectedLength개일 때만 마지막 키를 callback에 넘기고 true를 돌려줌

@@ -1,5 +1,6 @@
 package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
     import flash.display.Shape;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
@@ -21,13 +22,6 @@ package Modules.L4UI
         public static var onDrawEventsAddedFunc:Function;
         // 드로우 모드의 입력 이벤트를 빼야 한다는 보고
         public static var onDrawEventsRemovedFunc:Function;
-
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-            initialize();
-        }
 
         public static const GRID_GAP:uint = 10;
         private static const GRID_NORMAL_COLOR:uint = 0x808080;
@@ -200,8 +194,8 @@ package Modules.L4UI
             function onMouseUpGridButton(e:MouseEvent):void
             {
                 MouseState.endDrag("gridSlider");
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
-                main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
             }
 
             function onMouseMoveGridButton(e:MouseEvent):void
@@ -245,13 +239,13 @@ package Modules.L4UI
                     return;
                 const targetName:String = e.target.name;
 
-                if (targetName === "gridButton" || UIController.topBar.gridButtonWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+                if (targetName === "gridButton" || UIController.topBar.gridButtonWrapper.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false)
                 {
                     off();
                     return;
                 }
 
-                if (UIController.topBar.gridMoveButtonWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                if (UIController.topBar.gridMoveButtonWrapper.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                 {
                     if (e.target.alpha === 1.0)
                     {
@@ -270,12 +264,12 @@ package Modules.L4UI
                             repeatGridMoveByValue(p.x, p.y);
                     }
                 }
-                else if (UIController.topBar.gridSliderWrapper.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                else if (UIController.topBar.gridSliderWrapper.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                 {
                     oldValue = gridGapMultiplier;
                     drawGridByValue(UIController.topBar.gridSliderWrapper.mouseX, true);
-                    main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
-                    main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton, false, InputPriority.DEFAULT);
+                    AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
+                    AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton, false, InputPriority.DEFAULT);
                     MouseState.beginDrag("gridSlider", function ():void
                         {
                             onMouseUpGridButton(null);
@@ -350,12 +344,12 @@ package Modules.L4UI
                 HintController.hideBottomHint();
                 MouseState.endDrag("gridSlider");
                 KeyState.removeKeyRepeatEvents(null);
-                main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton);
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
-                main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton);
-                main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
-                main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton);
-                UIController.topBar.setReplaySpeedBarToGridSliderOFF(main.stage);
+                AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpGridButton);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveGridButton);
+                AppContext.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton);
+                UIController.topBar.setReplaySpeedBarToGridSliderOFF(AppContext.stage);
                 KeyState.clearKeyBuffer();
                 if (onDrawEventsAddedFunc != null) onDrawEventsAddedFunc();
             }
@@ -371,14 +365,14 @@ package Modules.L4UI
 
                     if (shortcutKey)
                     {
-                        const p:Point = UIController.topBar.globalToLocal(new Point(main.stage.mouseX, main.stage.mouseY));
+                        const p:Point = UIController.topBar.globalToLocal(new Point(AppContext.stage.mouseX, AppContext.stage.mouseY));
                         UIController.topBar.gridButtonWrapper.x = p.x - UIController.topBar.gridSliderWrapper.x - UIController.topBar.gridSliderCursor.x;
                         UIController.topBar.gridButtonWrapper.y = p.y - UIController.topBar.gridSliderWrapper.y - UIController.topBar.gridSliderCursor.y;
                     }
 
-                    main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton, false, InputPriority.MODE);
-                    main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton, false, InputPriority.MODE);
-                    main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton, false, InputPriority.MODE);
+                    AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownGridButton, false, InputPriority.MODE);
+                    AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownGridButton, false, InputPriority.MODE);
+                    AppContext.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton, false, InputPriority.MODE);
                 }
                 else
                 {

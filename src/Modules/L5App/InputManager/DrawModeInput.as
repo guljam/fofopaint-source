@@ -1,5 +1,6 @@
 package Modules.L5App.InputManager
 {
+    import Modules.L1Data.AppContext;
 
     import flash.display.DisplayObject;
     import flash.display.SimpleButton;
@@ -51,27 +52,21 @@ package Modules.L5App.InputManager
     // 층: L5 앱 흐름 - 드로우 모드의 키보드/마우스 입력
     public class DrawModeInput
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         private static var isEventsAdded:Boolean = false; // 이벤트 중복 추가 방지
         public static var isKeyReleasedBeforeMouseUp:Boolean = false; // 키 떼기 전에 마우스 먼저 떼주었을때 플래그 올려줌
 
         public static function removeEvents():void
         {
             isEventsAdded = false;
-            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownDrawMode);
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpDrawMode);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownDrawMode);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpDrawMode, false);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownDrawMode);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownDrawMode);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpDrawMode);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownDrawMode);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpDrawMode, false);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownDrawMode);
             ColorPickerController.colorPickerBox.rgbInfoText.removeEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfo);
             ColorPickerController.colorPickerBox.rgbInfoBG.removeEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfo);
             ColorPickerController.colorPickerBox.currentColorBox.removeEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownCurrentColor);
-            // main.stage.removeEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
+            // AppContext.stage.removeEventListener(MouseEvent.MOUSE_OVER,lassoMenuHintONEvent);
         }
 
         public static function addEvents():void
@@ -80,11 +75,11 @@ package Modules.L5App.InputManager
             {
                 isEventsAdded = true;
                 // resetKeyBuffer();
-                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpDrawMode, false, InputPriority.MODE);
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownDrawMode, false, InputPriority.MODE);
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownDrawMode, false, InputPriority.MODE);
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpDrawMode, false, InputPriority.MODE);
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownDrawMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpDrawMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownDrawMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownDrawMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpDrawMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownDrawMode, false, InputPriority.MODE);
                 ColorPickerController.colorPickerBox.rgbInfoText.addEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfo);
                 ColorPickerController.colorPickerBox.rgbInfoBG.addEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownRGBInfo);
                 ColorPickerController.colorPickerBox.currentColorBox.addEventListener(MouseEvent.MOUSE_DOWN, ColorPickerController.onMouseDownCurrentColor);
@@ -93,8 +88,8 @@ package Modules.L5App.InputManager
 
         public static function removeToolBox2Events():void
         {
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpToolBox2);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownToolBox2);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpToolBox2);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownToolBox2);
             ToolPanel.toolBox2.removeEventListener(MouseEvent.MOUSE_OVER, ToolPanel.onMouseOverToolBox2);
             addEvents();
         }
@@ -102,8 +97,8 @@ package Modules.L5App.InputManager
         public static function addToolBox2Events():void
         {
             removeEvents();
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpToolBox2, false, InputPriority.LATE);
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownToolBox2, false, InputPriority.LATE);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpToolBox2, false, InputPriority.LATE);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownToolBox2, false, InputPriority.LATE);
         }
 
         private static function onRightMouseUpToolBox2(e:MouseEvent):void
@@ -171,7 +166,7 @@ package Modules.L5App.InputManager
                     break;
                 default:
                     {
-                        if (ToolPanel.toolBox2.visible && ToolPanel.toolBox2.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                        if (ToolPanel.toolBox2.visible && ToolPanel.toolBox2.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                         {
                             ToolPanel.updateToolBoxMousePos(ToolPanel.toolBox2.toolPen);
                             ToolState.updateLastTool();
@@ -584,7 +579,7 @@ package Modules.L5App.InputManager
                 case KeyState.KEY.c:
                 case KeyState.KEY.m:
                     {
-                        if (!ColorPickerController.colorPickerBox.scratchPad.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                        if (!ColorPickerController.colorPickerBox.scratchPad.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                         {
                             return false;
                         }
@@ -725,7 +720,7 @@ package Modules.L5App.InputManager
             const targetName:String = target.name;
             if (SidebarController.sideBar.visible)
             {
-                if (SidebarController.sideBarScrollPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY) && SidebarController.handleSidebarMouseDown(target))
+                if (SidebarController.sideBarScrollPanel.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) && SidebarController.handleSidebarMouseDown(target))
                 {
                     return;
                 }
@@ -867,7 +862,7 @@ package Modules.L5App.InputManager
         private static function onRightMouseDownDrawMode(e:MouseEvent):void // rdown1
         {
             if (MouseState.isLeftDown || KeyState.isKeyPressed() || KeyState.isPressingControl() || SidebarController.isQuickSidebarActive
-                    || FillPenTool.isStarted || LineTool.isStarted || ToolState.isSelectedTool(ToolState.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
+                    || FillPenTool.isStarted || LineTool.isStarted || ToolState.isSelectedTool(ToolState.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                     || UIController.loadMenuBox.visible || UIController.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;

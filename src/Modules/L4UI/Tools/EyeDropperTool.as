@@ -1,5 +1,6 @@
 package Modules.L4UI.Tools
 {
+    import Modules.L1Data.AppContext;
 
     import Symbols.EyedropperLensSet;
 
@@ -33,12 +34,6 @@ package Modules.L4UI.Tools
     // 층: L4 UI - 스포이드 툴
     public class EyeDropperTool
     {
-        public static var main:Main;
-
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         // 일단 흰색으로 배경 깔아줌
         public static const eyedropperLens:EyedropperLensSet = new EyedropperLensSet();
@@ -272,8 +267,8 @@ package Modules.L4UI.Tools
                 exitEyeDropperTool(false);
                 return;
             }
-            const mx:Number = main.stage.mouseX;
-            const my:Number = main.stage.mouseY;
+            const mx:Number = AppContext.stage.mouseX;
+            const my:Number = AppContext.stage.mouseY;
             if (mx === lastMouseX && my === lastMouseY)
             {
                 return;
@@ -281,8 +276,8 @@ package Modules.L4UI.Tools
 
             lastMouseX = mx;
             lastMouseY = my;
-            eyedropperLens.x = main.stage.mouseX;
-            eyedropperLens.y = main.stage.mouseY;
+            eyedropperLens.x = AppContext.stage.mouseX;
+            eyedropperLens.y = AppContext.stage.mouseY;
 
             const canShow:Boolean = canShowEyedropperLens();
             if (canShow)
@@ -304,26 +299,26 @@ package Modules.L4UI.Tools
 
         private static function removeEyedropperEvents():void
         {
-            main.stage.removeEventListener(Event.ENTER_FRAME, onEnterFrameEyeDropper);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper);
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper);
-            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownEyeDropper);
+            AppContext.stage.removeEventListener(Event.ENTER_FRAME, onEnterFrameEyeDropper);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownEyeDropper);
         }
 
         private static function addEyedropperEvents():void
         {
-            main.stage.addEventListener(Event.ENTER_FRAME, onEnterFrameEyeDropper);
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper, false, InputPriority.LATE);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper, false, InputPriority.EARLY);
-            main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper, false, InputPriority.EARLY);
-            main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownEyeDropper, false, InputPriority.EARLY);
+            AppContext.stage.addEventListener(Event.ENTER_FRAME, onEnterFrameEyeDropper);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownEyeDropper, false, InputPriority.LATE);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownEyeDropper, false, InputPriority.EARLY);
+            AppContext.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpEyeDropper, false, InputPriority.EARLY);
+            AppContext.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownEyeDropper, false, InputPriority.EARLY);
         }
 
         private static function canShowEyedropperLens():Boolean
         {
-            return UIController.isCursorInDrawArea() && DrawCanvas.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true)
-                && !(ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY));
+            return UIController.isCursorInDrawArea() && DrawCanvas.canvasLayer1Bitmap.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY, true)
+                && !(ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY));
         }
 
         public static function start():void
@@ -353,8 +348,8 @@ package Modules.L4UI.Tools
             const canShow:Boolean = canShowEyedropperLens();
             if (canShow)
             {
-                eyedropperLens.x = main.stage.mouseX;
-                eyedropperLens.y = main.stage.mouseY;
+                eyedropperLens.x = AppContext.stage.mouseX;
+                eyedropperLens.y = AppContext.stage.mouseY;
 
                 Utils.setColorTransform(eyedropperLens.nowColor, pickColor(canShow));
                 Utils.setAsTopChild(eyedropperLens);
@@ -370,8 +365,8 @@ package Modules.L4UI.Tools
                 }
 
                 eyedropperLens.visible = true;
-                lastMouseX = main.stage.mouseX;
-                lastMouseY = main.stage.mouseY;
+                lastMouseX = AppContext.stage.mouseX;
+                lastMouseY = AppContext.stage.mouseY;
             }
             else
             {

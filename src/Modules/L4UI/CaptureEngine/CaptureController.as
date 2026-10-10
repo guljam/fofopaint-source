@@ -49,12 +49,6 @@ package Modules.L4UI.CaptureEngine
         // 파일 탐색기 열림 상태를 바꿔야 한다는 보고 (인자: 열림 여부)
         public static var onFileBrowserClosedFunc:Function;
 
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         private static var _isCaptureModeON:Boolean = false; // 스크린샷 켜지면 올려줌
         private static var _isCaptureCanvasFlipped:Boolean = false; // 캡쳐 대칭한 변수 저장
         private static var _isCaptureTransparentBGShowing:Boolean = false; // 배경 제외하고 저장하는 플래그

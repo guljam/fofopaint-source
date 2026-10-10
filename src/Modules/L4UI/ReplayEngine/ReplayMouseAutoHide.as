@@ -1,5 +1,6 @@
 package Modules.L4UI.ReplayEngine
 {
+    import Modules.L1Data.AppContext;
 
     import flash.geom.Point;
     import flash.ui.Mouse;
@@ -17,11 +18,9 @@ package Modules.L4UI.ReplayEngine
         // 리플레이 재생 중 상단 바를 숨겨야 한다는 보고
         public static var onReplayTopbarHiddenFunc:Function;
 
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
+        public static function initialize():void
         {
-            main = instance;
-            frameRate = main.stage.frameRate;
+            frameRate = AppContext.stage.frameRate;
         }
 
         private static const TIMER_NAME:String = "replayHideCursorCheckTimer";
@@ -58,12 +57,12 @@ package Modules.L4UI.ReplayEngine
 
         private static function isMouseMoved():Boolean
         {
-            return pos.x !== main.stage.mouseX || pos.y !== main.stage.mouseY || MouseState.isLeftDown || MouseState.isRightDown;
+            return pos.x !== AppContext.stage.mouseX || pos.y !== AppContext.stage.mouseY || MouseState.isLeftDown || MouseState.isRightDown;
         }
 
         private static function updateMousePos():void
         {
-            pos.setTo(main.stage.mouseX, main.stage.mouseY);
+            pos.setTo(AppContext.stage.mouseX, AppContext.stage.mouseY);
         }
 
         private static function showMouse():void

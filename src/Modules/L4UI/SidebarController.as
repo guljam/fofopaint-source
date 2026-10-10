@@ -1,5 +1,6 @@
 package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
 
     import Symbols.FOFO;
     import Symbols.SidePanelSet;
@@ -35,11 +36,6 @@ package Modules.L4UI
     // 층: L4 UI - 사이드바 위치, 숨김·표시, 퀵 사이드바
     public final class SidebarController
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
         public static const SCROLL_BAR_WIDTH:Number = 21;
         public static const sideBar:SidePanelSet = new SidePanelSet();
         public static const fofo:FOFO = new FOFO();
@@ -69,17 +65,17 @@ package Modules.L4UI
                 const scale:Number = UITheme.getUIScale();
 
                 if (isRightSidebar
-                        && main.stage.mouseX >= sideBar.x - sideBarScrollBar.width * scale
-                        && main.stage.mouseX <= sideBar.x + sideBar.WIDTH * scale
-                        && main.stage.mouseY >= sideBar.y
-                        && main.stage.mouseY <= main.stage.stageHeight)
+                        && AppContext.stage.mouseX >= sideBar.x - sideBarScrollBar.width * scale
+                        && AppContext.stage.mouseX <= sideBar.x + sideBar.WIDTH * scale
+                        && AppContext.stage.mouseY >= sideBar.y
+                        && AppContext.stage.mouseY <= AppContext.stage.stageHeight)
                 {
                     return true;
                 }
-                else if (main.stage.mouseX >= sideBar.x
-                        && main.stage.mouseX <= sideBar.x + sideBar.WIDTH * scale + sideBarScrollBar.width * scale
-                        && main.stage.mouseY >= sideBar.y
-                        && main.stage.mouseY <= main.stage.stageHeight)
+                else if (AppContext.stage.mouseX >= sideBar.x
+                        && AppContext.stage.mouseX <= sideBar.x + sideBar.WIDTH * scale + sideBarScrollBar.width * scale
+                        && AppContext.stage.mouseY >= sideBar.y
+                        && AppContext.stage.mouseY <= AppContext.stage.stageHeight)
                 {
                     return true;
                 }
@@ -100,7 +96,7 @@ package Modules.L4UI
             const fofoHeight:Number = fofo.height - 10 * scale;
 
             const fofoTopRect:Rectangle = new Rectangle(sideBar.x, UIController.STAGE_TOP_OFFSET, sideBarWidth, fofoHeight);
-            const fofoBottomRect:Rectangle = new Rectangle(sideBar.x, main.stage.stageHeight - UIController.STAGE_BOTTOM_OFFSET - fofoHeight, sideBarWidth, fofoHeight);
+            const fofoBottomRect:Rectangle = new Rectangle(sideBar.x, AppContext.stage.stageHeight - UIController.STAGE_BOTTOM_OFFSET - fofoHeight, sideBarWidth, fofoHeight);
 
             const gp:Point = sideBarScrollPanel.localToGlobal(new Point(0, 0));
             const sideBarRect:Rectangle = new Rectangle(gp.x - sideBarScrollPanel.x * scale, gp.y, sideBar.getWidth(), getSidebarConstHeight() * scale);
@@ -157,7 +153,7 @@ package Modules.L4UI
                 case FOFO.COLLISION_TOP:
                     {
                         alignFOFOToSidebar();
-                        fofo.setBottom(main.stage.stageHeight - UIController.STAGE_BOTTOM_OFFSET);
+                        fofo.setBottom(AppContext.stage.stageHeight - UIController.STAGE_BOTTOM_OFFSET);
                         fofo.visible = true;
                     }
                     break;
@@ -171,10 +167,10 @@ package Modules.L4UI
 
         public static function deactivateQuickSidebar():void
         {
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpQuickSidebar);
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpQuickSidebar);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownQuickSidebar);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownQuickSidebar);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpQuickSidebar);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpQuickSidebar);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownQuickSidebar);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownQuickSidebar);
 
             if (isSidebarVisible === false)
             {
@@ -200,9 +196,9 @@ package Modules.L4UI
 
         public static function startDeactivteQuickSidebar():void
         {
-            if (MouseState.isLeftDown && sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (MouseState.isLeftDown && sideBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
             {
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpQuickSidebar, false, InputPriority.DEFAULT);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpQuickSidebar, false, InputPriority.DEFAULT);
                 return;
             }
 
@@ -257,8 +253,8 @@ package Modules.L4UI
                 return;
             }
 
-            if (main.stage.mouseX < sideBar.x || main.stage.mouseX > sideBar.x + sideBar.getWidth()
-                    || main.stage.mouseY < sideBar.y)
+            if (AppContext.stage.mouseX < sideBar.x || AppContext.stage.mouseX > sideBar.x + sideBar.getWidth()
+                    || AppContext.stage.mouseY < sideBar.y)
             {
                 startDeactivteQuickSidebar();
             }
@@ -280,7 +276,7 @@ package Modules.L4UI
         {
             if (isRightSidebar)
             {
-                sideBar.x = Math.round(main.stage.stageWidth - sideBar.getWidth());
+                sideBar.x = Math.round(AppContext.stage.stageWidth - sideBar.getWidth());
             }
             else
             {
@@ -302,28 +298,28 @@ package Modules.L4UI
                     ToolController.selectLastUsedTool();
                 }
 
-                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpQuickSidebar, false, InputPriority.DEFAULT);
+                AppContext.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpQuickSidebar, false, InputPriority.DEFAULT);
             }
             else
             {
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownQuickSidebar, false, InputPriority.LATE);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownQuickSidebar, false, InputPriority.LATE);
             }
 
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownQuickSidebar, false, InputPriority.LATE);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownQuickSidebar, false, InputPriority.LATE);
 
             const sideBarWidth:Number = sideBar.getWidth();
             const scrollBarWidthLeft:Number = (isRightSidebar) ? sideBarScrollBar.width : 0;
             const scrollBarWidthRight:Number = (!isRightSidebar) ? sideBarScrollBar.width : 0;
 
-            sideBar.x = main.mouseX - (sideBarWidth) / 2 + ((isRightSidebar) ? -18 : 22);
+            sideBar.x = AppContext.stage.mouseX - (sideBarWidth) / 2 + ((isRightSidebar) ? -18 : 22);
 
             if (sideBar.x - scrollBarWidthLeft < 0)
             {
                 sideBar.x = scrollBarWidthLeft;
             }
-            else if (sideBar.x + sideBarWidth + scrollBarWidthRight > main.stage.stageWidth)
+            else if (sideBar.x + sideBarWidth + scrollBarWidthRight > AppContext.stage.stageWidth)
             {
-                sideBar.x = main.stage.stageWidth - (sideBarWidth + scrollBarWidthRight);
+                sideBar.x = AppContext.stage.stageWidth - (sideBarWidth + scrollBarWidthRight);
             }
 
             if (sideBar.visible === true && isSidebarVisible === false)
@@ -384,17 +380,17 @@ package Modules.L4UI
         {
             isReactivateSidebarTempShowEventsAdded = true;
 
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReactivateSidebarTempShow, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseDownReactivateSidebarTempShow, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpReactivateSidebarTempShow, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpReactivateSidebarTempShow, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReactivateSidebarTempShow, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseDownReactivateSidebarTempShow, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpReactivateSidebarTempShow, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpReactivateSidebarTempShow, false, InputPriority.DEFAULT);
         }
 
         private static function setSideBarClickEvents():void
         {
             isSidebarHideEventAdded = true;
 
-            main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownHideSidebar, false, InputPriority.MODE);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownHideSidebar, false, InputPriority.MODE);
         }
 
         private static function removeSidebarTempShowActivateEvents():void
@@ -405,16 +401,16 @@ package Modules.L4UI
             isSidebarHideEventAdded = false;
             isReactivateSidebarTempShowEventsAdded = false;
 
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownHideSidebar);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpReactivateSidebarTempShow);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpReactivateSidebarTempShow);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReactivateSidebarTempShow);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseDownReactivateSidebarTempShow);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownHideSidebar);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpReactivateSidebarTempShow);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpReactivateSidebarTempShow);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownReactivateSidebarTempShow);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onMouseDownReactivateSidebarTempShow);
         }
 
         private static function onMouseDownReactivateSidebarTempShow(e:MouseEvent):void
         {
-            if (sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            if (sideBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false)
             {
                 removeSidebarTempShowActivateEvents();
             }
@@ -446,7 +442,7 @@ package Modules.L4UI
             {
                 // do nothing
             }
-            else if (sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            else if (sideBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false)
             {
                 startHidingSidebarTemporary();
             }
@@ -491,15 +487,15 @@ package Modules.L4UI
             if (canShowSidebarTemporarily())
             {
                 const sideBarWidth:Number = sideBar.getWidth();
-                const mx:Number = main.stage.mouseX;
+                const mx:Number = AppContext.stage.mouseX;
 
-                if (main.mouseY > UIController.STAGE_TOP_OFFSET)
+                if (AppContext.stage.mouseY > UIController.STAGE_TOP_OFFSET)
                 {
                     if (mx < sideBarWidth)
                     {
                         startShowSideBarTemporary(false);
                     }
-                    else if (mx > main.stage.stageWidth - sideBarWidth)
+                    else if (mx > AppContext.stage.stageWidth - sideBarWidth)
                     {
                         startShowSideBarTemporary(true);
                     }
@@ -511,8 +507,8 @@ package Modules.L4UI
         {
             if (canShowSidebarTemporarily())
             {
-                const mx:Number = main.stage.mouseX;
-                const my:Number = main.stage.mouseY;
+                const mx:Number = AppContext.stage.mouseX;
+                const my:Number = AppContext.stage.mouseY;
 
                 if (my > UIController.STAGE_TOP_OFFSET)
                 {
@@ -520,7 +516,7 @@ package Modules.L4UI
                     {
                         startShowSideBarTemporary(false);
                     }
-                    else if (mx >= main.stage.stageWidth - 15)
+                    else if (mx >= AppContext.stage.stageWidth - 15)
                     {
                         startShowSideBarTemporary(true);
                     }
@@ -550,10 +546,10 @@ package Modules.L4UI
 
         private static function onMouseUpSideBar(e:MouseEvent):void
         {
-            const mx:Number = main.stage.mouseX;
-            const my:Number = main.stage.mouseY;
+            const mx:Number = AppContext.stage.mouseX;
+            const my:Number = AppContext.stage.mouseY;
 
-            if (mx < 0 || mx > main.stage.stageWidth || my < 0 || my > main.stage.stageHeight)
+            if (mx < 0 || mx > AppContext.stage.stageWidth || my < 0 || my > AppContext.stage.stageHeight)
             {
                 if (sideBar.visible === false)
                 {
@@ -592,10 +588,10 @@ package Modules.L4UI
 
             sideBar.resetBG();
 
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpSideBar);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpSideBar);
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveSideBar);
-            main.stage.removeEventListener(Event.MOUSE_LEAVE, onMouseLeaveSideBar);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpSideBar);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpSideBar);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveSideBar);
+            AppContext.stage.removeEventListener(Event.MOUSE_LEAVE, onMouseLeaveSideBar);
         }
 
         public static function hideSidebarPermanent():void
@@ -613,10 +609,10 @@ package Modules.L4UI
 
             LassoTool.restoreLassoAndRefLayerBoxLastPos();
 
-            main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpSideBar, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpSideBar, false, InputPriority.DEFAULT);
-            main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveSideBar);
-            main.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveSideBar);
+            AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpSideBar, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpSideBar, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveSideBar);
+            AppContext.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveSideBar);
         }
 
         private static function showSidebarTemporary(edgeIsRight:Boolean):void
@@ -771,7 +767,7 @@ package Modules.L4UI
         {
             const scale:Number = UITheme.getUIScale();
             const topBarHeight:Number = Math.round(UIController.topBar.BARSIZE * scale);
-            const height:Number = Math.round((main.stage.stageHeight - topBarHeight - UIController.STAGE_BOTTOM_OFFSET) / scale);
+            const height:Number = Math.round((AppContext.stage.stageHeight - topBarHeight - UIController.STAGE_BOTTOM_OFFSET) / scale);
 
             const color1:uint = UITheme.getUIFGColor();
             const color2:uint = UITheme.getUIBGColor();
@@ -810,14 +806,14 @@ package Modules.L4UI
 
         public static function getSideBarBGHeight():Number
         {
-            return (main.stage.stageHeight - UIController.topBar.BARSIZE * UITheme.getUIScale()) / UITheme.getUIScale();
+            return (AppContext.stage.stageHeight - UIController.topBar.BARSIZE * UITheme.getUIScale()) / UITheme.getUIScale();
         }
 
         private static function keepScrollSetInStage():void
         {
             const scale:Number = UITheme.getUIScale();
             const limitTop:Number = Math.floor(-sideBarConstHeight + 20.0);
-            const limitBottom:Number = Math.floor(main.stage.stageHeight - UIController.STAGE_TOP_OFFSET - UIController.STAGE_BOTTOM_OFFSET - 20.0 * scale);
+            const limitBottom:Number = Math.floor(AppContext.stage.stageHeight - UIController.STAGE_TOP_OFFSET - UIController.STAGE_BOTTOM_OFFSET - 20.0 * scale);
 
             if (sideBarScrollPanel.y < limitTop)
             {
@@ -842,7 +838,7 @@ package Modules.L4UI
         public static function startScrollSidebarByDrag():void
         {
             const scale:Number = UITheme.getUIScale();
-            var clickY:Number = main.stage.mouseY;
+            var clickY:Number = AppContext.stage.mouseY;
             const alphaSave:Number = sideBarScrollBar.alpha;
 
             function onDragStart():void
@@ -852,12 +848,12 @@ package Modules.L4UI
 
             function onMouseMove():void
             {
-                const subY:Number = (clickY - main.mouseY) / scale;
+                const subY:Number = (clickY - AppContext.stage.mouseY) / scale;
 
                 sideBarScrollPanel.y += subY * 1.5;
                 scrollSetMovedY = sideBarScrollPanel.y;
 
-                clickY = main.mouseY;
+                clickY = AppContext.stage.mouseY;
             }
 
             function onMouseUp():void
@@ -867,8 +863,8 @@ package Modules.L4UI
                 keepScrollSetInStage();
                 scrollSetMovedY = sideBarScrollPanel.y;
 
-                main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
 
                 checkFOFOPosition();
             }
@@ -895,7 +891,7 @@ package Modules.L4UI
         {
             const targetName:String = target.name;
 
-            if (sideBarScrollPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (sideBarScrollPanel.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
             {
                 if (targetName === "navStageBG"
                         || targetName === "navBitmapBG"
@@ -925,7 +921,7 @@ package Modules.L4UI
             }
             else if (isSidebarVisible === false)
             {
-                if (sideBar.visible && !sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) && UIController.isCursorInDrawArea())
+                if (sideBar.visible && !sideBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) && UIController.isCursorInDrawArea())
                 {
                     startHidingSidebarTemporary();
                     return true;

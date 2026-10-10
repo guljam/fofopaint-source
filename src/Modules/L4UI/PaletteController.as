@@ -1,5 +1,6 @@
 package Modules.L4UI
 {
+    import Modules.L1Data.AppContext;
 
     import Symbols.ColorPickerSet;
 
@@ -23,12 +24,6 @@ package Modules.L4UI
     // 층: L4 UI - My Palette 선택·추가·저장과 적용
     public final class PaletteController
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         private static const COLOR_BOX_DRAG_DISTANCE:Number = 5; // 현재 색 박스를 이만큼(colorPickerBox 좌표 기준) 움직여야 드래그로 봄
 
         public static const MYPALETTE_COUNT:int = 100; // my palette 칸 수 (10x10)
@@ -56,7 +51,7 @@ package Modules.L4UI
             function onMouseUpMyPalette(e:MouseEvent):void
             {
                 FOFOTimer.remove("selectMyPaletteDelayTimer");
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
 
                 if (e.target && e.target.name === "myPaletteButton")
                 {
@@ -77,12 +72,12 @@ package Modules.L4UI
                     }
                 }
             }
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette, false, InputPriority.DEFAULT);
 
             FOFOTimer.addByName("selectMyPaletteDelayTimer", 0.4, false, function ():void
                 {
                     HintController.startPressHoldKey(ColorPickerController.colorPickerBox.myPaletteButton, "Clearing my palette..", null, clearMyPaletteList, null);
-                    main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
+                    AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
                 });
         }
 
@@ -94,13 +89,13 @@ package Modules.L4UI
             function onMyPaletteMouseUp(e:MouseEvent):void
             {
                 FOFOTimer.remove("addColorMyPaletteDelayTimer");
-                main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp);
+                AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp);
                 if (colorAddedFlag === false)
                 {
                     selectMyPaletteColor();
                 }
             }
-            main.stage.addEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp, false, InputPriority.DEFAULT);
+            AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMyPaletteMouseUp, false, InputPriority.DEFAULT);
 
             FOFOTimer.addByName("addColorMyPaletteDelayTimer", 0.7, true, function ():Boolean
                 {
@@ -468,7 +463,7 @@ package Modules.L4UI
         {
             const box:ColorPickerSet = ColorPickerController.colorPickerBox;
 
-            if (box.myPaletteBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (box.myPaletteBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
             {
                 box.snapDragColorToCell(getMyPaletteIndexByMousePosLimitBound(), myPaletteColorWidth, myPaletteColorHeight);
             }
@@ -520,12 +515,12 @@ package Modules.L4UI
                 {
                     ColorPickerController.colorPickerBox.removeDragColor();
 
-                    if (ColorPickerController.colorPickerBox.myPaletteBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                    if (ColorPickerController.colorPickerBox.myPaletteBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                     {
                         putColorToMyPalette(color, getMyPaletteIndexByMousePosLimitBound(), true);
                     }
                 }
-                else if (clickArea.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                else if (clickArea.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                 {
                     onClick();
                 }
@@ -787,7 +782,7 @@ package Modules.L4UI
                 {
                     PaletteController.myPaletteDragStarted = false;
 
-                    if (ColorPickerController.colorPickerBox.myPaletteBox.hitTestPoint(PaletteController.main.mouseX, PaletteController.main.mouseY))
+                    if (ColorPickerController.colorPickerBox.myPaletteBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                     {
                         PaletteController.putColorToMyPalette(PaletteController.myPaletteDragClickedColor, PaletteController.getMyPaletteIndexByMousePosLimitBound(), false);
                     }

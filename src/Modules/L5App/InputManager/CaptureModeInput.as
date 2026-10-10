@@ -1,5 +1,6 @@
 package Modules.L5App.InputManager
 {
+    import Modules.L1Data.AppContext;
 
     import flash.display.DisplayObject;
     import flash.events.KeyboardEvent;
@@ -20,12 +21,6 @@ package Modules.L5App.InputManager
     // 층: L5 앱 흐름 - 캡처 모드의 키보드/마우스 입력
     public class CaptureModeInput
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         private static var isEventsAdded:Boolean = false; // 이벤트 중복 추가 방지
 
         public static function addEvents():void
@@ -33,20 +28,20 @@ package Modules.L5App.InputManager
             if (isEventsAdded === false)
             {
                 isEventsAdded = true;
-                main.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpCaptureMode, false, InputPriority.MODE);
-                main.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownCaptureMode, false, InputPriority.MODE);
-                main.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownCaptureMode, false, InputPriority.MODE);
-                main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownCaptureMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUpCaptureMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownCaptureMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownCaptureMode, false, InputPriority.MODE);
+                AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownCaptureMode, false, InputPriority.MODE);
             }
         }
 
         public static function removeEvents():void
         {
             isEventsAdded = false;
-            main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpCaptureMode);
-            main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownCaptureMode);
-            main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownCaptureMode);
-            main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownCaptureMode);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpCaptureMode);
+            AppContext.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownCaptureMode);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownCaptureMode);
+            AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownCaptureMode);
         }
 
         // 캡처 버튼은 누른 버튼에서 마우스를 뗐을때 실행됨 (InputManager.handleMouseClickStage가 호출)
@@ -136,11 +131,11 @@ package Modules.L5App.InputManager
                 return;
             }
 
-            if (main.stage.focus === UIController.topBar.captureInput)
+            if (AppContext.stage.focus === UIController.topBar.captureInput)
             {
                 if (firstKey === KeyState.KEY.esc || firstKey === KeyState.KEY.enter || KeyState.isPressingControl())
                 {
-                    main.stage.focus = null;
+                    AppContext.stage.focus = null;
                 }
                 return;
             }
@@ -226,14 +221,14 @@ package Modules.L5App.InputManager
             if (targetName === "capClipBoard")
             {
                 CaptureController.executeCaptureFlashEffect();
-                if (target.alpha < 1.0 && UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                if (target.alpha < 1.0 && UIController.topBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
                 {
                     return;
                 }
                 InputManager.handleMouseClickStage(targetName, onClickCaptureButton);
             }
 
-            if (target.alpha < 1.0 && UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+            if (target.alpha < 1.0 && UIController.topBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
             {
                 return;
             }
@@ -281,7 +276,7 @@ package Modules.L5App.InputManager
 
         private static function onRightMouseDownCaptureMode(e:MouseEvent):void
         {
-            if (UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            if (UIController.topBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false)
             {
                 if (!CaptureController.isFullImageCapture())
                 {

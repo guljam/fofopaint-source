@@ -12,12 +12,6 @@ package Modules.L1Data
         // 박스 드래그가 끝나 박스를 화면 안으로 되돌려야 한다는 보고 (인자: 드래그한 박스)
         public static var onDragEndedFunc:Function;
 
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         private static var dragInteractionMouseMoveFunc:Function;
         private static var dragInteractionMouseUpFunc:Function;
         private static var dragInteractionMouseEventStarted:Boolean = false;
@@ -37,8 +31,8 @@ package Modules.L1Data
         {
             dragInteractionMouseEventStarted = false;
             MouseState.endDrag(DRAG_OWNER);
-            main.stage.removeEventListener(MouseEvent.MOUSE_UP, handleMouseUpDragInteraction);
-            main.stage.removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMoveDragInteraction);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, handleMouseUpDragInteraction);
+            AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMoveDragInteraction);
 
             if (dragInteractionMouseUpFunc !== null)
             {
@@ -65,14 +59,14 @@ package Modules.L1Data
             if (dragInteractionMouseEventStarted === false)
             {
                 dragInteractionMouseEventStarted = true;
-                main.stage.addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMoveDragInteraction);
-                main.stage.addEventListener(MouseEvent.MOUSE_UP, handleMouseUpDragInteraction, false, InputPriority.DEFAULT);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMoveDragInteraction);
+                AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, handleMouseUpDragInteraction, false, InputPriority.DEFAULT);
             }
         }
 
         public static function startDragBox(target:DisplayObject):void
         {
-            const clickPos:Point = new Point(main.stage.mouseX, main.stage.mouseY);
+            const clickPos:Point = new Point(AppContext.stage.mouseX, AppContext.stage.mouseY);
 
             function onDragStart():void
             {
@@ -81,11 +75,11 @@ package Modules.L1Data
 
             function onMouseMove():void
             {
-                target.x = Math.floor(target.x + main.stage.mouseX - clickPos.x);
-                target.y = Math.floor(target.y + main.stage.mouseY - clickPos.y);
+                target.x = Math.floor(target.x + AppContext.stage.mouseX - clickPos.x);
+                target.y = Math.floor(target.y + AppContext.stage.mouseY - clickPos.y);
 
-                clickPos.x = main.stage.mouseX;
-                clickPos.y = main.stage.mouseY;
+                clickPos.x = AppContext.stage.mouseX;
+                clickPos.y = AppContext.stage.mouseY;
             }
 
             function onMouseUp():void

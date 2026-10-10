@@ -1,5 +1,6 @@
 package Modules.L4UI.UIEngine
 {
+    import Modules.L1Data.AppContext;
     import Symbols.HintBoxSet;
 
     import flash.display.DisplayObject;
@@ -34,12 +35,6 @@ package Modules.L4UI.UIEngine
     // 층: L4 UI - 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시
     public final class HintController
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         public static const BOTTOM_BAR_HEIGHT:Number = 25;
         public static var mouseHint:HintBoxSet = new HintBoxSet(true);
         public static var bottomHint:HintBoxSet = new HintBoxSet(false);
@@ -59,19 +54,19 @@ package Modules.L4UI.UIEngine
             bottomHint.x = 2;
             bottomHint.y = 3;
 
-            main.stage.addChild(hintHighlightBox);
-            main.stage.addChild(bottomBar);
-            main.stage.addChild(mouseHint);
+            AppContext.stage.addChild(hintHighlightBox);
+            AppContext.stage.addChild(bottomBar);
+            AppContext.stage.addChild(mouseHint);
         }
 
         public static function isSameWithLastBottomHintTargetRect(target:DisplayObject):Boolean
         {
-            return lastBottomHintTargetRect.equals(target.getBounds(main.stage));
+            return lastBottomHintTargetRect.equals(target.getBounds(AppContext.stage));
         }
 
         private static function updateLastBottomHintTargetRect(target:DisplayObject):void
         {
-            const rect:Rectangle = target.getBounds(main.stage);
+            const rect:Rectangle = target.getBounds(AppContext.stage);
 
             lastBottomHintTargetRect.x = rect.x;
             lastBottomHintTargetRect.y = rect.y;
@@ -119,7 +114,7 @@ package Modules.L4UI.UIEngine
 
                 const targetName:String = target.name;
                 const xCanvasPanel:Sprite = CanvasViewport.current().panel;
-                if (CaptureController.isFullImageCapture() && xCanvasPanel.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true))
+                if (CaptureController.isFullImageCapture() && xCanvasPanel.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY, true))
                 {
                     showHintHighlightBox(CanvasViewport.current().layer1Bitmap);
                     showBottomHint(hint);
@@ -256,7 +251,7 @@ package Modules.L4UI.UIEngine
                 target = CanvasNavigator.box;
             }
 
-            const rect:Rectangle = target.getBounds(main.stage);
+            const rect:Rectangle = target.getBounds(AppContext.stage);
 
             if (target === ColorPickerController.colorPickerBox.rgbInfoText)
             {
@@ -283,16 +278,16 @@ package Modules.L4UI.UIEngine
 
         private static function updateHightLightBoxZOrderByTarget(target:DisplayObject):void
         {
-            const topIndex:int = main.stage.numChildren - 1;
-            const tbIndex:int = main.stage.getChildIndex(UIController.topBar);
-            const hIndex:int = main.stage.getChildIndex(hintHighlightBox);
+            const topIndex:int = AppContext.stage.numChildren - 1;
+            const tbIndex:int = AppContext.stage.getChildIndex(UIController.topBar);
+            const hIndex:int = AppContext.stage.getChildIndex(hintHighlightBox);
 
             if (UIController.topBar.contains(target) || UIController.seekBarBox.contains(target))
             {
                 var desiredIndex:int = Math.min(tbIndex + 1, topIndex);
                 if (hIndex != desiredIndex)
                 {
-                    main.stage.setChildIndex(hintHighlightBox, desiredIndex);
+                    AppContext.stage.setChildIndex(hintHighlightBox, desiredIndex);
                 }
             }
             else
@@ -300,7 +295,7 @@ package Modules.L4UI.UIEngine
                 var desiredIndex2:int = Math.max(tbIndex - 1, 0);
                 if (hIndex != desiredIndex2)
                 {
-                    main.stage.setChildIndex(hintHighlightBox, desiredIndex2);
+                    AppContext.stage.setChildIndex(hintHighlightBox, desiredIndex2);
                 }
             }
         }
@@ -356,7 +351,7 @@ package Modules.L4UI.UIEngine
 
             if (textChanged || !wasVisible)
             {
-                if (bottomHint.width > main.stage.stageWidth)
+                if (bottomHint.width > AppContext.stage.stageWidth)
                 {
                     startBottomHintScrolling();
                 }
@@ -384,12 +379,12 @@ package Modules.L4UI.UIEngine
                 mouseHint.setHintText(str);
             }
 
-            const stw:uint = main.stage.stageWidth + 1;
-            const sth:uint = main.stage.stageHeight + 1;
+            const stw:uint = AppContext.stage.stageWidth + 1;
+            const sth:uint = AppContext.stage.stageHeight + 1;
             const hintWidth:Number = mouseHint.getScaledTextWidth();
             const hintHeight:Number = mouseHint.getScaledTextHeight();
-            var hintX:Number = Math.floor(main.mouseX - hintWidth / 2) + 5;
-            var hintY:Number = Math.floor(main.mouseY - 45 * UITheme.getUIScale());
+            var hintX:Number = Math.floor(AppContext.stage.mouseX - hintWidth / 2) + 5;
+            var hintY:Number = Math.floor(AppContext.stage.mouseY - 45 * UITheme.getUIScale());
             const hintRight:int = hintX + hintWidth;
             const hintBottom:int = hintY + hintHeight;
 
@@ -423,7 +418,7 @@ package Modules.L4UI.UIEngine
         {
             showMouseHint(str);
 
-            const rect:Rectangle = target.getBounds(main.stage);
+            const rect:Rectangle = target.getBounds(AppContext.stage);
             mouseHint.x = Math.floor(rect.x + (rect.width - mouseHint.getScaledTextWidth()) / 2);
             mouseHint.y = Math.floor(rect.y + (rect.height - mouseHint.getScaledTextHeight()) / 2);
         }
@@ -443,11 +438,11 @@ package Modules.L4UI.UIEngine
                 return false;
             }
 
-            const rect:Rectangle = bottomHint.getBounds(main.stage);
+            const rect:Rectangle = bottomHint.getBounds(AppContext.stage);
             const scale:Number = rect.width / bottomHint.width;
             const move:Number = BOTTOM_HINT_SCROLL_SPEED * scale;
 
-            if (bottomHintScrollWaitFrames < main.stage.frameRate)
+            if (bottomHintScrollWaitFrames < AppContext.stage.frameRate)
             {
                 bottomHintScrollWaitFrames++;
                 return true;
@@ -455,7 +450,7 @@ package Modules.L4UI.UIEngine
 
             if (bottomHintScrollToLeft)
             {
-                if (rect.right > main.stage.stageWidth)
+                if (rect.right > AppContext.stage.stageWidth)
                 {
                     bottomHint.x -= move;
                 }
@@ -503,12 +498,12 @@ package Modules.L4UI.UIEngine
         public static function updateBottomBarLayoutAndColor():void
         {
             bottomBar.x = 0;
-            bottomBar.y = main.stage.stageHeight - BOTTOM_BAR_HEIGHT * UITheme.getUIScale();
+            bottomBar.y = AppContext.stage.stageHeight - BOTTOM_BAR_HEIGHT * UITheme.getUIScale();
 
             bottomBar.graphics.clear();
             // WorkspaceView.bottomBar.graphics.lineStyle(0,0xFF0000,0.0);
             bottomBar.graphics.beginFill(UITheme.getHintBGColor(), 0.75);
-            bottomBar.graphics.drawRect(-3, 0, main.stage.stageWidth + 6, BOTTOM_BAR_HEIGHT + 3);
+            bottomBar.graphics.drawRect(-3, 0, AppContext.stage.stageWidth + 6, BOTTOM_BAR_HEIGHT + 3);
             bottomBar.graphics.endFill();
         }
 
@@ -526,7 +521,7 @@ package Modules.L4UI.UIEngine
                 var mouseClickONSave:Boolean = MouseState.isLeftDown;
                 var rightMouseClickONSave:Boolean = MouseState.isRightDown;
                 const countDownTime:Number = 3;
-                const countDownTimeNow:Number = Math.ceil((main.stage.frameRate * 2.5) / countDownTime);
+                const countDownTimeNow:Number = Math.ceil((AppContext.stage.frameRate * 2.5) / countDownTime);
                 pressHoldCountDownTime = countDownTime;
                 pressHoldFrameCount = 0;
                 if (readyFunc !== null)
@@ -551,7 +546,7 @@ package Modules.L4UI.UIEngine
                         if (MouseState.isLeftDown !== mouseClickONSave
                                 || MouseState.isRightDown !== rightMouseClickONSave
                                 || keyBufferLenSave !== KeyState.getPressedKeyCount()
-                                || (button && button.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+                                || (button && button.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false)
                                 || (abortFunc !== null && abortFunc() === true))
                         {
                             if (cancelFunc !== null)

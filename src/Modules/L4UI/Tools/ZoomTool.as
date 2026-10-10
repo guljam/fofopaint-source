@@ -1,5 +1,6 @@
 package Modules.L4UI.Tools
 {
+    import Modules.L1Data.AppContext;
     import flash.geom.Point;
     import flash.display.Sprite;
     import Modules.L4UI.CanvasGridOverlay;
@@ -19,12 +20,6 @@ package Modules.L4UI.Tools
     // 층: L4 UI - 줌 툴
     public class ZoomTool
     {
-        public static var main:Main;
-
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
 
         private static const zoomMaxIndex:uint = CanvasView.canvasZoomMultiplierList.length - 1;
         private static const clickPos:Point = new Point(0, 0);
@@ -71,20 +66,20 @@ package Modules.L4UI.Tools
 
         private static function onMouseMove():void
         {
-            var mx:Number = main.stage.mouseX;
-            var my:Number = main.stage.mouseY;
+            var mx:Number = AppContext.stage.mouseX;
+            var my:Number = AppContext.stage.mouseY;
 
             if (dragDirection === 0)
             {
                 if (Math.abs(mx - lastMousePos.x) > 20)
                 {
                     dragDirection = 1;
-                    lastMousePos.x = main.stage.mouseX;
+                    lastMousePos.x = AppContext.stage.mouseX;
                 }
                 else if (Math.abs(my - lastMousePos.y) > 20)
                 {
                     dragDirection = 2;
-                    lastMousePos.y = main.stage.mouseY;
+                    lastMousePos.y = AppContext.stage.mouseY;
                 }
             }
             else if (dragDirection === 1)
@@ -93,7 +88,7 @@ package Modules.L4UI.Tools
 
                 if (Math.abs(subX) > mouseMoveStep)
                 {
-                    lastMousePos.x = main.stage.mouseX;
+                    lastMousePos.x = AppContext.stage.mouseX;
                     zoomToolMouseMoveEvent2(subX);
                 }
             }
@@ -103,7 +98,7 @@ package Modules.L4UI.Tools
 
                 if (Math.abs(subY) > mouseMoveStep)
                 {
-                    lastMousePos.y = main.stage.mouseY;
+                    lastMousePos.y = AppContext.stage.mouseY;
                     zoomToolMouseMoveEvent2(subY);
                 }
             }
@@ -181,13 +176,13 @@ package Modules.L4UI.Tools
                     CanvasView.viewport.moveAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y);
                 }
 
-                lastMousePos.setTo(main.stage.mouseX, main.stage.mouseY);
+                lastMousePos.setTo(AppContext.stage.mouseX, AppContext.stage.mouseY);
                 startZoomIndex = CanvasView.canvasZoomIndex;
 
                 PenSizePreviewCursor.setCursorInVisibleFlag(true);
                 ReferenceLayerController.setRefLayerAndGridVisible(false);
 
-                clickPos.setTo(main.stage.mouseX, main.stage.mouseY);
+                clickPos.setTo(AppContext.stage.mouseX, AppContext.stage.mouseY);
                 HintController.showMouseHint(Math.floor(CanvasView.canvasZoomMultiplier * 100) + "%");
                 fixMouseHintPos();
             }

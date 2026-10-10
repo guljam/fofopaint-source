@@ -17,12 +17,6 @@ package Modules.L1Data
     // 층: L1 데이터 - 색 변환, 텍스트 필드 생성 등 공용 함수
     public class Utils
     {
-        public static var main:Main;
-        public static function setMainInstance(instance:Main):void
-        {
-            main = instance;
-        }
-
         public static const ZERO_POINT:Point = new Point(0, 0);
 
         public static function createTextField(label:String, color:uint, size:Number):TextField
@@ -256,7 +250,7 @@ package Modules.L1Data
         // 회전이나 기준점 상관없이 보이는 그대로 리턴함
         public static function getBoundRect(ent:DisplayObject):Object
         {
-            const b:Rectangle = ent.getBounds(main.stage);
+            const b:Rectangle = ent.getBounds(AppContext.stage);
             const tl:Point = b.topLeft;
             const br:Point = b.bottomRight;
             const tlx:Number = tl.x;
