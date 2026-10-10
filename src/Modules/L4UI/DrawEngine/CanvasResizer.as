@@ -339,7 +339,7 @@ package Modules.L4UI.DrawEngine
                 canvasPanel.addChild(canvasFlashEffect);
                 canvasPanel.setChildIndex(canvasFlashEffect, 0);
                 canvasFlashEffect.visible = true;
-                canvasFlashEffect.graphics.beginBitmapFill(CaptureController.capTransparentBGBMPD);
+                canvasFlashEffect.graphics.beginBitmapFill(DrawCanvas.capTransparentBGBMPD);
                 canvasFlashEffect.graphics.drawRect(0, 0, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
                 canvasFlashEffect.graphics.endFill();
                 canvasFlashEffect.alpha = 0.0;

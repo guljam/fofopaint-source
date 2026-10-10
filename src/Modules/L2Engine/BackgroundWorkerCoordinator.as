@@ -22,7 +22,6 @@ package Modules.L2Engine
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.ReplayEngine.ReplayState;
-    import Modules.L4UI.CaptureEngine.CaptureController;
 
     // 층: L2 엔진 - 백그라운드 워커 시작·중지와 데이터 전달
     public final class BackgroundWorkerCoordinator
@@ -253,7 +252,7 @@ package Modules.L2Engine
 
             xPanel.graphics.clear();
             xPanel.graphics.lineStyle(0, 0, 0);
-            xPanel.graphics.beginBitmapFill(CaptureController.capTransparentBGBMPD);
+            xPanel.graphics.beginBitmapFill(DrawCanvas.capTransparentBGBMPD);
             xPanel.graphics.drawRect(0, 0, w, h);
             xPanel.graphics.endFill();
         }

@@ -312,5 +312,24 @@ package Modules.L2Engine.DrawEngine
 
         public static var isLayer2Selected:Boolean = false;
 
+
+        private static var capTransparentBGBMPDSize:Number = 32;
+
+        private static var _capTransparentBGBMPD:BitmapData;
+
+        public static function get capTransparentBGBMPD():BitmapData
+        {
+            return _capTransparentBGBMPD;
+        }
+
+        // 투명 배경을 나타내는 체크무늬 비트맵을 만듦
+        public static function initializeCaptureModeTransparentBG():void
+        {
+            const halfSize:Number = Math.floor(capTransparentBGBMPDSize / 2);
+            _capTransparentBGBMPD = new BitmapData(capTransparentBGBMPDSize, capTransparentBGBMPDSize, false, 0xFFFFFF);
+            _capTransparentBGBMPD.fillRect(new Rectangle(0, 0, halfSize, halfSize), 0xC8C8C8);
+            _capTransparentBGBMPD.fillRect(new Rectangle(halfSize, halfSize, halfSize, halfSize), 0xCCCCCC);
+        }
+
     }
 }

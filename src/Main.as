@@ -285,7 +285,7 @@
             ReplayController.initializeReplayCanvas();
             UIController.initializeAppMenus();
             CanvasResizer.init();
-            CaptureController.initializeCaptureModeTransparentBG();
+            DrawCanvas.initializeCaptureModeTransparentBG();
             BackgroundWorkerCoordinator.initializeWorker();
             AppStateManager.loadAppState();
             // 입력 이벤트는 loadappdstate보다느려야함

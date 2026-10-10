@@ -48,8 +48,6 @@ package Modules.L4UI.CaptureEngine
         private static var _drawModeCanvasStateForSaveAppState:Object = {}; // save app state에서 캔버스가 capture모드 상태로 저장해주기 때문에 백업한 데이터로 저장시켜줌
         private static var _captureWindowMove:Point = new Point(0, 0); // 스크린샷이 켜져있는 상태에서 창을 조절했을때 스크린샷이 끝나고 나서 regpoint를 그만큼 움직여줘야함
         private static var _captureCanvasRotationStep:uint = 0; // 캡쳐 회전한 변수 저장
-        private static var capTransparentBGBMPDSize:Number = 32;
-        private static var _capTransparentBGBMPD:BitmapData;
 
         public static function get isCaptureModeON():Boolean
         {
@@ -69,11 +67,6 @@ package Modules.L4UI.CaptureEngine
         public static function get captureCanvasRotationStep():uint
         {
             return _captureCanvasRotationStep;
-        }
-
-        public static function get capTransparentBGBMPD():BitmapData
-        {
-            return _capTransparentBGBMPD;
         }
 
         public static function get drawModeCanvasStateForSaveAppState():Object
@@ -296,14 +289,6 @@ package Modules.L4UI.CaptureEngine
             Clipboard.generalClipboard.setData(ClipboardFormats.BITMAP_FORMAT, getCaptrueImageBitmapdata(true), false);
             // WorkspaceView.showMouseHintTemp("The image copied to clipboard successfully");
             UIController.topBar.capClipBoard.alpha = UITheme.OFFALPHA;
-        }
-
-        public static function initializeCaptureModeTransparentBG():void
-        {
-            const halfSize:Number = Math.floor(capTransparentBGBMPDSize / 2);
-            _capTransparentBGBMPD = new BitmapData(capTransparentBGBMPDSize, capTransparentBGBMPDSize, false, 0xFFFFFF);
-            _capTransparentBGBMPD.fillRect(new Rectangle(0, 0, halfSize, halfSize), 0xC8C8C8);
-            _capTransparentBGBMPD.fillRect(new Rectangle(halfSize, halfSize, halfSize, halfSize), 0xCCCCCC);
         }
 
         public static function flipCaptureImage(flag:Boolean, initFlag:Boolean):void
