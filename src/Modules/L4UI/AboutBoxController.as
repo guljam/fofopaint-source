@@ -47,8 +47,6 @@ package Modules.L4UI
 
         private static var _aboutBox:AboutWindowSet;
         private static var _isAboutBoxOpened:Boolean = false; // 어바웃 창 떴을때 킴
-        public static const FOFOPAINT_RELEASE_NOTE_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/master/releasenote.txt";
-        public static const FOFOPAINT_GITHUB_URL:String = "https://github.com/guljam/2020FlashPaint";
 
         private static const driveUsageCalculationTimerName:String = "driveUsageCalculationTimer";
 
@@ -64,13 +62,13 @@ package Modules.L4UI
                     break;
                 case "versionInfo":
                 case "releaseNoteButton":
-                    navigateToURL(new URLRequest(FOFOPAINT_RELEASE_NOTE_URL));
+                    navigateToURL(new URLRequest(AppUpdater.RELEASE_NOTE_URL));
                     break;
                 case "aboutButton":
                     closeAboutBox();
                     break;
                 case "aboutHomePageLink":
-                    navigateToURL(new URLRequest(FOFOPAINT_GITHUB_URL));
+                    navigateToURL(new URLRequest(AppUpdater.GITHUB_URL));
                     break;
                 case "aboutManualFolder":
                     if (onLocalManualOpenedFunc != null) onLocalManualOpenedFunc();

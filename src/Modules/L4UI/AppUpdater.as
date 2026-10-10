@@ -19,8 +19,9 @@ package Modules.L4UI
         private static const FLAG_UPDATE_AVAILABLE:int = (1 << 1);
         private static const UPDATE_VERSION_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/refs/heads/master/versionInfov2.txt"; // a.b.c 버전
         private static const UPDATE_VERSION_URL_LEGACY:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/refs/heads/master/versionInfo.txt"; // a.b 버전 (legacy 배포)
-        private static const RELEASE_NOTE_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/refs/heads/master/releasenotev2.txt";
+        public static const RELEASE_NOTE_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/refs/heads/master/releasenotev2.txt";
         private static const RELEASE_PAGE_URL:String = "https://github.com/guljam/2020FlashPaint/releases";
+        public static const GITHUB_URL:String = "https://github.com/guljam/2020FlashPaint";
         private static var status:int = FLAG_NO_UPDATE; // 새버전 나왔을때 올려주는 플래그
         public static var newVersionStr:String = "{VERSION}"; // 새버전 문자열 저장
 
