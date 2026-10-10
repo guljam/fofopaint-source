@@ -28,13 +28,26 @@
             "problemMatcher": []
         },
         {
+            "label": "Compile Main SWF",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/build-main.ps1"
+            ],
+            "problemMatcher": []
+        },
+        {
             "label": "FOFO PAINT swf build and debug",
-            "type": "actionscript",
-            "debug": true,
             "dependsOn": [
                 "Compile Worker SWF",
-                "Build nativecore ANE"
-            ]
+                "Build nativecore ANE",
+                "Compile Main SWF"
+            ],
+            "dependsOrder": "sequence"
         },
         {
             "label": "Make and Install AIR Package",

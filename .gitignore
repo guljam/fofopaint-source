@@ -32,3 +32,4 @@ worker.swf_old
 # 빌드 결과물 (build-ane.ps1이 다시 만듦, 배포용은 extension/com.fofo.nativecore.ane)
 /anesrc/fofonative/build/
 /.ane-debug/
+/fofoPaint.swf.srchash
