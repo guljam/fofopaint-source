@@ -11,7 +11,6 @@ package Modules.L4UI.UIEngine
     import flash.geom.Rectangle;
     import Modules.L5App.AppWindowState;
     import Modules.L4UI.ColorPickerController;
-    import Modules.L5App.FileManager;
     import Modules.L4UI.ImageViewWindow;
     import Modules.L4UI.LoadBoxController;
     import Modules.L5App.ReplayEngine.ReplayController;
@@ -41,11 +40,15 @@ package Modules.L4UI.UIEngine
     import Modules.L4UI.CaptureEngine.CaptureStamp;
     import Modules.L4UI.ClipboardManager;
     import Modules.L4UI.ReferenceLayerController;
+    import Symbols.SeekBarSet;
 
     // 스테이지 UI 배치: 표시 순서, 뷰포트 여백, 창 크기 변경 배치, UI 색상/스케일을 각 패널에 반영
     // 층: L4 UI - 스테이지 UI 배치와 UI 색상·스케일을 패널에 반영
     public final class UIController
     {
+        // 파일이 저장된 상태가 아니게 됐다는 보고
+        public static var onFileChangedFunc:Function;
+
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -165,9 +168,9 @@ package Modules.L4UI.UIEngine
                 STAGE_TOP_OFFSET += topBar.BARSIZE * scale;
             }
 
-            if (ReplayController.seekBarBox.visible)
+            if (UIController.seekBarBox.visible)
             {
-                STAGE_TOP_OFFSET += ReplayController.seekBarBox.BARSIZE * scale;
+                STAGE_TOP_OFFSET += UIController.seekBarBox.BARSIZE * scale;
             }
 
             if (CaptureController.isCaptureModeON || ReplayState.isReplayModeON)
@@ -199,7 +202,7 @@ package Modules.L4UI.UIEngine
             topBar.setScale(scale);
             topBar.updateTopbarBG(stw);
             topBar.updateTimerPos(main.stage.stageWidth);
-            ReplayController.seekBarBox.setScale(scale);
+            UIController.seekBarBox.setScale(scale);
             canvasRotateCursor.setScale(scale);
             HintController.mouseHint.setScale(scale);
             HintController.bottomBar.scaleX = scale;
@@ -278,7 +281,7 @@ package Modules.L4UI.UIEngine
             }
             else
             {
-                if (ReplayController.isReplayRestartTimerON())
+                if (ReplayState.isReplayRestartTimerON())
                 {
                     ReplayDrawer.viewport.centerIn("replay");
                 }
@@ -321,7 +324,7 @@ package Modules.L4UI.UIEngine
 
             if (ReplayState.isReplayModeON)
             {
-                ReplayController.seekBarBox.updatePos(main.stage.stageWidth);
+                UIController.seekBarBox.updatePos(main.stage.stageWidth);
                 ReplayDrawer.cursorFollow.updateBounds();
 
                 if (ReplayState.isReplayCanvasFitToWindow)
@@ -469,7 +472,7 @@ package Modules.L4UI.UIEngine
             ColorPickerController.numPadBox.updateUIColor();
             ReferenceLayerController.refLayerMenuBox.updateUIColor();
             topBar.updateUIColor();
-            ReplayController.seekBarBox.updateUIColor();
+            UIController.seekBarBox.updateUIColor();
             CaptureStamp.captureStampFontListBox.updateUIColor();
             HintController.mouseHint.updateBGColor();
             HintController.bottomHint.updateHintTextColor(0);
@@ -636,7 +639,7 @@ package Modules.L4UI.UIEngine
             // 창 절반을 기준점으로 앵커포인트 x축 이동.
             CanvasView.canvasAnchorPoint.x += Math.round((stageHalf - p.x) * 2);
             CanvasNavigator.updateCursor();
-            FileManager.isFileAlreadySaved = false; // 미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
+            if (onFileChangedFunc != null) onFileChangedFunc(); // 미러도 화면이 바뀌기 때문에 세이브 플래그 꺼줌
             ReplayDrawer.mirrorRCursorPos();
 
             CanvasNavigator.box.updateImage();
@@ -703,8 +706,11 @@ package Modules.L4UI.UIEngine
         {
             return !(UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY)
                     || (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
-                    || (ReplayController.seekBarBox.visible && ReplayController.seekBarBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY)));
+                    || (UIController.seekBarBox.visible && UIController.seekBarBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY)));
         }
+
+
+        public static const seekBarBox:SeekBarSet = new SeekBarSet();
 
     }
 }

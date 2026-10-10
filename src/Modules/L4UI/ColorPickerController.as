@@ -9,7 +9,6 @@ package Modules.L4UI
     import flash.display.DisplayObject;
     import Symbols.FillPenMenuSet;
     import flash.utils.getTimer;
-    import Modules.L5App.InputManager.DrawModeInput;
     import Modules.L5App.InputManager.InputManager;
     import Modules.InputPriority;
     import Modules.L4UI.Tools.ToolPanel;
@@ -29,6 +28,9 @@ package Modules.L4UI
     // 층: L4 UI - 색 선택기 박스와 숫자패드, 색 프리셋 선택 처리
     public class ColorPickerController
     {
+        // 드로우 모드의 입력 이벤트를 다시 달아야 한다는 보고
+        public static var onDrawEventsAddedFunc:Function;
+
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -353,7 +355,7 @@ package Modules.L4UI
 
             FOFOTimer.addByName("rgbInfoTextFocusOutEventDelayInput", 0.0, false, function ():void
                 {
-                    DrawModeInput.addEvents();
+                    if (onDrawEventsAddedFunc != null) onDrawEventsAddedFunc();
                 });
         }
 

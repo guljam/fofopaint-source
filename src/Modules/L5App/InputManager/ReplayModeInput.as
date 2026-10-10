@@ -86,7 +86,7 @@ package Modules.L5App.InputManager
                     break;
                 case "playButton":
                     {
-                        if (ReplayController.isReplayRestartTimerON())
+                        if (ReplayState.isReplayRestartTimerON())
                         {
                             ReplayController.cancelReplayRestartTimer();
                         }
@@ -99,7 +99,7 @@ package Modules.L5App.InputManager
                 case "pauseButton":
                     {
                         FOFOTimer.remove("prograssBarUpdateTimer");
-                        if (ReplayController.isReplayRestartTimerON())
+                        if (ReplayState.isReplayRestartTimerON())
                         {
                             ReplayController.cancelReplayRestartTimer();
                         }
@@ -227,7 +227,7 @@ package Modules.L5App.InputManager
                 return;
             }
 
-            if (ReplayController.isReplayRestartTimerON())
+            if (ReplayState.isReplayRestartTimerON())
             {
                 switch (firstKey)
                 {
@@ -369,7 +369,7 @@ package Modules.L5App.InputManager
                 case "rCanvasDrawLayer":
                 case "stageBG":
                     {
-                        if (ReplayController.isReplayRestartTimerON())
+                        if (ReplayState.isReplayRestartTimerON())
                         {
                             ReplayController.cancelReplayRestartTimer();
                         }
@@ -394,9 +394,9 @@ package Modules.L5App.InputManager
                 return;
             }
             const targetName:String = target.name;
-            if (ReplayController.isReplayRestartTimerON())
+            if (ReplayState.isReplayRestartTimerON())
             {
-                if (ReplayController.seekBarBox.trackBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                if (UIController.seekBarBox.trackBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                 {
                     ReplayController.cancelReplayRestartTimer();
                     return;
@@ -411,7 +411,7 @@ package Modules.L5App.InputManager
                     return;
                 }
 
-                if(!ReplayController.isReplayRestartTimerON())
+                if(!ReplayState.isReplayRestartTimerON())
                 {   
                     if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "stageBG")
                     {
@@ -447,7 +447,7 @@ package Modules.L5App.InputManager
                                 ReplayController.createNewFileFromReplayCanvas,
                                 function ():void
                                 {
-                                    ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
+                                    UIController.seekBarBox.setDeleteRangeBarVisible(false);
                                 },
                                 FileManager.isReplayDataLocked);
                     }
@@ -463,7 +463,7 @@ package Modules.L5App.InputManager
                                     ReplayController.deleteReplayDataBeforeCurrentFrame,
                                     function ():void
                                     {
-                                        ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
+                                        UIController.seekBarBox.setDeleteRangeBarVisible(false);
                                     },
                                     FileManager.isReplayDataLocked);
                         }
@@ -479,7 +479,7 @@ package Modules.L5App.InputManager
                                 },
                                     ReplayController.deleteReplayDataAfterCurrentFrame, function ():void
                                     {
-                                        ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
+                                        UIController.seekBarBox.setDeleteRangeBarVisible(false);
                                     },
                                     FileManager.isReplayDataLocked);
                         }

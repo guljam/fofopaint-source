@@ -11,13 +11,8 @@ package Modules.L4UI.CaptureEngine
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Modules.L4UI.CanvasGridOverlay;
-    import Modules.L5App.InputManager.CaptureModeInput;
     import Modules.L4UI.ColorPickerController;
-    import Modules.L5App.InputManager.DrawModeInput;
-    import Modules.L5App.FileManager;
     import Modules.L5App.InputManager.InputManager;
-    import Modules.L5App.ReplayEngine.ReplayController;
-    import Modules.L5App.InputManager.ReplayModeInput;
     import Modules.L4UI.SidebarController;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
@@ -35,6 +30,25 @@ package Modules.L4UI.CaptureEngine
     // 층: L4 UI - 캡처 모드 진입·종료와 캡처 처리
     public class CaptureController
     {
+        // 드로우 모드의 입력 이벤트를 다시 달아야 한다는 보고
+        public static var onDrawEventsAddedFunc:Function;
+        // 드로우 모드의 입력 이벤트를 빼야 한다는 보고
+        public static var onDrawEventsRemovedFunc:Function;
+        // 리플레이 모드의 입력 이벤트를 다시 달아야 한다는 보고
+        public static var onReplayEventsAddedFunc:Function;
+        // 리플레이 모드의 입력 이벤트를 빼야 한다는 보고
+        public static var onReplayEventsRemovedFunc:Function;
+        // 캡처 모드의 입력 이벤트를 다시 달아야 한다는 보고
+        public static var onCaptureEventsAddedFunc:Function;
+        // 캡처 모드의 입력 이벤트를 빼야 한다는 보고
+        public static var onCaptureEventsRemovedFunc:Function;
+        // 캡처 모드에 들어가기 전에 리플레이 재생을 멈춰야 한다는 보고
+        public static var onReplayStoppedFunc:Function;
+        // 리플레이 재생 중 숨겨 둔 상단 바를 다시 보여야 한다는 보고
+        public static var onReplayTopbarShownFunc:Function;
+        // 파일 탐색기 열림 상태를 바꿔야 한다는 보고 (인자: 열림 여부)
+        public static var onFileBrowserClosedFunc:Function;
+
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -317,7 +331,7 @@ package Modules.L4UI.CaptureEngine
 
         public static function handleExitCaptureMode():void
         {
-            FileManager.setFileBrowserIsOpen(false);
+            if (onFileBrowserClosedFunc != null) onFileBrowserClosedFunc(false);
             exitCaptureMode();
         }
 
@@ -393,7 +407,7 @@ package Modules.L4UI.CaptureEngine
 
             if (ReplayState.isReplayStarted)
             {
-                ReplayController.stopReplay();
+                if (onReplayStoppedFunc != null) onReplayStoppedFunc();
             }
 
             _isCaptureModeON = true;
@@ -488,15 +502,15 @@ package Modules.L4UI.CaptureEngine
 
             if (replayMode)
             {
-                ReplayController.showTopbarOnPlayback();
-                ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
-                ReplayController.seekBarBox.visible = false;
-                ReplayModeInput.removeEvents();
+                if (onReplayTopbarShownFunc != null) onReplayTopbarShownFunc();
+                UIController.seekBarBox.setDeleteRangeBarVisible(false);
+                UIController.seekBarBox.visible = false;
+                if (onReplayEventsRemovedFunc != null) onReplayEventsRemovedFunc();
             }
             else
             {
                 CanvasGridOverlay.canvasGrid.visible = false;
-                DrawModeInput.removeEvents();
+                if (onDrawEventsRemovedFunc != null) onDrawEventsRemovedFunc();
             }
 
             if (SidebarController.isSidebarVisible)
@@ -521,21 +535,21 @@ package Modules.L4UI.CaptureEngine
                 HintController.hideMouseHint();
             }
 
-            CaptureModeInput.addEvents();
+            if (onCaptureEventsAddedFunc != null) onCaptureEventsAddedFunc();
             UIController.updateStageOffset();
         }
 
         private static function deactivateCaptureUI():void
         {
             const replayMode:Boolean = ReplayState.isReplayModeON;
-            CaptureModeInput.removeEvents();
+            if (onCaptureEventsRemovedFunc != null) onCaptureEventsRemovedFunc();
             ReferenceLayerController.canvasRefLayer.visible = true;
 
             if (replayMode)
             {
                 UIController.updateTopbarIconsReplayMode();
-                ReplayModeInput.addEvents();
-                ReplayController.seekBarBox.visible = true;
+                if (onReplayEventsAddedFunc != null) onReplayEventsAddedFunc();
+                UIController.seekBarBox.visible = true;
             }
             else
             {
@@ -549,7 +563,7 @@ package Modules.L4UI.CaptureEngine
                 }
                 PenSizePreviewCursor.setCursorInVisibleFlag(false);
                 UIController.updateTopbarIconsDrawMode();
-                DrawModeInput.addEvents();
+                if (onDrawEventsAddedFunc != null) onDrawEventsAddedFunc();
             }
 
             ColorPickerController.switchColorPickerModePen();

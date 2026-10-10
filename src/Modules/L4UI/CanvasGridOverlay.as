@@ -5,7 +5,6 @@ package Modules.L4UI
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.geom.Point;
-    import Modules.L5App.InputManager.DrawModeInput;
     import Modules.InputPriority;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
@@ -18,6 +17,11 @@ package Modules.L4UI
     // 층: L4 UI - 캔버스 격자 표시와 격자 간격 조절
     public class CanvasGridOverlay
     {
+        // 드로우 모드의 입력 이벤트를 다시 달아야 한다는 보고
+        public static var onDrawEventsAddedFunc:Function;
+        // 드로우 모드의 입력 이벤트를 빼야 한다는 보고
+        public static var onDrawEventsRemovedFunc:Function;
+
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -353,14 +357,14 @@ package Modules.L4UI
                 main.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUpGridButton);
                 UIController.topBar.setReplaySpeedBarToGridSliderOFF(main.stage);
                 KeyState.clearKeyBuffer();
-                DrawModeInput.addEvents();
+                if (onDrawEventsAddedFunc != null) onDrawEventsAddedFunc();
             }
 
             function start(shortcutKey:Boolean):void
             {
                 if (UIController.topBar.gridButtonWrapper.visible === false)
                 {
-                    DrawModeInput.removeEvents();
+                    if (onDrawEventsRemovedFunc != null) onDrawEventsRemovedFunc();
                     UIController.topBar.setGridMoveButtonAlpha(gridGapMultiplier > 0 ? 1.0 : UITheme.OFFALPHA);
                     UIController.topBar.setReplaySpeedBarToGridSliderON(shortcutKey);
                     setCursorPosByValue(gridGapMultiplier);

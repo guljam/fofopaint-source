@@ -42,6 +42,11 @@ package Modules.L4UI.Tools
     // 층: L4 UI - 사이드바 툴 패널 표시와 클릭·드래그 입력 해석
     public class ToolPanel
     {
+        // 우클릭 툴박스의 입력 이벤트를 빼야 한다는 보고
+        public static var onToolBox2EventsRemovedFunc:Function;
+        // 우클릭 툴박스의 입력 이벤트를 다시 달아야 한다는 보고
+        public static var onToolBox2EventsAddedFunc:Function;
+
         public static var main:Main;
 
         public static function setMainInstance(instance:Main):void
@@ -567,7 +572,7 @@ package Modules.L4UI.Tools
                 return;
             }
 
-            DrawModeInput.removeToolBox2Events();
+            if (onToolBox2EventsRemovedFunc != null) onToolBox2EventsRemovedFunc();
             isToolBox2Showing = false;
             toolBox2.visible = false;
 
@@ -748,7 +753,7 @@ package Modules.L4UI.Tools
             isToolBox2Showing = true;
             CanvasResizer.showButtonsWithDelay(true);
             Utils.setAsTopChild(toolBox2);
-            DrawModeInput.addToolBox2Events();
+            if (onToolBox2EventsAddedFunc != null) onToolBox2EventsAddedFunc();
             FOFOTimer.addByName("toolBox2HideCheckTimer", 0.1, true, function ():Boolean
                 {
                     if (!isToolBox2Showing)

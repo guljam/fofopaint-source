@@ -6,7 +6,6 @@ package Modules.L4UI.Tools
     import flash.display.Sprite;
     import flash.display.Bitmap;
     import flash.events.MouseEvent;
-    import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.KeyState;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
@@ -16,6 +15,7 @@ package Modules.L4UI.Tools
     import Modules.L1Data.MouseState;
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.ReferenceLayerController;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 층: L4 UI - 손 툴(캔버스 끌어 이동)
     public class HandTool
@@ -79,7 +79,7 @@ package Modules.L4UI.Tools
 
         private static function onMouseMoveHandTool(e:MouseEvent):void
         {
-            if (isReplayMode && ReplayController.isReplayRestartTimerON())
+            if (isReplayMode && ReplayState.isReplayRestartTimerON())
             {
                 finishHandTool();
                 return;

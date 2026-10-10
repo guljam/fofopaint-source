@@ -23,7 +23,6 @@ package Modules.L4UI
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import Modules.L4UI.CanvasGridOverlay;
-    import Modules.L5App.FileManager;
     import Modules.L3Feature.UndoController;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.UIEngine.HintController;
@@ -42,6 +41,9 @@ package Modules.L4UI
     // 층: L4 UI - 참조 레이어 메뉴와 이미지 병합·투명도·비우기
     public final class ReferenceLayerController
     {
+        // 파일이 저장된 상태가 아니게 됐다는 보고
+        public static var onFileChangedFunc:Function;
+
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -204,7 +206,7 @@ package Modules.L4UI
                     {
                         if (canvasRefLayer.rotation !== 0)
                         {
-                            FileManager.isFileAlreadySaved = false;
+                            if (onFileChangedFunc != null) onFileChangedFunc();
 
                             canvasRefLayer.rotation = 0;
                         }
@@ -215,7 +217,7 @@ package Modules.L4UI
                     {
                         if (canvasRefLayer.scaleY !== 1.0)
                         {
-                            FileManager.isFileAlreadySaved = false;
+                            if (onFileChangedFunc != null) onFileChangedFunc();
 
                             canvasRefLayer.scaleX = (canvasRefLayer.scaleX < 0) ? -1.0 : 1.0;
                             canvasRefLayer.scaleY = 1.0;
@@ -228,7 +230,7 @@ package Modules.L4UI
                         if (canvasRefLayerBitmap.x !== -canvasRefLayerBitmap.width / 2
                                 && canvasRefLayerBitmap.y !== -canvasRefLayerBitmap.height / 2)
                         {
-                            FileManager.isFileAlreadySaved = false;
+                            if (onFileChangedFunc != null) onFileChangedFunc();
 
                             canvasRefLayer.x = DrawCanvas.CANVAS_WIDTH / 2;
                             canvasRefLayer.y = DrawCanvas.CANVAS_HEIGHT / 2;
@@ -545,7 +547,7 @@ package Modules.L4UI
             canvasRefLayerBitmap.x = canvasRefLayerBitmap.x + subX;
             canvasRefLayer.rotation = deg; // 캔버스 전체가 회전해있을때 각도보정
             canvasRefLayerBitmap.smoothing = true;
-            FileManager.isFileAlreadySaved = false;
+            if (onFileChangedFunc != null) onFileChangedFunc();
         }
 
         public static function startRefLayerRotation():void
@@ -570,7 +572,7 @@ package Modules.L4UI
 
             function onMouseUp():void
             {
-                FileManager.isFileAlreadySaved = false;
+                if (onFileChangedFunc != null) onFileChangedFunc();
                 refLayerMenuBox.visible = true;
                 UIController.hideCanvasRotateCursor();
                 canvasRefLayerBitmap.smoothing = true;
@@ -606,7 +608,7 @@ package Modules.L4UI
 
             function onMouseUp():void
             {
-                FileManager.isFileAlreadySaved = false;
+                if (onFileChangedFunc != null) onFileChangedFunc();
                 refLayerMenuBox.visible = true;
                 canvasRefLayerBitmap.smoothing = true;
                 HintController.hideMouseHint();
@@ -642,7 +644,7 @@ package Modules.L4UI
 
             function onMouseUp():void
             {
-                FileManager.isFileAlreadySaved = false;
+                if (onFileChangedFunc != null) onFileChangedFunc();
                 refLayerMenuBox.visible = true;
                 canvasRefLayerBitmap.smoothing = true;
             }
@@ -801,7 +803,7 @@ package Modules.L4UI
             }
 
             canvasRefLayerBitmap.smoothing = true;
-            FileManager.isFileAlreadySaved = false;
+            if (onFileChangedFunc != null) onFileChangedFunc();
         }
 
         private static function mergeCanvasImageToRefLayer():void

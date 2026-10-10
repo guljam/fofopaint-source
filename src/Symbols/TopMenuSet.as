@@ -15,7 +15,6 @@
 	import assets.VisualFieldCollector;
 
 	import Modules.L4UI.ImageViewWindow;
-	import Modules.L5App.ReplayEngine.ReplayController;
 	import Modules.L4UI.SidebarController;
 	import Modules.L4UI.AboutBoxController;
 	import Modules.L4UI.UIEngine.UIController;
@@ -602,7 +601,7 @@
 				showModeIcons("replay");
 				hideModeIcons("draw");
 				hideModeIcons("capture");
-				ReplayController.seekBarBox.setPlayButtonVisible(!ReplayState.isReplayStarted);
+				UIController.seekBarBox.setPlayButtonVisible(!ReplayState.isReplayStarted);
 			}
 			else if (mode === 2)
 			{

@@ -307,7 +307,7 @@ package Modules.L5App
             ReplayController.resetReplayTime();
             ReplayDrawer.clearCanvasReplayMode();
             ReplayController.updateReplayPrograssText(true, 0);
-            ReplayController.seekBarBox.resetReplayPrograssBarWidth();
+            UIController.seekBarBox.resetReplayPrograssBarWidth();
 
             if (bgColor > 0)
             {
@@ -847,7 +847,7 @@ package Modules.L5App
                         {
                             ReplayController.stopReplay();
                         }
-                        if (ReplayController.isReplayRestartTimerON())
+                        if (ReplayState.isReplayRestartTimerON())
                         {
                             ReplayController.cancelReplayRestartTimer();
                         }

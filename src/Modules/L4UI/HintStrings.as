@@ -4,7 +4,6 @@
     import Main;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L4UI.ColorPickerController;
-    import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
@@ -13,6 +12,7 @@
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.Tools.ToolController;
     import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 층: L4 UI - 힌트 문구 모음
     public class HintStrings
@@ -269,7 +269,7 @@
                 return "";
             }
 
-            if (ReplayController.isReplayRestartTimerON())
+            if (ReplayState.isReplayRestartTimerON())
             {
                 return "Seek bar _ Click to abort restart";
             }

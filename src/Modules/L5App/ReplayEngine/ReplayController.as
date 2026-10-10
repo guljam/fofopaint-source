@@ -26,7 +26,6 @@ package Modules.L5App.ReplayEngine
     import flash.utils.getTimer;
     import Modules.NativeCacheJobs;
     import Modules.NativeCore;
-    import Symbols.SeekBarSet;
     import Modules.L5App.AppWindowState;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L4UI.ColorPickerController;
@@ -84,18 +83,17 @@ package Modules.L5App.ReplayEngine
         private static var stopGeneratingCacheImageFunc:Function = null; // 캐시 이미지 만드는 중이면 멈추는 함수
         private static var frameOnEnterReplayMode:Number = -1; // 리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼줄때 이 프레임으로 되돌림
         public static var lastReplayTimeBoxYPos:Number = 0; // 리플레이 재생해줄때 WorkspaceView.topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
-        public static const seekBarBox:SeekBarSet = new SeekBarSet();
         private static var isReplayWaitingBoxShown:Boolean = false;
 
         public static function setMainInstance(instance:Main):void
         {
             main = instance;
-            ReplayDrawer.rReplayFOFOCursor.initWaitingTextBox(seekBarBox.prograssInfo.defaultTextFormat, seekBarBox.prograssInfo.embedFonts);
+            ReplayDrawer.rReplayFOFOCursor.initWaitingTextBox(UIController.seekBarBox.prograssInfo.defaultTextFormat, UIController.seekBarBox.prograssInfo.embedFonts);
         }
 
         public static function createNewFileFromReplayCanvas():void
         {
-            seekBarBox.setDeleteRangeBarVisible(false);
+            UIController.seekBarBox.setDeleteRangeBarVisible(false);
             // 길게 누르는 동안 worker가 시작되었을 수 있음
             if (FileManager.isReplayDataLocked())
             {
@@ -147,21 +145,21 @@ package Modules.L5App.ReplayEngine
         {
             refreshReplayWaitingRanges();
 
-            if (seekBarBox && !ReplayState.isReplayStarted)
+            if (UIController.seekBarBox && !ReplayState.isReplayStarted)
             {
-                seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
+                UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
             }
         }
 
         // 시크바의 쉬는 구간 표시를 다시 그림. 프레임 수나 배속이 바뀔때 부름
         public static function refreshReplayWaitingRanges():void
         {
-            if (!seekBarBox)
+            if (!UIController.seekBarBox)
             {
                 return;
             }
 
-            seekBarBox.setReplayWaitingRanges(ReplayClock.getIdleMarks());
+            UIController.seekBarBox.setReplayWaitingRanges(ReplayClock.getIdleMarks());
         }
 
         public static function onDragEnterStage(e:NativeDragEvent):void
@@ -192,13 +190,13 @@ package Modules.L5App.ReplayEngine
         {
             if (FileManager.isReplayDataLocked())
             {
-                ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
+                UIController.seekBarBox.setDeleteRangeBarVisible(false);
                 FileManager.showReplayDataLockedHint();
                 return;
             }
             // 미러 되어있을 수도 있기 때문에 원래 프레임으로 점프해준뒤에 실행해줌
             ensureReplayCanvasState();
-            ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
+            UIController.seekBarBox.setDeleteRangeBarVisible(false);
             ReplayFileCache.createFirstImageCache(ReplayDrawer.rCanvasLayer1BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, ReplayState.RCANVAS_BG_COLOR, ReplayState.rMirrorON);
             const fs:FileStream = new FileStream();
 
@@ -222,11 +220,11 @@ package Modules.L5App.ReplayEngine
 
                 if (ReplayState.isZeroReplayFrame())
                 {
-                    ReplayController.seekBarBox.resetReplayPrograssBarWidth();
+                    UIController.seekBarBox.resetReplayPrograssBarWidth();
                 }
                 else
                 {
-                    ReplayController.seekBarBox.setReplayPrograssBarMaxWidth();
+                    UIController.seekBarBox.setReplayPrograssBarMaxWidth();
                 }
 
                 UIController.topBar.repNewFileButton.alpha = UITheme.OFFALPHA;
@@ -260,7 +258,7 @@ package Modules.L5App.ReplayEngine
                 ba.clear();
                 ba = null;
                 ReplayDrawer.rReplayFOFOCursor.visible = false;
-                ReplayController.seekBarBox.resetReplayPrograssBarWidth();
+                UIController.seekBarBox.resetReplayPrograssBarWidth();
                 FileManager.isFileAlreadySaved = false;
                 LoadBoxController.loadMenuBox.clearPreviewImage(); // 이 경우 로드박스에 배경 이미지를 깔지 않음
                 startGeneratingReplayCacheImage(false, finalize);
@@ -284,12 +282,12 @@ package Modules.L5App.ReplayEngine
         {
             if (FileManager.isReplayDataLocked())
             {
-                ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
+                UIController.seekBarBox.setDeleteRangeBarVisible(false);
                 FileManager.showReplayDataLockedHint();
                 return;
             }
             ensureReplayCanvasState();
-            ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
+            UIController.seekBarBox.setDeleteRangeBarVisible(false);
 
             if (ReplayState.rMemoryDataReadON === true)
             {
@@ -365,18 +363,18 @@ package Modules.L5App.ReplayEngine
                 {
                     ReplayDrawer.finalizeRemainingReplayData();
                     updateReplayPrograssText();
-                    ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
+                    UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
                     updateDeleteReplayDataButtonsState();
                 }
 
                 if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
                 {
-                    ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
+                    UIController.seekBarBox.setDeleteRangeBarVisible(false);
                     return true;
                 }
             }
 
-            ReplayController.seekBarBox.updateDeleteDangeBarPosWidth(mode);
+            UIController.seekBarBox.updateDeleteDangeBarPosWidth(mode);
             return false;
         }
 
@@ -463,7 +461,7 @@ package Modules.L5App.ReplayEngine
             {
                 ReplayDrawer.renderReplayFrame(ReplayState.rPrevFrame, ReplayDrawer.JUMP_FRAME_PREV);
                 updateDeleteReplayDataButtonsState();
-                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
+                UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
                 updateReplayPrograssText();
             }
         }
@@ -487,7 +485,7 @@ package Modules.L5App.ReplayEngine
                 }
 
                 updateDeleteReplayDataButtonsState();
-                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
+                UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
                 updateReplayPrograssText();
             }
         }
@@ -500,7 +498,7 @@ package Modules.L5App.ReplayEngine
             {
                 ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame - 1, ReplayDrawer.JUMP_FRAME_MANUAL);
                 updateDeleteReplayDataButtonsState();
-                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
+                UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
                 updateReplayPrograssText();
             }
         }
@@ -513,7 +511,7 @@ package Modules.L5App.ReplayEngine
             {
                 ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame + 1, ReplayDrawer.JUMP_FRAME_MANUAL);
                 updateDeleteReplayDataButtonsState();
-                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
+                UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
                 updateReplayPrograssText();
             }
         }
@@ -527,30 +525,30 @@ package Modules.L5App.ReplayEngine
 
             // 리플레이 플레이 중인지 아닌지 플래그 미리 저장해둠
             var wasReplayStarted:Boolean = false;
-            var clickX:Number = ReplayController.seekBarBox.trackBar.mouseX * ReplayController.seekBarBox.trackBar.scaleX;
-            var clickedRatio:Number = clickX / ReplayController.seekBarBox.trackBar.width; // 마지막으로 가리킨 시크바 위치(0~1), 쉬는 구간 중간을 클릭했을때 그 시각에서 이어 재생하는데 씀
+            var clickX:Number = UIController.seekBarBox.trackBar.mouseX * UIController.seekBarBox.trackBar.scaleX;
+            var clickedRatio:Number = clickX / UIController.seekBarBox.trackBar.width; // 마지막으로 가리킨 시크바 위치(0~1), 쉬는 구간 중간을 클릭했을때 그 시각에서 이어 재생하는데 씀
             var finalFrame:Number = ReplayClock.ratioToFrame(clickedRatio);
 
             function clampFrame():void
             {
-                var mx:Number = ReplayController.seekBarBox.trackBar.mouseX * ReplayController.seekBarBox.trackBar.scaleX;
+                var mx:Number = UIController.seekBarBox.trackBar.mouseX * UIController.seekBarBox.trackBar.scaleX;
 
                 if (mx < 0)
                 {
                     mx = 0;
-                    ReplayController.seekBarBox.resetReplayPrograssBarWidth();
+                    UIController.seekBarBox.resetReplayPrograssBarWidth();
                 }
-                else if (mx > ReplayController.seekBarBox.trackBar.width)
+                else if (mx > UIController.seekBarBox.trackBar.width)
                 {
-                    mx = ReplayController.seekBarBox.trackBar.width;
-                    ReplayController.seekBarBox.setReplayPrograssBarMaxWidth();
+                    mx = UIController.seekBarBox.trackBar.width;
+                    UIController.seekBarBox.setReplayPrograssBarMaxWidth();
                 }
                 else
                 {
-                    ReplayController.seekBarBox.setReplayPrograssBarWidth(mx);
+                    UIController.seekBarBox.setReplayPrograssBarWidth(mx);
                 }
 
-                clickedRatio = mx / ReplayController.seekBarBox.trackBar.width;
+                clickedRatio = mx / UIController.seekBarBox.trackBar.width;
                 finalFrame = ReplayClock.ratioToFrame(clickedRatio);
                 updateReplayPrograssText(false, finalFrame);
             }
@@ -567,11 +565,11 @@ package Modules.L5App.ReplayEngine
                 }
 
                 FOFOTimer.remove("prograssBarUpdateTimer");
-                ReplayController.seekBarBox.setReplayPrograssBarWidth(clickX);
+                UIController.seekBarBox.setReplayPrograssBarWidth(clickX);
                 clampFrame();
                 ReplayState.isReplaySlideShowMode = false;
                 ReplayState.isReplayFinished = false;
-                ReplayController.seekBarBox.resetPrograssBarColor();
+                UIController.seekBarBox.resetPrograssBarColor();
             }
 
             function onMouseMove():void
@@ -602,7 +600,7 @@ package Modules.L5App.ReplayEngine
                 //순서를 바꾸면 슬라이드 쇼 모드에서 탐색바 끝까지 올리고 정지되었는데 stopreplay가 호출되지 않아서 버그생김
                 if (ReplayState.isReplayFinished)
                 {
-                    ReplayController.seekBarBox.setReplayPrograssBarMaxWidth();
+                    UIController.seekBarBox.setReplayPrograssBarMaxWidth();
                     updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
                     stopReplay();
                 }
@@ -959,9 +957,9 @@ package Modules.L5App.ReplayEngine
                                 ReplayState.rMirrorON
                             );
 
-                        if (ReplayController.seekBarBox.prograssBar.width > 0)
+                        if (UIController.seekBarBox.prograssBar.width > 0)
                         {
-                            ReplayController.seekBarBox.resetReplayPrograssBarWidth();
+                            UIController.seekBarBox.resetReplayPrograssBarWidth();
                         }
 
                         if (!writeCacheSnapshot(snapshot))
@@ -1089,7 +1087,7 @@ package Modules.L5App.ReplayEngine
         {
             if (isReplaySpeedDragging)
             {
-                ReplayController.seekBarBox.prograssInfo.text = getReplaySpeedHintText();
+                UIController.seekBarBox.prograssInfo.text = getReplaySpeedHintText();
                 return;
             }
 
@@ -1100,7 +1098,7 @@ package Modules.L5App.ReplayEngine
 
             const remainingTime:String = (UndoHistory.isDeepUndoEnabled || finishFlag) ? "" : getReplayRemainingTimeString(ReplayState.rReplaySpeedMultipler, ReplayState.TOTAL_FRAME - customFrame);
 
-            ReplayController.seekBarBox.prograssInfo.text = customFrame + " / " + ReplayState.TOTAL_FRAME + remainingTime;
+            UIController.seekBarBox.prograssInfo.text = customFrame + " / " + ReplayState.TOTAL_FRAME + remainingTime;
         }
 
         public static function startUpdatingPrograssBarTimer():void
@@ -1115,7 +1113,7 @@ package Modules.L5App.ReplayEngine
             const cursorUpdateTime:int = ReplayState.REPLAY_VISUAL_UPDATE_MS;
             const textUpdateTime:int = 1000;
             updateReplayPrograssText();
-            ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
+            UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
             FOFOTimer.addByName("prograssBarUpdateTimer", 0.0, true, function ():Boolean
                 {
                     if (!ReplayState.isReplayModeON)
@@ -1126,7 +1124,7 @@ package Modules.L5App.ReplayEngine
                     // 마지막 명령의 연출(채우기, 올가미, 이동, 선)이 아직 진행 중이면 끝날때까지 완료 처리를 미룸
                     if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME && !ReplayDrawer.anim.isActive)
                     {
-                        ReplayController.seekBarBox.setReplayPrograssBarMaxWidth();
+                        UIController.seekBarBox.setReplayPrograssBarMaxWidth();
                         updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
                         replayCompleteEffect();
                         startReplayRestartTimer();
@@ -1146,7 +1144,7 @@ package Modules.L5App.ReplayEngine
                     // 재생 중 시크바는 시계가 흐르는 대로 매 프레임 움직임 (쉬는 구간에도 멈추지 않음)
                     if (ReplayState.isReplayStarted)
                     {
-                        ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.playRatio(ReplayState.rReplaySpeedMultipler));
+                        UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.playRatio(ReplayState.rReplaySpeedMultipler));
                     }
 
                     if (nowTime - lastTextUpdateTime >= textUpdateTime)
@@ -1157,7 +1155,7 @@ package Modules.L5App.ReplayEngine
                         // 재생 중에는 위에서 매 프레임 시계 기준으로 갱신하니 그리지 않은 프레임 기준 값으로 덮어써서 바가 앞뒤로 튀지 않게 함
                         if (!ReplayState.isReplayStarted)
                         {
-                            ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
+                            UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
                         }
                     }
 
@@ -1562,12 +1560,12 @@ package Modules.L5App.ReplayEngine
         {
             const totalFrame:Number = ReplayState.TOTAL_FRAME;
             const nowFrame:Number = ReplayState.rNowFrame;
-            const trackBarWidth:Number = ReplayController.seekBarBox.trackBar.width;
+            const trackBarWidth:Number = UIController.seekBarBox.trackBar.width;
             if (!isReplaySpeedDragging)
             {
-                ReplayController.seekBarBox.prograssInfo.text = nowFrame + " / " + totalFrame;
+                UIController.seekBarBox.prograssInfo.text = nowFrame + " / " + totalFrame;
             }
-            ReplayController.seekBarBox.prograssBar.width = (totalFrame === 0) ? 0 : trackBarWidth * ReplayClock.frameRatio(nowFrame);
+            UIController.seekBarBox.prograssBar.width = (totalFrame === 0) ? 0 : trackBarWidth * ReplayClock.frameRatio(nowFrame);
         }
 
         public static function updateReplayTimeBarFromDrawMode():void
@@ -1576,35 +1574,30 @@ package Modules.L5App.ReplayEngine
 
             if (ReplayState.isZeroReplayFrame())
             {
-                ReplayController.seekBarBox.resetReplayPrograssBarWidth();
+                UIController.seekBarBox.resetReplayPrograssBarWidth();
             }
             else
             {
-                ReplayController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
+                UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.frameRatio(ReplayState.rNowFrame));
             }
         }
 
         public static function cancelReplayRestartTimer():void
         {
-            ReplayController.seekBarBox.setPlayButtonVisible(true);
+            UIController.seekBarBox.setPlayButtonVisible(true);
             hideCompleteImageToBGReplayMode();
             // showTopbarOnReplayEnd();
             FOFOTimer.remove("replayRestartTimer");
             updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
-            Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
+            Utils.setColorTransform(UIController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
             ReplayDrawer.viewport.setScale(ReplayState.rLastCanvasZoomMultiplier);
-        }
-
-        public static function isReplayRestartTimerON():Boolean
-        {
-            return FOFOTimer.hasTimer("replayRestartTimer");
         }
 
         public static function startReplayRestartTimer():void
         {
             if (ReplayState.isReplayRepeatON)
             {
-                Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, UITheme.getUIReplayRestartBarColor());
+                Utils.setColorTransform(UIController.seekBarBox.prograssBar, UITheme.getUIReplayRestartBarColor());
                 rReplayRestartTimerCount = 20;
                 FOFOTimer.addByName("replayRestartTimer", 1.0, true, function ():Boolean
                     {
@@ -1617,7 +1610,7 @@ package Modules.L5App.ReplayEngine
 
                         if (!isReplaySpeedDragging)
                         {
-                            ReplayController.seekBarBox.prograssInfo.text = HintStrings.getReplayRestartHintString(rReplayRestartTimerCount);
+                            UIController.seekBarBox.prograssInfo.text = HintStrings.getReplayRestartHintString(rReplayRestartTimerCount);
                         }
                         --rReplayRestartTimerCount;
                         return true;
@@ -1625,7 +1618,7 @@ package Modules.L5App.ReplayEngine
             }
             else
             {
-                Utils.setColorTransform(ReplayController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
+                Utils.setColorTransform(UIController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
                 rReplayRestartTimerCount = 0;
                 //todo updateReplayPrograssText로 replay finished 표시해주고 싶은데 메서드가 3개일을하고있어서 잘모르겠음 ai한테 물어봐야겠음
                 updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
@@ -1638,7 +1631,7 @@ package Modules.L5App.ReplayEngine
 
             if (ReplayState.isReplayRepeatON)
             {
-                if(ReplayState.isReplayFinished && !ReplayController.isReplayRestartTimerON())
+                if(ReplayState.isReplayFinished && !ReplayState.isReplayRestartTimerON())
                 {
                     ReplayController.startReplayRestartTimer();
                 }
@@ -1646,7 +1639,7 @@ package Modules.L5App.ReplayEngine
             }
             else
             {
-                if(ReplayState.isReplayFinished && ReplayController.isReplayRestartTimerON())
+                if(ReplayState.isReplayFinished && ReplayState.isReplayRestartTimerON())
                 {
                     ReplayController.cancelReplayRestartTimer();
                 }
@@ -1672,8 +1665,8 @@ package Modules.L5App.ReplayEngine
         {
             if (UIController.topBar.visible === true)
             {
-                ReplayController.seekBarBox.y = 0;
-                ReplayController.seekBarBox.hideReplayControlButton();
+                UIController.seekBarBox.y = 0;
+                UIController.seekBarBox.hideReplayControlButton();
                 UIController.topBar.visible = false;
                 HintController.hideBottomHint();
                 HintController.hideMouseHint();
@@ -1685,8 +1678,8 @@ package Modules.L5App.ReplayEngine
             if (UIController.topBar.visible === false)
             {
                 UIController.topBar.visible = true;
-                seekBarBox.y = lastReplayTimeBoxYPos;
-                seekBarBox.showReplayControlButton();
+                UIController.seekBarBox.y = lastReplayTimeBoxYPos;
+                UIController.seekBarBox.showReplayControlButton();
                 HintController.hideBottomHint();
                 HintController.hideMouseHint();
             }
@@ -1712,7 +1705,7 @@ package Modules.L5App.ReplayEngine
 
             if (!ReplayState.isReplayFinished)
             {
-                ReplayController.seekBarBox.setPlayButtonVisible(true);
+                UIController.seekBarBox.setPlayButtonVisible(true);
             }
 
             ReplayDrawer.rFileStream.close();
@@ -1741,15 +1734,15 @@ package Modules.L5App.ReplayEngine
             }
 
             ReplayState.isReplayStarted = true;
-            ReplayController.seekBarBox.resetPrograssBarColor();
-            ReplayController.seekBarBox.playButton.visible = false;
-            ReplayController.seekBarBox.pauseButton.visible = true;
+            UIController.seekBarBox.resetPrograssBarColor();
+            UIController.seekBarBox.playButton.visible = false;
+            UIController.seekBarBox.pauseButton.visible = true;
             ReplayDrawer.rReplayFOFOCursor.visible = true;
             updateDeleteReplayDataButtonsState();
 
             if (ReplayState.isReplayFinished === true) // 리플레이 시간 등등 초기화 시키고 시작
             {
-                ReplayController.seekBarBox.resetReplayPrograssBarWidth();
+                UIController.seekBarBox.resetReplayPrograssBarWidth();
                 resetReplayTime();
                 ReplayDrawer.clearCanvasReplayMode();
                 ReplayDrawer.drawFirstJumpImage();
@@ -1795,7 +1788,7 @@ package Modules.L5App.ReplayEngine
             ReplayState.isReplayModeON = false;
             ReplayDrawer.rCanvasAnchorPoint.visible = false;
             ReplayDrawer.rReplayFOFOCursor.visible = false;
-            ReplayController.seekBarBox.visible = false;
+            UIController.seekBarBox.visible = false;
             CanvasView.canvasAnchorPoint.visible = true;
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
             PenSizePreviewCursor.setVisible(true);
@@ -1823,9 +1816,9 @@ package Modules.L5App.ReplayEngine
                 HintController.hideBottomHint();
             }
 
-            ReplayController.seekBarBox.pauseButton.visible = false;
-            Utils.setAsTopChild(ReplayController.seekBarBox);
-            ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
+            UIController.seekBarBox.pauseButton.visible = false;
+            Utils.setAsTopChild(UIController.seekBarBox);
+            UIController.seekBarBox.setDeleteRangeBarVisible(false);
             UIController.updateStageOffset();
             CanvasNavigator.updateCursor();
 
@@ -1868,15 +1861,15 @@ package Modules.L5App.ReplayEngine
             ReplayState.isReplayModeON = true;
             CanvasView.canvasAnchorPoint.visible = false;
             ReplayDrawer.rCanvasAnchorPoint.visible = true;
-            ReplayController.seekBarBox.visible = true;
+            UIController.seekBarBox.visible = true;
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             PenSizePreviewCursor.setVisible(false);
-            ReplayController.seekBarBox.pauseButton.visible = false;
-            ReplayController.seekBarBox.y = Math.floor(UIController.topBar.BARSIZE * UITheme.getUIScale() - 4);
-            lastReplayTimeBoxYPos = ReplayController.seekBarBox.y;
-            Utils.setAsTopChild(ReplayController.seekBarBox);
-            ReplayController.seekBarBox.setDeleteRangeBarVisible(false);
-            UITheme.applyToolBoxButtonOverBGColor(ReplayController.seekBarBox.prograssBar);
+            UIController.seekBarBox.pauseButton.visible = false;
+            UIController.seekBarBox.y = Math.floor(UIController.topBar.BARSIZE * UITheme.getUIScale() - 4);
+            lastReplayTimeBoxYPos = UIController.seekBarBox.y;
+            Utils.setAsTopChild(UIController.seekBarBox);
+            UIController.seekBarBox.setDeleteRangeBarVisible(false);
+            UITheme.applyToolBoxButtonOverBGColor(UIController.seekBarBox.prograssBar);
 
             if (ColorPickerController.numPadBox.visible)
             {
@@ -1901,7 +1894,7 @@ package Modules.L5App.ReplayEngine
             updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame()); // 최대 속도 계산
             updateReplayPrograssBarAndText();
             updateReplaySpeedSliderAlpha();
-            ReplayController.seekBarBox.updatePos(main.stage.stageWidth);
+            UIController.seekBarBox.updatePos(main.stage.stageWidth);
             ReplayDrawer.cursorFollow.updateBounds();
             ReplayDrawer.updateReplayCursorScale(ReplayState.rCanvasZoomMultiplier);
 
@@ -2116,7 +2109,7 @@ package Modules.L5App.ReplayEngine
             rCanvasCompleteAnchorPoint.name = "rCanvasCompleteAnchorPoint";
             ReplayDrawer.rCanvasDrawLayer.name = "rCanvasDrawLayer";
             ReplayDrawer.rCanvasDrawShape.name = "rCanvasDrawShape";
-            ReplayController.seekBarBox.name = "seekBarBox";
+            UIController.seekBarBox.name = "seekBarBox";
             ReplayDrawer.rReplayFOFOCursor.name = "rCursor";
             ReplayDrawer.rReplayFOFOCursor.mouseEnabled = false;
             rCanvasCompleteAnchorPoint.addChild(rCanvasCompleteBitmap);
@@ -2135,8 +2128,8 @@ package Modules.L5App.ReplayEngine
             ReplayDrawer.rCanvasAnchorPoint.addChild(ReplayDrawer.rCanvasPanel);
             ReplayDrawer.rCanvasAnchorPoint.visible = false;
             main.stage.addChild(ReplayDrawer.rCanvasAnchorPoint);
-            main.stage.addChild(ReplayController.seekBarBox);
-            ReplayController.seekBarBox.x = 0;
+            main.stage.addChild(UIController.seekBarBox);
+            UIController.seekBarBox.x = 0;
         }
 
         public static function syncDrawCanvasWithReplayMode():void

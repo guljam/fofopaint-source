@@ -10,11 +10,8 @@ package Modules.L4UI
     import flash.net.URLRequest;
     import flash.utils.getTimer;
     import Modules.L5App.AppWindowState;
-    import Modules.L5App.InputManager.CaptureModeInput;
-    import Modules.L5App.InputManager.DrawModeInput;
     import Modules.L5App.FileManager;
     import Modules.L5App.InputManager.InputManager;
-    import Modules.L5App.InputManager.ReplayModeInput;
     import Modules.InputPriority;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
@@ -24,6 +21,15 @@ package Modules.L4UI
     // 층: L4 UI - 정보(About) 창 열기·닫기와 크기·위치
     public class AboutBoxController
     {
+        // 드로우 모드의 입력 이벤트를 빼야 한다는 보고
+        public static var onDrawEventsRemovedFunc:Function;
+        // 드로우 모드의 입력 이벤트를 다시 달아야 한다는 보고
+        public static var onDrawEventsAddedFunc:Function;
+        // 캡처 모드의 입력 이벤트를 빼야 한다는 보고
+        public static var onCaptureEventsRemovedFunc:Function;
+        // 리플레이 모드의 입력 이벤트를 빼야 한다는 보고
+        public static var onReplayEventsRemovedFunc:Function;
+
         public static var main:Main;
 
         public static function setMainInstance(instance:Main):void
@@ -112,7 +118,7 @@ package Modules.L4UI
             MouseState.isClickBlocked = true;
             HintController.hideBottomHint();
 
-            DrawModeInput.removeEvents();
+            if (onDrawEventsRemovedFunc != null) onDrawEventsRemovedFunc();
 
             if (welcome === true)
             {
@@ -140,9 +146,9 @@ package Modules.L4UI
         {
             main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onAboutWindowMouseDown);
 
-            CaptureModeInput.removeEvents();
-            ReplayModeInput.removeEvents();
-            DrawModeInput.addEvents();
+            if (onCaptureEventsRemovedFunc != null) onCaptureEventsRemovedFunc();
+            if (onReplayEventsRemovedFunc != null) onReplayEventsRemovedFunc();
+            if (onDrawEventsAddedFunc != null) onDrawEventsAddedFunc();
 
             isAboutBoxOpened = false;
             aboutBox.visible = false;

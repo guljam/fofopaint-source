@@ -46,6 +46,11 @@ package Modules.L4UI.Tools
     // 층: L4 UI - 올가미 선택과 이동·회전·크기·미러
     public class LassoTool
     {
+        // 드로우 모드의 입력 이벤트를 다시 달아야 한다는 보고
+        public static var onDrawEventsAddedFunc:Function;
+        // 드로우 모드의 입력 이벤트를 빼야 한다는 보고
+        public static var onDrawEventsRemovedFunc:Function;
+
         // todo: 포멧팅 필요
 
         public static var main:Main;
@@ -1303,7 +1308,7 @@ package Modules.L4UI.Tools
             main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLassoTool);
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool);
             main.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool);
-            DrawModeInput.addEvents();
+            if (onDrawEventsAddedFunc != null) onDrawEventsAddedFunc();
         }
 
         private static function addInputEventsLassoTool():void
@@ -1315,7 +1320,7 @@ package Modules.L4UI.Tools
             main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownLassoTool, false, InputPriority.DEFAULT);
             main.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpLassoTool, false, InputPriority.DEFAULT);
             main.stage.addEventListener(MouseEvent.MOUSE_OVER, lassoMenuHintONEvent);
-            DrawModeInput.removeEvents();
+            if (onDrawEventsRemovedFunc != null) onDrawEventsRemovedFunc();
         }
 
         private static function handleShiftSubKeyLassoTool(input:int):void

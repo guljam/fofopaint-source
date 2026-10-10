@@ -210,6 +210,34 @@
             CanvasLayers.onLayerCheckChangedFunc = ToolPanel.updateLayerCheckButtons;
             CanvasLayers.onLayerMergeEnabledChangedFunc = ToolPanel.setLayerMergeButtonEnabled;
             CanvasLayers.onLayerSelectedFunc = ToolPanel.updateLayerSelectButtons;
+            ReferenceLayerController.onFileChangedFunc = function ():void
+            {
+                FileManager.isFileAlreadySaved = false;
+            };
+            UIController.onFileChangedFunc = function ():void
+            {
+                FileManager.isFileAlreadySaved = false;
+            };
+            CaptureController.onDrawEventsAddedFunc = DrawModeInput.addEvents;
+            CaptureController.onDrawEventsRemovedFunc = DrawModeInput.removeEvents;
+            CaptureController.onReplayEventsAddedFunc = ReplayModeInput.addEvents;
+            CaptureController.onReplayEventsRemovedFunc = ReplayModeInput.removeEvents;
+            CaptureController.onCaptureEventsAddedFunc = CaptureModeInput.addEvents;
+            CaptureController.onCaptureEventsRemovedFunc = CaptureModeInput.removeEvents;
+            CaptureController.onReplayStoppedFunc = ReplayController.stopReplay;
+            CaptureController.onReplayTopbarShownFunc = ReplayController.showTopbarOnPlayback;
+            CaptureController.onFileBrowserClosedFunc = FileManager.setFileBrowserIsOpen;
+            AboutBoxController.onDrawEventsRemovedFunc = DrawModeInput.removeEvents;
+            AboutBoxController.onDrawEventsAddedFunc = DrawModeInput.addEvents;
+            AboutBoxController.onCaptureEventsRemovedFunc = CaptureModeInput.removeEvents;
+            AboutBoxController.onReplayEventsRemovedFunc = ReplayModeInput.removeEvents;
+            LassoTool.onDrawEventsAddedFunc = DrawModeInput.addEvents;
+            LassoTool.onDrawEventsRemovedFunc = DrawModeInput.removeEvents;
+            CanvasGridOverlay.onDrawEventsAddedFunc = DrawModeInput.addEvents;
+            CanvasGridOverlay.onDrawEventsRemovedFunc = DrawModeInput.removeEvents;
+            ColorPickerController.onDrawEventsAddedFunc = DrawModeInput.addEvents;
+            ToolPanel.onToolBox2EventsRemovedFunc = DrawModeInput.removeToolBox2Events;
+            ToolPanel.onToolBox2EventsAddedFunc = DrawModeInput.addToolBox2Events;
         }
 
         public function initializeModule():void

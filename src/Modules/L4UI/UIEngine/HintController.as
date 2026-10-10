@@ -8,7 +8,6 @@ package Modules.L4UI.UIEngine
     import flash.events.MouseEvent;
     import flash.geom.Rectangle;
     import Modules.L4UI.ColorPickerController;
-    import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L4UI.AboutBoxController;
@@ -283,7 +282,7 @@ package Modules.L4UI.UIEngine
             const tbIndex:int = main.stage.getChildIndex(UIController.topBar);
             const hIndex:int = main.stage.getChildIndex(hintHighlightBox);
 
-            if (UIController.topBar.contains(target) || ReplayController.seekBarBox.contains(target))
+            if (UIController.topBar.contains(target) || UIController.seekBarBox.contains(target))
             {
                 var desiredIndex:int = Math.min(tbIndex + 1, topIndex);
                 if (hIndex != desiredIndex)
