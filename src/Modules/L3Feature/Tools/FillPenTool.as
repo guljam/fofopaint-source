@@ -80,7 +80,7 @@ package Modules.L3Feature.Tools
             {
                 applyFillPen();
             }
-            else if (Utils.isCursorInDrawArea())
+            else if (UIController.isCursorInDrawArea())
             {
                 showDottedLine();
             }
@@ -721,7 +721,7 @@ package Modules.L3Feature.Tools
             {
                 SidebarController.startScrollSidebarByDrag();
             }
-            else if (Utils.isCursorInDrawArea() && SidebarController.isQuickSidebarActive === false)
+            else if (UIController.isCursorInDrawArea() && SidebarController.isQuickSidebarActive === false)
             {
                 main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveFillPen);
                 MouseState.beginDrag(FILLPEN_DRAG_OWNER, finishFillPenDrag);

@@ -2,7 +2,6 @@ package Modules.L1Data
 {
     import flash.display.DisplayObject;
     import flash.display.DisplayObjectContainer;
-    import flash.display.Stage;
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.Dictionary;
@@ -13,11 +12,7 @@ package Modules.L1Data
     import flash.text.TextField;
     import flash.text.TextFieldAutoSize;
     import flash.text.TextFormat;
-    import Modules.L5App.ReplayEngine.ReplayController;
-    import Modules.L4UI.SidebarController;
-    import Modules.L4UI.UIEngine.UIController;
-    import Modules.L2Engine.DrawEngine.CanvasView;
-    import Modules.ReferenceLayerController;
+    import Modules.L3Feature.Tools.LassoTool;
 
     // 층: L1 데이터 - 색 변환, 텍스트 필드 생성 등 공용 함수
     public class Utils
@@ -41,15 +36,6 @@ package Modules.L1Data
 			field.text = label;
 			return field;
 		}
-
-        //커서가 드로우 영역에 있는지 검사
-        public static function isCursorInDrawArea():Boolean
-        {
-            return !(UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY)
-                    || (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
-                    || (ReplayController.seekBarBox.visible && ReplayController.seekBarBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY)));
-        }
-
 
         static private function RGBtoHSV(r:Number, g:Number, b:Number, baseHue:Number):Vector.<Number>
         {
@@ -319,90 +305,6 @@ package Modules.L1Data
             }
 
             parent.setChildIndex(target, parent.numChildren - 1);
-        }
-
-        public static function updateImageScaleMouseDrag(sc:Number):Function
-        {
-            const stage:Stage = main.stage;
-            var clickX:Number = stage.mouseX;
-            var clickY:Number = stage.mouseY;
-            var scale:Number = Math.abs(sc);
-            var mxLastPos:Number;
-            var myLastPos:Number;
-            var moveFlag:int;
-
-            return function (mx:Number, my:Number):Number
-            {
-                if (moveFlag != 0)
-                {
-                    if (moveFlag === 1)
-                    {
-                        const subX:Number = mx - mxLastPos;
-
-                        if (subX !== 0) // 차이가 0이 될때가 있어서 이건 스킵
-                        {
-                            scale *= Math.pow(2, subX * 0.008);
-                            ReferenceLayerController.refLayerMenuDragXMoveSum += subX;
-                        }
-                    }
-                    else if (moveFlag === 2)
-                    {
-                        const subY:Number = myLastPos - my;
-
-                        if (subY !== 0)
-                        {
-                            scale *= Math.pow(2, subY * 0.008);
-                            ReferenceLayerController.refLayerMenuDragXMoveSum += subY;
-                        }
-                    }
-                }
-                else if (moveFlag === 0)
-                {
-                    if (Math.abs(mx - clickX) > 5)
-                    {
-                        moveFlag = 1;
-                    }
-                    else if (Math.abs(my - clickY) > 5)
-                    {
-                        moveFlag = 2;
-                    }
-                }
-
-                mxLastPos = mx;
-                myLastPos = my;
-
-                if (scale > 4.0)
-                {
-                    scale = 4.0;
-                }
-                else if (scale < 0.1)
-                {
-                    scale = 0.1;
-                }
-
-                return scale;
-            };
-        }
-
-        public static function updateImagePosMouseDrag(target:DisplayObject, targetAngle:Number, customScaleX:Number = 1.0, customScaleY:Number = 1.0):Function
-        {
-            var oldX:Number = target.x;
-            var oldY:Number = target.y;
-            var mx:Number = main.stage.mouseX;
-            var my:Number = main.stage.mouseY;
-            const zoom:Number = CanvasView.canvasZoomMultiplier;
-            const angle:Number = targetAngle;
-
-            return function ():Point
-            {
-                const dx:Number = main.stage.mouseX - mx;
-                const dy:Number = main.stage.mouseY - my;
-                const newPos:Point = Utils.rotatePoint(dx, dy, angle);
-
-                newPos.setTo(Math.round(oldX + newPos.x / zoom / customScaleX), Math.round(oldY + newPos.y / zoom / customScaleY));
-
-                return newPos;
-            };
         }
 
         public static function binarySearchIndex(list:Array, target:Number, valueExtractor:Function):int

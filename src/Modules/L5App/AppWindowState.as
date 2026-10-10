@@ -23,7 +23,6 @@ package Modules.L5App
     import Modules.L4UI.SidebarController;
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
-    import Modules.L3Feature.UndoController;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.AboutBoxController;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
@@ -34,6 +33,7 @@ package Modules.L5App
     import Modules.L4UI.DrawEngine.CanvasResizer;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.MouseState;
+    import Modules.L2Engine.UndoHistory;
 
     // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState
@@ -143,7 +143,7 @@ package Modules.L5App
                 AppStateManager.saveAllAppData();
             }
 
-            if (SidebarController.isQuickSidebarActive && !UndoController.isDeepUndoEnabled)
+            if (SidebarController.isQuickSidebarActive && !UndoHistory.isDeepUndoEnabled)
             {
                 SidebarController.deactivateQuickSidebar();
             }

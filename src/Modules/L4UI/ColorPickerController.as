@@ -25,6 +25,7 @@ package Modules.L4UI
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.DragInteraction;
     import Modules.L1Data.Utils;
+    import Modules.L4UI.UIEngine.UIController;
 
     // 층: L4 UI - 색 선택기 박스와 숫자패드, 색 프리셋 선택 처리
     public class ColorPickerController
@@ -625,7 +626,7 @@ package Modules.L4UI
 
         private static function onMouseDownColorPickerBoxModeBGOFF(e:MouseEvent):void
         {
-            if (Utils.isCursorInDrawArea())
+            if (UIController.isCursorInDrawArea())
             {
                 isColorPickerModeResetEventAdded = false;
                 main.stage.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownColorPickerBoxModeBGOFF);

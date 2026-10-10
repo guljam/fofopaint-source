@@ -1,12 +1,14 @@
 package Modules.L1Data
 {
     import flash.events.MouseEvent;
-    import Modules.L4UI.PenSizePreviewCursor;
 
     // 마우스 버튼 눌림 상태의 단일 소유자
     // 층: L1 데이터 - 마우스 버튼 눌림 상태의 단일 소유자
     public class MouseState
     {
+        // 마우스 왼쪽 버튼을 눌렀을 때 펜 크기 미리보기 커서의 예약된 색 확인을 취소해야 한다는 보고
+        public static var onMouseLeftDownFunc:Function;
+
         public static var isLeftDown:Boolean = false;
         public static var isRightDown:Boolean = false;
         public static var isMiddleDown:Boolean = false;
@@ -81,7 +83,7 @@ package Modules.L1Data
         public static function onLeftDown():void
         {
             isLeftDown = true;
-            PenSizePreviewCursor.cancelPendingColorCheck();
+            if (onMouseLeftDownFunc != null) onMouseLeftDownFunc();
         }
 
         public static function onLeftUp():void

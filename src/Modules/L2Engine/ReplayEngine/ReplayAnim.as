@@ -15,9 +15,9 @@ package Modules.L2Engine.ReplayEngine
     import flash.geom.Rectangle;
     import Modules.L2Engine.ReplayEngine.ReplayClock;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
-    import Modules.L3Feature.Tools.PenTool;
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L1Data.Tools.PenSettings;
 
     // 채우기(fill5), 올가미(lasso2), 이동(move, move1, move2) 명령을 실시간 재생할때 보여주는 연출
     // 길이는 타이밍 시트의 연출 길이(그 도구를 시작해서 끝낼때까지 걸린 시간)이고, 진행률은 시계의 녹화 시각으로 구함
@@ -123,7 +123,7 @@ package Modules.L2Engine.ReplayEngine
 
             const bgColor:uint = ReplayState.RCANVAS_BG_COLOR;
             // 안티앨리어싱 가장자리와 에어브러시 번짐이 덮개 밖으로 남지 않게 선을 둘러서 조금 넓힘
-            const offset:Number = (ReplayState.rAirBrushSize2 > 0) ? PenTool.getClipRectOffsetAirBrush(ReplayState.rAirBrushSize2) : 1;
+            const offset:Number = (ReplayState.rAirBrushSize2 > 0) ? PenSettings.getClipRectOffsetAirBrush(ReplayState.rAirBrushSize2) : 1;
             const shape:Shape = new Shape();
             shape.graphics.lineStyle((offset + 1) * 2, bgColor, 1, false, LineScaleMode.NORMAL, CapsStyle.ROUND, JointStyle.ROUND);
             shape.graphics.beginFill(bgColor);

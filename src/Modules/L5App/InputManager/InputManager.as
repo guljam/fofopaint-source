@@ -29,7 +29,6 @@ package Modules.L5App.InputManager
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.MouseState;
     import Modules.L2Engine.DrawEngine.StrokeBuffer;
-    import Modules.L1Data.Utils;
 
     // 층: L5 앱 흐름 - 키보드·마우스 입력을 받아 모드별 입력 처리로 나눠줌
     public class InputManager
@@ -244,7 +243,7 @@ package Modules.L5App.InputManager
                                 }
                             }
                         }
-                        if (Utils.isCursorInDrawArea())
+                        if (UIController.isCursorInDrawArea())
                         {
                             if (ReplayState.isReplayModeON)
                             {

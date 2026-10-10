@@ -83,21 +83,6 @@ package Modules.L3Feature.Tools
 		public static var isTransparentPenColor:Boolean = false; // 펜 컬러 투명 켜졌을때 올려줌
 		public static var penLastSizeAndShape:Array = [null, null]; // updatePenSizeCursor 중복 사용 방지를 위해서 마지막 크기 저장해놓고 같으면 건너뜀
 
-		public static var airBrushClipRectOffsetData:Array = [0, 4, 2, 2, 0, 0, 0, -2, -5, -5, -10, -16, -43];
-
-		public static function getClipRectOffsetAirBrush(size:int):Number
-		{
-			const len:uint = PenSettings.penSizeList.length;
-			for (var i:uint = 1;i < len;i++)
-			{
-				if (PenSettings.penSizeList[i] === size)
-				{
-					return size + airBrushClipRectOffsetData[i];
-				}
-			}
-			return 0;
-		}
-
 		public static function getRefinedPoint(mx:Number, my:Number):Point
 		{
 			mx = Math.round(mx * 100) / 100;

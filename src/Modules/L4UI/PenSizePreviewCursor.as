@@ -14,6 +14,7 @@ package Modules.L4UI
     import Modules.L4UI.DrawEngine.CanvasResizer;
     import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
+    import Modules.L4UI.UIEngine.UIController;
 
     // 층: L4 UI - 펜 크기 미리보기 커서 (모양, 위치, 보임 여부)
     public class PenSizePreviewCursor
@@ -134,7 +135,7 @@ package Modules.L4UI
             // (sideBar.visible && (sideBarScrollBar.hitTestPoint(mouseX,mouseY) || sideBar.hitTestPoint(mouseX,mouseY)))
             if (isPenSizeCursorInvisible
                     || (ToolState.nowTool > ToolState.TOOL_LINE && ToolState.nowTool !== ToolState.TOOL_FILLPEN) // 1 2 3 4 펜 지우개 라인툴 라인-지우개툴
-                    || !Utils.isCursorInDrawArea()
+                    || !UIController.isCursorInDrawArea()
                     || CanvasResizer.isCanvasResizing()
                     || (ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mx, my))
                     || LoadBoxController.loadMenuBox.visible)

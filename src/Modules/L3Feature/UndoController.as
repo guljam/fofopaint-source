@@ -29,25 +29,19 @@ package Modules.L3Feature
     public class UndoController
     {
         // 딥언도 (Deep Undo)
-        private static var _isDeepUndoEnabled:Boolean = false;
         private static var deepUndoBeforeSuspend:Boolean = false; // 리플레이 켜줄때 딥 플래그를 꺼줘서 여기다가 미리 저장해둠
-
-        public static function get isDeepUndoEnabled():Boolean
-        {
-            return _isDeepUndoEnabled;
-        }
 
         // 리플레이 모드에 들어갈때 딥 언두를 잠시 꺼둠
         public static function suspendDeepUndo():void
         {
-            deepUndoBeforeSuspend = _isDeepUndoEnabled;
-            _isDeepUndoEnabled = false;
+            deepUndoBeforeSuspend = UndoHistory.isDeepUndoEnabled;
+            UndoHistory.isDeepUndoEnabled = false;
         }
 
         // 리플레이 모드에서 나올때 꺼두었던 딥 언두를 되돌림, 리플레이 모드에서 exitDeepUndo 했으면 꺼진 채로 둠
         public static function resumeDeepUndo():void
         {
-            _isDeepUndoEnabled = deepUndoBeforeSuspend;
+            UndoHistory.isDeepUndoEnabled = deepUndoBeforeSuspend;
         }
 
         private static function showRCursorOnUndo(undoIndex:int):void
@@ -76,7 +70,7 @@ package Modules.L3Feature
         {
             UndoHistory.reset(fromReplayMode);
             ReplayDrawer.rReplayFOFOCursor.visible = false;
-            _isDeepUndoEnabled = false;
+            UndoHistory.isDeepUndoEnabled = false;
         }
 
         private static function getHowCanvasMoveAfterUndoOrRedo(index:int, redoFlag:Boolean):Point
@@ -109,7 +103,7 @@ package Modules.L3Feature
 
         public static function redo():void
         {
-            if (_isDeepUndoEnabled)
+            if (UndoHistory.isDeepUndoEnabled)
             {
                 ReplayController.moveToNextStep();
                 DrawCanvas.applyReplayCanvasToDrawModeCanvas();
@@ -150,7 +144,7 @@ package Modules.L3Feature
 
         public static function exitDeepUndo():void
         {
-            _isDeepUndoEnabled = false;
+            UndoHistory.isDeepUndoEnabled = false;
             deepUndoBeforeSuspend = false;
             ReplayState.rMemoryDataReadON = true;
             showRCursorOnUndo(-1);
@@ -159,7 +153,7 @@ package Modules.L3Feature
 
         private static function enterDeepUndo():void
         {
-            _isDeepUndoEnabled = true;
+            UndoHistory.isDeepUndoEnabled = true;
             ReplayState.rMemoryDataReadON = false;
             ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
             // 이미지 캐시 해주고 rPrevFrame 갱신해주고
@@ -202,7 +196,7 @@ package Modules.L3Feature
                 KeyState.removeKeyRepeatEvents(null);
                 return;
             }
-            if (_isDeepUndoEnabled)
+            if (UndoHistory.isDeepUndoEnabled)
             {
                 if (ReplayState.rNowFrame > 0)
                 {
@@ -291,7 +285,7 @@ package Modules.L3Feature
             }
             else
             {
-                if (UndoController.isDeepUndoEnabled)
+                if (UndoHistory.isDeepUndoEnabled)
                 {
                     UndoController.applyDeepUndo();
                 }

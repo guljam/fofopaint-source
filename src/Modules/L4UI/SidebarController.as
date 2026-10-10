@@ -31,7 +31,6 @@ package Modules.L4UI
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.DragInteraction;
     import Modules.L1Data.MouseState;
-    import Modules.L1Data.Utils;
 
     // 층: L4 UI - 사이드바 위치, 숨김·표시, 퀵 사이드바
     public final class SidebarController
@@ -535,7 +534,7 @@ package Modules.L4UI
                 {
                     FOFOTimer.remove("sidebarHideDelayTimer");
                 }
-                else if (Utils.isCursorInDrawArea())
+                else if (UIController.isCursorInDrawArea())
                 {
                     if (!FOFOTimer.hasTimer("sidebarHideDelayTimer"))
                     {
@@ -926,7 +925,7 @@ package Modules.L4UI
             }
             else if (isSidebarVisible === false)
             {
-                if (sideBar.visible && !sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) && Utils.isCursorInDrawArea())
+                if (sideBar.visible && !sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY) && UIController.isCursorInDrawArea())
                 {
                     startHidingSidebarTemporary();
                     return true;

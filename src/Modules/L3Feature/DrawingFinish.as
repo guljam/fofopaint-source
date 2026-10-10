@@ -27,7 +27,7 @@ package Modules.L3Feature
                 return;
             }
 
-            if (UndoController.isDeepUndoEnabled)
+            if (UndoHistory.isDeepUndoEnabled)
             {
                 var rDataBufferSave:Array = ReplayState.rMemoryDataBuffer.concat();
                 UndoController.applyDeepUndo();

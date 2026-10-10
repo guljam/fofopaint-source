@@ -10,6 +10,7 @@ package Modules.L3Feature.Tools
 
     import flash.display.BitmapData;
     import flash.display.DisplayObject;
+    import flash.display.Stage;
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
@@ -163,7 +164,7 @@ package Modules.L3Feature.Tools
             }
             else
             {
-                if (UndoController.isDeepUndoEnabled)
+                if (UndoHistory.isDeepUndoEnabled)
                 {
                     UndoController.applyDeepUndo();
                 }
@@ -350,7 +351,7 @@ package Modules.L3Feature.Tools
         private static function startLassoImageResize():void
         {
             const mirrorScale:Number = (LassoLayers.lassoLayer1.scaleX < 0) ? -1.0 : 1.0;
-            var getScale:Function = Utils.updateImageScaleMouseDrag(LassoLayers.lassoLayer1.scaleX);
+            var getScale:Function = LassoTool.updateImageScaleMouseDrag(LassoLayers.lassoLayer1.scaleX);
 
             function onDragStart():void
             {
@@ -394,7 +395,7 @@ package Modules.L3Feature.Tools
 
         private static function startLassoImageMove():void
         {
-            var getMovedPos:Function = Utils.updateImagePosMouseDrag(LassoLayers.lassoLayer1, CanvasView.canvasAnchorPoint.rotation);
+            var getMovedPos:Function = LassoTool.updateImagePosMouseDrag(LassoLayers.lassoLayer1, CanvasView.canvasAnchorPoint.rotation);
             function onMouseUp():void
             {
                 getMovedPos = null;
@@ -740,7 +741,7 @@ package Modules.L3Feature.Tools
             {
                 if (hasLassoImageChanges() === true) // 사용후에 ok하면 처리해줌
                 {
-                    if (UndoController.isDeepUndoEnabled)
+                    if (UndoHistory.isDeepUndoEnabled)
                     {
                         UndoController.applyDeepUndo();
                     }
@@ -1030,7 +1031,7 @@ package Modules.L3Feature.Tools
                 return;
             }
             const targetName:String = target.name;
-            if (Utils.isCursorInDrawArea() && _lassoMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+            if (UIController.isCursorInDrawArea() && _lassoMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
             {
                 if (_isLassoMenuHiddenTemp)
                 {
@@ -1371,5 +1372,92 @@ package Modules.L3Feature.Tools
                     break;
             }
         }
+
+        // 마우스 드래그로 이미지 배율을 정하는 함수를 만들어 돌려줌 (0.1~4.0배로 제한)
+        public static function updateImageScaleMouseDrag(sc:Number):Function
+        {
+            const stage:Stage = main.stage;
+            var clickX:Number = stage.mouseX;
+            var clickY:Number = stage.mouseY;
+            var scale:Number = Math.abs(sc);
+            var mxLastPos:Number;
+            var myLastPos:Number;
+            var moveFlag:int;
+
+            return function (mx:Number, my:Number):Number
+            {
+                if (moveFlag != 0)
+                {
+                    if (moveFlag === 1)
+                    {
+                        const subX:Number = mx - mxLastPos;
+
+                        if (subX !== 0) // 차이가 0이 될때가 있어서 이건 스킵
+                        {
+                            scale *= Math.pow(2, subX * 0.008);
+                            ReferenceLayerController.refLayerMenuDragXMoveSum += subX;
+                        }
+                    }
+                    else if (moveFlag === 2)
+                    {
+                        const subY:Number = myLastPos - my;
+
+                        if (subY !== 0)
+                        {
+                            scale *= Math.pow(2, subY * 0.008);
+                            ReferenceLayerController.refLayerMenuDragXMoveSum += subY;
+                        }
+                    }
+                }
+                else if (moveFlag === 0)
+                {
+                    if (Math.abs(mx - clickX) > 5)
+                    {
+                        moveFlag = 1;
+                    }
+                    else if (Math.abs(my - clickY) > 5)
+                    {
+                        moveFlag = 2;
+                    }
+                }
+
+                mxLastPos = mx;
+                myLastPos = my;
+
+                if (scale > 4.0)
+                {
+                    scale = 4.0;
+                }
+                else if (scale < 0.1)
+                {
+                    scale = 0.1;
+                }
+
+                return scale;
+            };
+        }
+
+        // 마우스 드래그로 이미지 위치를 정하는 함수를 만들어 돌려줌
+        public static function updateImagePosMouseDrag(target:DisplayObject, targetAngle:Number, customScaleX:Number = 1.0, customScaleY:Number = 1.0):Function
+        {
+            var oldX:Number = target.x;
+            var oldY:Number = target.y;
+            var mx:Number = main.stage.mouseX;
+            var my:Number = main.stage.mouseY;
+            const zoom:Number = CanvasView.canvasZoomMultiplier;
+            const angle:Number = targetAngle;
+
+            return function ():Point
+            {
+                const dx:Number = main.stage.mouseX - mx;
+                const dy:Number = main.stage.mouseY - my;
+                const newPos:Point = Utils.rotatePoint(dx, dy, angle);
+
+                newPos.setTo(Math.round(oldX + newPos.x / zoom / customScaleX), Math.round(oldY + newPos.y / zoom / customScaleY));
+
+                return newPos;
+            };
+        }
+
     }
 }

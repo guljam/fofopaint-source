@@ -15,12 +15,9 @@ package Modules.L2Engine.ReplayEngine
     import flash.geom.Rectangle;
     import Symbols.FOFOCursorSet;
     import Modules.L5App.FileManager;
-    import Modules.L5App.ReplayEngine.ReplayController;
-    import Modules.L3Feature.UndoController;
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L3Feature.Tools.PenTool;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L2Engine.UndoHistory;
     import Modules.L4UI.ReplayEngine.ReplayViewport;
@@ -30,6 +27,9 @@ package Modules.L2Engine.ReplayEngine
     // 층: L2 엔진 - 리플레이 캔버스에 명령을 그리고 프레임 이동
     public class ReplayDrawer
     {
+        // 리플레이 캔버스를 화면에 맞춰야 한다는 보고
+        public static var onReplayCanvasFitNeededFunc:Function;
+
         // 리플레이
         public static var rFileStream:FileStream = new FileStream(); // 함수들을 왔다갔다 해야해서 전역으로 하나
         public static var rCanvasAnchorPoint:Sprite = new Sprite(); // 회전 스프라이트 부모
@@ -65,7 +65,7 @@ package Modules.L2Engine.ReplayEngine
 
         public static function extendRCanvasDrawLayerClipRect():void
         {
-            const rairBrushOffset:Number = (ReplayState.rAirBrushSize2 > 0) ? PenTool.getClipRectOffsetAirBrush(ReplayState.rAirBrushSize2) : 1;
+            const rairBrushOffset:Number = (ReplayState.rAirBrushSize2 > 0) ? PenSettings.getClipRectOffsetAirBrush(ReplayState.rAirBrushSize2) : 1;
             rCanvasDrawLayerClipRect.x -= rairBrushOffset;
             rCanvasDrawLayerClipRect.y -= rairBrushOffset;
             rCanvasDrawLayerClipRect.width += (rairBrushOffset * 2);
@@ -84,7 +84,7 @@ package Modules.L2Engine.ReplayEngine
 
         public static function extendRCanvasDrawLayerClipRectLegacy():void
         {
-            const rairBrushOffset:Number = (ReplayState.rAirBrushSize > 0) ? PenTool.getClipRectOffsetAirBrush(ReplayState.rAirBrushSize) : 1;
+            const rairBrushOffset:Number = (ReplayState.rAirBrushSize > 0) ? PenSettings.getClipRectOffsetAirBrush(ReplayState.rAirBrushSize) : 1;
             rCanvasDrawLayerClipRectLegacy.x -= rairBrushOffset;
             rCanvasDrawLayerClipRectLegacy.y -= rairBrushOffset;
             rCanvasDrawLayerClipRectLegacy.width += (rairBrushOffset * 2);
@@ -349,7 +349,7 @@ package Modules.L2Engine.ReplayEngine
 
             ReplayDrawCommands.updateRCursorPos();
 
-            if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoController.isDeepUndoEnabled)
+            if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoHistory.isDeepUndoEnabled)
             {
                 cursorFollow.snap();
             }
@@ -516,7 +516,7 @@ package Modules.L2Engine.ReplayEngine
 
             if (ReplayState.isReplayCanvasFitToWindow)
             {
-                ReplayController.fitReplayCanvasToViewport();
+                if (onReplayCanvasFitNeededFunc != null) onReplayCanvasFitNeededFunc();
             }
         }
 
@@ -603,7 +603,7 @@ package Modules.L2Engine.ReplayEngine
 
             if (ReplayState.isReplayCanvasFitToWindow)
             {
-                ReplayController.fitReplayCanvasToViewport();
+                if (onReplayCanvasFitNeededFunc != null) onReplayCanvasFitNeededFunc();
             }
         }
 

@@ -321,7 +321,7 @@ package Modules.L3Feature.Tools
 
         private static function canShowEyedropperLens():Boolean
         {
-            return Utils.isCursorInDrawArea() && DrawCanvas.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true)
+            return UIController.isCursorInDrawArea() && DrawCanvas.canvasLayer1Bitmap.hitTestPoint(main.stage.mouseX, main.stage.mouseY, true)
                 && !(ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY));
         }
 

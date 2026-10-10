@@ -697,5 +697,14 @@ package Modules.L4UI.UIEngine
             }
         }
 
+
+        //커서가 드로우 영역에 있는지 검사
+        public static function isCursorInDrawArea():Boolean
+        {
+            return !(UIController.topBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY)
+                    || (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
+                    || (ReplayController.seekBarBox.visible && ReplayController.seekBarBox.hitTestPoint(main.stage.mouseX, main.stage.mouseY)));
+        }
+
     }
 }

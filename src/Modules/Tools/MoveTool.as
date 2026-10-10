@@ -17,7 +17,6 @@ package Modules.Tools
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
     import Modules.L1Data.MouseState;
-    import Modules.L1Data.Utils;
 
     // 층: L3 기능 - 이동 툴
     public class MoveTool
@@ -81,7 +80,7 @@ package Modules.Tools
             const rect:Rectangle = new Rectangle(0, 0, DrawCanvas.canvasLayer1BitmapData.width, DrawCanvas.canvasLayer1BitmapData.height);
             var movedMat:Matrix = new Matrix();
 
-            if (UndoController.isDeepUndoEnabled)
+            if (UndoHistory.isDeepUndoEnabled)
             {
                 UndoController.applyDeepUndo();
             }
@@ -202,7 +201,7 @@ package Modules.Tools
             }
 
             moveStartStamp = getTimer();
-            getMovedPos = Utils.updateImagePosMouseDrag(DrawCanvas.canvasLayer1Bitmap, CanvasView.canvasAnchorPoint.rotation);
+            getMovedPos = LassoTool.updateImagePosMouseDrag(DrawCanvas.canvasLayer1Bitmap, CanvasView.canvasAnchorPoint.rotation);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
 
             main.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMovetool);

@@ -172,7 +172,7 @@ package Modules.L4UI.DrawEngine
                 if (subX !== 0 || subY !== 0)
                 {
                     const centerMovedFlag:Boolean = (targetName === "resizeButtonL" || targetName === "resizeButtonU") ? true : false;
-                    if (UndoController.isDeepUndoEnabled)
+                    if (UndoHistory.isDeepUndoEnabled)
                     {
                         UndoController.applyDeepUndo();
                     }

@@ -75,6 +75,7 @@
     import Modules.L1Data.MouseState;
     import Modules.L2Engine.DrawEngine.StrokeBuffer;
     import Modules.L1Data.Utils;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화
@@ -177,6 +178,9 @@
                     LoadBoxController.loadFileTo("canvas");
                 }
             };
+            ReplayDrawer.onReplayCanvasFitNeededFunc = ReplayController.fitReplayCanvasToViewport;
+            MouseState.onMouseLeftDownFunc = PenSizePreviewCursor.cancelPendingColorCheck;
+            DragInteraction.onDragEndedFunc = UIController.keepBoxInsideViewPort;
         }
 
         public function initializeModule():void

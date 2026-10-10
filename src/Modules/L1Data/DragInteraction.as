@@ -5,12 +5,14 @@ package Modules.L1Data
     import flash.events.Event;
     import flash.events.MouseEvent;
     import flash.geom.Point;
-    import Modules.L4UI.UIEngine.UIController;
     import Modules.InputPriority;
 
     // 층: L1 데이터 - 드래그 박스 상호작용 시작과 이동·종료 처리
     public class DragInteraction
     {
+        // 박스 드래그가 끝나 박스를 화면 안으로 되돌려야 한다는 보고 (인자: 드래그한 박스)
+        public static var onDragEndedFunc:Function;
+
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -89,7 +91,7 @@ package Modules.L1Data
 
             function onMouseUp():void
             {
-                UIController.keepBoxInsideViewPort(target);
+                if (onDragEndedFunc != null) onDragEndedFunc(target);
             }
 
             start(onDragStart, onMouseMove, onMouseUp);

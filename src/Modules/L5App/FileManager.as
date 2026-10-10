@@ -998,7 +998,7 @@ package Modules.L5App
             var repdataLength:Number = 0;
             const memoryGroups:ByteArray = new ByteArray();
 
-            if (UndoController.isDeepUndoEnabled)
+            if (UndoHistory.isDeepUndoEnabled)
             {
                 repdataLength = (ReplayState.rFileLastBytePosition > 0) ? ReplayState.rFileLastBytePosition : 0;
             }
@@ -1021,9 +1021,9 @@ package Modules.L5App
             const memoryTime:int = getTimer();
             // 타이밍 시트: 파일에 쓰는 프레임과 같은 범위 (saveFOFOFile과 같음)
             const sheet:Array = TimingSheetFile.buildFileObject(
-                    UndoController.isDeepUndoEnabled ? ReplayState.rNowFrame : ReplayState.getRFileDataTotalFrame(),
+                    UndoHistory.isDeepUndoEnabled ? ReplayState.rNowFrame : ReplayState.getRFileDataTotalFrame(),
                     ReplayState.rMemoryDataTimingSheet,
-                    UndoController.isDeepUndoEnabled ? 0 : UndoHistory.undoDataIndex + 1,
+                    UndoHistory.isDeepUndoEnabled ? 0 : UndoHistory.undoDataIndex + 1,
                     ReplayState.lastMirrorReadyFlag ? 1 : 0);
             const timingBytes:ByteArray = new ByteArray();
 
@@ -1193,7 +1193,7 @@ package Modules.L5App
                 const fs:FileStream = new FileStream();
 
                 // 딥 언도일때는 읽은 바이트 까지만 읽어줌
-                if (UndoController.isDeepUndoEnabled)
+                if (UndoHistory.isDeepUndoEnabled)
                 {
                     // 마지막 바이트가 0이상일때만 읽어주어야함
                     // ReplayController.rFileLastBytePosition = 0이면 안읽는것이 아니고 전체 바이트를 읽음그래서 0이면 안읽게 해주어야함
@@ -1228,9 +1228,9 @@ package Modules.L5App
 
                 // 타이밍 시트: 파일에 쓰는 프레임과 같은 범위(딥 언두면 읽은 곳까지, 아니면 파일 + 메모리 뭉치 + 임시 미러 1프레임)
                 ReplayFileCache.rTimingSheetFileObject = TimingSheetFile.buildFileObject(
-                        UndoController.isDeepUndoEnabled ? ReplayState.rNowFrame : ReplayState.getRFileDataTotalFrame(),
+                        UndoHistory.isDeepUndoEnabled ? ReplayState.rNowFrame : ReplayState.getRFileDataTotalFrame(),
                         ReplayState.rMemoryDataTimingSheet,
-                        UndoController.isDeepUndoEnabled ? 0 : UndoHistory.undoDataIndex + 1,
+                        UndoHistory.isDeepUndoEnabled ? 0 : UndoHistory.undoDataIndex + 1,
                         ReplayState.lastMirrorReadyFlag ? 1 : 0);
                 FileManager.updateReplaySaveMetaData();
                 BackgroundWorkerCoordinator.startReplayDataCompressionWorker(rLayer1FirstImageData, rLayer2FirstImageData, rLayer1CurrentImageData, rLayer2CurrentImageData, ReferenceLayerController.refLayerImageData, replayDataReadBytes);

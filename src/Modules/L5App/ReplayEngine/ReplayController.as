@@ -396,7 +396,7 @@ package Modules.L5App.ReplayEngine
                     stopReplay();
 
                     // 예전에는 renderReplayFrame 안에서 정지된 뒤(슬라이드쇼 플래그 꺼진 상태로) 실행되던 검사라서 순서 유지를 위해 여기서 다시 해줌
-                    if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoController.isDeepUndoEnabled)
+                    if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoHistory.isDeepUndoEnabled)
                     {
                         ReplayDrawer.cursorFollow.snap();
                     }
@@ -697,7 +697,7 @@ package Modules.L5App.ReplayEngine
             const fs:FileStream = new FileStream();
             const fs2:FileStream = new FileStream();
             const totalSize:Number = AppDataPaths.replayDataFilePath.size;
-            const deepUndoFlag:Boolean = UndoController.isDeepUndoEnabled;
+            const deepUndoFlag:Boolean = UndoHistory.isDeepUndoEnabled;
             var rect:Rectangle;
             var _frameSum:Number = 0;
             var _LastframeSum:Number = 0;
@@ -1098,7 +1098,7 @@ package Modules.L5App.ReplayEngine
                 customFrame = ReplayState.rNowFrame;
             }
 
-            const remainingTime:String = (UndoController.isDeepUndoEnabled || finishFlag) ? "" : getReplayRemainingTimeString(ReplayState.rReplaySpeedMultipler, ReplayState.TOTAL_FRAME - customFrame);
+            const remainingTime:String = (UndoHistory.isDeepUndoEnabled || finishFlag) ? "" : getReplayRemainingTimeString(ReplayState.rReplaySpeedMultipler, ReplayState.TOTAL_FRAME - customFrame);
 
             ReplayController.seekBarBox.prograssInfo.text = customFrame + " / " + ReplayState.TOTAL_FRAME + remainingTime;
         }

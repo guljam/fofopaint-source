@@ -433,5 +433,23 @@ package Modules.L1Data.Tools
 			return blurSize * z;
 		}
 
+
+		// 에어브러시 크기에 맞는 갱신 영역(클립 사각형) 여백을 계산함
+		public static function getClipRectOffsetAirBrush(size:int):Number
+		{
+			const len:uint = PenSettings.penSizeList.length;
+			for (var i:uint = 1;i < len;i++)
+			{
+				if (PenSettings.penSizeList[i] === size)
+				{
+					return size + airBrushClipRectOffsetData[i];
+				}
+			}
+			return 0;
+		}
+
+
+		public static var airBrushClipRectOffsetData:Array = [0, 4, 2, 2, 0, 0, 0, -2, -5, -5, -10, -16, -43];
+
     }
 }

@@ -7,7 +7,6 @@ package Modules.L4UI.ReplayEngine
     import flash.geom.Rectangle;
     import flash.utils.getTimer;
     import Modules.L5App.ReplayEngine.ReplayController;
-    import Modules.L3Feature.UndoController;
     import Modules.L2Engine.ReplayEngine.ReplayClock;
     import Modules.L2Engine.ReplayEngine.ReplayCommandWindow;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
@@ -16,6 +15,7 @@ package Modules.L4UI.ReplayEngine
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
+    import Modules.L2Engine.UndoHistory;
 
     // 리플레이 캔버스를 옮겨서 곧 그려질 영역(연출 중이면 연출 영역, 아니면 커서)을 화면 안에 두는 카메라 (ReplayDrawer.cursorFollow)
     // 앵커를 한 번에 옮기지 않고 목표만 정한 뒤 별도 타이머에서 실제 시간 기준으로 감쇠하며 따라감
@@ -95,7 +95,7 @@ package Modules.L4UI.ReplayEngine
         // 카메라가 앵커를 건드리면 안 되는 상태
         private function isBlocked():Boolean
         {
-            return ReplayState.isReplayCanvasFitToWindow || MouseState.isLeftDown || UndoController.isDeepUndoEnabled;
+            return ReplayState.isReplayCanvasFitToWindow || MouseState.isLeftDown || UndoHistory.isDeepUndoEnabled;
         }
 
         // 외부가 화면을 바꿨을 때 부름. 카메라 내부 값을 실제 앵커로 다시 맞추고 진행 중인 이동을 멈춤

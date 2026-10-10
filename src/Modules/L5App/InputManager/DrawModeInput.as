@@ -46,6 +46,7 @@ package Modules.L5App.InputManager
     import Modules.L1Data.DragInteraction;
     import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
+    import Modules.L2Engine.UndoHistory;
 
     // 드로우 모드의 키보드/마우스 입력 (툴 단축키, 툴박스2, 드로우 모드 버튼)
     // 층: L5 앱 흐름 - 드로우 모드의 키보드/마우스 입력
@@ -118,7 +119,7 @@ package Modules.L5App.InputManager
 
             const target:SimpleButton = e.target as SimpleButton;
 
-            if (!target || target.alpha < 1.0 || !Utils.isCursorInDrawArea())
+            if (!target || target.alpha < 1.0 || !UIController.isCursorInDrawArea())
             {
                 ToolPanel.closeToolBox2();
                 return;
@@ -857,7 +858,7 @@ package Modules.L5App.InputManager
                     return;
             }
             // 캔버스 영역 밖에서는 해주지 않음
-            if (Utils.isCursorInDrawArea() && !MouseState.isClickBlocked)
+            if (UIController.isCursorInDrawArea() && !MouseState.isClickBlocked)
             {
                 ToolController.onCanvasMouseDown();
             }
@@ -932,9 +933,9 @@ package Modules.L5App.InputManager
 
                 default:
                     {
-                        if (Utils.isCursorInDrawArea())
+                        if (UIController.isCursorInDrawArea())
                         {
-                            if (ToolPanel.isToolBox2Showing && !UndoController.isDeepUndoEnabled)
+                            if (ToolPanel.isToolBox2Showing && !UndoHistory.isDeepUndoEnabled)
                             {
                                 ToolPanel.closeToolBox2();
                             }

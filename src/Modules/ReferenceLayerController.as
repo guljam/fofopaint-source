@@ -37,6 +37,7 @@ package Modules
     import Modules.L1Data.DragInteraction;
     import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
+    import Modules.L3Feature.Tools.LassoTool;
 
     // 층: L4 UI - 참조 레이어 메뉴와 이미지 병합·투명도·비우기
     public final class ReferenceLayerController
@@ -585,7 +586,7 @@ package Modules
                 return;
             }
 
-            const getscale:Function = Utils.updateImageScaleMouseDrag(canvasRefLayer.scaleX);
+            const getscale:Function = LassoTool.updateImageScaleMouseDrag(canvasRefLayer.scaleX);
 
             function onDragStart():void
             {
@@ -621,7 +622,7 @@ package Modules
                 return;
             }
 
-            const getpos:Function = Utils.updateImagePosMouseDrag(canvasRefLayerBitmap,
+            const getpos:Function = LassoTool.updateImagePosMouseDrag(canvasRefLayerBitmap,
                     canvasRefLayer.rotation + CanvasView.canvasAnchorPoint.rotation,
                     canvasRefLayer.scaleX,
                     canvasRefLayer.scaleY);
@@ -805,7 +806,7 @@ package Modules
 
         private static function mergeCanvasImageToRefLayer():void
         {
-            if (UndoController.isDeepUndoEnabled)
+            if (UndoHistory.isDeepUndoEnabled)
             {
                 UndoController.applyDeepUndo();
             }

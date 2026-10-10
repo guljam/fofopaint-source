@@ -19,6 +19,9 @@ package Modules.L2Engine
     // 층: L1 데이터 - 메모리 undo 데이터를 쌓고 자르는 일과 undo 위치·기준 이미지
     public class UndoHistory
     {
+        // 딥 언두(파일에 쌓인 구간까지 undo)로 가 있는 상태인지. UndoController가 켜고 끔
+        public static var isDeepUndoEnabled:Boolean = false;
+
         // undo 데이터가 새로 쌓여 파일이 저장된 상태가 아니게 됐다는 보고
         public static var onFileChangedFunc:Function;
         // undo 데이터를 쌓은 뒤 새 파일 버튼을 켜야 한다는 보고

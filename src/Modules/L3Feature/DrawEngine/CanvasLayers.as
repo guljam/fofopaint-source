@@ -61,7 +61,7 @@ package Modules.L3Feature.DrawEngine
             }
             else
             {
-                if (UndoController.isDeepUndoEnabled)
+                if (UndoHistory.isDeepUndoEnabled)
                 {
                     UndoController.applyDeepUndo();
                 }
@@ -79,7 +79,7 @@ package Modules.L3Feature.DrawEngine
             {
                 return;
             }
-            if (UndoController.isDeepUndoEnabled)
+            if (UndoHistory.isDeepUndoEnabled)
             {
                 UndoController.applyDeepUndo();
             }
