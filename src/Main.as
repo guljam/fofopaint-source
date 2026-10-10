@@ -20,7 +20,6 @@
     import flash.events.UncaughtErrorEvent;
     import flash.net.registerClassAlias;
     import flash.system.Capabilities;
-    import Modules.ReplayEngine.ReplayMouseAutoHide;
     import Modules.L5App.AppWindowState;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L5App.InputManager.CaptureModeInput;
@@ -78,6 +77,7 @@
     import Modules.L4UI.ReferenceLayerController;
     import Modules.L5App.LoadBoxController;
     import Modules.L5App.ClipboardManager;
+    import Modules.L4UI.ReplayEngine.ReplayMouseAutoHide;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화
