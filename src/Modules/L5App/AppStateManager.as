@@ -2,8 +2,6 @@ package Modules.L5App
 {
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.UITheme;
-    import Modules.CaptureEngine.CaptureStamp;
-    import Modules.CaptureEngine.CaptureController;
 
     import Modules.L1Data.AppDataPaths;
     import flash.display.BitmapData;
@@ -15,7 +13,6 @@ package Modules.L5App
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
     import flash.trace.Trace;
-    import Modules.L3Feature.ActivityWorkTimer;
     import Modules.L5App.AppWindowState;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L4UI.ColorPickerController;
@@ -24,7 +21,6 @@ package Modules.L5App
     import Modules.L4UI.LoadBoxController;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
-    import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
     import Modules.L4UI.AboutBoxController;
@@ -43,7 +39,6 @@ package Modules.L5App
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L3Feature.Tools.PenTool;
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
     import Modules.L1Data.ColorHistory;
     import Modules.L2Engine.UndoHistory;
@@ -52,6 +47,11 @@ package Modules.L5App
     import Modules.L1Data.ReplayEngine.ReplaySaveMetaData;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
     import Modules.L2Engine.CacheImageMetaData;
+    import Modules.L4UI.Tools.PenTool;
+    import Modules.L4UI.Tools.ToolController;
+    import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L4UI.CaptureEngine.CaptureStamp;
+    import Modules.L4UI.ActivityWorkTimer;
 
     // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager

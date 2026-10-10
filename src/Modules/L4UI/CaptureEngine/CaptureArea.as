@@ -1,4 +1,4 @@
-package Modules.CaptureEngine
+package Modules.L4UI.CaptureEngine
 {
     import Modules.InputPriority;
 
@@ -16,6 +16,7 @@ package Modules.CaptureEngine
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.MouseState;
+    import Modules.L4UI.CaptureEngine.CaptureController;
 
     // 층: L3 기능 - 캡처 영역 지정과 표시
     public class CaptureArea

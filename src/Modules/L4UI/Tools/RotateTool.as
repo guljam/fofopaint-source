@@ -1,4 +1,4 @@
-package Modules.L3Feature.Tools
+package Modules.L4UI.Tools
 {
     import Modules.UIEngine.CanvasNavigator;
     import flash.display.Sprite;
@@ -13,6 +13,7 @@ package Modules.L3Feature.Tools
     import Modules.L4UI.CanvasViewport;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.DragInteraction;
+    import Modules.L4UI.Tools.LassoTool;
 
     // 층: L3 기능 - 회전 툴
     public class RotateTool

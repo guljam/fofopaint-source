@@ -1,4 +1,4 @@
-package Modules.L3Feature.Tools
+package Modules.L4UI.Tools
 {
     import Modules.UIEngine.CanvasNavigator;
     import Modules.InputPriority;
@@ -15,6 +15,7 @@ package Modules.L3Feature.Tools
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L4UI.CanvasViewport;
     import Modules.L1Data.MouseState;
+    import Modules.L4UI.Tools.LassoTool;
 
     // 층: L3 기능 - 손 툴(캔버스 끌어 이동)
     public class HandTool

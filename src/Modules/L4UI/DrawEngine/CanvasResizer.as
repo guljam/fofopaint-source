@@ -1,7 +1,6 @@
 package Modules.L4UI.DrawEngine
 {
     import Modules.InputPriority;
-    import Modules.CaptureEngine.CaptureController;
     import Modules.UIEngine.UITheme;
 
     import flash.display.Shape;
@@ -9,7 +8,6 @@ package Modules.L4UI.DrawEngine
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.KeyState;
@@ -22,6 +20,8 @@ package Modules.L4UI.DrawEngine
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
+    import Modules.L4UI.Tools.ToolController;
+    import Modules.L4UI.CaptureEngine.CaptureController;
 
     // 캔버스 상하좌우 리사이즈 버튼과 드래그로 캔버스 크기 조절
     // 층: L2 엔진 - 캔버스 상하좌우 리사이즈 버튼과 드래그로 크기 조절

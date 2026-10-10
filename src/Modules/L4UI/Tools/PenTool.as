@@ -1,4 +1,4 @@
-package Modules.L3Feature.Tools
+package Modules.L4UI.Tools
 {
     import Modules.InputPriority;
 	import Modules.ReferenceLayerController;
@@ -21,7 +21,6 @@ package Modules.L3Feature.Tools
 	import Modules.L4UI.PenSizePreviewCursor;
 	import Modules.L2Engine.DrawEngine.CanvasView;
 	import Modules.L2Engine.DrawEngine.DrawCanvas;
-	import Modules.Tools.DotTool;
 	import Modules.Tools.PenStabilizer;
 	import Modules.L1Data.ColorHistory;
 	import Modules.L2Engine.UndoHistory;

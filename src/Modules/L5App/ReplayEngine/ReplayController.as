@@ -26,7 +26,6 @@ package Modules.L5App.ReplayEngine
     import flash.utils.getTimer;
     import Modules.NativeCacheJobs;
     import Modules.NativeCore;
-    import Modules.CaptureEngine.CaptureController;
     import Modules.ReferenceLayerController;
     import Symbols.SeekBarSet;
     import Modules.L5App.AppWindowState;
@@ -52,7 +51,6 @@ package Modules.L5App.ReplayEngine
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L3Feature.Tools.PenTool;
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
     import Modules.L2Engine.UndoHistory;
     import Modules.L4UI.CanvasViewport;
@@ -64,6 +62,8 @@ package Modules.L5App.ReplayEngine
     import Modules.L1Data.DragInteraction;
     import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
+    import Modules.L4UI.Tools.PenTool;
+    import Modules.L4UI.CaptureEngine.CaptureController;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController

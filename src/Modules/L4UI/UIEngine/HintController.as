@@ -1,6 +1,5 @@
 package Modules.L4UI.UIEngine
 {
-    import Modules.CaptureEngine.CaptureController;
     import Symbols.HintBoxSet;
 
     import flash.display.DisplayObject;
@@ -9,9 +8,6 @@ package Modules.L4UI.UIEngine
     import flash.events.MouseEvent;
     import flash.geom.Rectangle;
     import Modules.L4UI.ColorPickerController;
-    import Modules.L3Feature.Tools.FillPenTool;
-    import Modules.L3Feature.Tools.LassoTool;
-    import Modules.L3Feature.Tools.LineTool;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
@@ -27,6 +23,10 @@ package Modules.L4UI.UIEngine
     import Modules.L4UI.HintStrings;
     import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
+    import Modules.L4UI.Tools.LineTool;
+    import Modules.L4UI.Tools.FillPenTool;
+    import Modules.L4UI.Tools.LassoTool;
+    import Modules.L4UI.CaptureEngine.CaptureController;
 
     // 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시. 문구는 HintStrings가 담당
     // 층: L4 UI - 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시

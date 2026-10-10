@@ -1,6 +1,5 @@
 package Modules.L2Engine
 {
-    import Modules.CaptureEngine.CaptureController;
     import flash.display.Sprite;
     import flash.display.BitmapData;
     import flash.events.Event;
@@ -23,6 +22,7 @@ package Modules.L2Engine
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L4UI.CaptureEngine.CaptureController;
 
     // 층: L2 엔진 - 백그라운드 워커 시작·중지와 데이터 전달
     public final class BackgroundWorkerCoordinator

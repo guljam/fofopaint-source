@@ -1,6 +1,5 @@
 package Modules
 {
-    import Modules.CaptureEngine.CaptureController;
     import Modules.UIEngine.UITheme;
 
     import Symbols.RefLayerMenuSet;
@@ -37,7 +36,8 @@ package Modules
     import Modules.L1Data.DragInteraction;
     import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
-    import Modules.L3Feature.Tools.LassoTool;
+    import Modules.L4UI.Tools.LassoTool;
+    import Modules.L4UI.CaptureEngine.CaptureController;
 
     // 층: L4 UI - 참조 레이어 메뉴와 이미지 병합·투명도·비우기
     public final class ReferenceLayerController

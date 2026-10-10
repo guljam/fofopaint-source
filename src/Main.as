@@ -1,14 +1,8 @@
 ﻿package
 {
     import Modules.AppStateVars;
-    import Modules.AppUpdater;
-    import Modules.CaptureEngine.CaptureArea;
-    import Modules.CaptureEngine.CaptureController;
-    import Modules.CaptureEngine.CaptureStamp;
-    import Modules.ClipboardManager;
     import Modules.InputPriority;
     import Modules.ReferenceLayerController;
-    import Modules.Tools.MoveTool;
     import Modules.UIEngine.CanvasNavigator;
 
     import Symbols.HintBoxSet;
@@ -28,27 +22,18 @@
     import flash.net.registerClassAlias;
     import flash.system.Capabilities;
     import Modules.ReplayEngine.ReplayMouseAutoHide;
-    import Modules.L3Feature.ActivityWorkTimer;
     import Modules.L5App.AppWindowState;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L5App.InputManager.CaptureModeInput;
     import Modules.L4UI.ColorPickerController;
     import Modules.L5App.InputManager.DrawModeInput;
-    import Modules.L3Feature.Tools.EyeDropperTool;
     import Modules.L5App.FileManager;
-    import Modules.L3Feature.Tools.FillPenTool;
-    import Modules.L3Feature.Tools.HandTool;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.L3Feature.ImeController;
     import Modules.L5App.InputManager.InputManager;
-    import Modules.L3Feature.Tools.LassoTool;
-    import Modules.L3Feature.Tools.LineTool;
     import Modules.L4UI.LoadBoxController;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L5App.InputManager.ReplayModeInput;
-    import Modules.L3Feature.Tools.RotateTool;
     import Modules.L4UI.SidebarController;
-    import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.AboutBoxController;
@@ -63,8 +48,6 @@
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L3Feature.Tools.PenTool;
-    import Modules.L3Feature.Tools.ZoomTool;
     import Modules.L1Data.ColorHistory;
     import Modules.L2Engine.UndoHistory;
     import Modules.L4UI.CanvasViewport;
@@ -76,6 +59,23 @@
     import Modules.L2Engine.DrawEngine.StrokeBuffer;
     import Modules.L1Data.Utils;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L4UI.Tools.PenTool;
+    import Modules.L4UI.Tools.LineTool;
+    import Modules.L4UI.Tools.FillPenTool;
+    import Modules.L4UI.Tools.LassoTool;
+    import Modules.L4UI.Tools.MoveTool;
+    import Modules.L4UI.Tools.HandTool;
+    import Modules.L4UI.Tools.ZoomTool;
+    import Modules.L4UI.Tools.RotateTool;
+    import Modules.L4UI.Tools.EyeDropperTool;
+    import Modules.L4UI.Tools.ToolController;
+    import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L4UI.CaptureEngine.CaptureArea;
+    import Modules.L4UI.CaptureEngine.CaptureStamp;
+    import Modules.L4UI.ClipboardManager;
+    import Modules.L4UI.ActivityWorkTimer;
+    import Modules.L4UI.ImeController;
+    import Modules.L4UI.AppUpdater;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화

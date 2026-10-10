@@ -1,27 +1,20 @@
 package Modules.L5App
 {
     import flash.events.Event;
-    import Modules.ClipboardManager;
     import flash.utils.getTimer;
     import Modules.NativeSave;
-    import Modules.CaptureEngine.CaptureController;
     import flash.geom.Rectangle;
     import flash.display.Screen;
     import flash.display.NativeWindowDisplayState;
-    import Modules.L3Feature.ActivityWorkTimer;
     import Modules.L5App.InputManager.CaptureModeInput;
     import Modules.L4UI.ColorPickerController;
     import Modules.L5App.InputManager.DrawModeInput;
-    import Modules.L3Feature.Tools.FillPenTool;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.L3Feature.ImeController;
     import Modules.L5App.InputManager.InputManager;
-    import Modules.L3Feature.Tools.LassoTool;
     import Modules.L4UI.LoadBoxController;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L5App.InputManager.ReplayModeInput;
     import Modules.L4UI.SidebarController;
-    import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.AboutBoxController;
@@ -34,6 +27,13 @@ package Modules.L5App
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.MouseState;
     import Modules.L2Engine.UndoHistory;
+    import Modules.L4UI.Tools.FillPenTool;
+    import Modules.L4UI.Tools.LassoTool;
+    import Modules.L4UI.Tools.ToolController;
+    import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L4UI.ClipboardManager;
+    import Modules.L4UI.ActivityWorkTimer;
+    import Modules.L4UI.ImeController;
 
     // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState

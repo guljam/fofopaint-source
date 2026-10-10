@@ -1,4 +1,4 @@
-package Modules
+package Modules.L4UI
 {
     import Modules.UIEngine.UITheme;
     import flash.desktop.Clipboard;
@@ -9,6 +9,7 @@ package Modules
     import Modules.L4UI.LoadBoxController;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.ReferenceLayerController;
 
     // 층: L3 기능 - 클립보드 이미지 불러오기
     public class ClipboardManager

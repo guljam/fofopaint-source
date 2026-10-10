@@ -14,10 +14,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 
-	import Modules.AppUpdater;
-	import Modules.CaptureEngine.CaptureStamp;
 	import Modules.L4UI.ImageViewWindow;
-	import Modules.L3Feature.Tools.LassoTool;
 	import Modules.L5App.ReplayEngine.ReplayController;
 	import Modules.L4UI.SidebarController;
 	import Modules.L4UI.AboutBoxController;
@@ -26,6 +23,9 @@
 	import Modules.L2Engine.DrawEngine.DrawCanvas;
 	import Modules.L2Engine.ReplayEngine.ReplayState;
 	import Modules.L1Data.Utils;
+	import Modules.L4UI.Tools.LassoTool;
+	import Modules.L4UI.CaptureEngine.CaptureStamp;
+	import Modules.L4UI.AppUpdater;
 
 	// 층: L4 UI - 상단 메뉴 화면 묶음
 	public class TopMenuSet extends Sprite

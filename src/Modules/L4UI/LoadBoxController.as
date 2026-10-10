@@ -1,6 +1,5 @@
 package Modules.L4UI
 {
-    import Modules.CaptureEngine.CaptureController;
 
     import Symbols.LoadBoxSet;
 
@@ -17,10 +16,8 @@ package Modules.L4UI
     import libwebp.DecodeWebp;
     import Modules.L5App.FileManager;
     import Modules.InputPriority;
-    import Modules.L3Feature.Tools.LassoTool;
     import Modules.ReferenceLayerController;
     import Modules.L5App.ReplayEngine.ReplayController;
-    import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.KeyState;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
@@ -29,6 +26,9 @@ package Modules.L4UI
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.Utils;
+    import Modules.L4UI.Tools.LassoTool;
+    import Modules.L4UI.Tools.ToolController;
+    import Modules.L4UI.CaptureEngine.CaptureController;
 
     // 불러오기 메뉴(로드박스)의 열기/닫기, 버튼 처리, 불러올 이미지/파일 보관, 확정 시 실제 불러오기 호출을 담당함
     // 층: L4 UI - 불러오기 메뉴(로드박스) 열기·닫기와 버튼 처리

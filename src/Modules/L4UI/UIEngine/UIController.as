@@ -1,8 +1,5 @@
 package Modules.L4UI.UIEngine
 {
-    import Modules.CaptureEngine.CaptureController;
-    import Modules.CaptureEngine.CaptureStamp;
-    import Modules.ClipboardManager;
     import Modules.ReferenceLayerController;
     import Symbols.CanvasInfoSet;
     import Symbols.RotateCursorSet;
@@ -15,15 +12,11 @@ package Modules.L4UI.UIEngine
     import flash.geom.Rectangle;
     import Modules.L5App.AppWindowState;
     import Modules.L4UI.ColorPickerController;
-    import Modules.L3Feature.Tools.EyeDropperTool;
     import Modules.L5App.FileManager;
-    import Modules.L3Feature.Tools.FillPenTool;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.L3Feature.Tools.LassoTool;
     import Modules.L4UI.LoadBoxController;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
-    import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L4UI.AboutBoxController;
     import Modules.UIEngine.CanvasNavigator;
@@ -34,13 +27,20 @@ package Modules.L4UI.UIEngine
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L4UI.PenSizePreviewCursor;
-    import Modules.L3Feature.Tools.ZoomTool;
     import Modules.L2Engine.LassoLayers;
     import Modules.L4UI.CanvasViewport;
     import Modules.L4UI.DrawEngine.CanvasResizer;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L2Engine.DrawEngine.StrokeBuffer;
     import Modules.L1Data.Utils;
+    import Modules.L4UI.Tools.FillPenTool;
+    import Modules.L4UI.Tools.LassoTool;
+    import Modules.L4UI.Tools.ZoomTool;
+    import Modules.L4UI.Tools.EyeDropperTool;
+    import Modules.L4UI.Tools.ToolController;
+    import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L4UI.CaptureEngine.CaptureStamp;
+    import Modules.L4UI.ClipboardManager;
 
     // 스테이지 UI 배치: 표시 순서, 뷰포트 여백, 창 크기 변경 배치, UI 색상/스케일을 각 패널에 반영
     // 층: L4 UI - 스테이지 UI 배치와 UI 색상·스케일을 패널에 반영

@@ -15,7 +15,6 @@ package Modules.L4UI
     import Modules.L5App.FileManager;
     import Modules.L5App.InputManager.InputManager;
     import Modules.L5App.InputManager.ReplayModeInput;
-    import Modules.AppUpdater;
     import Modules.InputPriority;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
