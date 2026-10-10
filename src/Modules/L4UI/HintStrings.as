@@ -70,7 +70,7 @@
                 "newWindowButton": "Image view _ Drag to move _ Right-click to fit to window",
                 "aboutButton": "About FOFO PAINT",
                 "updateButton": STRING_VARIABLE_HINT,
-                "timer" : STRING_VARIABLE_HINT,
+                "timer": STRING_VARIABLE_HINT,
 
                 // 리플레이 모드
                 "replayModeButton": "Enter replay mode [f1 / f7]",
@@ -130,7 +130,7 @@
                 "toolRedo": STRING_VARIABLE_HINT,
                 "toolMirror": "Flip canvas [a / l]",
                 "toolLasso": "Lasso [r / y]",
-                "toolLine": "Line [shift]",
+                "toolLine": STRING_VARIABLE_HINT,
                 "toolMove": "Move image [e / u]",
                 "toolZoom": "Zoom canvas [w / i]",
                 "toolZoomIn": "Zoom in _ " + STRING_RIGHT_CLICK_TO_RESET,
@@ -167,6 +167,16 @@
                 "navLayer2Bitmap": "Canvas navigator"
             };
 
+        public static function getLineToolToolBoxHintString():String
+        {
+            if (main === null || ToolPanel.toolBox2.visible)
+            {
+                return "Line [shift]";
+            }
+
+            return "Line [shift] _ Confirm [right-click / shift key up / enter / esc]";
+        }
+
         public static function getActivityWorkTimeHintString():String
         {
             return "Work time _ Hold to reset _ Total app run time: " + ActivityWorkTimer.getFormattedAppUpTimeString();
@@ -194,7 +204,7 @@
             }
         }
 
-        static private function getRedoButtonHint():String
+        static private function getRedoButtonHintString():String
         {
             if (main === null || ToolPanel.toolBox2.visible)
             {
@@ -204,7 +214,7 @@
             return "Redo [x / ,] _ Hold to repeat";
         }
 
-        static private function getUndoButtonHint():String
+        static private function getUndoButtonHintString():String
         {
             if (main === null || ToolPanel.toolBox2.visible)
             {
@@ -468,7 +478,7 @@
             return "Layers have been swapped " + ((CanvasLayers.isLayerSwapped) ? "1 / 2" : "2 / 1");
         }
 
-        static private function getFinalHint(targetName:String,hintStringSet:Object):String
+        static private function getFinalHint(targetName:String, hintStringSet:Object):String
         {
             if (hintStringSet[targetName] !== STRING_VARIABLE_HINT)
             {
@@ -477,11 +487,14 @@
 
             switch (targetName)
             {
+                case "toolLine":
+                    return getLineToolToolBoxHintString();
+
                 case "toolUndo":
-                    return getUndoButtonHint();
+                    return getUndoButtonHintString();
 
                 case "toolRedo":
-                    return getRedoButtonHint();
+                    return getRedoButtonHintString();
 
                 case "capSave":
                     return "Save " + getCaptureSaveHintString() + " [ctrl+s / ctrl+;]";
@@ -524,7 +537,7 @@
                 return null;
             }
 
-            return getFinalHint(targetName,hints);
+            return getFinalHint(targetName, hints);
         }
     }
 }
