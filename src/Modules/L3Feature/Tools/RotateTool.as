@@ -4,7 +4,6 @@ package Modules.L3Feature.Tools
     import flash.display.Sprite;
     import Modules.ReferenceLayerController;
     import flash.geom.Point;
-    import Modules.DragInteraction;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L1Data.KeyState;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
@@ -13,6 +12,7 @@ package Modules.L3Feature.Tools
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L4UI.CanvasViewport;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L1Data.DragInteraction;
 
     // 층: L3 기능 - 회전 툴
     public class RotateTool

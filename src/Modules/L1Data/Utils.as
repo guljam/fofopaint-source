@@ -1,4 +1,4 @@
-package Modules
+package Modules.L1Data
 {
     import flash.display.DisplayObject;
     import flash.display.DisplayObjectContainer;
@@ -17,6 +17,7 @@ package Modules
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.ReferenceLayerController;
 
     // 층: L1 데이터 - 색 변환, 텍스트 필드 생성 등 공용 함수
     public class Utils

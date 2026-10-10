@@ -1,6 +1,5 @@
 ﻿package Modules.L4UI
 {
-    import Modules.Utils;
     import Modules.UIEngine.UITheme;
     import Main;
     import Modules.AppUpdater;
@@ -15,6 +14,7 @@
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L3Feature.Tools.PenTool;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
+    import Modules.L1Data.Utils;
 
     // 층: L1 데이터 - 힌트 문구 모음
     public class HintStrings

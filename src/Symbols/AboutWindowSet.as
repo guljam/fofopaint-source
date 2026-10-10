@@ -7,12 +7,12 @@
 	import flash.geom.Rectangle;
 	import flash.text.TextFormat;
 	import flash.text.TextFormatAlign;
-	import Modules.Utils;
 	import flash.text.TextField;
 	import flash.display.SimpleButton;
 	import flash.text.TextFieldAutoSize;
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
+	import Modules.L1Data.Utils;
 
 	// 층: L4 UI - 정보 창 화면 묶음
 	public class AboutWindowSet extends Sprite

@@ -1,6 +1,5 @@
 ﻿package Symbols
 {
-	import Modules.Utils;
 	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.display.GradientType;
@@ -18,6 +17,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 	import Modules.DrawEngine.HandDrawnLine;
+	import Modules.L1Data.Utils;
 
 	// 층: L4 UI - 색 선택기 화면 묶음
 	public class ColorPickerSet extends Sprite

@@ -17,7 +17,6 @@ package Modules.L2Engine.ReplayEngine
     import Modules.L5App.FileManager;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L3Feature.UndoController;
-    import Modules.ReplayEngine.ReplayAnim;
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;

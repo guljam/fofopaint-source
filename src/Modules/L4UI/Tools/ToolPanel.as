@@ -1,9 +1,7 @@
 package Modules.L4UI.Tools
 {
     import Modules.InputPriority;
-    import Modules.MouseState;
     import Modules.ReferenceLayerController;
-    import Modules.Utils;
     import Modules.UIEngine.UITheme;
     import Symbols.ToolMenuSet;
     import Symbols.ToolMenuSet2;
@@ -37,6 +35,8 @@ package Modules.L4UI.Tools
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L4UI.HintStrings;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
+    import Modules.L1Data.MouseState;
+    import Modules.L1Data.Utils;
 
     // 사이드바의 툴 패널 UI: 툴박스, 우클릭 툴박스(toolBox2), 펜 옵션 박스와 그 클릭/드래그 처리
     // 도구 선택 상태는 ToolController가 가지고, 여기서는 표시와 입력 해석만 함

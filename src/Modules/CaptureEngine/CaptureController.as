@@ -1,7 +1,6 @@
 package Modules.CaptureEngine
 {
     import Modules.UIEngine.UITheme;
-    import Modules.Utils;
     import Modules.ReferenceLayerController;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
@@ -31,6 +30,7 @@ package Modules.CaptureEngine
     import Modules.L4UI.CanvasViewport;
     import Modules.L4UI.DrawEngine.CanvasResizer;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L1Data.Utils;
 
     // 층: L3 기능 - 캡처 모드 진입·종료와 캡처 처리
     public class CaptureController

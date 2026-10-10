@@ -1,8 +1,6 @@
 package
 {
-    import Modules.Utils;
     import Modules.InputPriority;
-    import Modules.MouseState;
     import flash.display.Sprite;
     import flash.display.Shape;
     import flash.display.Bitmap;
@@ -10,6 +8,8 @@ package
     import flash.events.MouseEvent;
     import flash.geom.Rectangle;
     import flash.geom.Point;
+    import Modules.L1Data.MouseState;
+    import Modules.L1Data.Utils;
 
     // 층: L4 UI - 색 선택기 안의 확대 낙서판
     public class DrawrScratchPad extends Sprite

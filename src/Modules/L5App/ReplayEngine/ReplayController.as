@@ -3,7 +3,6 @@ package Modules.L5App.ReplayEngine
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
-    import Modules.MouseState;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
     import flash.desktop.NativeDragManager;
@@ -28,9 +27,7 @@ package Modules.L5App.ReplayEngine
     import Modules.NativeCacheJobs;
     import Modules.NativeCore;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.DragInteraction;
     import Modules.ReferenceLayerController;
-    import Modules.Utils;
     import Symbols.SeekBarSet;
     import Modules.L5App.AppWindowState;
     import Modules.L4UI.CanvasGridOverlay;
@@ -64,6 +61,9 @@ package Modules.L5App.ReplayEngine
     import Modules.L4UI.HintStrings;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
     import Modules.L2Engine.CacheImageMetaData;
+    import Modules.L1Data.DragInteraction;
+    import Modules.L1Data.MouseState;
+    import Modules.L1Data.Utils;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController

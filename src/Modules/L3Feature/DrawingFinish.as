@@ -1,6 +1,5 @@
 package Modules.L3Feature
 {
-    import Modules.DrawEngine.StrokeBuffer;
 
     import flash.filters.BlurFilter;
     import flash.geom.ColorTransform;
@@ -12,6 +11,7 @@ package Modules.L3Feature
     import Modules.L3Feature.Tools.PenTool;
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L2Engine.DrawEngine.StrokeBuffer;
 
     // 층: L3 기능 - 획이 끝났을 때 임시 그리기 버퍼를 레이어에 합치고 undo 기록을 준비
     public class DrawingFinish

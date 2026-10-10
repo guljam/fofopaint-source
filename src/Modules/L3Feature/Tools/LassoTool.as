@@ -1,14 +1,10 @@
 package Modules.L3Feature.Tools
 {
-    import Modules.DrawEngine.StrokeBuffer;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
-    import Modules.MouseState;
     import Modules.CaptureEngine.CaptureController;
-    import Modules.DragInteraction;
     import Modules.ReferenceLayerController;
-    import Modules.Utils;
 
     import Symbols.LassoMenuSet;
 
@@ -41,6 +37,10 @@ package Modules.L3Feature.Tools
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L4UI.HintStrings;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
+    import Modules.L1Data.DragInteraction;
+    import Modules.L1Data.MouseState;
+    import Modules.L2Engine.DrawEngine.StrokeBuffer;
+    import Modules.L1Data.Utils;
 
     // 층: L3 기능 - 올가미 선택과 이동·회전·크기·미러
     public class LassoTool

@@ -1,10 +1,8 @@
 package Modules.Tools
 {
     import Modules.InputPriority;
-    import Modules.MouseState;
     import flash.events.MouseEvent;
     import flash.utils.getTimer;
-    import Modules.Utils;
     import flash.display.BitmapData;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
@@ -18,6 +16,8 @@ package Modules.Tools
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
+    import Modules.L1Data.MouseState;
+    import Modules.L1Data.Utils;
 
     // 층: L3 기능 - 이동 툴
     public class MoveTool

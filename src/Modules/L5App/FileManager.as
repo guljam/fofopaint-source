@@ -47,7 +47,6 @@ package Modules.L5App
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
-    import Modules.Utils;
     import Modules.L1Data.KeyState;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
     import Modules.L2Engine.ReplayEngine.ReplayClock;
@@ -68,6 +67,7 @@ package Modules.L5App
     import Modules.L1Data.ReplayEngine.ReplaySaveMetaData;
     import Modules.L4UI.HintStrings;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
+    import Modules.L1Data.Utils;
 
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager

@@ -1,11 +1,8 @@
 package Modules.L3Feature.Tools
 {
-    import Modules.DrawEngine.StrokeBuffer;
     import Modules.UIEngine.CanvasNavigator;
     import Modules.InputPriority;
-    import Modules.MouseState;
     import Modules.ReferenceLayerController;
-    import Modules.Utils;
     import Modules.UIEngine.UITheme;
     import flash.geom.Point;
     import flash.display.SimpleButton;
@@ -32,6 +29,9 @@ package Modules.L3Feature.Tools
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
+    import Modules.L1Data.MouseState;
+    import Modules.L2Engine.DrawEngine.StrokeBuffer;
+    import Modules.L1Data.Utils;
 
     // 층: L3 기능 - 채우기 펜
     public class FillPenTool

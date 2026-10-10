@@ -9,7 +9,7 @@ package Modules.L2Engine
     import flash.geom.Point;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
-    import Modules.DrawEngine.StrokeBuffer;
+    import Modules.L2Engine.DrawEngine.StrokeBuffer;
 
     // 올가미로 고른 이미지를 올려 두는 표시 객체(상자 1, 2)와 그 이미지를 옮기고 바꾸는 함수
     // 드로우 모드의 LassoTool과 리플레이 재생(ReplayDrawCommands)이 함께 씀

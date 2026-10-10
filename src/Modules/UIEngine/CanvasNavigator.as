@@ -1,9 +1,7 @@
 package Modules.UIEngine
 {
     import Modules.InputPriority;
-    import Modules.MouseState;
     import Modules.ReferenceLayerController;
-    import Modules.Utils;
     import Symbols.CanvasNavigatorBoxSet;
 
     import flash.display.DisplayObject;
@@ -15,6 +13,8 @@ package Modules.UIEngine
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
+    import Modules.L1Data.MouseState;
+    import Modules.L1Data.Utils;
 
     // 사이드바의 캔버스 미리보기(네비게이터): 보이는 영역 커서 갱신, 클릭/드래그로 캔버스 이동
     // 층: L4 UI - 사이드바 캔버스 미리보기(네비게이터)와 클릭·드래그 이동

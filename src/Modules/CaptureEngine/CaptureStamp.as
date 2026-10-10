@@ -2,7 +2,6 @@ package Modules.CaptureEngine
 {
     import Modules.UIEngine.UITheme;
     import Modules.InputPriority;
-    import Modules.Utils;
     import flash.display.BitmapData;
     import flash.display.Bitmap;
     import flash.text.TextFormat;
@@ -22,6 +21,7 @@ package Modules.CaptureEngine
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L1Data.Utils;
 
     // 층: L3 기능 - 캡처 도장(시간 스탬프)과 글꼴
     public class CaptureStamp

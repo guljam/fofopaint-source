@@ -1,9 +1,9 @@
 package Modules.Tools
 {
-    import Modules.DrawEngine.StrokeBuffer;
-    import Modules.Utils;
 
     import flash.geom.Point;
+    import Modules.L2Engine.DrawEngine.StrokeBuffer;
+    import Modules.L1Data.Utils;
 
     // 층: L3 기능 - 점 찍기
     public class DotTool

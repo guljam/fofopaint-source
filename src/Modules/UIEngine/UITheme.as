@@ -2,7 +2,7 @@ package Modules.UIEngine
 {
     import flash.display.DisplayObject;
     import flash.display.DisplayObjectContainer;
-    import Modules.Utils;
+    import Modules.L1Data.Utils;
 
     // UI 색상 테마와 UI 스케일 상태. 패널에 반영하는 쪽은 UIController가 담당
     // 층: L1 데이터 - UI 색상 테마와 UI 스케일 상태

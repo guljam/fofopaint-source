@@ -10,7 +10,7 @@
 	import flash.display.Graphics;
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
-	import Modules.Utils;
+	import Modules.L1Data.Utils;
 
 	// 층: L4 UI - 리플레이 재생 막대(시크바) 화면 묶음
 	public class SeekBarSet extends Sprite

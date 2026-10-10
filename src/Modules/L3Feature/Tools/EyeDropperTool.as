@@ -1,10 +1,8 @@
 package Modules.L3Feature.Tools
 {
-    import Modules.MouseState;
     import Modules.InputPriority;
     import Modules.CaptureEngine.CaptureController;
     import Modules.ReferenceLayerController;
-    import Modules.Utils;
 
     import Symbols.EyedropperLensSet;
 
@@ -28,6 +26,8 @@ package Modules.L3Feature.Tools
     import Modules.L1Data.ColorHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
+    import Modules.L1Data.MouseState;
+    import Modules.L1Data.Utils;
 
     // 층: L3 기능 - 스포이드 툴
     public class EyeDropperTool

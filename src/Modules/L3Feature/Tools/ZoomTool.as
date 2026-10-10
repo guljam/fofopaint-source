@@ -4,9 +4,7 @@ package Modules.L3Feature.Tools
     import Modules.UIEngine.UITheme;
     import flash.geom.Point;
     import Modules.ReferenceLayerController;
-    import Modules.DragInteraction;
     import flash.display.Sprite;
-    import Modules.Utils;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L3Feature.Tools.LassoTool;
     import Modules.L4UI.UIEngine.UIController;
@@ -15,6 +13,8 @@ package Modules.L3Feature.Tools
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.LassoLayers;
+    import Modules.L1Data.DragInteraction;
+    import Modules.L1Data.Utils;
 
     // 층: L3 기능 - 줌 툴
     public class ZoomTool
