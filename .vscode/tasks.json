@@ -66,6 +66,23 @@
             }
         },
         {
+            "label": "Make AIR Package (legacy)",
+            "type": "shell",
+            "command": "pwsh",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/make-air-legacy.ps1"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
             "label": "Make AIR Bundle (x86 + x64, SDK 51.4.1 runtime)",
             "type": "shell",
             "dependsOn": [
