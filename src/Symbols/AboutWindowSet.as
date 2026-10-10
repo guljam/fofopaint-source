@@ -60,6 +60,11 @@
 			versionInfo.text = "Version " + str;
 		}
 
+		public function setSdkVersionInfo(str:String):void
+		{
+			memoryInfo.text = "Adobe AIR SDK " + str;
+		}
+
 		[Embed(source="fofoPaint-animate-27.13.swf",symbol="AboutWindowSet")]
 		private static const EmbeddedClass:Class;
 
@@ -85,7 +90,6 @@
 			aboutMeLink.mouseEnabled = false;
 
 			memoryInfo.autoSize = TextFieldAutoSize.RIGHT;
-			memoryInfo.text = "Adobe AIR SDK " + AboutWindowSet.ADOBE_AIR_SDK_VERSION;
 
 			redesignWindow();
 		}
@@ -339,8 +343,5 @@
 			state.addChild(field);
 			return state;
 		}
-
-        public static const ADOBE_AIR_SDK_VERSION:String = "51.4.1.1";
-
 	}
 }

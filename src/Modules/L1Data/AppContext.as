@@ -8,6 +8,7 @@ package Modules.L1Data
         public static var stage:Stage;
         public static var appVersion:String;
         public static var appStateVersion:String;
+        public static var airSdkVersion:String;
         public static var titleString:String;
     }
 }

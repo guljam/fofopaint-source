@@ -42,6 +42,7 @@ package Modules.L4UI
             _aboutBox = new AboutWindowSet();
             _aboutBox.name = "aboutPanel";
             _aboutBox.setVersionInfo(AppContext.appVersion);
+            _aboutBox.setSdkVersionInfo(AppContext.airSdkVersion);
         }
 
         private static var _aboutBox:AboutWindowSet;

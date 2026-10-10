@@ -11,6 +11,7 @@ $legacySdk = 'D:\adobe_air_sdk_manager\AIRSDK_51.3.4'
 $legacyVersion = ([IO.File]::ReadAllText("$PSScriptRoot\legacy_version.txt")).Trim()
 if ($legacyVersion -notmatch '^\d+\.\d+$') { Write-Host "legacy_version.txt must be a.b (e.g. 28.01): '$legacyVersion'"; exit 1 }
 $legacyStateVersion = $legacyVersion.Replace('.', '')  # 28.01 -> 2801
+$legacySdkVersion = '51.3.4.2'  # 정보창에 표시할 AIR 런타임 버전 (ADOBE_AIR_SDK_VERSION)
 $keystore = 'F:\페인트앱_백업\fofopaintKey\secretkey3.p12'
 $release = 'bin\release-legacy'
 $desc = 'bin\fofoPaint-air-app.xml'
@@ -24,6 +25,8 @@ New-Item -ItemType Directory -Force $legacySrc | Out-Null
 $main = [IO.File]::ReadAllText("$PSScriptRoot\src\Main.as")
 $patched = $main -replace '(APP_VERSION:String = ")[^"]*(")', "`${1}$legacyVersion`$2"
 $patched = $patched -replace '(APP_STATE_VERSION:String = ")[^"]*(")', "`${1}$legacyStateVersion`$2"
+$patched = $patched -replace '(ADOBE_AIR_SDK_VERSION:String = ")[^"]*(")', "`${1}$legacySdkVersion`$2"
+if ($patched -notmatch "ADOBE_AIR_SDK_VERSION:String = `"$([regex]::Escape($legacySdkVersion))`"") { Write-Host 'Main.as SDK version patch failed'; exit 1 }
 if ($patched -notmatch "APP_VERSION:String = `"$([regex]::Escape($legacyVersion))`"" -or $patched -notmatch "APP_STATE_VERSION:String = `"$([regex]::Escape($legacyStateVersion))`"") { Write-Host 'Main.as version patch failed'; exit 1 }
 [IO.File]::WriteAllText("$PSScriptRoot\$legacySrc\Main.as", $patched, (New-Object System.Text.UTF8Encoding($true)))
 

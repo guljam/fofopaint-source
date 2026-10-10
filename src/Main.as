@@ -91,6 +91,7 @@
         public static var _instance:Main;
         public const APP_VERSION:String = "30.0.0";
         public const APP_STATE_VERSION:String = "30.0.0";
+        public static const ADOBE_AIR_SDK_VERSION:String = "51.4.1.1";
 
         public const STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT";
 
@@ -274,6 +275,7 @@
             AppContext.stage = this.stage;
             AppContext.appVersion = APP_VERSION;
             AppContext.appStateVersion = APP_STATE_VERSION;
+            AppContext.airSdkVersion = ADOBE_AIR_SDK_VERSION;
             AppContext.titleString = STRING_TITLE_FOFOPAINT;
             HintBoxSet.setMainStage(this.stage);
 
