@@ -21,7 +21,6 @@ package Modules.L3Feature.Tools
     import Modules.L1Data.ColorHistory;
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
-    import Modules.L3Feature.DrawEngine.CanvasLayers;
 
     // 층: L3 기능 - 직선 그리기
     public class LineTool
@@ -354,7 +353,7 @@ package Modules.L3Feature.Tools
                 inputMoveToData(mx, my);
                 inputLineToData(mx, my);
 
-                subLayerFlag = CanvasLayers.isLayer2Selected;
+                subLayerFlag = DrawCanvas.isLayer2Selected;
 
                 if (ReferenceLayerController.isRefLayerMemoryTrainingON)
                 {

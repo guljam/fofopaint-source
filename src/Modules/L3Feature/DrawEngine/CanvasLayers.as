@@ -21,7 +21,6 @@ package Modules.L3Feature.DrawEngine
     // 층: L2 엔진 - 드로우 모드 레이어 1/2 선택, 잠금, 스왑, 병합
     public class CanvasLayers
     {
-        public static var isLayer2Selected:Boolean = false;
         public static var checkedLayer:int = 0; // 레이어가 체크되면 저장해줌
         public static var isLayerSwapped:Boolean = false; // 1<->2 번호 바뀌는 힌트 써주려고 만듬
 
@@ -190,7 +189,7 @@ package Modules.L3Feature.DrawEngine
         // 선택된 레이어(isLayer2Selected)에 맞춰 drawLayer 위치를 한 번에 맞춤. 지우개 임시 홀더도 먼저 풀어줌
         public static function syncDrawLayerOrder():void
         {
-            if (isLayer2Selected)
+            if (DrawCanvas.isLayer2Selected)
             {
                 bringCanvasDrawLayerAboveLayer2();
             }
@@ -203,7 +202,7 @@ package Modules.L3Feature.DrawEngine
         // layer: 1 또는 2. onlyViewFlag가 true면 선택한 레이어만 보이게 함 (solo)
         public static function selectLayer(layer:int, onlyViewFlag:Boolean):void
         {
-            isLayer2Selected = (layer === 2);
+            DrawCanvas.isLayer2Selected = (layer === 2);
             DrawCanvas.canvasLayer1Bitmap.visible = !onlyViewFlag || layer === 1;
             DrawCanvas.canvasLayer2Bitmap.visible = !onlyViewFlag || layer === 2;
             ToolPanel.updateLayerSelectButtons(layer, onlyViewFlag);

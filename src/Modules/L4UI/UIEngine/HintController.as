@@ -27,7 +27,6 @@ package Modules.L4UI.UIEngine
     import Modules.L4UI.CanvasViewport;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L4UI.HintStrings;
-    import Modules.L3Feature.DrawEngine.CanvasLayers;
 
     // 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시. 문구는 HintStrings가 담당
     // 층: L4 UI - 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시
@@ -96,7 +95,7 @@ package Modules.L4UI.UIEngine
 
         public static function showMouseHintLayerChecked():void
         {
-            showMouseHintTemp(HintStrings.getLayerCheckedHint(CanvasLayers.isLayer2Selected));
+            showMouseHintTemp(HintStrings.getLayerCheckedHint(DrawCanvas.isLayer2Selected));
         }
         public static function showMouseHintLayerVisible():void
         {

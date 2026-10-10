@@ -922,7 +922,7 @@ package Modules.L4UI.Tools
                     return true;
                 case "layer1SelectButton":
                     {
-                        if (CanvasLayers.isLayer2Selected)
+                        if (DrawCanvas.isLayer2Selected)
                         {
                             CanvasLayers.selectLayer(1, false);
                         }
@@ -940,7 +940,7 @@ package Modules.L4UI.Tools
                     return true;
                 case "layer2SelectButton":
                     {
-                        if (!CanvasLayers.isLayer2Selected)
+                        if (!DrawCanvas.isLayer2Selected)
                         {
                             CanvasLayers.selectLayer(2, false);
                         }

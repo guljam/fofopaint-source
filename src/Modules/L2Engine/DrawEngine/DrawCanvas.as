@@ -1,7 +1,5 @@
 package Modules.L2Engine.DrawEngine
 {
-    import Modules.ReferenceLayerController;
-    import Modules.UIEngine.CanvasNavigator;
     import Modules.Utils;
 
     import flash.display.Bitmap;
@@ -11,12 +9,7 @@ package Modules.L2Engine.DrawEngine
     import flash.geom.Matrix;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.L4UI.ColorPickerController;
-    import Modules.L5App.FileManager;
-    import Modules.L4UI.ImageViewWindow;
-    import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
-    import Modules.L4UI.UIEngine.HintController;
     import Modules.DrawEngine.StrokeBuffer;
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
     import Modules.L2Engine.ReplayEngine.ReplayState;
@@ -26,6 +19,19 @@ package Modules.L2Engine.DrawEngine
     // 층: L2 엔진 - 드로우 모드 캔버스 데이터 (크기, 배경색, 레이어 비트맵, 미러)
     public class DrawCanvas
     {
+        // 캔버스 크기를 바꾼 뒤 참조 레이어 이미지 위치를 다시 맞춰야 한다는 보고 (인자: 너비, 높이, 가운데로 옮겼는지)
+        public static var onCanvasSizeAppliedFunc:Function;
+        // 캔버스가 바뀌어 파일이 저장된 상태가 아니게 됐다는 보고
+        public static var onFileChangedFunc:Function;
+        // 캔버스 배경색이 바뀌어 색 선택기의 스크래치 패드 배경을 바꿔야 한다는 보고 (인자: 색)
+        public static var onCanvasBGColorChangedFunc:Function;
+        // 리플레이 캔버스를 드로우 캔버스에 복사한 뒤 드로우 모드의 미러 상태를 맞춰야 한다는 보고
+        public static var onReplayCanvasAppliedFunc:Function;
+        // 캔버스 이미지가 통째로 바뀌어 네비게이터와 이미지 보기 창을 갱신해야 한다는 보고
+        public static var onCanvasPreviewReplacedFunc:Function;
+        // 마우스 옆에 임시 힌트 문구를 보여달라는 보고 (인자: 문구, 표시 시간)
+        public static var onMouseHintTempFunc:Function;
+
         public static const CANVAS_MAX_SIZE:Number = 2000;
         public static var CANVAS_WIDTH:Number = 600;
         public static var CANVAS_HEIGHT:Number = 390;
@@ -113,7 +119,7 @@ package Modules.L2Engine.DrawEngine
             {
                 bmpd.draw(xBitmapData11, mat); // 레이어 쌓기
             }
-            const isLayer2Drawing:Boolean = (ReplayState.isReplayModeON) ? ReplayDrawer.isLayer2SelectedReplayMode() : CanvasLayers.isLayer2Selected;
+            const isLayer2Drawing:Boolean = (ReplayState.isReplayModeON) ? ReplayDrawer.isLayer2SelectedReplayMode() : DrawCanvas.isLayer2Selected;
             if (isLayer2Drawing) // 레이어 2번을 그리고 있을때
             {
                 if (layer2merge)
@@ -174,7 +180,7 @@ package Modules.L2Engine.DrawEngine
 
             // 이 함수는 이전 CANVAS_WIDTH/HEIGHT와 새 크기의 차이를 사용.
             // 따라서 크기 변수 갱신보다 먼저 호출해야 함.
-            ReferenceLayerController.updateRefLayerImagePos(w, h, false);
+            if (onCanvasSizeAppliedFunc != null) onCanvasSizeAppliedFunc(w, h, false);
 
             CANVAS_WIDTH = w;
             CANVAS_HEIGHT = h;
@@ -244,7 +250,7 @@ package Modules.L2Engine.DrawEngine
             canvasLayer2Bitmap.bitmapData = canvasLayer2BitmapData;
 
             // canvas width가 갱신되게 전에 업데이트 해야함
-            ReferenceLayerController.updateRefLayerImagePos(w, h, centerMovedFlag);
+            if (onCanvasSizeAppliedFunc != null) onCanvasSizeAppliedFunc(w, h, centerMovedFlag);
             CANVAS_WIDTH = w;
             CANVAS_HEIGHT = h;
         }
@@ -273,13 +279,10 @@ package Modules.L2Engine.DrawEngine
                 return;
             }
 
-            FileManager.isFileAlreadySaved = false;
+            if (onFileChangedFunc != null) onFileChangedFunc();
             CANVAS_BG_COLOR = color;
 
-            if (ColorPickerController.colorPickerBox.scratchPad)
-            {
-                ColorPickerController.colorPickerBox.scratchPad.updateBGColor(color);
-            }
+            if (onCanvasBGColorChangedFunc != null) onCanvasBGColorChangedFunc(color);
         }
 
         // 드로우 모드 캔버스 상태를 리플레 캔버스 상태랑 똑같이 만들어줌
@@ -290,21 +293,16 @@ package Modules.L2Engine.DrawEngine
             syncDrawModeCanvasSizeToReplayMode(ReplayDrawer.rCanvasLayer1BitmapData.width, ReplayDrawer.rCanvasLayer1BitmapData.height);
             setCanvasBGColorDrawMode(ReplayState.RCANVAS_BG_COLOR);
             CanvasView.updateCanvasPanelColorAndSize();
-            FileManager.isFileAlreadySaved = false;
-            ReplayController.preserveDrawMirrorStateAfterReplayCopy();
-            CanvasNavigator.box.updateImage();
-            if (ImageViewWindow.isCanvasWindowON)
-            {
-                ImageViewWindow.updateCanvasWindowImage();
-                ImageViewWindow.updateCanvasWindowBitmapSize();
-            }
+            if (onFileChangedFunc != null) onFileChangedFunc();
+            if (onReplayCanvasAppliedFunc != null) onReplayCanvasAppliedFunc();
+            if (onCanvasPreviewReplacedFunc != null) onCanvasPreviewReplacedFunc();
         }
 
         public static function copyPixels(target:BitmapData, source:BitmapData):void
         {
             if (target.width !== source.width || target.height !== source.height)
             {
-                HintController.showMouseHintTemp("DrawCanvas.copyPixels() failed : Not same size", 10.0);
+                if (onMouseHintTempFunc != null) onMouseHintTempFunc("DrawCanvas.copyPixels() failed : Not same size", 10.0);
                 return;
             }
 
@@ -313,5 +311,8 @@ package Modules.L2Engine.DrawEngine
             target.copyPixels(source, copyPixelRect, Utils.ZERO_POINT, null, null, false);
             target.unlock();
         }
+
+        public static var isLayer2Selected:Boolean = false;
+
     }
 }

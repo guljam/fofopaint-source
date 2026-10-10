@@ -12,7 +12,6 @@ package Modules.L3Feature
     import Modules.L3Feature.Tools.PenTool;
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
-    import Modules.L3Feature.DrawEngine.CanvasLayers;
 
     // 층: L3 기능 - 획이 끝났을 때 임시 그리기 버퍼를 레이어에 합치고 undo 기록을 준비
     public class DrawingFinish
@@ -59,7 +58,7 @@ package Modules.L3Feature
             {
                 drawLayerAlpha.alphaMultiplier = PenSettings.penAlpha;
 
-                if (CanvasLayers.isLayer2Selected)
+                if (DrawCanvas.isLayer2Selected)
                 {
                     DrawCanvas.canvasLayer2BitmapData.draw(StrokeBuffer.canvasDrawLayerBitmap, null, drawLayerAlpha, (PenTool.isTransparentPenColor) ? "erase" : null, StrokeBuffer.canvasDrawLayerClipRect);
                 }
@@ -72,7 +71,7 @@ package Modules.L3Feature
             {
                 drawLayerAlpha.alphaMultiplier = PenSettings.eraserAlpha;
 
-                if (CanvasLayers.isLayer2Selected)
+                if (DrawCanvas.isLayer2Selected)
                 {
                     DrawCanvas.canvasLayer2BitmapData.draw(StrokeBuffer.canvasDrawLayerBitmap, null, drawLayerAlpha, "erase", StrokeBuffer.canvasDrawLayerClipRect);
                 }
@@ -82,9 +81,9 @@ package Modules.L3Feature
                 }
             }
 
-            ReplayState.rMemoryDataBuffer.push(["drawDone5", CanvasLayers.isLayer2Selected]);
+            ReplayState.rMemoryDataBuffer.push(["drawDone5", DrawCanvas.isLayer2Selected]);
 
-            if (CanvasLayers.isLayer2Selected)
+            if (DrawCanvas.isLayer2Selected)
             {
                 DrawCanvas.canvasLayer2Bitmap.bitmapData = DrawCanvas.canvasLayer2BitmapData;
             }

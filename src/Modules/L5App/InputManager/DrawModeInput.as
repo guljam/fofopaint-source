@@ -516,7 +516,7 @@ package Modules.L5App.InputManager
         private static function handleLayerSelectShortcut(layer:int, keyCode:int):void
         {
             const other:int = (layer === 1) ? 2 : 1;
-            const isLayer2Selected:Boolean = ((layer === 2) === CanvasLayers.isLayer2Selected);
+            const isLayer2Selected:Boolean = ((layer === 2) === DrawCanvas.isLayer2Selected);
             const otherVisible:Boolean = (other === 1 ? DrawCanvas.canvasLayer1Bitmap : DrawCanvas.canvasLayer2Bitmap).visible;
 
             if (!isLayer2Selected)

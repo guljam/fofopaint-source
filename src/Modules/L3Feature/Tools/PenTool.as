@@ -404,14 +404,14 @@ package Modules.L3Feature.Tools
 
 					updateExtendEndPoint(mx, my, filteredStartPos.x, filteredStartPos.y, xSize / 8);
 
-					ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]));
+					ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, extendedPos.x, extendedPos.y, xBlendMode, false, DrawCanvas.isLayer2Selected, PenSettings.airBrushSizeDrawMode]));
 					penPoints.push(extendedPos.x);
 					penPoints.push(extendedPos.y);
 					StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(extendedPos.x, extendedPos.y);
 				}
 				else
 				{
-					ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]));
+					ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline, xBlendMode, false, DrawCanvas.isLayer2Selected, PenSettings.airBrushSizeDrawMode]));
 					penPoints.push(smoothPos.x + offsetForSharpline);
 					penPoints.push(smoothPos.y + offsetForSharpline);
 					StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(smoothPos.x + offsetForSharpline, smoothPos.y + offsetForSharpline);
@@ -465,14 +465,14 @@ package Modules.L3Feature.Tools
 
 					if (xShape === true)
 					{
-						ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]));
+						ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, prevX, prevY, xBlendMode, false, DrawCanvas.isLayer2Selected, PenSettings.airBrushSizeDrawMode]));
 						penPoints.push(prevX);
 						penPoints.push(prevY);
 						StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(prevX, prevY);
 					}
 					else
 					{
-						ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode]));
+						ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["lineStyle5", xShape, xSize, xColor, xAlpha, mx, my, xBlendMode, false, DrawCanvas.isLayer2Selected, PenSettings.airBrushSizeDrawMode]));
 						penPoints.push(mx);
 						penPoints.push(my);
 						StrokeBuffer.canvasDrawLayerChild.graphics.moveTo(mx, my);
@@ -598,7 +598,7 @@ package Modules.L3Feature.Tools
 			if (isMouseMoved === false || (isPenTool && isMouseMoved === true && dotflag))
 			{
 				ReplayState.rMemoryDataBuffer = [];
-				ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, CanvasLayers.isLayer2Selected, PenSettings.airBrushSizeDrawMode, CanvasView.canvasAnchorPoint.rotation]));
+				ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["dot4", xShape, xSize, xColor, xAlpha, clickPos.x, clickPos.y, xBlendMode, DrawCanvas.isLayer2Selected, PenSettings.airBrushSizeDrawMode, CanvasView.canvasAnchorPoint.rotation]));
 
 				DotTool.start(xShape, xSize, xColor, clickPos.x, clickPos.y, CanvasView.canvasAnchorPoint.rotation);
 				StrokeBuffer.resetCanvasDrawLayerClipRect();
@@ -716,7 +716,7 @@ package Modules.L3Feature.Tools
 
 			if (!isPenTool)
 			{
-				CanvasLayers.beginEraserToolPreview(CanvasLayers.isLayer2Selected); // 선택된 레이어만 지워지는 미리보기
+				CanvasLayers.beginEraserToolPreview(DrawCanvas.isLayer2Selected); // 선택된 레이어만 지워지는 미리보기
 			}
 
 			isStabilizerON = isPenTool && PenSettings.penSmoothSlideValue > 1;

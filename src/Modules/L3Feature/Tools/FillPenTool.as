@@ -380,7 +380,7 @@ package Modules.L3Feature.Tools
 
             DottedLineTool.lineTo(data[0], data[1], true);
 
-            if (CanvasLayers.isLayer2Selected)
+            if (DrawCanvas.isLayer2Selected)
             {
                 CanvasLayers.bringCanvasDrawLayerAboveLayer1();
             }
@@ -730,7 +730,7 @@ package Modules.L3Feature.Tools
                 const mx:Number = filteredPos.x + _pos05Offset;
                 const my:Number = filteredPos.y + _pos05Offset;
 
-                if (CanvasLayers.isLayer2Selected)
+                if (DrawCanvas.isLayer2Selected)
                 {
                     CanvasLayers.bringCanvasDrawLayerAboveLayer2();
                 }

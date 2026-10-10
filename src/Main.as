@@ -133,6 +133,29 @@
             };
             UndoHistory.onUndoDataAddedFunc = FileManager.enableNewFileButton;
             UndoHistory.onCanvasPreviewChangedFunc = UIController.updateCanvasPreviews;
+            DrawCanvas.onCanvasSizeAppliedFunc = ReferenceLayerController.updateRefLayerImagePos;
+            DrawCanvas.onFileChangedFunc = function ():void
+            {
+                FileManager.isFileAlreadySaved = false;
+            };
+            DrawCanvas.onCanvasBGColorChangedFunc = function (color:uint):void
+            {
+                if (ColorPickerController.colorPickerBox.scratchPad)
+                {
+                    ColorPickerController.colorPickerBox.scratchPad.updateBGColor(color);
+                }
+            };
+            DrawCanvas.onReplayCanvasAppliedFunc = ReplayController.preserveDrawMirrorStateAfterReplayCopy;
+            DrawCanvas.onCanvasPreviewReplacedFunc = function ():void
+            {
+                CanvasNavigator.box.updateImage();
+                if (ImageViewWindow.isCanvasWindowON)
+                {
+                    ImageViewWindow.updateCanvasWindowImage();
+                    ImageViewWindow.updateCanvasWindowBitmapSize();
+                }
+            };
+            DrawCanvas.onMouseHintTempFunc = HintController.showMouseHintTemp;
         }
 
         public function initializeModule():void
