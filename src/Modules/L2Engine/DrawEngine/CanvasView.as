@@ -36,6 +36,7 @@ package Modules.L2Engine.DrawEngine
             {
                 parent.addChild(canvasFlashEffect);
             }
+
             canvasFlashEffect.visible = true;
             canvasFlashEffect.graphics.beginFill(0xFFFFFF);
             canvasFlashEffect.graphics.drawRect(ox, oy, width, height);

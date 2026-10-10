@@ -87,7 +87,7 @@ package Modules.L5App.InputManager
                     break;
                 case "playButton":
                     {
-                        if (ReplayState.isReplayRestartTimerON())
+                        if (ReplayState.isReplayRestartTimerON)
                         {
                             ReplayController.cancelReplayRestartTimer();
                         }
@@ -100,7 +100,7 @@ package Modules.L5App.InputManager
                 case "pauseButton":
                     {
                         FOFOTimer.remove("prograssBarUpdateTimer");
-                        if (ReplayState.isReplayRestartTimerON())
+                        if (ReplayState.isReplayRestartTimerON)
                         {
                             ReplayController.cancelReplayRestartTimer();
                         }
@@ -228,7 +228,7 @@ package Modules.L5App.InputManager
                 return;
             }
 
-            if (ReplayState.isReplayRestartTimerON())
+            if (ReplayState.isReplayRestartTimerON)
             {
                 switch (firstKey)
                 {
@@ -370,7 +370,7 @@ package Modules.L5App.InputManager
                 case "rCanvasDrawLayer":
                 case "stageBG":
                     {
-                        if (ReplayState.isReplayRestartTimerON())
+                        if (ReplayState.isReplayRestartTimerON)
                         {
                             ReplayController.cancelReplayRestartTimer();
                         }
@@ -394,8 +394,9 @@ package Modules.L5App.InputManager
             {
                 return;
             }
+
             const targetName:String = target.name;
-            if (ReplayState.isReplayRestartTimerON())
+            if (ReplayState.isReplayRestartTimerON)
             {
                 if (UIController.seekBarBox.trackBar.hitTestPoint(main.stage.mouseX, main.stage.mouseY))
                 {
@@ -404,7 +405,6 @@ package Modules.L5App.InputManager
                 }
             }
 
-
             if (targetName)
             {
                 if (KeyState.isKeyPressed())
@@ -412,7 +412,7 @@ package Modules.L5App.InputManager
                     return;
                 }
 
-                if(!ReplayState.isReplayRestartTimerON())
+                if(!ReplayState.isReplayRestartTimerON)
                 {   
                     if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "stageBG")
                     {

@@ -288,7 +288,7 @@ package Modules.L4UI.UIEngine
             }
             else
             {
-                if (ReplayState.isReplayRestartTimerON())
+                if (ReplayState.isReplayRestartTimerON)
                 {
                     ReplayDrawer.viewport.centerIn("replay");
                 }

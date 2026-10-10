@@ -146,10 +146,7 @@ package Modules.L4UI
                 _cursor.x = Math.floor(mx);
                 _cursor.y = Math.floor(my);
                 checkCursorVisibility();
-                const nt:int = getTimer();
-                
                 requestColorCheck();
-                trace("time = ",getTimer()-nt);
             }
         }
 

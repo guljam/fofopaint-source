@@ -1165,11 +1165,25 @@ package Modules.L5App.ReplayEngine
                 });
         }
 
+        public static function startCheckAutoHideTopbarOnPlaybackTimer():void
+        {
+            FOFOTimer.addByName("checkAutoHideTopbarOnPlaybackTimer", 0.0, true, function ():Boolean
+            {
+                if(!ReplayState.isReplayModeON || (!ReplayState.isReplayStarted && !ReplayState.isReplayRestartTimerON))
+                {
+                    showTopbarOnPlayback();
+                    return false;
+                }
+
+                checkAutoHideTopbarOnPlayback();
+                return true;
+            });
+        }
+
         public static function startReplayDrawTimer():void
         {
             FOFOTimer.addByName("replayDrawTimer", 0.0, true, function ():Boolean
                 {
-                    checkAutoHideTopbarOnPlayback();
                     if (ReplayState.isReplaySlideShowMode)
                     {
                         startReplaySlideShowMode();
@@ -1587,7 +1601,6 @@ package Modules.L5App.ReplayEngine
         {
             UIController.seekBarBox.setPlayButtonVisible(true);
             hideCompleteImageToBGReplayMode();
-            // showTopbarOnReplayEnd();
             FOFOTimer.remove("replayRestartTimer");
             updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
             Utils.setColorTransform(UIController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
@@ -1632,7 +1645,7 @@ package Modules.L5App.ReplayEngine
 
             if (ReplayState.isReplayRepeatON)
             {
-                if(ReplayState.isReplayFinished && !ReplayState.isReplayRestartTimerON())
+                if(ReplayState.isReplayFinished && !ReplayState.isReplayRestartTimerON)
                 {
                     ReplayController.startReplayRestartTimer();
                 }
@@ -1640,7 +1653,7 @@ package Modules.L5App.ReplayEngine
             }
             else
             {
-                if(ReplayState.isReplayFinished && ReplayState.isReplayRestartTimerON())
+                if(ReplayState.isReplayFinished && ReplayState.isReplayRestartTimerON)
                 {
                     ReplayController.cancelReplayRestartTimer();
                 }
@@ -1662,6 +1675,7 @@ package Modules.L5App.ReplayEngine
                 }
             }
         }
+
         public static function hideTopbarOnPlayback():void
         {
             if (UIController.topBar.visible === true)
@@ -1768,6 +1782,7 @@ package Modules.L5App.ReplayEngine
             ReplayClock.anchorAtFrame(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
             ReplayMouseAutoHide.start();
             startReplayDrawTimer();
+            startCheckAutoHideTopbarOnPlaybackTimer();
             startUpdatingPrograssBarTimer();
         }
 
@@ -2227,7 +2242,7 @@ package Modules.L5App.ReplayEngine
             CanvasViewport.current().fitToViewportMargin(ReplayState.isReplayCanvasFitToWindow);
             CanvasView.applyCanvasFlashEffect(ReplayDrawer.rCanvasPanel, 0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT, function ():Boolean
                 {
-                    return UIController.topBar.visible;
+                    return !ReplayState.isReplayModeON;
                 });
         }
 

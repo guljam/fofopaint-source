@@ -79,7 +79,7 @@ package Modules.L4UI.Tools
 
         private static function onMouseMoveHandTool(e:MouseEvent):void
         {
-            if (isReplayMode && ReplayState.isReplayRestartTimerON())
+            if (isReplayMode && ReplayState.isReplayRestartTimerON)
             {
                 finishHandTool();
                 return;

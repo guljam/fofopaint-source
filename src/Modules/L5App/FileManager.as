@@ -844,7 +844,7 @@ package Modules.L5App
                         {
                             ReplayController.stopReplay();
                         }
-                        if (ReplayState.isReplayRestartTimerON())
+                        if (ReplayState.isReplayRestartTimerON)
                         {
                             ReplayController.cancelReplayRestartTimer();
                         }

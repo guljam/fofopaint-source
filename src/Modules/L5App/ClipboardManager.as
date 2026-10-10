@@ -31,9 +31,10 @@ package Modules.L5App
             }
 
             ReplayDrawer.rFileStream.close();
-            if (ReplayState.isReplayRestartTimerON())
+            if (ReplayState.isReplayRestartTimerON)
             {
                 ReplayController.cancelReplayRestartTimer();
+                ReplayController.showTopbarOnPlayback();
             }
 
             const data:* = getSystemClipboardData();

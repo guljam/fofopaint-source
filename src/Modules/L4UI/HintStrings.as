@@ -269,7 +269,7 @@
                 return "";
             }
 
-            if (ReplayState.isReplayRestartTimerON())
+            if (ReplayState.isReplayRestartTimerON)
             {
                 return "Seek bar _ Click to abort restart";
             }

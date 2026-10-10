@@ -94,7 +94,6 @@ package Modules.L4UI.ReplayEngine
                         Mouse.hide();
                         _isMouseHided = true;
                         updateMousePos();
-                        if (onReplayTopbarHiddenFunc != null) onReplayTopbarHiddenFunc();
                     }
                 }
                 else

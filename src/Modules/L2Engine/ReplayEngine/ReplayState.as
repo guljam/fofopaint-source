@@ -362,10 +362,9 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 리플레이 끝에서 다시 시작을 기다리는 타이머가 돌고 있는지
-        public static function isReplayRestartTimerON():Boolean
+        public static function get isReplayRestartTimerON():Boolean
         {
             return FOFOTimer.hasTimer("replayRestartTimer");
         }
-
     }
 }
