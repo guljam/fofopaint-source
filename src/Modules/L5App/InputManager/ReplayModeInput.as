@@ -17,8 +17,8 @@ package Modules.L5App.InputManager
     import Modules.L4UI.Tools.RotateTool;
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L4UI.ActivityWorkTimer;
-    import Modules.L5App.LoadBoxController;
     import Modules.L5App.ClipboardManager;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 리플레이 모드의 키보드/마우스 입력
     // 층: L5 앱 흐름 - 리플레이 모드의 키보드/마우스 입력
@@ -162,7 +162,7 @@ package Modules.L5App.InputManager
         private static function onKeyDownReplayMode(e:KeyboardEvent):void // keydown2
         {
             const firstKey:uint = KeyState.getFirstPressedKey();
-            if (MouseState.isLeftDown || MouseState.isRightDown || KeyState.isLastKey(firstKey) || LoadBoxController.loadMenuBox.visible)
+            if (MouseState.isLeftDown || MouseState.isRightDown || KeyState.isLastKey(firstKey) || UIController.loadMenuBox.visible)
             {
                 return;
             }
@@ -332,7 +332,7 @@ package Modules.L5App.InputManager
 
         private static function onRightMouseDownReplayMode(e:MouseEvent):void
         {
-            if (MouseState.isLeftDown || KeyState.isKeyPressed() || !e.target || LoadBoxController.loadMenuBox.visible
+            if (MouseState.isLeftDown || KeyState.isKeyPressed() || !e.target || UIController.loadMenuBox.visible
                     || ReplayState.isZeroReplayFrame())
             {
                 return;
@@ -389,7 +389,7 @@ package Modules.L5App.InputManager
         private static function onMouseDownReplayMode(e:MouseEvent):void // repdown1
         {
             const target:DisplayObject = e.target as DisplayObject;
-            if (!target || LoadBoxController.loadMenuBox.visible)
+            if (!target || UIController.loadMenuBox.visible)
             {
                 return;
             }
@@ -439,7 +439,7 @@ package Modules.L5App.InputManager
             {
                 case "repNewFileButton":
                     {
-                        InputManager.startPressHoldKey(UIController.topBar.repNewFileButton, HintStrings.getNewFileHintString(),
+                        HintController.startPressHoldKey(UIController.topBar.repNewFileButton, HintStrings.getNewFileHintString(),
                                 function ():Boolean
                                 {
                                     return ReplayController.prepareDeleteReplayData("total");
@@ -456,7 +456,7 @@ package Modules.L5App.InputManager
                     {
                         if (UIController.topBar.cutPrevDataButton.alpha === 1.0)
                         {
-                            InputManager.startPressHoldKey(UIController.topBar.cutPrevDataButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
+                            HintController.startPressHoldKey(UIController.topBar.cutPrevDataButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
                                 {
                                     return ReplayController.prepareDeleteReplayData("before");
                                 },
@@ -473,7 +473,7 @@ package Modules.L5App.InputManager
                     {
                         if (UIController.topBar.superUndoButton.alpha === 1.0)
                         {
-                            InputManager.startPressHoldKey(UIController.topBar.superUndoButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
+                            HintController.startPressHoldKey(UIController.topBar.superUndoButton, HintStrings.getDeleteReplayDataHintString(), function ():Boolean
                                 {
                                     return ReplayController.prepareDeleteReplayData("after");
                                 },
@@ -532,7 +532,7 @@ package Modules.L5App.InputManager
                     break;
                 case "timer":
                     {
-                        InputManager.startPressHoldKey(UIController.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
+                        HintController.startPressHoldKey(UIController.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
                     }
                     break;
                 case "drawModeButton":

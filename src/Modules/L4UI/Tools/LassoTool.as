@@ -17,9 +17,7 @@ package Modules.L4UI.Tools
     import flash.geom.Point;
     import Symbols.RotateCursorSet;
     import Modules.L4UI.ColorPickerController;
-    import Modules.L5App.InputManager.DrawModeInput;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
@@ -46,6 +44,11 @@ package Modules.L4UI.Tools
     // 층: L4 UI - 올가미 선택과 이동·회전·크기·미러
     public class LassoTool
     {
+        // 드로우 모드 버튼을 눌렀을 때의 클릭 처리를 시작해야 한다는 보고 (인자: 버튼 이름)
+        public static var onDrawModeButtonPressedFunc:Function;
+        // 버튼을 눌렀을 때의 클릭 처리(마우스를 뗀 곳이 같은 버튼이면 실행)를 시작해야 한다는 보고 (인자: 버튼 이름, 선택적으로 실행할 함수)
+        public static var onButtonPressedFunc:Function;
+
         // 드로우 모드의 입력 이벤트를 다시 달아야 한다는 보고
         public static var onDrawEventsAddedFunc:Function;
         // 드로우 모드의 입력 이벤트를 빼야 한다는 보고
@@ -1124,7 +1127,7 @@ package Modules.L4UI.Tools
                     case "lassoLayerMerge":
                     case "lassoLayerSwap":
                     case "lassoMirror":
-                        InputManager.handleMouseClickStage(targetName, onClickLassoMenu);
+                        if (onButtonPressedFunc != null) onButtonPressedFunc(targetName, onClickLassoMenu);
                         break;
                     case "sideBarPositionButton":
                     case "sideBarPositionButton2":
@@ -1132,7 +1135,7 @@ package Modules.L4UI.Tools
                     case "sideBarOFFButton2":
                     case "sideBarONButton":
                     case "sideBarONButton2":
-                        InputManager.handleMouseClickStage(targetName, DrawModeInput.onClickDrawModeButton);
+                        if (onDrawModeButtonPressedFunc != null) onDrawModeButtonPressedFunc(targetName);
                         break;
                     default:
                         break;

@@ -88,7 +88,7 @@ package Modules.L4UI.ReplayEngine
         private function viewportRect():Rectangle
         {
             const top:Number = UIController.topBar.BARSIZE * UITheme.getUIScale();
-            const stage:Stage = ReplayController.main.stage;
+            const stage:Stage = UIController.main.stage;
             return new Rectangle(0, top, stage.stageWidth, stage.stageHeight - top);
         }
 

@@ -15,8 +15,6 @@ package Modules.L4UI.Tools
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.L5App.InputManager.DrawModeInput;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.L4UI.DrawEngine.LayerPreview;
     import Modules.L4UI.SidebarController;
     import Modules.L3Feature.UndoController;
@@ -42,6 +40,9 @@ package Modules.L4UI.Tools
     // 층: L4 UI - 사이드바 툴 패널 표시와 클릭·드래그 입력 해석
     public class ToolPanel
     {
+        // 드로우 모드 버튼을 눌렀을 때의 클릭 처리를 시작해야 한다는 보고 (인자: 버튼 이름)
+        public static var onDrawModeButtonPressedFunc:Function;
+
         // 우클릭 툴박스의 입력 이벤트를 빼야 한다는 보고
         public static var onToolBox2EventsRemovedFunc:Function;
         // 우클릭 툴박스의 입력 이벤트를 다시 달아야 한다는 보고
@@ -968,7 +969,7 @@ package Modules.L4UI.Tools
                             return true;
                         }
 
-                        InputManager.handleMouseClickStage(targetName, DrawModeInput.onClickDrawModeButton);
+                        if (onDrawModeButtonPressedFunc != null) onDrawModeButtonPressedFunc(targetName);
                     }
                     return true;
                 case "sharpLineButtonWrapper":

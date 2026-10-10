@@ -14,6 +14,7 @@ package Modules.L5App.InputManager
     import Modules.L4UI.CaptureEngine.CaptureStamp;
     import Modules.L4UI.ActivityWorkTimer;
     import Modules.L5App.ClipboardManager;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 캡처 모드의 키보드/마우스 입력
     // 층: L5 앱 흐름 - 캡처 모드의 키보드/마우스 입력
@@ -267,7 +268,7 @@ package Modules.L5App.InputManager
                     InputManager.handleMouseClickStage(targetName, onClickCaptureButton);
                     break;
                 case "timer":
-                    InputManager.startPressHoldKey(UIController.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
+                    HintController.startPressHoldKey(UIController.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
                     break;
                 default:
                     if (!MouseState.isClickBlocked)

@@ -3,7 +3,6 @@ package Modules.L4UI.Tools
     import Modules.UIEngine.CanvasNavigator;
     import flash.display.Sprite;
     import flash.geom.Point;
-    import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L1Data.KeyState;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
@@ -18,6 +17,9 @@ package Modules.L4UI.Tools
     // 층: L4 UI - 회전 툴
     public class RotateTool
     {
+        // 리플레이 캔버스를 화면에 맞춰야 한다는 보고
+        public static var onReplayCanvasFitNeededFunc:Function;
+
         public static var main:Main;
 
         public static function setMainInstance(instance:Main):void
@@ -60,7 +62,7 @@ package Modules.L4UI.Tools
             {
                 if (ReplayState.isReplayCanvasFitToWindow)
                 {
-                    ReplayController.fitReplayCanvasToViewport();
+                    if (onReplayCanvasFitNeededFunc != null) onReplayCanvasFitNeededFunc();
                 }
 
                 KeyState.resetLastKey();

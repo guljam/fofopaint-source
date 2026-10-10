@@ -4,7 +4,6 @@ package Modules.L4UI.ReplayEngine
     import flash.display.Bitmap;
     import flash.display.Sprite;
     import flash.geom.Point;
-    import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.UIEngine.HintController;
@@ -16,6 +15,9 @@ package Modules.L4UI.ReplayEngine
     // 층: L4 UI - 리플레이 모드 캔버스의 화면 배치 (ReplayDrawer.viewport)
     public class ReplayViewport extends CanvasViewport
     {
+        // 리플레이 캔버스 화면 맞춤을 꺼야 한다는 보고
+        public static var onReplayFitOffFunc:Function;
+
         override public function get anchor():Sprite
         {
             return ReplayDrawer.rCanvasAnchorPoint;
@@ -105,7 +107,7 @@ package Modules.L4UI.ReplayEngine
             const newZoom:Number = CanvasView.canvasZoomMultiplierList[newZoomIndex];
             const center:Point = UIController.getStageCenterPos("replay");
             ReplayState.rLastCanvasZoomMultiplier = newZoom;
-            ReplayController.setFitReplayCanvasToViewportOFF();
+            if (onReplayFitOffFunc != null) onReplayFitOffFunc();
             ReplayState.rCanvasZoomIndex = newZoomIndex;
             moveAnchorPoint(center.x, center.y);
             setScale(newZoom);

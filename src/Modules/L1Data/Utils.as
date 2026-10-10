@@ -7,6 +7,7 @@ package Modules.L1Data
     import flash.utils.Dictionary;
     import flash.utils.getTimer;
     import flash.geom.ColorTransform;
+    import flash.display.Screen;
     import flash.display.SimpleButton;
     import avmplus.getQualifiedClassName;
     import flash.text.TextField;
@@ -546,6 +547,39 @@ package Modules.L1Data
         public static function cloneSimpleButton(originalButton:SimpleButton):SimpleButton
         {
             return SimpleButtonCloneUtil.clone(originalButton);
+        }
+
+        private static const TITLE_CHECK_HEIGHT:Number = 30; // 창 위쪽 이 높이만큼을 제목 표시줄로 보고 화면에 보이는지 검사함
+        private static const MIN_VISIBLE_TITLE_WIDTH:Number = 100; // 제목 표시줄이 이 너비 이상 보여야 마우스로 잡아 옮길 수 있다고 봄
+        private static const MIN_VISIBLE_TITLE_HEIGHT:Number = 10;
+
+        // 저장된 창 사각형이 지금 연결된 모니터 어디에도 제대로 보이지 않으면(주 모니터 변경, 모니터 분리, 최소화 좌표 등)
+        // 주 모니터 작업 영역 가운데로 옮긴 사각형을 돌려줌. 보이면 그대로 돌려줌
+        // 크기가 주 모니터 작업 영역보다 크면 줄임. 크기가 없거나 NaN이면 defaultWidth/defaultHeight를 씀
+        public static function getVisibleWindowBounds(saved:Rectangle, defaultWidth:Number, defaultHeight:Number):Rectangle
+        {
+            const width:Number = (isNaN(saved.width) || saved.width <= 0) ? defaultWidth : saved.width;
+            const height:Number = (isNaN(saved.height) || saved.height <= 0) ? defaultHeight : saved.height;
+
+            if (!isNaN(saved.x) && !isNaN(saved.y))
+            {
+                const title:Rectangle = new Rectangle(saved.x, saved.y, width, TITLE_CHECK_HEIGHT);
+
+                for each (var screen:Screen in Screen.screens)
+                {
+                    const visible:Rectangle = title.intersection(screen.visibleBounds);
+
+                    if (visible.width >= MIN_VISIBLE_TITLE_WIDTH && visible.height >= MIN_VISIBLE_TITLE_HEIGHT)
+                    {
+                        return new Rectangle(saved.x, saved.y, width, height);
+                    }
+                }
+            }
+
+            const vb:Rectangle = Screen.mainScreen.visibleBounds;
+            const w:Number = Math.min(width, vb.width);
+            const h:Number = Math.min(height, vb.height);
+            return new Rectangle(Math.round(vb.x + (vb.width - w) / 2), Math.round(vb.y + (vb.height - h) / 2), w, h);
         }
     }
 }

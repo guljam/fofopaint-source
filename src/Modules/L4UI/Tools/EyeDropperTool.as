@@ -11,7 +11,6 @@ package Modules.L4UI.Tools
     import flash.geom.Rectangle;
     import flash.events.Event;
     import Modules.L4UI.ColorPickerController;
-    import Modules.L5App.FileManager;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
@@ -248,7 +247,7 @@ package Modules.L4UI.Tools
 
         private static function isNotEyeDropperTool():Boolean
         {
-            return !ToolState.isSelectedTool(ToolState.TOOL_EYEDROPPER) || ReplayState.isReplayModeON || CaptureController.isCaptureModeON || FileManager.isFileBrowserOpened || MouseState.isClickBlocked;
+            return !ToolState.isSelectedTool(ToolState.TOOL_EYEDROPPER) || ReplayState.isReplayModeON || CaptureController.isCaptureModeON || UIController.isFileBrowserOpened || MouseState.isClickBlocked;
         }
 
         private static function confirmEyeDropperSelection():void

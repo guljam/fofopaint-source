@@ -30,7 +30,6 @@ package Modules.L5App
     import Modules.L4UI.ColorPickerController;
     import Modules.L5App.InputManager.DrawModeInput;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.NativeSave;
     import Modules.PixelRestore;
     import Modules.L5App.ReplayEngine.ReplayController;
@@ -93,7 +92,6 @@ package Modules.L5App
         private static var replayDataReadBytes:ByteArray = new ByteArray();
 
         private static var isNewFileAvailable:Boolean = true; // 새 파일 만들기 가능 여부, 아이콘 alpha는 refreshFileOperationButtonsTopbar에서 잠금 상태와 합쳐서 계산
-        public static var isFileBrowserOpened:Boolean = false;
 
         public static function loadFOFOFile(oldFile:File):void // loadrep
         {
@@ -449,7 +447,7 @@ package Modules.L5App
 
         public static function setFileBrowserIsOpen(flag:Boolean):void
         {
-            isFileBrowserOpened = flag;
+            UIController.isFileBrowserOpened = flag;
             KeyState.clearKeyBuffer();
         }
 
@@ -645,7 +643,7 @@ package Modules.L5App
             {
                 return;
             }
-            InputManager.startPressHoldKey((!fromShortcut) ? UIController.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, resetAllCanvasAndReplayData, null, isReplayDataLocked);
+            HintController.startPressHoldKey((!fromShortcut) ? UIController.topBar.newFileButton : null, HintStrings.getNewFileHintString(), null, resetAllCanvasAndReplayData, null, isReplayDataLocked);
         }
 
         public static function resetAllCanvasAndReplayData():void
@@ -764,7 +762,7 @@ package Modules.L5App
         // 참고 레이어로 불러오기는 리플레이 데이터를 건드리지 않으므로 worker 잠금과 무관
         public static function isRefLayerLoadBlocked():Boolean
         {
-            return isFileBrowserOpened || BackgroundWorkerCoordinator.isSaveInProgress
+            return UIController.isFileBrowserOpened || BackgroundWorkerCoordinator.isSaveInProgress
                 || ReplayState.isGeneratingCacheImages();
         }
 
@@ -1241,7 +1239,7 @@ package Modules.L5App
             {
                 ReplayController.stopReplay();
             }
-            if (LassoTool.isStarted || isFileBrowserOpened
+            if (LassoTool.isStarted || UIController.isFileBrowserOpened
                     || FillPenTool.isStarted || LineTool.isStarted
                     || BackgroundWorkerCoordinator.isSaveInProgress
                     || (!toRefLayer && isReplayDataLocked()))
@@ -1292,7 +1290,7 @@ package Modules.L5App
 
         public static function saveCaptureImage():void
         {
-            if (isFileBrowserOpened)
+            if (UIController.isFileBrowserOpened)
             {
                 return;
             }
@@ -1550,7 +1548,7 @@ package Modules.L5App
             }
             else
             {
-                if (isFileBrowserOpened)
+                if (UIController.isFileBrowserOpened)
                 {
                     return;
                 }
@@ -1640,7 +1638,6 @@ package Modules.L5App
             ReplaySaveMetaData.refImageBitmapMoveSum = ReferenceLayerController.refLayerMenuDragXMoveSum;
             ReplaySaveMetaData.refImageAlpha = ReferenceLayerController.refLayerLastAlpha;
         }
-
 
         // worker가 압축한 이미지와 리플레이 데이터를 .fofo 파일 형식으로 임시 파일에 쓴 뒤 저장 경로로 옮기고 저장 힌트를 보여줌
         public static function writeReplayFile(

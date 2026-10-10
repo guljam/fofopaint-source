@@ -11,7 +11,6 @@ package Modules.L4UI
     import flash.filesystem.FileStream;
     import flash.geom.Point;
     import Modules.L4UI.ColorPickerController;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.L4UI.SidebarController;
     import Modules.InputPriority;
     import Modules.L1Data.AppDataPaths;
@@ -81,7 +80,7 @@ package Modules.L4UI
 
             FOFOTimer.addByName("selectMyPaletteDelayTimer", 0.4, false, function ():void
                 {
-                    InputManager.startPressHoldKey(ColorPickerController.colorPickerBox.myPaletteButton, "Clearing my palette..", null, clearMyPaletteList, null);
+                    HintController.startPressHoldKey(ColorPickerController.colorPickerBox.myPaletteButton, "Clearing my palette..", null, clearMyPaletteList, null);
                     main.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpMyPalette);
                 });
         }

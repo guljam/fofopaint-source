@@ -12,7 +12,6 @@ package Modules.L4UI.UIEngine
     import Modules.L5App.AppWindowState;
     import Modules.L4UI.ColorPickerController;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L4UI.AboutBoxController;
@@ -40,12 +39,21 @@ package Modules.L4UI.UIEngine
     import Modules.L4UI.ReferenceLayerController;
     import Symbols.SeekBarSet;
     import Modules.L5App.LoadBoxController;
-    import Modules.L5App.ClipboardManager;
+    import Symbols.LoadBoxSet;
 
     // 스테이지 UI 배치: 표시 순서, 뷰포트 여백, 창 크기 변경 배치, UI 색상/스케일을 각 패널에 반영
     // 층: L4 UI - 스테이지 UI 배치와 UI 색상·스케일을 패널에 반영
     public final class UIController
     {
+        // 창 크기 변경 배치가 끝나 종료 대기 중인 앱을 닫아야 한다는 보고
+        public static var onWindowResizeHandledFunc:Function;
+        // 리플레이 캔버스를 화면에 맞춰야 한다는 보고
+        public static var onReplayCanvasFitNeededFunc:Function;
+        // 리플레이 완성 이미지를 캔버스 가운데에 맞춰야 한다는 보고
+        public static var onReplayCanvasCenteredFunc:Function;
+        // 클립보드 버튼을 쓸 수 있는지 다시 확인해야 한다는 보고
+        public static var onClipboardButtonCheckedFunc:Function;
+
         // 파일이 저장된 상태가 아니게 됐다는 보고
         public static var onFileChangedFunc:Function;
 
@@ -100,7 +108,7 @@ package Modules.L4UI.UIEngine
             ToolPanel.selectedToolViewBitmap.name = "selectedToolViewBitmap";
             ToolPanel.selectedToolViewBitmap.visible = false;
 
-            main.stage.addChild(LoadBoxController.loadMenuBox);
+            main.stage.addChild(UIController.loadMenuBox);
             main.stage.addChild(ReferenceLayerController.refLayerMenuBox);
             main.stage.addChild(AboutBoxController.aboutBox);
             main.stage.addChild(SidebarController.sideBar);
@@ -151,7 +159,7 @@ package Modules.L4UI.UIEngine
 
         public static function isPopUpWindowOpened():Boolean
         {
-            return topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible || LoadBoxController.loadMenuBox.visible || AboutBoxController.aboutBox.visible;
+            return topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible || UIController.loadMenuBox.visible || AboutBoxController.aboutBox.visible;
         }
 
         public static function updateStageOffset():void
@@ -247,12 +255,12 @@ package Modules.L4UI.UIEngine
                 return;
             }
 
-            const dx:Number = Math.round((main.stage.nativeWindow.width - AppWindowState.lastAppWindowSize.width) / 1.75);
-            const dy:Number = Math.round((main.stage.nativeWindow.height - AppWindowState.lastAppWindowSize.height) / 1.75);
+            const dx:Number = Math.round((main.stage.nativeWindow.width - UIController.lastAppWindowSize.width) / 1.75);
+            const dy:Number = Math.round((main.stage.nativeWindow.height - UIController.lastAppWindowSize.height) / 1.75);
 
             if (dx === 0 && dy === 0 && !force)
             {
-                AppWindowState.closeAppIfPending();
+                if (onWindowResizeHandledFunc != null) onWindowResizeHandledFunc();
                 return;
             }
 
@@ -263,7 +271,7 @@ package Modules.L4UI.UIEngine
             rebaseLayout();
             HintController.hideBottomHint();
 
-            AppWindowState.closeAppIfPending();
+            if (onWindowResizeHandledFunc != null) onWindowResizeHandledFunc();
         }
 
         // 캔버스(그리기/리플레이/캡처)를 창이 커진 만큼 같이 이동시킨다.
@@ -329,7 +337,7 @@ package Modules.L4UI.UIEngine
 
                 if (ReplayState.isReplayCanvasFitToWindow)
                 {
-                    ReplayController.fitReplayCanvasToViewport();
+                    if (onReplayCanvasFitNeededFunc != null) onReplayCanvasFitNeededFunc();
                 }
             }
 
@@ -350,9 +358,9 @@ package Modules.L4UI.UIEngine
             SidebarController.updateScrollBarHeight();
             CanvasNavigator.updateCursor();
 
-            if (LoadBoxController.loadMenuBox.visible === true)
+            if (UIController.loadMenuBox.visible === true)
             {
-                LoadBoxController.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
+                UIController.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
             }
 
             if (ToolPanel.selectedToolViewBitmap.visible)
@@ -375,7 +383,7 @@ package Modules.L4UI.UIEngine
             UIController.stageBG.graphics.endFill();
             if (UIController.stageBG.getChildByName("rCanvasCompleteAnchorPoint"))
             {
-                ReplayController.setReplayCompleteCanvasCenter();
+                if (onReplayCanvasCenteredFunc != null) onReplayCanvasCenteredFunc();
             }
         }
 
@@ -384,7 +392,7 @@ package Modules.L4UI.UIEngine
         // 뒤늦게 적용되어 위치가 밀리는 것을 막을 수 있다.
         public static function rebaseLayout():void
         {
-            AppWindowState.lastAppWindowSize.setTo(0, 0, main.stage.nativeWindow.width, main.stage.nativeWindow.height);
+            UIController.lastAppWindowSize.setTo(0, 0, main.stage.nativeWindow.width, main.stage.nativeWindow.height);
         }
 
         public static function keepBoxInsideViewPort(target:DisplayObject):void
@@ -486,7 +494,7 @@ package Modules.L4UI.UIEngine
             }
 
             ColorPickerController.colorPickerBox.activePaperColorButton(ColorPickerController.isColorPickerModeBG);
-            ClipboardManager.checkCanUseClipBoardButton();
+            if (onClipboardButtonCheckedFunc != null) onClipboardButtonCheckedFunc();
             ColorPickerController.updatePickerBoxTransBGBrightness();
 
             if (HintController.isBottomBarVisible())
@@ -711,6 +719,15 @@ package Modules.L4UI.UIEngine
 
 
         public static const seekBarBox:SeekBarSet = new SeekBarSet();
+
+
+        public static const loadMenuBox:LoadBoxSet = new LoadBoxSet();
+
+
+        public static var isFileBrowserOpened:Boolean = false;
+
+
+        public static var lastAppWindowSize:Rectangle = new Rectangle();// 창크기 조절 얼마나 됐을지 비교할때 마지막 크기 창크기 저장
 
     }
 }

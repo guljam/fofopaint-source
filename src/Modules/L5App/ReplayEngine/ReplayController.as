@@ -260,7 +260,7 @@ package Modules.L5App.ReplayEngine
                 ReplayDrawer.rReplayFOFOCursor.visible = false;
                 UIController.seekBarBox.resetReplayPrograssBarWidth();
                 FileManager.isFileAlreadySaved = false;
-                LoadBoxController.loadMenuBox.clearPreviewImage(); // 이 경우 로드박스에 배경 이미지를 깔지 않음
+                UIController.loadMenuBox.clearPreviewImage(); // 이 경우 로드박스에 배경 이미지를 깔지 않음
                 startGeneratingReplayCacheImage(false, finalize);
             }
 
@@ -677,7 +677,7 @@ package Modules.L5App.ReplayEngine
             }
 
             LoadBoxController.closeLoadMenuBox();
-            LoadBoxController.loadMenuBox.clearPreviewImage(); // 캐시 이미지 만드는 동안만 쓰던 배경
+            UIController.loadMenuBox.clearPreviewImage(); // 캐시 이미지 만드는 동안만 쓰던 배경
             KeyState.clearKeyBuffer();
 
             if (finalizeFunc !== null)
@@ -739,7 +739,7 @@ package Modules.L5App.ReplayEngine
             }
 
             ReplayFileCache.saveCacheProgress();
-            LoadBoxController.loadMenuBox.visible = false;
+            UIController.loadMenuBox.visible = false;
 
             // 네이티브로 쓸 수 있으면 구간마다 스냅샷(두 레이어 내부 버퍼 복사)만 넘기고 바로 다음 구간을 그림, 압축·쓰기는 네이티브 스레드에서 병렬
             // 작업은 작업마다 다른 임시 파일(imagecache_loadtmp)에 쓰고, main이 앞에서부터 이어진 번호만 imagecache/<번호>로 옮겨서
@@ -883,10 +883,10 @@ package Modules.L5App.ReplayEngine
             {
                 const perc:Number = Math.round(((totalSize - bytes) / totalSize) * 100);
                 // const str:String = perc.toFixed(1)+"%";
-                LoadBoxController.loadMenuBox.updatePlaseWaitPrograss(perc + "%");
+                UIController.loadMenuBox.updatePlaseWaitPrograss(perc + "%");
             }
 
-            LoadBoxController.loadMenuBox.showPleaseWaitTextOrCustomText("Reading replay file", "(Press Esc to cancel)");
+            UIController.loadMenuBox.showPleaseWaitTextOrCustomText("Reading replay file", "(Press Esc to cancel)");
             LoadBoxController.openLoadMenuBox();
 
             function onFrameEnter(e:Event):void
@@ -1013,7 +1013,7 @@ package Modules.L5App.ReplayEngine
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReplayFileCache.deleteCacheProgress();
             LoadBoxController.closeLoadMenuBox();
-            LoadBoxController.loadMenuBox.clearPreviewImage();
+            UIController.loadMenuBox.clearPreviewImage();
             FileManager.resetAllCanvasAndReplayData();
             // 불러오던 파일에서 읽어둔 참조 레이어 원본이 남아있으면 다음 불러오기에 섞이므로 해제하고 참조 레이어도 비움
             if (ReferenceLayerController.refLayerRawBitmapData)

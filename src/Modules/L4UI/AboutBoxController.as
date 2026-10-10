@@ -3,15 +3,11 @@ package Modules.L4UI
     import Symbols.AboutWindowSet;
 
     import flash.events.MouseEvent;
-    import flash.events.Event;
     import flash.filesystem.File;
     import flash.geom.Rectangle;
     import flash.net.navigateToURL;
     import flash.net.URLRequest;
     import flash.utils.getTimer;
-    import Modules.L5App.AppWindowState;
-    import Modules.L5App.FileManager;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.InputPriority;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
@@ -21,6 +17,13 @@ package Modules.L4UI
     // 층: L4 UI - 정보(About) 창 열기·닫기와 크기·위치
     public class AboutBoxController
     {
+        // 로컬 매뉴얼 폴더를 열어야 한다는 보고
+        public static var onLocalManualOpenedFunc:Function;
+        // 버튼을 눌렀을 때의 클릭 처리(마우스를 뗀 곳이 같은 버튼이면 실행)를 시작해야 한다는 보고 (인자: 버튼 이름, 선택적으로 실행할 함수)
+        public static var onButtonPressedFunc:Function;
+        // 앱 초기화 전에 창 닫기·비활성화 리스너를 빼야 한다는 보고
+        public static var onWindowListenersRemovedFunc:Function;
+
         // 드로우 모드의 입력 이벤트를 빼야 한다는 보고
         public static var onDrawEventsRemovedFunc:Function;
         // 드로우 모드의 입력 이벤트를 다시 달아야 한다는 보고
@@ -69,7 +72,7 @@ package Modules.L4UI
                     navigateToURL(new URLRequest(FOFOPAINT_GITHUB_URL));
                     break;
                 case "aboutManualFolder":
-                    FileManager.openLocalManual();
+                    if (onLocalManualOpenedFunc != null) onLocalManualOpenedFunc();
                     break;
                 case "aboutErrorLogFolder":
                     AppDataPaths.openCrashLogFolder();
@@ -175,7 +178,7 @@ package Modules.L4UI
                 case "aboutManualFolder":
                 case "aboutErrorLogFolder":
                     // case "aboutMeLink":
-                    InputManager.handleMouseClickStage(targetName);
+                    if (onButtonPressedFunc != null) onButtonPressedFunc(targetName);
                     break;
 
                 default:
@@ -186,8 +189,7 @@ package Modules.L4UI
 
         public static function resetApp():void
         {
-            main.stage.nativeWindow.removeEventListener(Event.CLOSING, AppWindowState.onWindowClosingEvent);
-            main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, AppWindowState.onWindowDeactivate);
+            if (onWindowListenersRemovedFunc != null) onWindowListenersRemovedFunc();
             const files:File = File.applicationStorageDirectory;
             files.deleteDirectory(true);
         }

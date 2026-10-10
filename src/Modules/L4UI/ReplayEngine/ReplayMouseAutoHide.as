@@ -4,7 +4,6 @@ package Modules.L4UI.ReplayEngine
     import flash.geom.Point;
     import flash.ui.Mouse;
     import flash.display.Stage;
-    import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L2Engine.ReplayEngine.ReplayState;
@@ -14,6 +13,9 @@ package Modules.L4UI.ReplayEngine
     // 층: L4 UI - 리플레이 재생 중 마우스가 가만히 있으면 포인터 숨김
     public class ReplayMouseAutoHide
     {
+        // 리플레이 재생 중 상단 바를 숨겨야 한다는 보고
+        public static var onReplayTopbarHiddenFunc:Function;
+
         public static var main:Main;
         public static function setMainInstance(instance:Main):void
         {
@@ -91,7 +93,7 @@ package Modules.L4UI.ReplayEngine
                         Mouse.hide();
                         _isMouseHided = true;
                         updateMousePos();
-                        ReplayController.hideTopbarOnPlayback();
+                        if (onReplayTopbarHiddenFunc != null) onReplayTopbarHiddenFunc();
                     }
                 }
                 else

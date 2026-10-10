@@ -1,7 +1,6 @@
 package Modules.L5App
 {
 
-    import Symbols.LoadBoxSet;
 
     import flash.display.BitmapData;
     import flash.events.Event;
@@ -29,6 +28,7 @@ package Modules.L5App
     import Modules.L4UI.Tools.ToolController;
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L4UI.ReferenceLayerController;
+    import Modules.L4UI.UIEngine.UIController;
 
     // 불러오기 메뉴(로드박스)의 열기/닫기, 버튼 처리, 불러올 이미지/파일 보관, 확정 시 실제 불러오기 호출을 담당함
     // 층: L5 앱 흐름 - 불러오기 메뉴(로드박스) 열기·닫기와 버튼 처리
@@ -40,8 +40,6 @@ package Modules.L5App
             main = instance;
         }
 
-        public static const loadMenuBox:LoadBoxSet = new LoadBoxSet();
-
         public static var isLoadPendingAfterSaving:Boolean = false;
         public static var lastLoadedFile:File; // invoke나 파일 드래그 드롭했을때 저장해줘서 같은 파일을 다시 열지 않게 함
         private static var loadMenuBoxBitmapData:BitmapData;
@@ -51,66 +49,66 @@ package Modules.L5App
         public static function closeLoadMenuBox():void
         {
             main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox);
-            loadMenuBox.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
-            loadMenuBox.visible = false;
+            UIController.loadMenuBox.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
+            UIController.loadMenuBox.visible = false;
         }
 
         public static function openLoadMenuBoxOnClosing():void
         {
-            if (loadMenuBox.visible === false)
+            if (UIController.loadMenuBox.visible === false)
             {
                 const bmpd:BitmapData = DrawCanvas.getMergedBitmapData(false, true, true, null);
-                loadMenuBox.setPreviewImage(bmpd);
+                UIController.loadMenuBox.setPreviewImage(bmpd);
 
                 // 줄인 복사본을 배경으로 썼으면 합성 이미지는 필요 없음
-                if (!loadMenuBox.isPreviewImage(bmpd))
+                if (!UIController.loadMenuBox.isPreviewImage(bmpd))
                 {
                     bmpd.dispose();
                 }
 
-                loadMenuBox.showPleaseWaitTextOrCustomText("Closing fofo paint...");
-                loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
-                Utils.setAsTopChild(loadMenuBox);
-                loadMenuBox.visible = true;
+                UIController.loadMenuBox.showPleaseWaitTextOrCustomText("Closing fofo paint...");
+                UIController.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
+                Utils.setAsTopChild(UIController.loadMenuBox);
+                UIController.loadMenuBox.visible = true;
             }
         }
 
         public static function openLoadMenuBox():void
         {
-            if (loadMenuBox.visible === false)
+            if (UIController.loadMenuBox.visible === false)
             {
                 main.stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownLoadMenuBox, false, InputPriority.DEFAULT);
-                loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
-                loadMenuBox.visible = true;
+                UIController.loadMenuBox.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownLoadMenuBox);
+                UIController.loadMenuBox.visible = true;
             }
-            loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
-            Utils.setAsTopChild(loadMenuBox);
+            UIController.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
+            Utils.setAsTopChild(UIController.loadMenuBox);
         }
 
         private static function handleLoadMenuBoxClick(oldTargetName:String):void
         {
-            loadMenuBox.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLoadMenuBox);
+            UIController.loadMenuBox.addEventListener(MouseEvent.MOUSE_UP, onMouseUpLoadMenuBox);
             function onMouseUpLoadMenuBox(e:MouseEvent):void
             {
-                loadMenuBox.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLoadMenuBox);
+                UIController.loadMenuBox.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpLoadMenuBox);
                 if (!e.target || e.target.alpha < 1.0)
                 {
                     return;
                 }
                 if (oldTargetName === e.target.name
-                        && isLoadPendingAfterSaving === false && BackgroundWorkerCoordinator.isSaveInProgress === 0 && !FileManager.isFileBrowserOpened)
+                        && isLoadPendingAfterSaving === false && BackgroundWorkerCoordinator.isSaveInProgress === 0 && !UIController.isFileBrowserOpened)
                 {
                     switch (e.target.name)
                     {
                         case "dragDropLoadButton":
                             {
-                                if (!loadMenuBox.isRefLayerLoadMode())
+                                if (!UIController.loadMenuBox.isRefLayerLoadMode())
                                 {
                                     if (FileManager.isReplayDataLocked())
                                     {
                                         // worker 작업이 끝나면 stopWorkerIfIdle에서 불러옴
                                         isLoadPendingAfterSaving = true;
-                                        loadMenuBox.showPleaseWaitTextOrCustomText("Waiting for background tasks...");
+                                        UIController.loadMenuBox.showPleaseWaitTextOrCustomText("Waiting for background tasks...");
                                         return;
                                     }
                                     closeLoadMenuBox();
@@ -120,10 +118,10 @@ package Modules.L5App
                             break;
                         case "dragDropSaveAndLoadButton":
                             {
-                                if (!loadMenuBox.isRefLayerLoadMode())
+                                if (!UIController.loadMenuBox.isRefLayerLoadMode())
                                 {
                                     isLoadPendingAfterSaving = true;
-                                    loadMenuBox.showPleaseWaitTextOrCustomText("Saving in progress...");
+                                    UIController.loadMenuBox.showPleaseWaitTextOrCustomText("Saving in progress...");
                                     FileManager.openSaveFileBrowser(false);
                                 }
                             }
@@ -192,11 +190,11 @@ package Modules.L5App
                 return;
             }
 
-            if (loadMenuBox.isPreviewImage(loadMenuBoxBitmapData))
+            if (UIController.loadMenuBox.isPreviewImage(loadMenuBoxBitmapData))
             {
                 if (clearPreview)
                 {
-                    loadMenuBox.clearPreviewImage();
+                    UIController.loadMenuBox.clearPreviewImage();
                 }
             }
             else
@@ -231,26 +229,26 @@ package Modules.L5App
 
             if (bmpd)
             {
-                loadMenuBox.setPreviewImage(bmpd);
-                loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
+                UIController.loadMenuBox.setPreviewImage(bmpd);
+                UIController.loadMenuBox.updateClickBlockerSize(main.stage.stageWidth, main.stage.stageHeight);
             }
-            if (loadMenuBox.visible === false)
+            if (UIController.loadMenuBox.visible === false)
             {
-                loadMenuBox.updateUIColor();
+                UIController.loadMenuBox.updateUIColor();
                 if (fromUpdate)
                 {
-                    loadMenuBox.showPleaseWaitTextOrCustomText("Waiting for the file to be saved");
+                    UIController.loadMenuBox.showPleaseWaitTextOrCustomText("Waiting for the file to be saved");
                 }
                 else
                 {
-                    loadMenuBox.hidePleaseWait();
+                    UIController.loadMenuBox.hidePleaseWait();
                     if (reflayermenu)
                     {
-                        loadMenuBox.activateReflayerButtonOnly();
+                        UIController.loadMenuBox.activateReflayerButtonOnly();
                     }
                     else
                     {
-                        loadMenuBox.activateAllButtons();
+                        UIController.loadMenuBox.activateAllButtons();
                     }
                 }
                 openLoadMenuBox();
@@ -259,7 +257,7 @@ package Modules.L5App
 
         public static function canDisplayLoadMenuBox(file:File):Boolean
         {
-            return !loadMenuBox.visible || !isSameFile(file, lastLoadedFile);
+            return !UIController.loadMenuBox.visible || !isSameFile(file, lastLoadedFile);
         }
 
         public static function prepareLoadMenuBoxFromImageFile(file:File, toRefLayer:Boolean):void

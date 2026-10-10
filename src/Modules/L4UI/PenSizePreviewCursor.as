@@ -13,7 +13,6 @@ package Modules.L4UI
     import Modules.L1Data.Utils;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.Tools.PenTool;
-    import Modules.L5App.LoadBoxController;
 
     // 층: L4 UI - 펜 크기 미리보기 커서 (모양, 위치, 보임 여부)
     public class PenSizePreviewCursor
@@ -137,7 +136,7 @@ package Modules.L4UI
                     || !UIController.isCursorInDrawArea()
                     || CanvasResizer.isCanvasResizing()
                     || (ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mx, my))
-                    || LoadBoxController.loadMenuBox.visible)
+                    || UIController.loadMenuBox.visible)
             {
                 _cursor.visible = false;
             }

@@ -51,6 +51,7 @@ package Modules.L5App
     import Modules.L4UI.CaptureEngine.CaptureStamp;
     import Modules.L4UI.ActivityWorkTimer;
     import Modules.L4UI.ReferenceLayerController;
+    import Modules.L1Data.Utils;
 
     // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager
@@ -350,15 +351,15 @@ package Modules.L5App
                 FOFOTimer.addByName("loadAppDataDelayTimer", 0.2, false, function ():void
                     {
                         // Window Size & Position
-                        const windowBounds:Rectangle = AppWindowState.getVisibleWindowBounds(new Rectangle(appStateObject.stageNativeWindowX, appStateObject.stageNativeWindowY, appStateObject.stageNativeWindowWidth, appStateObject.stageNativeWindowHeight), 1000, 800);
+                        const windowBounds:Rectangle = Utils.getVisibleWindowBounds(new Rectangle(appStateObject.stageNativeWindowX, appStateObject.stageNativeWindowY, appStateObject.stageNativeWindowWidth, appStateObject.stageNativeWindowHeight), 1000, 800);
                         main.stage.nativeWindow.width = windowBounds.width;
                         main.stage.nativeWindow.height = windowBounds.height;
                         main.stage.nativeWindow.x = windowBounds.x;
                         main.stage.nativeWindow.y = windowBounds.y;
                         AppWindowState.lastNormalWindowBounds = windowBounds.clone();
 
-                        AppWindowState.lastAppWindowSize.width = windowBounds.width;
-                        AppWindowState.lastAppWindowSize.height = windowBounds.height;
+                        UIController.lastAppWindowSize.width = windowBounds.width;
+                        UIController.lastAppWindowSize.height = windowBounds.height;
 
                         // 캔버스 bg를 한번 업데이트해춤 on window resize이벤트에서는 앱이 정보가 로드되고 있을때 차단되기 때문에
                         UIController.updateStageBGSize();
@@ -563,7 +564,7 @@ package Modules.L5App
 
                                 if (preview)
                                 {
-                                    LoadBoxController.loadMenuBox.setPreviewImage(preview);
+                                    UIController.loadMenuBox.setPreviewImage(preview);
                                 }
                             }
 
@@ -603,8 +604,8 @@ package Modules.L5App
 
                 PaletteController.initializeMyPaletteList();
 
-                AppWindowState.lastAppWindowSize.width = 1000;
-                AppWindowState.lastAppWindowSize.height = 800;
+                UIController.lastAppWindowSize.width = 1000;
+                UIController.lastAppWindowSize.height = 800;
 
                 DrawCanvas.applyCanvasSizeDrawMode(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, 0, 0, false);
                 CanvasResizer.updateButtonPos(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
@@ -633,8 +634,8 @@ package Modules.L5App
                             return false;
                         }
 
-                        main.stage.nativeWindow.width = AppWindowState.lastAppWindowSize.width;
-                        main.stage.nativeWindow.height = AppWindowState.lastAppWindowSize.height;
+                        main.stage.nativeWindow.width = UIController.lastAppWindowSize.width;
+                        main.stage.nativeWindow.height = UIController.lastAppWindowSize.height;
                         return true;
                     });
 

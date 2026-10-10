@@ -19,12 +19,12 @@ package Modules.L4UI
     import flash.events.NativeWindowBoundsEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import Modules.L5App.AppWindowState;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L1Data.Utils;
 
     // 층: L4 UI - 캔버스 이미지를 별도 창으로 보여주는 창
     public final class ImageViewWindow
@@ -257,7 +257,7 @@ package Modules.L4UI
                     canvasWindowInfo[0] = main.stage.nativeWindow.x + UIController.topBar.newWindowButton.x - canvasWindowInfo[2] / 2;
                     canvasWindowInfo[1] = main.stage.nativeWindow.y;
                 }
-                const bounds:Rectangle = AppWindowState.getVisibleWindowBounds(new Rectangle(canvasWindowInfo[0], canvasWindowInfo[1], canvasWindowInfo[2], canvasWindowInfo[3]), canvasWindowInfo[2], canvasWindowInfo[3]);
+                const bounds:Rectangle = Utils.getVisibleWindowBounds(new Rectangle(canvasWindowInfo[0], canvasWindowInfo[1], canvasWindowInfo[2], canvasWindowInfo[3]), canvasWindowInfo[2], canvasWindowInfo[3]);
                 canvasWindow.bounds = bounds;
                 canvasWindowInfo[0] = bounds.x;
                 canvasWindowInfo[1] = bounds.y;

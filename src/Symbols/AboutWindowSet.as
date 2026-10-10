@@ -85,7 +85,7 @@
 			aboutMeLink.mouseEnabled = false;
 
 			memoryInfo.autoSize = TextFieldAutoSize.RIGHT;
-			memoryInfo.text = "Adobe AIR SDK " + Main.ADOBE_AIR_SDK_VERSION;
+			memoryInfo.text = "Adobe AIR SDK " + AboutWindowSet.ADOBE_AIR_SDK_VERSION;
 
 			redesignWindow();
 		}
@@ -339,5 +339,8 @@
 			state.addChild(field);
 			return state;
 		}
+
+        public static const ADOBE_AIR_SDK_VERSION:String = "51.4.1.1";
+
 	}
 }

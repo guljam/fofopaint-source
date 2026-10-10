@@ -3,13 +3,11 @@ package Modules.L5App.InputManager
     import Modules.InputPriority;
     import Modules.L1Data.KeyState;
 
-    import flash.display.DisplayObject;
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import Modules.DrawEngine.HandDrawnLine;
     import Symbols.TopMenuSet;
-    import Modules.L4UI.ColorPickerController;
     import Modules.L5App.FileManager;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
@@ -39,82 +37,8 @@ package Modules.L5App.InputManager
             main = instance;
         }
 
-        // 키 오래누름 관련 변수
-        public static var pressHoldCountDownTime:Number = 0.0;
-        public static var pressHoldFrameCount:int = 0;
-
         // handle mouse click 이벤트에서 이벤트 한번만 추가되게 하기
         public static var handMouseClickEventStarted:Boolean = false;
-
-        public static function startScratchPadResetTimer(target:DisplayObject):void
-        {
-            FOFOTimer.addByName("clearScratchPadTimer", 0.4, false, function ():void
-                {
-                    startPressHoldKey(target, "Clearing scratch pad..", null, ColorPickerController.colorPickerBox.scratchPad.clearPad, null);
-                });
-        }
-
-        // abortFunc: 길게 누르는 도중에 true를 반환하면 취소함 (예: worker가 시작되어 리플레이 데이터가 잠겼을때)
-        public static function startPressHoldKey(button:DisplayObject, hintStr:String, readyFunc:Function, okFunc:Function, cancelFunc:Function, abortFunc:Function = null):void
-        {
-            if (!FOFOTimer.hasTimer("pressholdtimer"))
-            {
-                var keyBufferLenSave:uint = KeyState.getPressedKeyCount();
-                var mouseClickONSave:Boolean = MouseState.isLeftDown;
-                var rightMouseClickONSave:Boolean = MouseState.isRightDown;
-                const countDownTime:Number = 3;
-                const countDownTimeNow:Number = Math.ceil((main.stage.frameRate * 2.5) / countDownTime);
-                pressHoldCountDownTime = countDownTime;
-                pressHoldFrameCount = 0;
-                if (readyFunc !== null)
-                {
-                    if (readyFunc() === true)
-                    {
-                        return;
-                    }
-                }
-                function cancelHoldingKey():void
-                {
-                    pressHoldFrameCount = 0;
-                    pressHoldCountDownTime = countDownTime;
-                    HintController.hideMouseHint();
-                }
-                if (hintStr !== "")
-                {
-                    HintController.showMouseHint(hintStr + " " + pressHoldCountDownTime);
-                }
-                FOFOTimer.addByName("pressholdtimer", 0.0, true, function ():Boolean
-                    {
-                        if (MouseState.isLeftDown !== mouseClickONSave
-                                || MouseState.isRightDown !== rightMouseClickONSave
-                                || keyBufferLenSave !== KeyState.getPressedKeyCount()
-                                || (button && button.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
-                                || (abortFunc !== null && abortFunc() === true))
-                        {
-                            if (cancelFunc !== null)
-                            {
-                                cancelFunc();
-                            }
-                            cancelHoldingKey();
-                            return false;
-                        }
-                        pressHoldFrameCount++;
-                        if (pressHoldFrameCount >= countDownTimeNow)
-                        {
-                            pressHoldFrameCount = 0;
-                            pressHoldCountDownTime--;
-                        }
-                        HintController.showMouseHint(hintStr + " " + pressHoldCountDownTime);
-                        if (pressHoldCountDownTime <= 0)
-                        {
-                            cancelHoldingKey();
-                            okFunc();
-                            return false;
-                        }
-                        return true;
-                    });
-            }
-        }
 
         // onClick을 주면 같은 버튼에서 마우스를 뗐을때 아래 switch 대신 onClick(targetName)을 호출함
         public static function handleMouseClickStage(targetName:String, onClick:Function = null):void

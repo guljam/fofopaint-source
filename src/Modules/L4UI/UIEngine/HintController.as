@@ -26,6 +26,7 @@ package Modules.L4UI.UIEngine
     import Modules.L4UI.Tools.FillPenTool;
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L1Data.KeyState;
 
     // 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시. 문구는 HintStrings가 담당
     // 층: L4 UI - 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시
@@ -506,5 +507,73 @@ package Modules.L4UI.UIEngine
             bottomBar.graphics.drawRect(-3, 0, main.stage.stageWidth + 6, BOTTOM_BAR_HEIGHT + 3);
             bottomBar.graphics.endFill();
         }
+
+        // 키 오래누름 관련 변수
+        public static var pressHoldCountDownTime:Number = 0.0;
+
+        public static var pressHoldFrameCount:int = 0;
+
+        // abortFunc: 길게 누르는 도중에 true를 반환하면 취소함 (예: worker가 시작되어 리플레이 데이터가 잠겼을때)
+        public static function startPressHoldKey(button:DisplayObject, hintStr:String, readyFunc:Function, okFunc:Function, cancelFunc:Function, abortFunc:Function = null):void
+        {
+            if (!FOFOTimer.hasTimer("pressholdtimer"))
+            {
+                var keyBufferLenSave:uint = KeyState.getPressedKeyCount();
+                var mouseClickONSave:Boolean = MouseState.isLeftDown;
+                var rightMouseClickONSave:Boolean = MouseState.isRightDown;
+                const countDownTime:Number = 3;
+                const countDownTimeNow:Number = Math.ceil((main.stage.frameRate * 2.5) / countDownTime);
+                pressHoldCountDownTime = countDownTime;
+                pressHoldFrameCount = 0;
+                if (readyFunc !== null)
+                {
+                    if (readyFunc() === true)
+                    {
+                        return;
+                    }
+                }
+                function cancelHoldingKey():void
+                {
+                    pressHoldFrameCount = 0;
+                    pressHoldCountDownTime = countDownTime;
+                    HintController.hideMouseHint();
+                }
+                if (hintStr !== "")
+                {
+                    HintController.showMouseHint(hintStr + " " + pressHoldCountDownTime);
+                }
+                FOFOTimer.addByName("pressholdtimer", 0.0, true, function ():Boolean
+                    {
+                        if (MouseState.isLeftDown !== mouseClickONSave
+                                || MouseState.isRightDown !== rightMouseClickONSave
+                                || keyBufferLenSave !== KeyState.getPressedKeyCount()
+                                || (button && button.hitTestPoint(main.stage.mouseX, main.stage.mouseY) === false)
+                                || (abortFunc !== null && abortFunc() === true))
+                        {
+                            if (cancelFunc !== null)
+                            {
+                                cancelFunc();
+                            }
+                            cancelHoldingKey();
+                            return false;
+                        }
+                        pressHoldFrameCount++;
+                        if (pressHoldFrameCount >= countDownTimeNow)
+                        {
+                            pressHoldFrameCount = 0;
+                            pressHoldCountDownTime--;
+                        }
+                        HintController.showMouseHint(hintStr + " " + pressHoldCountDownTime);
+                        if (pressHoldCountDownTime <= 0)
+                        {
+                            cancelHoldingKey();
+                            okFunc();
+                            return false;
+                        }
+                        return true;
+                    });
+            }
+        }
+
     }
 }

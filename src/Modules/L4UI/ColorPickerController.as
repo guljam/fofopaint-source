@@ -24,6 +24,7 @@ package Modules.L4UI
     import Modules.L4UI.Tools.LineTool;
     import Modules.L4UI.Tools.FillPenTool;
     import Modules.L4UI.Tools.ToolController;
+    import Modules.L4UI.UIEngine.HintController;
 
     // 층: L4 UI - 색 선택기 박스와 숫자패드, 색 프리셋 선택 처리
     public class ColorPickerController
@@ -1105,7 +1106,7 @@ package Modules.L4UI
 
                 case "drawrPresetButton":
                 case "tegakiPresetButton":
-                    InputManager.startScratchPadResetTimer(target);
+                    ColorPickerController.startScratchPadResetTimer(target);
                     handleColorPickerBoxClick(targetName);
                     return true;
 
@@ -1123,5 +1124,15 @@ package Modules.L4UI
 
             return false;
         }
+
+        // 스크래치 패드 지우기 버튼을 0.4초 누르고 있으면 길게 누르기 힌트를 시작함
+        public static function startScratchPadResetTimer(target:DisplayObject):void
+        {
+            FOFOTimer.addByName("clearScratchPadTimer", 0.4, false, function ():void
+                {
+                    HintController.startPressHoldKey(target, "Clearing scratch pad..", null, ColorPickerController.colorPickerBox.scratchPad.clearPad, null);
+                });
+        }
+
     }
 }

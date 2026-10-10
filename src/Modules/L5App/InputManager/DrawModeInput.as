@@ -45,7 +45,6 @@ package Modules.L5App.InputManager
     import Modules.L4UI.ActivityWorkTimer;
     import Modules.L4UI.AppUpdater;
     import Modules.L4UI.ReferenceLayerController;
-    import Modules.L5App.LoadBoxController;
     import Modules.L5App.ClipboardManager;
 
     // 드로우 모드의 키보드/마우스 입력 (툴 단축키, 툴박스2, 드로우 모드 버튼)
@@ -713,7 +712,7 @@ package Modules.L5App.InputManager
 
         private static function onMouseDownDrawMode(e:MouseEvent):void
         {
-            if (FillPenTool.isStarted || LineTool.isStarted || LoadBoxController.loadMenuBox.visible
+            if (FillPenTool.isStarted || LineTool.isStarted || UIController.loadMenuBox.visible
                     || UIController.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;
@@ -795,13 +794,13 @@ package Modules.L5App.InputManager
                     {
                         if(!ReferenceLayerController.isRefLayerEmpty())
                         {
-                            InputManager.startPressHoldKey(ReferenceLayerController.refLayerMenuBox.refClearImageButton, "Erasing reference image...", null, ReferenceLayerController.startReflayerClear, null);
+                            HintController.startPressHoldKey(ReferenceLayerController.refLayerMenuBox.refClearImageButton, "Erasing reference image...", null, ReferenceLayerController.startReflayerClear, null);
                         }
                     }
                     return;
                 case "timer":
                     {
-                        InputManager.startPressHoldKey(UIController.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
+                        HintController.startPressHoldKey(UIController.topBar.timer, HintStrings.getResetTimerHintString(), null, ActivityWorkTimer.reset, null);
                     }
                     return;
                 case "newFileButton":
@@ -869,7 +868,7 @@ package Modules.L5App.InputManager
         {
             if (MouseState.isLeftDown || KeyState.isKeyPressed() || KeyState.isPressingControl() || SidebarController.isQuickSidebarActive
                     || FillPenTool.isStarted || LineTool.isStarted || ToolState.isSelectedTool(ToolState.TOOL_EYEDROPPER) || (ReferenceLayerController.isRefLayerMenuON && ReferenceLayerController.refLayerMenuBox.hitTestPoint(main.mouseX, main.mouseY))
-                    || LoadBoxController.loadMenuBox.visible || UIController.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
+                    || UIController.loadMenuBox.visible || UIController.topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible)
             {
                 return;
             }

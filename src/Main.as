@@ -78,6 +78,8 @@
     import Modules.L5App.LoadBoxController;
     import Modules.L5App.ClipboardManager;
     import Modules.L4UI.ReplayEngine.ReplayMouseAutoHide;
+    import Modules.L4UI.ReplayEngine.ReplayViewport;
+    import Symbols.AboutWindowSet;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화
@@ -88,7 +90,6 @@
         public static var _instance:Main;
         public const APP_VERSION:String = "30.0.0";
         public const APP_STATE_VERSION:String = "30.0.0";
-        public static const ADOBE_AIR_SDK_VERSION:String = "51.4.1.1";
 
         public const STRING_TITLE_FOFOPAINT:String = " - FOFO PAINT";
 
@@ -238,6 +239,29 @@
             ColorPickerController.onDrawEventsAddedFunc = DrawModeInput.addEvents;
             ToolPanel.onToolBox2EventsRemovedFunc = DrawModeInput.removeToolBox2Events;
             ToolPanel.onToolBox2EventsAddedFunc = DrawModeInput.addToolBox2Events;
+            UIController.onWindowResizeHandledFunc = AppWindowState.closeAppIfPending;
+            UIController.onReplayCanvasFitNeededFunc = ReplayController.fitReplayCanvasToViewport;
+            UIController.onReplayCanvasCenteredFunc = ReplayController.setReplayCompleteCanvasCenter;
+            UIController.onClipboardButtonCheckedFunc = ClipboardManager.checkCanUseClipBoardButton;
+            RotateTool.onReplayCanvasFitNeededFunc = ReplayController.fitReplayCanvasToViewport;
+            ReplayViewport.onReplayFitOffFunc = ReplayController.setFitReplayCanvasToViewportOFF;
+            ReplayMouseAutoHide.onReplayTopbarHiddenFunc = ReplayController.hideTopbarOnPlayback;
+            AboutBoxController.onLocalManualOpenedFunc = FileManager.openLocalManual;
+            AboutBoxController.onButtonPressedFunc = InputManager.handleMouseClickStage;
+            AboutBoxController.onWindowListenersRemovedFunc = function ():void
+            {
+                AboutBoxController.main.stage.nativeWindow.removeEventListener(Event.CLOSING, AppWindowState.onWindowClosingEvent);
+                AboutBoxController.main.stage.nativeWindow.removeEventListener(Event.DEACTIVATE, AppWindowState.onWindowDeactivate);
+            };
+            LassoTool.onDrawModeButtonPressedFunc = function (targetName:String):void
+            {
+                InputManager.handleMouseClickStage(targetName, DrawModeInput.onClickDrawModeButton);
+            };
+            LassoTool.onButtonPressedFunc = InputManager.handleMouseClickStage;
+            ToolPanel.onDrawModeButtonPressedFunc = function (targetName:String):void
+            {
+                InputManager.handleMouseClickStage(targetName, DrawModeInput.onClickDrawModeButton);
+            };
         }
 
         public function initializeModule():void
