@@ -110,8 +110,8 @@
                 "airBrushONButton": "Toggle air brush [4 / 7]",
                 "airBrushText": "Toggle air brush [4 / 7]",
 
-                "layer1SelectButton": "Select Layer 1 [1 / 9] _ Click again to solo",
-                "layer2SelectButton": "Select Layer 2 [2 / 0] _ Click again to solo",
+                "layer1SelectButton": "Select Layer 1 [1 / 9] _ Click again to solo _ Hold the 1 key to preview layer",
+                "layer2SelectButton": "Select Layer 2 [2 / 0] _ Click again to solo _ Hold the 2 key to preview layer",
                 "layer1CheckedButton": "Apply Move and Lasso to Layer 1 only",
                 "layer1UncheckedButton": "Apply Move and Lasso to Layer 1 only",
                 "layer2CheckedButton": "Apply Move and Lasso to Layer 2 only",
