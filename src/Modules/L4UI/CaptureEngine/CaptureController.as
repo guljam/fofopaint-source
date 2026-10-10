@@ -1,6 +1,5 @@
 package Modules.L4UI.CaptureEngine
 {
-    import Modules.UIEngine.UITheme;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
     import flash.display.Bitmap;
@@ -12,7 +11,6 @@ package Modules.L4UI.CaptureEngine
     import flash.geom.Rectangle;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L4UI.ColorPickerController;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.L4UI.SidebarController;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
@@ -26,6 +24,8 @@ package Modules.L4UI.CaptureEngine
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.Utils;
     import Modules.L4UI.ReferenceLayerController;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.UIEngine.UITheme;
 
     // 층: L4 UI - 캡처 모드 진입·종료와 캡처 처리
     public class CaptureController

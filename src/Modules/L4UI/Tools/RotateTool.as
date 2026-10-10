@@ -1,6 +1,5 @@
 package Modules.L4UI.Tools
 {
-    import Modules.UIEngine.CanvasNavigator;
     import flash.display.Sprite;
     import flash.geom.Point;
     import Modules.L1Data.KeyState;
@@ -13,6 +12,7 @@ package Modules.L4UI.Tools
     import Modules.L1Data.DragInteraction;
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.ReferenceLayerController;
+    import Modules.L4UI.UIEngine.CanvasNavigator;
 
     // 층: L4 UI - 회전 툴
     public class RotateTool

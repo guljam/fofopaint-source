@@ -8,7 +8,7 @@ $src = "${PSScriptRoot}\src\worker\BackgroundImageProcessor.as"
 $out = "${PSScriptRoot}\worker.swf"
 $stamp = "${PSScriptRoot}\worker.swf.srchash"
 $options = @('-target-player=51.1', '-swf-version=51', '-debug=true', '-strict=true', '-warnings=true', '-verbose-stacktraces=true')
-$inputs = @(Get-ChildItem -Path "${PSScriptRoot}\src\worker" -Filter *.as) + @(Get-Item -Path "${PSScriptRoot}\src\Modules\PixelRestore.as", "${PSScriptRoot}\src\Modules\NativeCore.as", "${PSScriptRoot}\src\Modules\CacheImageFormat.as") +@(Get-Item -Path "${PSScriptRoot}\src\Modules\ReplayDataCodec.as")
+$inputs = @(Get-ChildItem -Path "${PSScriptRoot}\src\worker" -Filter *.as) + @(Get-Item -Path "${PSScriptRoot}\src\Modules\L1Data\PixelRestore.as", "${PSScriptRoot}\src\Modules\L1Data\NativeCore.as", "${PSScriptRoot}\src\Modules\L1Data\CacheImageFormat.as") +@(Get-Item -Path "${PSScriptRoot}\src\Modules\L1Data\ReplayDataCodec.as")
 
 # 줄바꿈(CRLF/LF)이 달라도 같은 값이 나오게 CR을 빼고 해시함
 $text = "$sdk`n$($options -join ' ')`n"

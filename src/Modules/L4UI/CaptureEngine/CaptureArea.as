@@ -1,6 +1,5 @@
 package Modules.L4UI.CaptureEngine
 {
-    import Modules.InputPriority;
 
     import flash.display.CapsStyle;
     import flash.display.LineScaleMode;
@@ -17,6 +16,8 @@ package Modules.L4UI.CaptureEngine
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.MouseState;
     import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.InputPriority;
 
     // 층: L4 UI - 캡처 영역 지정과 표시
     public class CaptureArea

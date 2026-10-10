@@ -1,6 +1,5 @@
 package Modules.L4UI.DrawEngine
 {
-    import Modules.UIEngine.CanvasNavigator;
 
     import flash.display.Bitmap;
     import flash.display.Sprite;
@@ -14,6 +13,7 @@ package Modules.L4UI.DrawEngine
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.Tools.ZoomTool;
     import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L4UI.UIEngine.CanvasNavigator;
 
     // 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)
     // 층: L4 UI - 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)

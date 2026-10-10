@@ -1,6 +1,5 @@
 package Modules.L4UI.Tools
 {
-    import Modules.InputPriority;
 
     import Symbols.EyedropperLensSet;
 
@@ -29,6 +28,7 @@ package Modules.L4UI.Tools
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L4UI.ReferenceLayerController;
+    import Modules.L1Data.InputPriority;
 
     // 층: L4 UI - 스포이드 툴
     public class EyeDropperTool

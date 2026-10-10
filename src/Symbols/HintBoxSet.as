@@ -1,7 +1,5 @@
 ﻿package Symbols
 {
-    import Modules.UIEngine.UITheme;
-    import Modules.InputPriority;
 	import flash.display.Sprite;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
@@ -11,6 +9,9 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 	import flash.display.Stage;
+	import Modules.L1Data.FOFOTimer;
+	import Modules.L1Data.InputPriority;
+	import Modules.L1Data.UIEngine.UITheme;
 
 	// 층: L4 UI - 힌트 박스 화면 묶음
 	public class HintBoxSet extends Sprite

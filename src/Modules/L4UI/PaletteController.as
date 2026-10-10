@@ -12,12 +12,13 @@ package Modules.L4UI
     import flash.geom.Point;
     import Modules.L4UI.ColorPickerController;
     import Modules.L4UI.SidebarController;
-    import Modules.InputPriority;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L1Data.ColorHistory;
     import Modules.L1Data.DragInteraction;
     import Modules.L1Data.Tools.PenSettings;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.InputPriority;
 
     // 층: L4 UI - My Palette 선택·추가·저장과 적용
     public final class PaletteController

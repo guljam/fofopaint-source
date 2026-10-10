@@ -1,4 +1,4 @@
-package
+package Modules.L1Data
 {
 	import flash.display.Sprite;
 	import flash.utils.Dictionary;

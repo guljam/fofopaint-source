@@ -5,7 +5,6 @@ package Modules.L1Data
     import flash.events.Event;
     import flash.events.MouseEvent;
     import flash.geom.Point;
-    import Modules.InputPriority;
 
     // 층: L1 데이터 - 드래그 박스 상호작용 시작과 이동·종료 처리
     public class DragInteraction

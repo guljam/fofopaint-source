@@ -4,7 +4,8 @@ package Modules.L2Engine.ReplayEngine
     import flash.utils.getTimer;
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L2Engine.UndoHistory;
-    import Modules.ReplayEngine.TimingSmoother;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.ReplayEngine.TimingSmoother;
 
     // 층: L2 엔진 - 리플레이 프레임 번호와 메모리 데이터 등 리플레이 상태
     public class ReplayState

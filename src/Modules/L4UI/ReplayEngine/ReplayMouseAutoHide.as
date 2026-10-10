@@ -8,6 +8,7 @@ package Modules.L4UI.ReplayEngine
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.MouseState;
+    import Modules.L1Data.FOFOTimer;
 
     // 리플레이 재생중 마우스가 가만히 있으면 시스템 마우스 포인터를 숨김
     // 층: L4 UI - 리플레이 재생 중 마우스가 가만히 있으면 포인터 숨김

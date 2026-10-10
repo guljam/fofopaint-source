@@ -1,8 +1,5 @@
 ﻿package
 {
-    import Modules.AppStateVars;
-    import Modules.InputPriority;
-    import Modules.UIEngine.CanvasNavigator;
 
     import Symbols.HintBoxSet;
 
@@ -80,6 +77,9 @@
     import Modules.L4UI.ReplayEngine.ReplayMouseAutoHide;
     import Modules.L4UI.ReplayEngine.ReplayViewport;
     import Symbols.AboutWindowSet;
+    import Modules.L1Data.AppStateVars;
+    import Modules.L4UI.UIEngine.CanvasNavigator;
+    import Modules.L1Data.InputPriority;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화

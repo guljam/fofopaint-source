@@ -1,6 +1,5 @@
 package Modules.L4UI.Tools
 {
-    import Modules.InputPriority;
 
 	import flash.display.CapsStyle;
 	import flash.display.Graphics;
@@ -20,7 +19,6 @@ package Modules.L4UI.Tools
 	import Modules.L4UI.PenSizePreviewCursor;
 	import Modules.L2Engine.DrawEngine.CanvasView;
 	import Modules.L2Engine.DrawEngine.DrawCanvas;
-	import Modules.Tools.PenStabilizer;
 	import Modules.L1Data.ColorHistory;
 	import Modules.L2Engine.UndoHistory;
 	import Modules.L2Engine.ReplayEngine.ReplayState;
@@ -28,6 +26,9 @@ package Modules.L4UI.Tools
 	import Modules.L1Data.MouseState;
 	import Modules.L2Engine.DrawEngine.StrokeBuffer;
 	import Modules.L4UI.ReferenceLayerController;
+	import Modules.L1Data.FOFOTimer;
+	import Modules.L1Data.InputPriority;
+	import Modules.L2Engine.Tools.PenStabilizer;
 
 	// 층: L4 UI - 펜 그리기와 지우개
 	public final class PenTool

@@ -8,11 +8,12 @@ package Modules.L4UI
     import flash.net.navigateToURL;
     import flash.net.URLRequest;
     import flash.utils.getTimer;
-    import Modules.InputPriority;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.InputPriority;
 
     // 층: L4 UI - 정보(About) 창 열기·닫기와 크기·위치
     public class AboutBoxController

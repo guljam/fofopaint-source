@@ -1,6 +1,5 @@
 package Modules.L5App.InputManager
 {
-    import Modules.InputPriority;
 
     import flash.display.DisplayObject;
     import flash.events.KeyboardEvent;
@@ -15,6 +14,7 @@ package Modules.L5App.InputManager
     import Modules.L4UI.ActivityWorkTimer;
     import Modules.L5App.ClipboardManager;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L1Data.InputPriority;
 
     // 캡처 모드의 키보드/마우스 입력
     // 층: L5 앱 흐름 - 캡처 모드의 키보드/마우스 입력

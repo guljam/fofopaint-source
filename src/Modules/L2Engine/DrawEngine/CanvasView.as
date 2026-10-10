@@ -7,6 +7,7 @@ package Modules.L2Engine.DrawEngine
     import flash.geom.Rectangle;
     import Modules.L4UI.DrawEngine.DrawViewport;
     import Modules.L1Data.Utils;
+    import Modules.L1Data.FOFOTimer;
 
     // 드로우 모드 캔버스의 화면 배치: 앵커/패널 표시 트리, 이동, 줌, 회전/미러 화면 처리
     // 층: L2 엔진 - 드로우 모드 캔버스의 화면 배치 (이동, 줌, 회전·미러)

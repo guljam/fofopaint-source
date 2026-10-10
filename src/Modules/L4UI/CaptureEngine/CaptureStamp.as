@@ -1,7 +1,5 @@
 package Modules.L4UI.CaptureEngine
 {
-    import Modules.UIEngine.UITheme;
-    import Modules.InputPriority;
     import flash.display.BitmapData;
     import flash.display.Bitmap;
     import flash.text.TextFormat;
@@ -14,7 +12,6 @@ package Modules.L4UI.CaptureEngine
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.utils.getTimer;
-    import Modules.L5App.InputManager.InputManager;
     import Modules.L4UI.PaletteController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
@@ -23,6 +20,9 @@ package Modules.L4UI.CaptureEngine
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.Utils;
     import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.InputPriority;
+    import Modules.L1Data.UIEngine.UITheme;
 
     // 층: L4 UI - 캡처 도장(시간 스탬프)과 글꼴
     public class CaptureStamp

@@ -1,12 +1,12 @@
 ﻿package Symbols
 {
-	import Modules.UIEngine.UITheme;
 	import flash.display.Sprite;
 	import flash.text.TextField;
 	import flash.display.SimpleButton;
 	import flash.text.TextFieldAutoSize;
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
+	import Modules.L1Data.UIEngine.UITheme;
 
 	// 층: L4 UI - 캔버스 크기·줌·회전·미러 정보 표시 화면 묶음
 	public class CanvasInfoSet extends Sprite

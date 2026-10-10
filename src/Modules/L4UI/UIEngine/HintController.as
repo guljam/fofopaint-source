@@ -12,9 +12,7 @@ package Modules.L4UI.UIEngine
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L4UI.AboutBoxController;
     import Modules.L4UI.UIEngine.UIController;
-    import Modules.UIEngine.CanvasNavigator;
     import Modules.L1Data.Tools.PenSettings;
-    import Modules.UIEngine.UITheme;
     import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L4UI.CanvasViewport;
@@ -27,6 +25,8 @@ package Modules.L4UI.UIEngine
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L1Data.KeyState;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.UIEngine.UITheme;
 
     // 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시. 문구는 HintStrings가 담당
     // 층: L4 UI - 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시

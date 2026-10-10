@@ -15,9 +15,7 @@ package Modules.L4UI.UIEngine
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L4UI.AboutBoxController;
-    import Modules.UIEngine.CanvasNavigator;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
-    import Modules.UIEngine.UITheme;
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L4UI.CanvasGridOverlay;
@@ -40,6 +38,7 @@ package Modules.L4UI.UIEngine
     import Symbols.SeekBarSet;
     import Modules.L5App.LoadBoxController;
     import Symbols.LoadBoxSet;
+    import Modules.L1Data.UIEngine.UITheme;
 
     // 스테이지 UI 배치: 표시 순서, 뷰포트 여백, 창 크기 변경 배치, UI 색상/스케일을 각 패널에 반영
     // 층: L4 UI - 스테이지 UI 배치와 UI 색상·스케일을 패널에 반영

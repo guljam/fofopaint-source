@@ -1,10 +1,10 @@
 ﻿package Symbols
 {
-    import Modules.UIEngine.UITheme;
     import flash.display.SimpleButton;
     import flash.display.Sprite;
     import assets.VisualBuilder;
     import assets.VisualFieldCollector;
+    import Modules.L1Data.UIEngine.UITheme;
 
     // 층: L4 UI - FOFO 캐릭터 버튼 화면 묶음 (크기, 미러, 위·아래 위치)
     public class FOFO extends Sprite

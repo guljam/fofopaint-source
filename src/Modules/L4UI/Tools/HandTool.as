@@ -1,7 +1,5 @@
 package Modules.L4UI.Tools
 {
-    import Modules.UIEngine.CanvasNavigator;
-    import Modules.InputPriority;
     import flash.geom.Point;
     import flash.display.Sprite;
     import flash.display.Bitmap;
@@ -16,6 +14,8 @@ package Modules.L4UI.Tools
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.ReferenceLayerController;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L4UI.UIEngine.CanvasNavigator;
+    import Modules.L1Data.InputPriority;
 
     // 층: L4 UI - 손 툴(캔버스 끌어 이동)
     public class HandTool

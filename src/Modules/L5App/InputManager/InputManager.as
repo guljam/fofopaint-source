@@ -1,12 +1,10 @@
 package Modules.L5App.InputManager
 {
-    import Modules.InputPriority;
     import Modules.L1Data.KeyState;
 
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
-    import Modules.DrawEngine.HandDrawnLine;
     import Symbols.TopMenuSet;
     import Modules.L5App.FileManager;
     import Modules.L5App.ReplayEngine.ReplayController;
@@ -27,6 +25,9 @@ package Modules.L5App.InputManager
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L4UI.ImeController;
     import Modules.L5App.ClipboardManager;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L2Engine.DrawEngine.HandDrawnLine;
+    import Modules.L1Data.InputPriority;
 
     // 층: L5 앱 흐름 - 키보드·마우스 입력을 받아 모드별 입력 처리로 나눠줌
     public class InputManager

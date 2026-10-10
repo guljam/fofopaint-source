@@ -1,7 +1,5 @@
 package Modules.L5App
 {
-    import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.UITheme;
 
     import flash.desktop.ClipboardFormats;
     import flash.display.BitmapData;
@@ -30,10 +28,7 @@ package Modules.L5App
     import Modules.L4UI.ColorPickerController;
     import Modules.L5App.InputManager.DrawModeInput;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.NativeSave;
-    import Modules.PixelRestore;
     import Modules.L5App.ReplayEngine.ReplayController;
-    import Modules.ReplayDataCodec;
     import Modules.L5App.InputManager.ReplayModeInput;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
@@ -65,6 +60,12 @@ package Modules.L5App
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L4UI.CaptureEngine.CaptureStamp;
     import Modules.L4UI.ReferenceLayerController;
+    import Modules.L4UI.UIEngine.CanvasNavigator;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.NativeSave;
+    import Modules.L1Data.PixelRestore;
+    import Modules.L1Data.ReplayDataCodec;
+    import Modules.L1Data.UIEngine.UITheme;
 
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화
     public class FileManager

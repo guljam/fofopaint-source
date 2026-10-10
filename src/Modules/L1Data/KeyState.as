@@ -4,7 +4,6 @@ package Modules.L1Data
     import flash.events.Event;
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
-    import Modules.InputPriority;
 
     // 키보드 눌림 상태(눌린 키 목록, 마지막 키)와 키코드 표, 키 반복의 단일 소유자
     // 층: L1 데이터 - 키 눌림 상태와 키코드 표, 키 반복

@@ -1,6 +1,5 @@
-package Modules.UIEngine
+package Modules.L4UI.UIEngine
 {
-    import Modules.InputPriority;
     import Symbols.CanvasNavigatorBoxSet;
 
     import flash.display.DisplayObject;
@@ -15,6 +14,8 @@ package Modules.UIEngine
     import Modules.L1Data.Utils;
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.ReferenceLayerController;
+    import Modules.L1Data.InputPriority;
+    import Modules.L1Data.UIEngine.UITheme;
 
     // 사이드바의 캔버스 미리보기(네비게이터): 보이는 영역 커서 갱신, 클릭/드래그로 캔버스 이동
     // 층: L4 UI - 사이드바 캔버스 미리보기(네비게이터)와 클릭·드래그 이동

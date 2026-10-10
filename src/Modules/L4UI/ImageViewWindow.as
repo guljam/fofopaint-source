@@ -1,7 +1,5 @@
 package Modules.L4UI
 {
-    import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.UITheme;
 
     import flash.display.Bitmap;
     import flash.display.BitmapData;
@@ -25,6 +23,9 @@ package Modules.L4UI
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L1Data.Utils;
+    import Modules.L4UI.UIEngine.CanvasNavigator;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.UIEngine.UITheme;
 
     // 층: L4 UI - 캔버스 이미지를 별도 창으로 보여주는 창
     public final class ImageViewWindow

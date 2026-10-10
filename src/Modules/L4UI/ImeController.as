@@ -10,10 +10,11 @@ package Modules.L4UI
     import flash.text.TextField;
     import flash.text.TextFieldType;
     import flash.utils.getTimer;
-    import Modules.ImeDiagnostics;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.HintStrings;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L3Feature.ImeDiagnostics;
 
     // IME 상태의 단일 관리자
     //  - 규칙: 텍스트 입력 필드에 포커스가 있으면 IME를 켜고, 그 외(캔버스 단축키 영역)에서는 끔

@@ -3,7 +3,6 @@ package Modules.L4UI
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.utils.getTimer;
-    import Modules.PenCursorPreviewPixel;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.CanvasView;
@@ -13,6 +12,7 @@ package Modules.L4UI
     import Modules.L1Data.Utils;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.Tools.PenTool;
+    import Modules.L1Data.FOFOTimer;
 
     // 층: L4 UI - 펜 크기 미리보기 커서 (모양, 위치, 보임 여부)
     public class PenSizePreviewCursor

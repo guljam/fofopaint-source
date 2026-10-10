@@ -4,8 +4,8 @@ package Modules.L2Engine.ReplayEngine
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
     import flash.utils.ByteArray;
-    import Modules.ReplayEngine.TimingSheet;
     import Modules.L1Data.AppDataPaths;
+    import Modules.L1Data.ReplayEngine.TimingSheet;
 
     // repdata 파일에 들어있는 프레임(명령)마다의 시간 기록을 이어 쓴 파일
     // 프레임 하나는 uint 둘(8바이트): 직전 프레임과의 간격(ms), 그 명령의 연출 길이(ms, 없으면 0)

@@ -1,6 +1,5 @@
 package Modules.L4UI.Tools
 {
-    import Modules.InputPriority;
     import flash.events.MouseEvent;
     import flash.utils.getTimer;
     import flash.display.BitmapData;
@@ -17,6 +16,7 @@ package Modules.L4UI.Tools
     import Modules.L3Feature.DrawEngine.CanvasLayers;
     import Modules.L1Data.MouseState;
     import Modules.L4UI.Tools.LassoTool;
+    import Modules.L1Data.InputPriority;
 
     // 층: L4 UI - 이동 툴
     public class MoveTool

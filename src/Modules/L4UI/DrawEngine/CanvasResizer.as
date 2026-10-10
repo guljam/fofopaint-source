@@ -1,7 +1,5 @@
 package Modules.L4UI.DrawEngine
 {
-    import Modules.InputPriority;
-    import Modules.UIEngine.UITheme;
 
     import flash.display.Shape;
     import flash.display.Sprite;
@@ -22,6 +20,9 @@ package Modules.L4UI.DrawEngine
     import Modules.L1Data.Utils;
     import Modules.L4UI.Tools.ToolController;
     import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.InputPriority;
+    import Modules.L1Data.UIEngine.UITheme;
 
     // 캔버스 상하좌우 리사이즈 버튼과 드래그로 캔버스 크기 조절
     // 층: L4 UI - 캔버스 상하좌우 리사이즈 버튼과 드래그로 크기 조절

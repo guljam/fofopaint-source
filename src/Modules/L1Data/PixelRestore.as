@@ -1,4 +1,4 @@
-package Modules
+package Modules.L1Data
 {
     import avm2.intrinsics.memory.li8;
     import avm2.intrinsics.memory.si8;
@@ -9,7 +9,6 @@ package Modules
     import flash.geom.Rectangle;
     import flash.system.ApplicationDomain;
     import flash.utils.ByteArray;
-    import Modules.NativeCore;
 
     // 투명 BitmapData는 내부에 premultiplied(색 x 알파) 값으로 저장돼서
     // copyPixelsToByteArray로 꺼낸 값을 setPixels로 다시 넣으면 반투명 픽셀이 1씩 어두워지고, 왕복할수록 누적됨

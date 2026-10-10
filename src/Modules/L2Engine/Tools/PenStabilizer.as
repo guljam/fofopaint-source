@@ -1,4 +1,4 @@
-package Modules.Tools
+package Modules.L2Engine.Tools
 {
 	// 펜 손떨림 보정 (시간 + 경로 길이 이동 평균 스태빌라이저)
 	// 입력 경로를 SAMPLE_SPACING 간격으로 다시 샘플링하고 각 샘플에 입력 시간을 붙여서 보관함

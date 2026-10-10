@@ -1,7 +1,5 @@
 ﻿package Symbols
 {
-    import Modules.UIEngine.UITheme;
-    import Modules.InputPriority;
 
 	import flash.display.Sprite;
 	import flash.display.SimpleButton;
@@ -16,6 +14,8 @@
 	import flash.display.Shape;
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
+	import Modules.L1Data.InputPriority;
+	import Modules.L1Data.UIEngine.UITheme;
 
 	// 층: L4 UI - 숫자패드와 LCH 조절 화면 묶음
 	public class NumPadSet extends Sprite

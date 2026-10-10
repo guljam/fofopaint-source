@@ -1,6 +1,5 @@
 ﻿package Modules.L4UI
 {
-    import Modules.UIEngine.UITheme;
     import Main;
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L4UI.ColorPickerController;
@@ -13,6 +12,7 @@
     import Modules.L4UI.Tools.ToolController;
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L1Data.UIEngine.UITheme;
 
     // 층: L4 UI - 힌트 문구 모음
     public class HintStrings

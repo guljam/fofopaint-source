@@ -1,6 +1,5 @@
 package Modules.L4UI
 {
-    import Modules.UIEngine.UITheme;
 
     import Symbols.RefLayerMenuSet;
 
@@ -37,6 +36,8 @@ package Modules.L4UI
     import Modules.L1Data.Utils;
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.UIEngine.UITheme;
 
     // 층: L4 UI - 참조 레이어 메뉴와 이미지 병합·투명도·비우기
     public final class ReferenceLayerController

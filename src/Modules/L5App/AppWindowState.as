@@ -2,7 +2,6 @@ package Modules.L5App
 {
     import flash.events.Event;
     import flash.utils.getTimer;
-    import Modules.NativeSave;
     import flash.geom.Rectangle;
     import flash.display.NativeWindowDisplayState;
     import Modules.L5App.InputManager.CaptureModeInput;
@@ -32,6 +31,8 @@ package Modules.L5App
     import Modules.L4UI.ActivityWorkTimer;
     import Modules.L4UI.ImeController;
     import Modules.L1Data.Utils;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.NativeSave;
 
     // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState

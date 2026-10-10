@@ -1,6 +1,5 @@
 package Modules.L4UI.Tools
 {
-    import Modules.InputPriority;
 
     import flash.display.CapsStyle;
     import flash.display.JointStyle;
@@ -22,6 +21,8 @@ package Modules.L4UI.Tools
     import Modules.L2Engine.DrawEngine.StrokeBuffer;
     import Modules.L4UI.Tools.PenTool;
     import Modules.L4UI.ReferenceLayerController;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.InputPriority;
 
     // 층: L4 UI - 직선 그리기
     public class LineTool

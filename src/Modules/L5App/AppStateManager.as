@@ -1,7 +1,5 @@
 package Modules.L5App
 {
-    import Modules.UIEngine.CanvasNavigator;
-    import Modules.UIEngine.UITheme;
 
     import Modules.L1Data.AppDataPaths;
     import flash.display.BitmapData;
@@ -23,10 +21,7 @@ package Modules.L5App
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
     import Modules.L4UI.AboutBoxController;
-    import Modules.AppStateVars;
-    import Modules.CacheImageFile;
     import Modules.L4UI.PaletteController;
-    import Modules.PixelRestore;
     import Modules.L2Engine.ReplayEngine.ReplayClock;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
@@ -52,6 +47,12 @@ package Modules.L5App
     import Modules.L4UI.ActivityWorkTimer;
     import Modules.L4UI.ReferenceLayerController;
     import Modules.L1Data.Utils;
+    import Modules.L1Data.AppStateVars;
+    import Modules.L2Engine.CacheImageFile;
+    import Modules.L4UI.UIEngine.CanvasNavigator;
+    import Modules.L1Data.FOFOTimer;
+    import Modules.L1Data.PixelRestore;
+    import Modules.L1Data.UIEngine.UITheme;
 
     // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager
