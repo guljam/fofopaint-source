@@ -1038,7 +1038,7 @@ package Modules.L5App
             }
 
             const sheetTime:int = getTimer();
-            ReplaySaveMetaData.update();
+            FileManager.updateReplaySaveMetaData();
             const mirrorBytes:ByteArray = new ByteArray();
 
             // 임시 미러가 되어있을때 진짜 캔버스로 반전되어있는데 리플레이 데이터에는 아직 써주지 않았으니까 넣어줌
@@ -1237,7 +1237,7 @@ package Modules.L5App
                         ReplayState.rMemoryDataTimingSheet,
                         UndoController.isDeepUndoEnabled ? 0 : UndoHistory.undoDataIndex + 1,
                         ReplayState.lastMirrorReadyFlag ? 1 : 0);
-                ReplaySaveMetaData.update();
+                FileManager.updateReplaySaveMetaData();
                 BackgroundWorkerCoordinator.startReplayDataCompressionWorker(rLayer1FirstImageData, rLayer2FirstImageData, rLayer1CurrentImageData, rLayer2CurrentImageData, ReferenceLayerController.refLayerImageData, replayDataReadBytes);
             }
         }
@@ -1628,5 +1628,25 @@ package Modules.L5App
                 ReplayController.exitReplayMode();
             }
         }
+
+        public static function updateReplaySaveMetaData():void
+        {
+            ReplaySaveMetaData.firstImageWidth = ReplayFileCache.rFirstImageLayer1BitmapData.width;
+            ReplaySaveMetaData.firstImageHeight = ReplayFileCache.rFirstImageLayer1BitmapData.height;
+            ReplaySaveMetaData.finalImageWidth = DrawCanvas.canvasLayer1BitmapData.width;
+            ReplaySaveMetaData.finalImageHeight = DrawCanvas.canvasLayer1BitmapData.height;
+            ReplaySaveMetaData.finalImageBG = DrawCanvas.CANVAS_BG_COLOR;
+            ReplaySaveMetaData.refImageWidth = ReferenceLayerController.canvasRefLayerBitmapData.width;
+            ReplaySaveMetaData.refImageHeight = ReferenceLayerController.canvasRefLayerBitmapData.height;
+            ReplaySaveMetaData.refImageBitmapX = ReferenceLayerController.canvasRefLayerBitmap.x;
+            ReplaySaveMetaData.refImageBitmapY = ReferenceLayerController.canvasRefLayerBitmap.y;
+            ReplaySaveMetaData.refImageBitmapRotation = ReferenceLayerController.canvasRefLayer.rotation;
+            ReplaySaveMetaData.refImageBitmapScaleX = ReferenceLayerController.canvasRefLayer.scaleX;
+            ReplaySaveMetaData.refImageBitmapScaleY = ReferenceLayerController.canvasRefLayer.scaleY;
+            ReplaySaveMetaData.refImageBitmapMirrorFlag = Boolean(ReferenceLayerController.canvasRefLayer.scaleX < 0);
+            ReplaySaveMetaData.refImageBitmapMoveSum = ReferenceLayerController.refLayerMenuDragXMoveSum;
+            ReplaySaveMetaData.refImageAlpha = ReferenceLayerController.refLayerLastAlpha;
+        }
+
     }
 }
