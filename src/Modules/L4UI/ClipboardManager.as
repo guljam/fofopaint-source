@@ -9,7 +9,6 @@ package Modules.L4UI
     import Modules.L4UI.LoadBoxController;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
-    import Modules.ReferenceLayerController;
 
     // 층: L4 UI - 클립보드 이미지 불러오기
     public class ClipboardManager

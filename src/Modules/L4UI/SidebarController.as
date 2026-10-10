@@ -15,7 +15,6 @@ package Modules.L4UI
     import flash.geom.Rectangle;
     import flash.display.Shape;
     import Modules.InputPriority;
-    import Modules.ReferenceLayerController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;

@@ -2,7 +2,6 @@ package Modules.L5App.InputManager
 {
     import Modules.UIEngine.CanvasNavigator;
     import Modules.InputPriority;
-    import Modules.ReferenceLayerController;
     import Modules.UIEngine.UITheme;
 
     import flash.display.DisplayObject;
@@ -47,6 +46,7 @@ package Modules.L5App.InputManager
     import Modules.L4UI.ClipboardManager;
     import Modules.L4UI.ActivityWorkTimer;
     import Modules.L4UI.AppUpdater;
+    import Modules.L4UI.ReferenceLayerController;
 
     // 드로우 모드의 키보드/마우스 입력 (툴 단축키, 툴박스2, 드로우 모드 버튼)
     // 층: L5 앱 흐름 - 드로우 모드의 키보드/마우스 입력

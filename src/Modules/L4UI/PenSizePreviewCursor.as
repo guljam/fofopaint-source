@@ -6,7 +6,6 @@ package Modules.L4UI
     import Modules.L4UI.LoadBoxController;
     import Modules.PenCursorPreviewPixel;
     import Modules.L1Data.Tools.PenSettings;
-    import Modules.ReferenceLayerController;
     import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;

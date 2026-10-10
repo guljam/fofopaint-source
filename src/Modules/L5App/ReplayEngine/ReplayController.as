@@ -26,7 +26,6 @@ package Modules.L5App.ReplayEngine
     import flash.utils.getTimer;
     import Modules.NativeCacheJobs;
     import Modules.NativeCore;
-    import Modules.ReferenceLayerController;
     import Symbols.SeekBarSet;
     import Modules.L5App.AppWindowState;
     import Modules.L4UI.CanvasGridOverlay;
@@ -64,6 +63,7 @@ package Modules.L5App.ReplayEngine
     import Modules.L1Data.Utils;
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L1Data.Tools.PenSettings;
+    import Modules.L4UI.ReferenceLayerController;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController

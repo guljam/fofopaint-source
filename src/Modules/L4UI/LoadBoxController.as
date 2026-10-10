@@ -16,7 +16,6 @@ package Modules.L4UI
     import libwebp.DecodeWebp;
     import Modules.L5App.FileManager;
     import Modules.InputPriority;
-    import Modules.ReferenceLayerController;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.KeyState;

@@ -28,7 +28,6 @@ package Modules.L5App
     import Modules.CacheImageFile;
     import Modules.L4UI.PaletteController;
     import Modules.PixelRestore;
-    import Modules.ReferenceLayerController;
     import Modules.L2Engine.ReplayEngine.ReplayClock;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
@@ -52,6 +51,7 @@ package Modules.L5App
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L4UI.CaptureEngine.CaptureStamp;
     import Modules.L4UI.ActivityWorkTimer;
+    import Modules.L4UI.ReferenceLayerController;
 
     // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager

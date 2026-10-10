@@ -2,7 +2,6 @@
 {
     import Modules.AppStateVars;
     import Modules.InputPriority;
-    import Modules.ReferenceLayerController;
     import Modules.UIEngine.CanvasNavigator;
 
     import Symbols.HintBoxSet;
@@ -78,6 +77,7 @@
     import Modules.L4UI.AppUpdater;
     import Modules.L3Feature.UndoController;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
+    import Modules.L4UI.ReferenceLayerController;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화

@@ -1,7 +1,6 @@
 package Modules.L4UI.CaptureEngine
 {
     import Modules.UIEngine.UITheme;
-    import Modules.ReferenceLayerController;
     import flash.desktop.Clipboard;
     import flash.desktop.ClipboardFormats;
     import flash.display.Bitmap;
@@ -31,6 +30,7 @@ package Modules.L4UI.CaptureEngine
     import Modules.L4UI.DrawEngine.CanvasResizer;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.Utils;
+    import Modules.L4UI.ReferenceLayerController;
 
     // 층: L4 UI - 캡처 모드 진입·종료와 캡처 처리
     public class CaptureController
