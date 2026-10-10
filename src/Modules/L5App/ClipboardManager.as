@@ -12,7 +12,7 @@ package Modules.L5App
     import Modules.L5App.LoadBoxController;
     import Modules.L4UI.ReferenceLayerController;
 
-    // 층: L4 UI - 클립보드 이미지 불러오기
+    // 층: L5 앱 흐름 - 클립보드 이미지 불러오기
     public class ClipboardManager
     {
         public static var main:Main;

@@ -31,7 +31,7 @@ package Modules.L5App
     import Modules.L4UI.ReferenceLayerController;
 
     // 불러오기 메뉴(로드박스)의 열기/닫기, 버튼 처리, 불러올 이미지/파일 보관, 확정 시 실제 불러오기 호출을 담당함
-    // 층: L4 UI - 불러오기 메뉴(로드박스) 열기·닫기와 버튼 처리
+    // 층: L5 앱 흐름 - 불러오기 메뉴(로드박스) 열기·닫기와 버튼 처리
     public class LoadBoxController
     {
         public static var main:Main;
