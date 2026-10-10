@@ -7,8 +7,10 @@
 # 인증서 비밀번호는 넣지 않음: adt가 실행 중에 물어보면 터미널에 입력
 Set-Location $PSScriptRoot
 $legacySdk = 'D:\adobe_air_sdk_manager\AIRSDK_51.3.4'
-$legacyVersion = '28.01'
-$legacyStateVersion = '2801'
+# 버전은 legacy_version.txt (예: 28.01)에서 읽음, 올릴 때는 그 파일만 고치면 됨 (28.02, 28.03 ...)
+$legacyVersion = ([IO.File]::ReadAllText("$PSScriptRoot\legacy_version.txt")).Trim()
+if ($legacyVersion -notmatch '^\d+\.\d+$') { Write-Host "legacy_version.txt must be a.b (e.g. 28.01): '$legacyVersion'"; exit 1 }
+$legacyStateVersion = $legacyVersion.Replace('.', '')  # 28.01 -> 2801
 $keystore = 'F:\페인트앱_백업\fofopaintKey\secretkey3.p12'
 $release = 'bin\release-legacy'
 $desc = 'bin\fofoPaint-air-app.xml'
