@@ -25,9 +25,9 @@ package Modules.L3Feature.Tools
     import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L1Data.ColorHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L3Feature.DrawEngine.CanvasLayers;
 
     // 층: L3 기능 - 스포이드 툴
     public class EyeDropperTool

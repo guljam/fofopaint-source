@@ -30,10 +30,10 @@ package Modules
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L4UI.HintStrings;
+    import Modules.L3Feature.DrawEngine.CanvasLayers;
 
     // 층: L4 UI - 참조 레이어 메뉴와 이미지 병합·투명도·비우기
     public final class ReferenceLayerController

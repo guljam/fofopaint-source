@@ -56,7 +56,6 @@ package Modules.L5App.ReplayEngine
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L3Feature.Tools.PenTool;
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
     import Modules.L2Engine.UndoHistory;
@@ -64,6 +63,7 @@ package Modules.L5App.ReplayEngine
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.ReplayEngine.ReplaySaveMetaData;
     import Modules.L4UI.HintStrings;
+    import Modules.L3Feature.DrawEngine.CanvasLayers;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController

@@ -15,9 +15,9 @@ package Modules.Tools
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L3Feature.DrawEngine.CanvasLayers;
 
     // 층: L3 기능 - 이동 툴
     public class MoveTool

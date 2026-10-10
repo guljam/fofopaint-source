@@ -13,8 +13,8 @@
     import Modules.L3Feature.Tools.ToolController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.Tools.PenSettings;
-    import Modules.L2Engine.DrawEngine.CanvasLayers;
     import Modules.L3Feature.Tools.PenTool;
+    import Modules.L3Feature.DrawEngine.CanvasLayers;
 
     // 층: L1 데이터 - 힌트 문구 모음
     public class HintStrings
