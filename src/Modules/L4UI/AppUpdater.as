@@ -127,7 +127,6 @@ package Modules.L4UI
                         status = FLAG_NO_UPDATE;
                         return;
                     }
-
                     newVersionStr = versionStr;
                     status = FLAG_UPDATE_AVAILABLE;
                     UIController.topBar.showUpdateButton();

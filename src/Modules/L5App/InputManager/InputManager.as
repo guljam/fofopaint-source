@@ -219,10 +219,10 @@ package Modules.L5App.InputManager
         public static function onKeyUpStage(e:KeyboardEvent):void
         {
             // 디버그 확인용
-            if (KeyState.isPressedKey(KeyState.KEY.f12))
-            {
-                UIController.topBar.showUpdateButton();
-            }
+            // if (KeyState.isPressedKey(KeyState.KEY.f12))
+            // {
+            //     UIController.topBar.showUpdateButton();
+            // }
 
             KeyState.checkInvalidKey();
             ImeController.logKeyUp(e);

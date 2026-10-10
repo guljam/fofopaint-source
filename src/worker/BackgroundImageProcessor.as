@@ -16,9 +16,9 @@ package worker
     import flash.system.Worker;
     import flash.utils.ByteArray;
 
+    [SWF(frameRate="2")]
     public class BackgroundImageProcessor extends Sprite
     {
-
         private var bgWorker:Worker;
 
         protected var mainToBack:MessageChannel;
