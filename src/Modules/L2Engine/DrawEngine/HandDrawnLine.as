@@ -46,8 +46,8 @@ package Modules.L2Engine.DrawEngine
             cornerRadius:Number = 0.01 //사각형 모서리 둥글기
         ):void
         {
-            width -= thickness;
-            height -= thickness;
+            // width -= thickness;
+            // height -= thickness;
             const endX:Number = startX+width;
             const endY:Number = startY+height;
             const minX:Number = Math.min(startX, endX);

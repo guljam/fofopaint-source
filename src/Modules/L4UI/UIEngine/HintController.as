@@ -27,6 +27,8 @@ package Modules.L4UI.UIEngine
     import Modules.L1Data.KeyState;
     import Modules.L1Data.FOFOTimer;
     import Modules.L1Data.UIEngine.UITheme;
+    import Modules.L2Engine.DrawEngine.HandDrawnLine;
+    import flash.utils.getTimer;
 
     // 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시. 문구는 HintStrings가 담당
     // 층: L4 UI - 마우스 힌트, 하단 힌트 바, 힌트 하이라이트 박스 표시
@@ -246,9 +248,8 @@ package Modules.L4UI.UIEngine
 
         public static function showHintHighlightBox(target:DisplayObject):void
         {
+            const nt:int = getTimer();
             const scale:Number = UITheme.getUIScale();
-            hintHighlightBox.graphics.clear();
-            hintHighlightBox.graphics.lineStyle(2 * scale, UITheme.getHintHightlightColor(), 1.0);
 
             if (target.parent === CanvasNavigator.box)
             {
@@ -270,9 +271,12 @@ package Modules.L4UI.UIEngine
                 rect.height -= 2 * scale;
             }
 
+            hintHighlightBox.graphics.clear();
+            // hintHighlightBox.graphics.lineStyle(2 * scale, UITheme.getHintHightlightColor(), 1.0);
             hintHighlightBox.x = rect.x;
             hintHighlightBox.y = rect.y;
-            hintHighlightBox.graphics.drawRect(0, 0, rect.width, rect.height);
+            // hintHighlightBox.graphics.drawRect(0, 0, rect.width, rect.height);
+            HandDrawnLine.drawRect(hintHighlightBox.graphics,2,UITheme.getHintHightlightColor(),1.0,0,0,rect.width,rect.height);
             updateHightLightBoxZOrderByTarget(target);
             hintHighlightBox.visible = true;
         }
