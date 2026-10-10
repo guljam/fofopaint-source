@@ -11,7 +11,6 @@ package Modules.L5App
     import Modules.L5App.InputManager.DrawModeInput;
     import Modules.L4UI.ImageViewWindow;
     import Modules.L5App.InputManager.InputManager;
-    import Modules.L4UI.LoadBoxController;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L5App.InputManager.ReplayModeInput;
     import Modules.L4UI.SidebarController;
@@ -31,7 +30,6 @@ package Modules.L5App
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.Tools.ToolController;
     import Modules.L4UI.CaptureEngine.CaptureController;
-    import Modules.L4UI.ClipboardManager;
     import Modules.L4UI.ActivityWorkTimer;
     import Modules.L4UI.ImeController;
 

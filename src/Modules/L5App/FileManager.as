@@ -31,7 +31,6 @@ package Modules.L5App
     import Modules.L5App.InputManager.DrawModeInput;
     import Modules.L4UI.ImageViewWindow;
     import Modules.L5App.InputManager.InputManager;
-    import Modules.L4UI.LoadBoxController;
     import Modules.NativeSave;
     import Modules.PixelRestore;
     import Modules.L5App.ReplayEngine.ReplayController;
@@ -66,7 +65,6 @@ package Modules.L5App
     import Modules.L4UI.Tools.ToolController;
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L4UI.CaptureEngine.CaptureStamp;
-    import Modules.L4UI.ClipboardManager;
     import Modules.L4UI.ReferenceLayerController;
 
     // 층: L5 앱 흐름 - 파일(.fofo, 이미지) 불러오기와 저장, 불러온 뒤 캔버스 초기화

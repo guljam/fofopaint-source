@@ -32,7 +32,6 @@ package Modules.L5App.ReplayEngine
     import Modules.L5App.InputManager.DrawModeInput;
     import Modules.L5App.FileManager;
     import Modules.L4UI.ImageViewWindow;
-    import Modules.L4UI.LoadBoxController;
     import Modules.L5App.InputManager.ReplayModeInput;
     import Modules.ReplayEngine.ReplayMouseAutoHide;
     import Modules.L4UI.SidebarController;
@@ -63,6 +62,7 @@ package Modules.L5App.ReplayEngine
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L4UI.ReferenceLayerController;
+    import Modules.L5App.LoadBoxController;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController

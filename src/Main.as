@@ -29,7 +29,6 @@
     import Modules.L5App.FileManager;
     import Modules.L4UI.ImageViewWindow;
     import Modules.L5App.InputManager.InputManager;
-    import Modules.L4UI.LoadBoxController;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L5App.InputManager.ReplayModeInput;
     import Modules.L4UI.SidebarController;
@@ -71,13 +70,14 @@
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L4UI.CaptureEngine.CaptureArea;
     import Modules.L4UI.CaptureEngine.CaptureStamp;
-    import Modules.L4UI.ClipboardManager;
     import Modules.L4UI.ActivityWorkTimer;
     import Modules.L4UI.ImeController;
     import Modules.L4UI.AppUpdater;
     import Modules.L3Feature.UndoController;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
     import Modules.L4UI.ReferenceLayerController;
+    import Modules.L5App.LoadBoxController;
+    import Modules.L5App.ClipboardManager;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화

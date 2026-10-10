@@ -1,4 +1,4 @@
-package Modules.L4UI
+package Modules.L5App
 {
 
     import Symbols.LoadBoxSet;
@@ -28,6 +28,7 @@ package Modules.L4UI
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.Tools.ToolController;
     import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L4UI.ReferenceLayerController;
 
     // 불러오기 메뉴(로드박스)의 열기/닫기, 버튼 처리, 불러올 이미지/파일 보관, 확정 시 실제 불러오기 호출을 담당함
     // 층: L4 UI - 불러오기 메뉴(로드박스) 열기·닫기와 버튼 처리

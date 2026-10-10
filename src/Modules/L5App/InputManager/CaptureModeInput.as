@@ -12,8 +12,8 @@ package Modules.L5App.InputManager
     import Modules.L1Data.MouseState;
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L4UI.CaptureEngine.CaptureStamp;
-    import Modules.L4UI.ClipboardManager;
     import Modules.L4UI.ActivityWorkTimer;
+    import Modules.L5App.ClipboardManager;
 
     // 캡처 모드의 키보드/마우스 입력
     // 층: L5 앱 흐름 - 캡처 모드의 키보드/마우스 입력
