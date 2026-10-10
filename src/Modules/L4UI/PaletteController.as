@@ -18,7 +18,7 @@ package Modules.L4UI
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L1Data.ColorHistory;
     import Modules.L1Data.DragInteraction;
-    import Modules.L4UI.Tools.PenTool;
+    import Modules.L1Data.Tools.PenSettings;
 
     // 층: L4 UI - My Palette 선택·추가·저장과 적용
     public final class PaletteController
@@ -212,7 +212,7 @@ package Modules.L4UI
             {
                 if (isSelctedColorEmpty(index))
                 {
-                    if (PenTool.isTransparentPenColor === false && ColorPickerController.isColorPickerModeBG === false)
+                    if (PenSettings.isTransparentPenColor === false && ColorPickerController.isColorPickerModeBG === false)
                     {
                         ColorPickerController.selectTransparentColor();
                     }
@@ -308,11 +308,11 @@ package Modules.L4UI
                 {
                     myPaletteColorBeforeAddColor[0] = index;
                     myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
-                    myPalettePreset[index] = (PenTool.isTransparentPenColor) ? null : color;
+                    myPalettePreset[index] = (PenSettings.isTransparentPenColor) ? null : color;
                     updateMyPaletteList();
                     ColorHistory.add(color);
                 }
-                else if (PenTool.isTransparentPenColor)
+                else if (PenSettings.isTransparentPenColor)
                 {
                     myPaletteColorBeforeAddColor[0] = index;
                     myPaletteColorBeforeAddColor[1] = myPalettePreset[index];
@@ -704,7 +704,7 @@ package Modules.L4UI
 
             const pickedColor:uint = ColorHistory.list[index];
 
-            if (pickedColor === ColorPickerController.colorPickerBox.getRGBInfoBGColor() && !PenTool.isTransparentPenColor)
+            if (pickedColor === ColorPickerController.colorPickerBox.getRGBInfoBGColor() && !PenSettings.isTransparentPenColor)
             {
                 return;
             }

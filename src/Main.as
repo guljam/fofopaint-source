@@ -76,6 +76,8 @@
     import Modules.L4UI.ActivityWorkTimer;
     import Modules.L4UI.ImeController;
     import Modules.L4UI.AppUpdater;
+    import Modules.L3Feature.UndoController;
+    import Modules.L3Feature.DrawEngine.CanvasLayers;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화
@@ -181,6 +183,33 @@
             ReplayDrawer.onReplayCanvasFitNeededFunc = ReplayController.fitReplayCanvasToViewport;
             MouseState.onMouseLeftDownFunc = PenSizePreviewCursor.cancelPendingColorCheck;
             DragInteraction.onDragEndedFunc = UIController.keepBoxInsideViewPort;
+            UndoController.onMouseHintHideFunc = HintController.hideMouseHint;
+            UndoController.onReplayStepNextFunc = ReplayController.moveToNextStep;
+            UndoController.onReplayStepPreviousFunc = ReplayController.moveToPreviousStep;
+            UndoController.onFileChangedFunc = function ():void
+            {
+                FileManager.isFileAlreadySaved = false;
+            };
+            UndoController.onNewFileButtonNeededFunc = FileManager.enableNewFileButton;
+            UndoController.onReplayTotalFrameChangedFunc = ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec;
+            UndoController.onReplayTimeResetFunc = ReplayController.resetReplayTime;
+            UndoController.onMirrorChangedFunc = UIController.canvasInfoBox.setMirror;
+            UndoController.onNavigatorImageChangedFunc = CanvasNavigator.box.updateImage;
+            UndoController.onRefLayerMovedFunc = ReferenceLayerController.updateRefLayerBitmapPos;
+            UndoController.onReplayCanvasAppliedFunc = ReplayController.preserveDrawMirrorStateAfterReplayCopy;
+            UndoController.onCanvasWindowChangedFunc = function ():void
+            {
+                if (ImageViewWindow.isCanvasWindowON)
+                {
+                    ImageViewWindow.updateCanvasWindowImage();
+                    ImageViewWindow.updateCanvasWindowBitmapSize();
+                }
+            };
+            UndoController.onNavigatorCursorChangedFunc = CanvasNavigator.updateCursor;
+            CanvasLayers.onMouseHintTempFunc = HintController.showMouseHintTemp;
+            CanvasLayers.onLayerCheckChangedFunc = ToolPanel.updateLayerCheckButtons;
+            CanvasLayers.onLayerMergeEnabledChangedFunc = ToolPanel.setLayerMergeButtonEnabled;
+            CanvasLayers.onLayerSelectedFunc = ToolPanel.updateLayerSelectButtons;
         }
 
         public function initializeModule():void

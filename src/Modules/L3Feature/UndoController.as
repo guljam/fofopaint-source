@@ -1,21 +1,14 @@
 package Modules.L3Feature
 {
-    import Modules.UIEngine.CanvasNavigator;
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
     import flash.geom.Point;
-    import Modules.L5App.FileManager;
-    import Modules.L4UI.ImageViewWindow;
-    import Modules.ReferenceLayerController;
-    import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L1Data.KeyState;
     import Modules.L2Engine.ReplayEngine.ReplayClock;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
-    import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.AppDataPaths;
-    import Modules.L4UI.UIEngine.HintController;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
@@ -28,6 +21,33 @@ package Modules.L3Feature
     // 층: L3 기능 - undo / redo / 딥 언두로 위치를 옮기고 캔버스를 다시 그림
     public class UndoController
     {
+        // 마우스 옆 힌트를 숨겨야 한다는 보고
+        public static var onMouseHintHideFunc:Function;
+        // 딥 언두 구간에서 리플레이를 다음 단계로 옮겨야 한다는 보고
+        public static var onReplayStepNextFunc:Function;
+        // 딥 언두 구간에서 리플레이를 이전 단계로 옮겨야 한다는 보고
+        public static var onReplayStepPreviousFunc:Function;
+        // undo/redo로 캔버스가 바뀌어 파일이 저장된 상태가 아니게 됐다는 보고
+        public static var onFileChangedFunc:Function;
+        // undo/redo 뒤 새 파일 버튼을 켜야 한다는 보고
+        public static var onNewFileButtonNeededFunc:Function;
+        // 리플레이 총 프레임이 바뀌어 최대 배속을 다시 계산해야 한다는 보고 (인자: 총 프레임)
+        public static var onReplayTotalFrameChangedFunc:Function;
+        // 리플레이 시간 표시를 처음으로 되돌려야 한다는 보고
+        public static var onReplayTimeResetFunc:Function;
+        // 미러 상태가 바뀌어 캔버스 정보 박스의 미러 표시를 바꿔야 한다는 보고 (인자: 미러 여부)
+        public static var onMirrorChangedFunc:Function;
+        // 캔버스 이미지가 바뀌어 네비게이터 이미지를 갱신해야 한다는 보고
+        public static var onNavigatorImageChangedFunc:Function;
+        // 캔버스가 움직인 만큼 참조 레이어 이미지 위치를 옮겨야 한다는 보고 (인자: 옮긴 거리)
+        public static var onRefLayerMovedFunc:Function;
+        // 리플레이 캔버스를 드로우 캔버스에 복사한 뒤 드로우 모드의 미러 상태를 맞춰야 한다는 보고
+        public static var onReplayCanvasAppliedFunc:Function;
+        // 이미지 보기 창이 열려 있으면 이미지와 크기를 갱신해야 한다는 보고
+        public static var onCanvasWindowChangedFunc:Function;
+        // 네비게이터의 보이는 영역 커서를 갱신해야 한다는 보고
+        public static var onNavigatorCursorChangedFunc:Function;
+
         // 딥언도 (Deep Undo)
         private static var deepUndoBeforeSuspend:Boolean = false; // 리플레이 켜줄때 딥 플래그를 꺼줘서 여기다가 미리 저장해둠
 
@@ -57,7 +77,7 @@ package Modules.L3Feature
                 else
                 {
                     ReplayDrawer.rReplayFOFOCursor.visible = false;
-                    HintController.hideMouseHint();
+                    if (onMouseHintHideFunc != null) onMouseHintHideFunc();
                 }
             }
             else
@@ -105,7 +125,7 @@ package Modules.L3Feature
         {
             if (UndoHistory.isDeepUndoEnabled)
             {
-                ReplayController.moveToNextStep();
+                if (onReplayStepNextFunc != null) onReplayStepNextFunc();
                 DrawCanvas.applyReplayCanvasToDrawModeCanvas();
                 Utils.showDisplayTargetAndFadeOut(ReplayDrawer.rReplayFOFOCursor, 1.0, 0.3);
 
@@ -121,13 +141,13 @@ package Modules.L3Feature
 
                 if (UndoHistory.undoDataIndex + 1 > lastIndex)
                 {
-                    FileManager.isFileAlreadySaved = false;
+                    if (onFileChangedFunc != null) onFileChangedFunc();
                     UndoHistory.setUndoDataIndex(lastIndex);
                 }
                 else
                 {
                     UndoHistory.setUndoDataIndex(UndoHistory.undoDataIndex + 1);
-                    FileManager.isFileAlreadySaved = false;
+                    if (onFileChangedFunc != null) onFileChangedFunc();
                     updateCanvasState(true);
                     Utils.showDisplayTargetAndFadeOut(ReplayDrawer.rReplayFOFOCursor, 1.0, 0.3);
                 }
@@ -137,8 +157,8 @@ package Modules.L3Feature
         public static function undoToIndex(index:int):void
         {
             UndoHistory.setUndoDataIndex(index);
-            FileManager.isFileAlreadySaved = false;
-            FileManager.enableNewFileButton();
+            if (onFileChangedFunc != null) onFileChangedFunc();
+            if (onNewFileButtonNeededFunc != null) onNewFileButtonNeededFunc();
             updateCanvasStateAfterUndo();
         }
 
@@ -155,7 +175,7 @@ package Modules.L3Feature
         {
             UndoHistory.isDeepUndoEnabled = true;
             ReplayState.rMemoryDataReadON = false;
-            ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
+            if (onReplayTotalFrameChangedFunc != null) onReplayTotalFrameChangedFunc(ReplayState.getTotalFrame());
             // 이미지 캐시 해주고 rPrevFrame 갱신해주고
             ReplayDrawer.renderReplayFrame(ReplayState.getRFileDataTotalFrame() - 1, ReplayDrawer.JUMP_FRAME_MANUAL);
             // 실제 rPrevFrame으로 점프
@@ -178,14 +198,14 @@ package Modules.L3Feature
             ReplayState.setRFileDataTotalFrame(rNowFrameSave);
             TimingSheetFile.truncateAfter(rNowFrameSave);
             ReplayClock.truncateFileIndex(rNowFrameSave);
-            ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
-            ReplayController.resetReplayTime();
+            if (onReplayTotalFrameChangedFunc != null) onReplayTotalFrameChangedFunc(rNowFrameSave);
+            if (onReplayTimeResetFunc != null) onReplayTimeResetFunc();
             resetUndoState(true);
             ReplayDrawer.rReplayFOFOCursor.visible = true; // 대칭된 커서 위치를 갱신해주려고 임시로 켜줌
-            UIController.canvasInfoBox.setMirror(DrawCanvas.mirrorON);
+            if (onMirrorChangedFunc != null) onMirrorChangedFunc(DrawCanvas.mirrorON);
             ReplayDrawCommands.setFirstRCursorPosCurrent();
             ReplayDrawer.rReplayFOFOCursor.visible = false;
-            CanvasNavigator.box.updateImage();
+            if (onNavigatorImageChangedFunc != null) onNavigatorImageChangedFunc();
             exitDeepUndo();
         }
 
@@ -200,7 +220,7 @@ package Modules.L3Feature
             {
                 if (ReplayState.rNowFrame > 0)
                 {
-                    ReplayController.moveToPreviousStep();
+                    if (onReplayStepPreviousFunc != null) onReplayStepPreviousFunc();
                     DrawCanvas.applyReplayCanvasToDrawModeCanvas();
                     Utils.showDisplayTargetAndFadeOut(ReplayDrawer.rReplayFOFOCursor, 1.0, 0.3);
                 }
@@ -209,7 +229,7 @@ package Modules.L3Feature
             {
                 if (UndoHistory.undoDataIndex - 1 < -1)
                 {
-                    FileManager.isFileAlreadySaved = false;
+                    if (onFileChangedFunc != null) onFileChangedFunc();
                     UndoHistory.setUndoDataIndex(-1);
                     enterDeepUndo();
                     Utils.showDisplayTargetAndFadeOut(ReplayDrawer.rReplayFOFOCursor, 1.0, 0.3);
@@ -220,7 +240,7 @@ package Modules.L3Feature
 
                     if (ReplayState.rMemoryData.length > 0)
                     {
-                        FileManager.isFileAlreadySaved = false;
+                        if (onFileChangedFunc != null) onFileChangedFunc();
                         updateCanvasStateAfterUndo();
                         Utils.showDisplayTargetAndFadeOut(ReplayDrawer.rReplayFOFOCursor, 1.0, 0.3);
                     }
@@ -252,26 +272,22 @@ package Modules.L3Feature
             {
                 CanvasView.canvasAnchorPoint.x += movedRegPos.x * CanvasView.canvasZoomMultiplier;
                 CanvasView.canvasAnchorPoint.y += movedRegPos.y * CanvasView.canvasZoomMultiplier;
-                ReferenceLayerController.updateRefLayerBitmapPos(movedRegPos);
+                if (onRefLayerMovedFunc != null) onRefLayerMovedFunc(movedRegPos);
             }
 
             // updateMirrorStateDrawModeNotSameRreplayMirrorState 이 함수 직전에 해줘야 나중에 제대로 대칭된 좌표가 됨
             showRCursorOnUndo(undoIndexSave);
 
-            ReplayController.preserveDrawMirrorStateAfterReplayCopy();
-            CanvasNavigator.box.updateImage();
+            if (onReplayCanvasAppliedFunc != null) onReplayCanvasAppliedFunc();
+            if (onNavigatorImageChangedFunc != null) onNavigatorImageChangedFunc();
             DrawCanvas.setCanvasBGColorDrawMode(ReplayState.RCANVAS_BG_COLOR);
             CanvasView.updateCanvasPanelColorAndSize();
 
             // canvas window 상태 갱신
-            if (ImageViewWindow.isCanvasWindowON)
-            {
-                ImageViewWindow.updateCanvasWindowImage();
-                ImageViewWindow.updateCanvasWindowBitmapSize();
-            }
+            if (onCanvasWindowChangedFunc != null) onCanvasWindowChangedFunc();
 
-            CanvasNavigator.updateCursor();
-            FileManager.enableNewFileButton();
+            if (onNavigatorCursorChangedFunc != null) onNavigatorCursorChangedFunc();
+            if (onNewFileButtonNeededFunc != null) onNewFileButtonNeededFunc();
         }
 
         // 배경색 변경을 undo 데이터에 기록함 (직전 명령이 배경색이면 이어 붙임)

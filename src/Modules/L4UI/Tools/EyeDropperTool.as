@@ -29,6 +29,7 @@ package Modules.L4UI.Tools
     import Modules.L1Data.Utils;
     import Modules.L4UI.Tools.PenTool;
     import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L1Data.Tools.PenSettings;
 
     // 층: L4 UI - 스포이드 툴
     public class EyeDropperTool
@@ -165,7 +166,7 @@ package Modules.L4UI.Tools
             if (e.keyCode === KeyState.KEY.c || e.keyCode === KeyState.KEY.m) {}
             else if (e.keyCode === KeyState.KEY.space)
             {
-                if (PenTool.isTransparentPenColor)
+                if (PenSettings.isTransparentPenColor)
                 {
                     ColorPickerController.selectCurrentColor(false);
                     HintController.showMouseHintTemp("Current color selected");
@@ -174,7 +175,7 @@ package Modules.L4UI.Tools
                 {
                     ColorPickerController.selectCurrentColor(false);
 
-                    if (PenTool.isTransparentPenColor === false)
+                    if (PenSettings.isTransparentPenColor === false)
                     {
                         ColorPickerController.selectTransparentColor();
                     }

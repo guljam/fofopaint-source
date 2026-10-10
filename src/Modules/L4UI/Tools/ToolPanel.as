@@ -7,6 +7,7 @@ package Modules.L4UI.Tools
     import Symbols.ToolMenuSet2;
     import Symbols.ToolOptionsSet;
     import flash.display.Bitmap;
+    import flash.display.BitmapData;
     import flash.display.DisplayObject;
     import flash.display.DisplayObjectContainer;
     import flash.display.SimpleButton;
@@ -34,6 +35,7 @@ package Modules.L4UI.Tools
     import Modules.L3Feature.DrawEngine.CanvasLayers;
     import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
+    import Modules.L2Engine.UndoHistory;
 
     // 사이드바의 툴 패널 UI: 툴박스, 우클릭 툴박스(toolBox2), 펜 옵션 박스와 그 클릭/드래그 처리
     // 도구 선택 상태는 ToolController가 가지고, 여기서는 표시와 입력 해석만 함
@@ -1079,5 +1081,41 @@ package Modules.L4UI.Tools
             optionDragBox = null;
             optionDragApply = null;
         }
+
+        // 레이어 1, 2의 이미지를 서로 바꾸고 undo 기록에 남김 (스왑 버튼이 준비됐을 때만)
+        public static function swapLayer():void
+        {
+            if (!ToolPanel.isLayerSwapButtonReady())
+            {
+                return;
+            }
+            if (UndoHistory.isDeepUndoEnabled)
+            {
+                UndoController.applyDeepUndo();
+            }
+            CanvasLayers.isLayerSwapped = !CanvasLayers.isLayerSwapped;
+            var tempbmpd1:BitmapData = DrawCanvas.canvasLayer1BitmapData.clone();
+            var tempbmpd11:BitmapData = DrawCanvas.canvasLayer2BitmapData.clone();
+            const rect:Rectangle = new Rectangle(0, 0, DrawCanvas.canvasLayer1BitmapData.width, DrawCanvas.canvasLayer1BitmapData.height);
+            DrawCanvas.canvasLayer1BitmapData.fillRect(rect, 0);
+            DrawCanvas.canvasLayer2BitmapData.fillRect(rect, 0);
+            DrawCanvas.canvasLayer1BitmapData.draw(tempbmpd11);
+            DrawCanvas.canvasLayer2BitmapData.draw(tempbmpd1);
+            tempbmpd1.dispose();
+            tempbmpd11.dispose();
+            tempbmpd1 = null;
+            tempbmpd11 = null;
+            if (ReplayState.hasLastRMemoryDataCommand("swap"))
+            {
+                ReplayState.deleteLastRMemoryDataCommand("swap");
+            }
+            else
+            {
+                ReplayState.rMemoryDataBuffer.push(["swap"]);
+                UndoHistory.addNew();
+            }
+            ToolPanel.flickLayerSwapButton();
+        }
+
     }
 }

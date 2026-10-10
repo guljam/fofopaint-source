@@ -11,7 +11,6 @@ package Modules.L3Feature
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L2Engine.DrawEngine.StrokeBuffer;
-    import Modules.L4UI.Tools.PenTool;
 
     // 층: L3 기능 - 획이 끝났을 때 임시 그리기 버퍼를 레이어에 합치고 undo 기록을 준비
     public class DrawingFinish
@@ -60,11 +59,11 @@ package Modules.L3Feature
 
                 if (DrawCanvas.isLayer2Selected)
                 {
-                    DrawCanvas.canvasLayer2BitmapData.draw(StrokeBuffer.canvasDrawLayerBitmap, null, drawLayerAlpha, (PenTool.isTransparentPenColor) ? "erase" : null, StrokeBuffer.canvasDrawLayerClipRect);
+                    DrawCanvas.canvasLayer2BitmapData.draw(StrokeBuffer.canvasDrawLayerBitmap, null, drawLayerAlpha, (PenSettings.isTransparentPenColor) ? "erase" : null, StrokeBuffer.canvasDrawLayerClipRect);
                 }
                 else
                 {
-                    DrawCanvas.canvasLayer1BitmapData.draw(StrokeBuffer.canvasDrawLayerBitmap, null, drawLayerAlpha, (PenTool.isTransparentPenColor) ? "erase" : null, StrokeBuffer.canvasDrawLayerClipRect);
+                    DrawCanvas.canvasLayer1BitmapData.draw(StrokeBuffer.canvasDrawLayerBitmap, null, drawLayerAlpha, (PenSettings.isTransparentPenColor) ? "erase" : null, StrokeBuffer.canvasDrawLayerClipRect);
                 }
             }
             else if (ToolState.isSelectedTool(ToolState.TOOL_ERASER))

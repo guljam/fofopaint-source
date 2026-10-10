@@ -327,7 +327,7 @@ package Modules.L4UI.Tools
                 xAlpha = PenSettings.penAlpha;
                 xShape = PenSettings.penIsSquare;
 
-                if (PenTool.isTransparentPenColor)
+                if (PenSettings.isTransparentPenColor)
                 {
                     xColor = DrawCanvas.CANVAS_BG_COLOR;
                     xBlendMode = "erase";

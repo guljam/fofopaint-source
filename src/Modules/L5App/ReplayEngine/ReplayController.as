@@ -62,8 +62,8 @@ package Modules.L5App.ReplayEngine
     import Modules.L1Data.DragInteraction;
     import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
-    import Modules.L4UI.Tools.PenTool;
     import Modules.L4UI.CaptureEngine.CaptureController;
+    import Modules.L1Data.Tools.PenSettings;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController
@@ -1829,7 +1829,7 @@ package Modules.L5App.ReplayEngine
             UIController.updateStageOffset();
             CanvasNavigator.updateCursor();
 
-            if (PenTool.isTransparentPenColor)
+            if (PenSettings.isTransparentPenColor)
             {
                 ColorPickerController.selectTransparentColor();
             }

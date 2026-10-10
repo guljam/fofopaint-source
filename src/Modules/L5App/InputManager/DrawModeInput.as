@@ -296,7 +296,7 @@ package Modules.L5App.InputManager
                     break;
                 case "layerSwapButton":
                     {
-                        CanvasLayers.swapLayer();
+                        ToolPanel.swapLayer();
                         HintController.showMouseHintTemp(HintStrings.getCanvasLayerSwappedHintString());
                     }
                     break;

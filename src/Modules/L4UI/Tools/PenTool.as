@@ -79,7 +79,6 @@ package Modules.L4UI.Tools
 		private static var isSharpStabilizer:Boolean; // 이번 획이 샤프라인 펜 스무딩인지
 
 		public static var penColor:uint = 0x000000;
-		public static var isTransparentPenColor:Boolean = false; // 펜 컬러 투명 켜졌을때 올려줌
 		public static var penLastSizeAndShape:Array = [null, null]; // updatePenSizeCursor 중복 사용 방지를 위해서 마지막 크기 저장해놓고 같으면 건너뜀
 
 		public static function getRefinedPoint(mx:Number, my:Number):Point
@@ -621,7 +620,7 @@ package Modules.L4UI.Tools
 				xShape = PenSettings.penIsSquare;
 				dotflag = true;
 
-				if (isTransparentPenColor)
+				if (PenSettings.isTransparentPenColor)
 				{
 					xColor = DrawCanvas.CANVAS_BG_COLOR;
 					xBlendMode = "erase";

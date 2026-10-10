@@ -59,7 +59,7 @@ package Modules.L4UI
             PaletteController.updateMyPaletteList();
             PaletteController.updateColorHistory();
 
-            if (PenTool.isTransparentPenColor)
+            if (PenSettings.isTransparentPenColor)
             {
                 colorPickerBox.setRGBInfoBackgroundTransparent(PaletteController.myPalettePresetType);
             }
@@ -520,7 +520,7 @@ package Modules.L4UI
                 return;
             }
 
-            const canDrag:Boolean = PaletteController.myPalettePresetType === 0 && !PenTool.isTransparentPenColor;
+            const canDrag:Boolean = PaletteController.myPalettePresetType === 0 && !PenSettings.isTransparentPenColor;
 
             PaletteController.startColorBoxClickOrDrag(colorPickerBox.rgbInfoBG, colorPickerBox.getRGBInfoBGColor(), canDrag, function ():void
                 {
@@ -548,7 +548,7 @@ package Modules.L4UI
         private static function onClickRGBInfo(clickedPos:int):void
         {
             numpadInputBuffer = "";
-            PenTool.isTransparentPenColor = false;
+            PenSettings.isTransparentPenColor = false;
 
             if (colorPickerBox.getRGBInfoText() === "")
             {
@@ -590,14 +590,14 @@ package Modules.L4UI
 
         public static function selectTransparentColor():void
         {
-            PenTool.isTransparentPenColor = true;
+            PenSettings.isTransparentPenColor = true;
             colorPickerBox.setRGBInfoBackgroundTransparent(PaletteController.myPalettePresetType);
         }
 
         public static function selectCurrentColor(bgmode:Boolean):void
         {
             const hexColor:uint = colorPickerBox.currentColor;
-            PenTool.isTransparentPenColor = false;
+            PenSettings.isTransparentPenColor = false;
 
             if (bgmode)
             {
@@ -646,7 +646,7 @@ package Modules.L4UI
             colorPickerBox.activePaperColorButton(true);
             colorPickerBox.transColorButton.visible = false;
 
-            PenTool.isTransparentPenColor = false;
+            PenSettings.isTransparentPenColor = false;
 
             if (isColorPickerModeResetEventAdded === false)
             {
@@ -667,7 +667,7 @@ package Modules.L4UI
             colorPickerBox.activePaperColorButton(false);
             colorPickerBox.transColorButton.visible = true;
 
-            PenTool.isTransparentPenColor = false;
+            PenSettings.isTransparentPenColor = false;
 
             if (isColorPickerModeResetEventAdded === true)
             {
@@ -771,7 +771,7 @@ package Modules.L4UI
                 Utils.setAsTopChild(colorPickerBox.hueCursor);
 
                 PenSizePreviewCursor.setCursorInVisibleFlag(true);
-                PenTool.isTransparentPenColor = false;
+                PenSettings.isTransparentPenColor = false;
 
                 colorPickerBox.setRGBInfoVisible(false);
 
@@ -865,7 +865,7 @@ package Modules.L4UI
                 Utils.setAsTopChild(colorPickerBox.svCursor);
 
                 PenSizePreviewCursor.setCursorInVisibleFlag(true);
-                PenTool.isTransparentPenColor = false;
+                PenSettings.isTransparentPenColor = false;
 
                 colorPickerBox.setRGBInfoVisible(false);
 
@@ -942,7 +942,7 @@ package Modules.L4UI
                 hsvColor = color as Vector.<Number>;
             }
 
-            PenTool.isTransparentPenColor = false;
+            PenSettings.isTransparentPenColor = false;
 
             hsvColorData[1] = hsvColor[1];
             hsvColorData[2] = hsvColor[2];
@@ -1011,7 +1011,7 @@ package Modules.L4UI
                             break;
 
                         case "transColorButton":
-                            if (colorPickerBox.transColorButton.alpha === 1.0 && PenTool.isTransparentPenColor === false)
+                            if (colorPickerBox.transColorButton.alpha === 1.0 && PenSettings.isTransparentPenColor === false)
                             {
                                 ToolController.selectPenToolIfNotDrawingTool(false);
                                 selectTransparentColor();

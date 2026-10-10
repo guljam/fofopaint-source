@@ -150,9 +150,9 @@ package Modules.L4UI.Tools
 
             FOFOTimer.addByName("fillColorUpdateTimer", 0.1, true, function ():Boolean
                 {
-                    const newXcolor:uint = (PenTool.isTransparentPenColor) ? DrawCanvas.CANVAS_BG_COLOR : ColorPickerController.colorPickerBox.rgbInfoBGColor;
+                    const newXcolor:uint = (PenSettings.isTransparentPenColor) ? DrawCanvas.CANVAS_BG_COLOR : ColorPickerController.colorPickerBox.rgbInfoBGColor;
                     const newXAlpha:Number = PenSettings.penAlpha;
-                    const newXBlendMode:String = (PenTool.isTransparentPenColor) ? "erase" : null;
+                    const newXBlendMode:String = (PenSettings.isTransparentPenColor) ? "erase" : null;
 
                     if (newXcolor !== xColor)
                     {
@@ -530,9 +530,9 @@ package Modules.L4UI.Tools
             _afterKeyUpOK = false;
             _pos05Offset = PenSettings.getSharpLinePosOffset(1.0);
 
-            xColor = (PenTool.isTransparentPenColor) ? DrawCanvas.CANVAS_BG_COLOR : PenTool.penColor;
+            xColor = (PenSettings.isTransparentPenColor) ? DrawCanvas.CANVAS_BG_COLOR : PenTool.penColor;
             xAlpha = PenSettings.penAlpha;
-            xBlendMode = (PenTool.isTransparentPenColor) ? "erase" : null;
+            xBlendMode = (PenSettings.isTransparentPenColor) ? "erase" : null;
             xAirBrushSize = PenSettings.airBrushSizeDrawMode;
             xZoom = CanvasView.canvasZoomMultiplier;
             isFillPreviewShown = false;
@@ -547,7 +547,7 @@ package Modules.L4UI.Tools
                 StrokeBuffer.canvasDrawLayerChild.filters = [];
             }
 
-            if (!PenTool.isTransparentPenColor)
+            if (!PenSettings.isTransparentPenColor)
             {
                 if (!ColorPickerController.isCurrentColorSamePickedColor())
                 {

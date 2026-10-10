@@ -2,13 +2,10 @@ package Modules.L3Feature.DrawEngine
 {
 
     import flash.display.Bitmap;
-    import flash.display.BitmapData;
     import flash.display.BlendMode;
     import flash.display.Sprite;
     import flash.geom.Rectangle;
-    import Modules.L4UI.Tools.ToolPanel;
     import Modules.L3Feature.UndoController;
-    import Modules.L4UI.UIEngine.HintController;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.LassoLayers;
@@ -21,6 +18,15 @@ package Modules.L3Feature.DrawEngine
     // 층: L3 기능 - 드로우 모드 레이어 1/2 선택, 잠금, 스왑, 병합
     public class CanvasLayers
     {
+        // 마우스 옆에 임시 힌트 문구를 보여달라는 보고 (인자: 문구)
+        public static var onMouseHintTempFunc:Function;
+        // 레이어 체크(잠금) 상태가 바뀌어 툴패널의 체크 버튼을 갱신해야 한다는 보고
+        public static var onLayerCheckChangedFunc:Function;
+        // 레이어 병합 버튼을 켜거나 꺼야 한다는 보고 (인자: 켬 여부)
+        public static var onLayerMergeEnabledChangedFunc:Function;
+        // 선택한 레이어가 바뀌어 툴패널의 레이어 선택 버튼을 갱신해야 한다는 보고 (인자: 레이어, 보기만 하는지)
+        public static var onLayerSelectedFunc:Function;
+
         public static var checkedLayer:int = 0; // 레이어가 체크되면 저장해줌
         public static var isLayerSwapped:Boolean = false; // 1<->2 번호 바뀌는 힌트 써주려고 만듬
 
@@ -33,7 +39,7 @@ package Modules.L3Feature.DrawEngine
         {
             if (!DrawCanvas.canvasLayer1Bitmap.visible && !DrawCanvas.canvasLayer2Bitmap.visible)
             {
-                HintController.showMouseHintTemp("All layer locked");
+                if (onMouseHintTempFunc != null) onMouseHintTempFunc("All layer locked");
                 return true;
             }
             return false;
@@ -44,12 +50,12 @@ package Modules.L3Feature.DrawEngine
             if(layer === 1)
             {
                 checkedLayer = (checkedLayer === 1) ? 0 : 1;
-                ToolPanel.updateLayerCheckButtons();
+                if (onLayerCheckChangedFunc != null) onLayerCheckChangedFunc();
             }
             else if(layer === 2)
             {
                 checkedLayer = (checkedLayer === 2) ? 0 : 2;
-                ToolPanel.updateLayerCheckButtons();
+                if (onLayerCheckChangedFunc != null) onLayerCheckChangedFunc();
             }
         }
 
@@ -70,41 +76,7 @@ package Modules.L3Feature.DrawEngine
                 ReplayState.rMemoryDataBuffer.push(["merge"]);
                 UndoHistory.addNew();
             }
-            ToolPanel.setLayerMergeButtonEnabled(false);
-        }
-
-        public static function swapLayer():void
-        {
-            if (!ToolPanel.isLayerSwapButtonReady())
-            {
-                return;
-            }
-            if (UndoHistory.isDeepUndoEnabled)
-            {
-                UndoController.applyDeepUndo();
-            }
-            isLayerSwapped = !isLayerSwapped;
-            var tempbmpd1:BitmapData = DrawCanvas.canvasLayer1BitmapData.clone();
-            var tempbmpd11:BitmapData = DrawCanvas.canvasLayer2BitmapData.clone();
-            const rect:Rectangle = new Rectangle(0, 0, DrawCanvas.canvasLayer1BitmapData.width, DrawCanvas.canvasLayer1BitmapData.height);
-            DrawCanvas.canvasLayer1BitmapData.fillRect(rect, 0);
-            DrawCanvas.canvasLayer2BitmapData.fillRect(rect, 0);
-            DrawCanvas.canvasLayer1BitmapData.draw(tempbmpd11);
-            DrawCanvas.canvasLayer2BitmapData.draw(tempbmpd1);
-            tempbmpd1.dispose();
-            tempbmpd11.dispose();
-            tempbmpd1 = null;
-            tempbmpd11 = null;
-            if (ReplayState.hasLastRMemoryDataCommand("swap"))
-            {
-                ReplayState.deleteLastRMemoryDataCommand("swap");
-            }
-            else
-            {
-                ReplayState.rMemoryDataBuffer.push(["swap"]);
-                UndoHistory.addNew();
-            }
-            ToolPanel.flickLayerSwapButton();
+            if (onLayerMergeEnabledChangedFunc != null) onLayerMergeEnabledChangedFunc(false);
         }
 
         public static function isToolEnabledByLayerUnChecked():Boolean
@@ -205,7 +177,7 @@ package Modules.L3Feature.DrawEngine
             DrawCanvas.isLayer2Selected = (layer === 2);
             DrawCanvas.canvasLayer1Bitmap.visible = !onlyViewFlag || layer === 1;
             DrawCanvas.canvasLayer2Bitmap.visible = !onlyViewFlag || layer === 2;
-            ToolPanel.updateLayerSelectButtons(layer, onlyViewFlag);
+            if (onLayerSelectedFunc != null) onLayerSelectedFunc(layer, onlyViewFlag);
             syncDrawLayerOrder();
         }
     }

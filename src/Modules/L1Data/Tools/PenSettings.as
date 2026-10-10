@@ -451,5 +451,8 @@ package Modules.L1Data.Tools
 
 		public static var airBrushClipRectOffsetData:Array = [0, 4, 2, 2, 0, 0, 0, -2, -5, -5, -10, -16, -43];
 
+
+		public static var isTransparentPenColor:Boolean = false; // 펜 컬러 투명 켜졌을때 올려줌
+
     }
 }
