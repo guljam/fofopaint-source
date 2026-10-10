@@ -21,7 +21,7 @@ package Modules.L4UI
         private static const RELEASE_NOTE_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/refs/heads/master/releasenotev2.txt";
         private static const RELEASE_PAGE_URL:String = "https://github.com/guljam/2020FlashPaint/releases";
         private static var status:int = FLAG_NO_UPDATE; // 새버전 나왔을때 올려주는 플래그
-        public static var newVersionStr:String = ""; // 새버전 문자열 저장
+        public static var newVersionStr:String = "{VERSION}"; // 새버전 문자열 저장
 
         public static function needUpdate():Boolean
         {

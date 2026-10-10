@@ -736,7 +736,6 @@
 					newWindowButton,
 					newWindowCloseButton,
 					aboutButton,
-					updateButton
 				];
 
 			replayModeButtons = [

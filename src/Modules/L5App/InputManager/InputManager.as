@@ -221,7 +221,13 @@ package Modules.L5App.InputManager
             // 디버그 확인용
             // if (KeyState.isPressedKey(KeyState.KEY.f12))
             // {
-            //     UIController.topBar.showUpdateButton();
+            //     if(!UIController.topBar.updateButton.visible)
+            //     {
+            //         UIController.topBar.showUpdateButton();
+            //     }else
+            //     {
+            //         UIController.topBar.hideUpdateButton();
+            //     }
             // }
 
             KeyState.checkInvalidKey();
