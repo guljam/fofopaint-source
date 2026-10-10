@@ -11,7 +11,6 @@ package Modules.L2Engine
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L4UI.UIEngine.UIController;
     import Modules.L2Engine.ReplayEngine.ReplayState;
 
     // 메모리 undo 데이터(ReplayState.rMemoryData)를 쌓고 자르는 일과 undo 위치, undo 기준 이미지를 맡음

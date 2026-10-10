@@ -14,9 +14,7 @@ package Modules.L2Engine.ReplayEngine
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Symbols.FOFOCursorSet;
-    import Modules.L5App.FileManager;
     import Modules.L1Data.AppDataPaths;
-    import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L2Engine.UndoHistory;

@@ -12,7 +12,6 @@ package Modules.L3Feature.DrawEngine
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L2Engine.DrawEngine.StrokeBuffer;
-    import Modules.L4UI.Tools.ToolController;
 
     // 드로우 모드 레이어 1/2: 선택, 잠금(체크), 스왑, 병합
     // 층: L3 기능 - 드로우 모드 레이어 1/2 선택, 잠금, 스왑, 병합

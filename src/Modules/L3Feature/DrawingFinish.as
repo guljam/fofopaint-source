@@ -3,7 +3,6 @@ package Modules.L3Feature
 
     import flash.filters.BlurFilter;
     import flash.geom.ColorTransform;
-    import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L1Data.ToolState;

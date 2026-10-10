@@ -13,7 +13,6 @@ package Modules.L1Data
     import flash.text.TextField;
     import flash.text.TextFieldAutoSize;
     import flash.text.TextFormat;
-    import Modules.L4UI.Tools.LassoTool;
 
     // 층: L1 데이터 - 색 변환, 텍스트 필드 생성 등 공용 함수
     public class Utils
