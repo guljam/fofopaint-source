@@ -47,7 +47,7 @@ package Modules.L1Data
 
         public static var isLoadingAppData:Boolean = false;
 
-        // 앱 데이터 폴더(portable_<버전>)와 그 안의 파일 경로를 정함 (AppStateManager.setMainInstance에서 부름)
+        // 앱 데이터 폴더(portable_<버전>)와 그 안의 파일 경로를 정함 (AppStateManager.initialize에서 부름)
         public static function initialize(appStateVersion:String):void
         {
             dataFolderPath = File.applicationStorageDirectory.resolvePath("portable_"+appStateVersion);

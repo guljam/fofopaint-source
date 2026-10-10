@@ -112,7 +112,7 @@
             this.removeEventListener(Event.ADDED_TO_STAGE, onStageAdded);
             initializeStage();
         }
-        // 아래층(L1~L3)이 위층에 알릴 때 쓰는 보고용 슬롯을 등록함. loadAppState보다 먼저 등록해야 함 (initializeModule 끝에서 부름. 각 클래스의 static 초기화가 setMainInstance 순서보다 앞서지 않도록 그 뒤에 둠)
+        // 아래층(L1~L3)이 위층에 알릴 때 쓰는 보고용 슬롯을 등록함. loadAppState보다 먼저 등록해야 함 (initializeModule 끝에서 부름. 각 클래스의 static 초기화가 AppContext 설정과 각 initialize() 호출 순서보다 앞서지 않도록 그 뒤에 둠)
         public function registerSlots():void
         {
             PenSettings.onMouseHintTempFunc = HintController.showMouseHintTemp;
