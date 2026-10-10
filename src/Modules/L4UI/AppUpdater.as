@@ -17,7 +17,8 @@ package Modules.L4UI
         private static const FLAG_NO_UPDATE:int = 0;
         private static const FLAG_CHECKING_UPDATE:int = (1 << 0);
         private static const FLAG_UPDATE_AVAILABLE:int = (1 << 1);
-        private static const UPDATE_VERSION_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/refs/heads/master/versionInfov2.txt";
+        private static const UPDATE_VERSION_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/refs/heads/master/versionInfov2.txt"; // a.b.c 버전
+        private static const UPDATE_VERSION_URL_LEGACY:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/refs/heads/master/versionInfo.txt"; // a.b 버전 (legacy 배포)
         private static const RELEASE_NOTE_URL:String = "https://raw.githubusercontent.com/guljam/2020FlashPaint/refs/heads/master/releasenotev2.txt";
         private static const RELEASE_PAGE_URL:String = "https://github.com/guljam/2020FlashPaint/releases";
         private static var status:int = FLAG_NO_UPDATE; // 새버전 나왔을때 올려주는 플래그
@@ -35,7 +36,13 @@ package Modules.L4UI
             navigateToURL(new URLRequest(RELEASE_PAGE_URL));
         }
         
-        //gemini 생성 파일 a.b.c 형식비교
+        // 현재 버전이 a.b 형식(legacy 배포)이면 legacy 파일, a.b.c 형식이면 v2 파일을 봄
+        private static function getVersionUrl():String
+        {
+            return (AppContext.appVersion.split(".").length === 2) ? UPDATE_VERSION_URL_LEGACY : UPDATE_VERSION_URL;
+        }
+
+        //gemini 생성 파일 a.b / a.b.c 형식비교, 현재 버전과 같은 형식끼리만 비교함
         private static function isNewVersion(newVersion:String):Boolean
         {
             if (!newVersion)
@@ -45,19 +52,19 @@ package Modules.L4UI
             var current:Array = currentStr.split(".");
             var newVersionArray:Array = newVersion.split(".");
 
-            // 3자리(a.b.c) 형식인지 확인
-            if (newVersionArray.length !== 3 || current.length !== 3)
+            // 현재 버전과 자리수가 같은 a.b 또는 a.b.c 형식인지 확인
+            if (current.length < 2 || current.length > 3 || newVersionArray.length !== current.length)
             {
                 return false;
             }
 
             var newMajor:int = parseInt(newVersionArray[0], 10);
             var newMinor:int = parseInt(newVersionArray[1], 10);
-            var newPatch:int = parseInt(newVersionArray[2], 10);
+            var newPatch:int = (newVersionArray.length === 3) ? parseInt(newVersionArray[2], 10) : 0;
 
             var curMajor:int = parseInt(current[0], 10);
             var curMinor:int = parseInt(current[1], 10);
-            var curPatch:int = parseInt(current[2], 10);
+            var curPatch:int = (current.length === 3) ? parseInt(current[2], 10) : 0;
 
             // NaN 체크
             if (isNaN(newMajor) || isNaN(newMinor) || isNaN(newPatch) ||
@@ -84,7 +91,7 @@ package Modules.L4UI
 
         private static function getVersionFileFromGithub(onComplete:Function):void
         {
-            var request:URLRequest = new URLRequest(UPDATE_VERSION_URL);
+            var request:URLRequest = new URLRequest(getVersionUrl());
             request.useCache = false;
 
             var loader:URLLoader = new URLLoader();
