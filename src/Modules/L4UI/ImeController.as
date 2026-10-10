@@ -43,7 +43,7 @@ package Modules.L4UI
         private static var lastHintTime:int = -HINT_COOLDOWN_MS;
         private static var isCompositionLogAttached:Boolean = false;
 
-        public static function init():void
+        public static function initialize():void
         {
             // 포커스 이동은 모든 텍스트 필드에서 한곳으로 감지함 (필드를 추가해도 따로 등록할 필요 없음)
             AppContext.stage.addEventListener(FocusEvent.FOCUS_IN, onFocusChanged, true);

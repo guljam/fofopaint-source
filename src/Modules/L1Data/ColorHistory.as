@@ -13,7 +13,7 @@ package Modules.L1Data
         // 최신 색이 0번. uint만 들어가고 빈 칸은 뒤쪽에 length만큼만 비어있음. 화면에서는 좌우 반전되어 0번이 맨 오른쪽 칸에 그려짐
         public static var list:Array = [];
 
-        public static function init():void
+        public static function initialize():void
         {
             list = [0];
             if (onColorHistoryChangedFunc != null) onColorHistoryChangedFunc();

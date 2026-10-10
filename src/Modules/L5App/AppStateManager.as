@@ -619,7 +619,7 @@ package Modules.L5App
                 UIController.canvasInfoBox.init(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, Math.floor(CanvasView.canvasZoomMultiplier * 100), CanvasView.canvasAnchorPoint.rotation, false);
                 CanvasLayers.selectLayer(1, false);
 
-                ColorHistory.init();
+                ColorHistory.initialize();
 
                 FOFOTimer.add(0.3, true, function ():Boolean
                     {

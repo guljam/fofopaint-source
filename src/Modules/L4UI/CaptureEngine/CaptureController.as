@@ -479,7 +479,7 @@ package Modules.L4UI.CaptureEngine
             _isCaptureCanvasFlipped = false;
             CanvasViewport.current().fitToViewportMargin();
             applyTransparentCanvasBGCaptureMode(false);
-            CaptureStamp.init();
+            CaptureStamp.initialize();
 
             if (CaptureStamp.isCaptureStampEnabled)
             {

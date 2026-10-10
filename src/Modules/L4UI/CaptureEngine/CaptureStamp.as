@@ -932,7 +932,7 @@ package Modules.L4UI.CaptureEngine
             }
         }
 
-        public static function init():void
+        public static function initialize():void
         {
             if (ReplayState.isReplayModeON)
             {

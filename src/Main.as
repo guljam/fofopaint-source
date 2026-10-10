@@ -302,7 +302,7 @@
             UIController.initializeCanvasView();
             ReplayController.initializeReplayCanvas();
             UIController.initializeAppMenus();
-            CanvasResizer.init();
+            CanvasResizer.initialize();
             DrawCanvas.initializeCaptureModeTransparentBG();
             BackgroundWorkerCoordinator.initializeWorker();
             AppStateManager.loadAppState();
@@ -318,7 +318,7 @@
             CanvasNavigator.box.updateImage();
             ActivityWorkTimer.start();
             AppUpdater.checkUpdate();
-            ImeController.init();
+            ImeController.initialize();
             ColorPickerController.colorPickerBox.setActiveColorPreset(0);
             HintController.mouseHint.updateBGColor();
             SidebarController.moveSideBar("left"); // 컨트롤 박스 크기가 set pentool 이후에 제대로 바뀜 원인 모름

@@ -328,7 +328,7 @@ package Modules.L4UI.Tools
                 return;
             }
 
-            ToolPanel.toolBox.moveToolCursor("toolEyedropper");
+            ToolPanel.toolBox.setToolSelectCursorPositionTo("toolEyedropper");
             ToolState.setLastTool(ToolState.nowTool);
             // todo: 이것도 그냥 setLastToolPen, setSeletedToolPen이런식으로 메서드로 호출
             ToolState.setSelectedTool(ToolState.TOOL_EYEDROPPER);

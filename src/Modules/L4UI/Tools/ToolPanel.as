@@ -393,7 +393,7 @@ package Modules.L4UI.Tools
         public static function showPenToolSelected(lineFlag:Boolean):void
         {
             moveEraserButtonToOtherTool((lineFlag) ? "toolLine" : "toolPen");
-            toolBox.moveToolCursor((lineFlag) ? "toolLine" : "toolPen");
+            toolBox.setToolSelectCursorPositionTo((lineFlag) ? "toolLine" : "toolPen");
             updateToolOptionsTextBySelectedTool();
             toolOptionsBox.updatePenShapeSet(PenSettings.penIsSquare);
             enableSizeButtonsIfDisabled();
@@ -409,7 +409,7 @@ package Modules.L4UI.Tools
 
             lastEraserPosButton = null;
             toolBox2.toolEraser.visible = false;
-            toolBox.moveToolCursor("toolEraser");
+            toolBox.setToolSelectCursorPositionTo("toolEraser");
             updateToolOptionsTextBySelectedTool();
             toolOptionsBox.updatePenShapeSet(PenSettings.eraserIsSquare);
             enableSizeButtonsIfDisabled();
@@ -418,7 +418,7 @@ package Modules.L4UI.Tools
 
         public static function showFillPenToolSelected():void
         {
-            toolBox.moveToolCursor("toolFillPen");
+            toolBox.setToolSelectCursorPositionTo("toolFillPen");
             updateOpacityCursorPos(PenSettings.penAlphaIndex);
             updateFillPenOptions();
             moveEraserButtonToOtherTool("toolFillPen");
@@ -450,7 +450,7 @@ package Modules.L4UI.Tools
         // 펜 옵션을 쓰지 않는 도구(이동, 줌, 회전, 올가미). cursorParent는 커서를 옮길 버튼이 있는 박스 (null이면 툴박스)
         public static function showOtherToolSelected(buttonName:String, cursorParent:DisplayObjectContainer = null, moveEraserButton:Boolean = false):void
         {
-            toolBox.moveToolCursor(buttonName, cursorParent);
+            toolBox.setToolSelectCursorPositionTo(buttonName, cursorParent);
             if (moveEraserButton)
             {
                 moveEraserButtonToOtherTool(buttonName);

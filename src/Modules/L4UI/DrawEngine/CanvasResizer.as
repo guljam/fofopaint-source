@@ -19,7 +19,6 @@ package Modules.L4UI.DrawEngine
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
-    import Modules.L4UI.Tools.ToolController;
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L1Data.FOFOTimer;
     import Modules.L1Data.InputPriority;
@@ -69,7 +68,7 @@ package Modules.L4UI.DrawEngine
         private static var canvasSizeChanging:Boolean;
         private static var rightMouseupEventON:Boolean = false;
 
-        public static function init():void
+        public static function initialize():void
         {
             function drawRect(target:Sprite):void
             {

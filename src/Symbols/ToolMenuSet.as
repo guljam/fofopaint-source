@@ -265,12 +265,12 @@
             return lastTool;
         }
 
-        private function moveToolCursorInit():void
+        private function initializeMoveToolCursor():void
         {
-            moveToolCursor(lastTool);
+            setToolSelectCursorPositionTo(lastTool);
         }
 
-        public function moveToolCursor(childName:String, newParent:DisplayObjectContainer = null):void
+        public function setToolSelectCursorPositionTo(childName:String, newParent:DisplayObjectContainer = null):void
         {
             var btn:SimpleButton;
             if (newParent !== null)
@@ -330,7 +330,7 @@
         {
             const fields:Array = VisualFieldCollector.collectNullVisualFields(this);
             VisualBuilder.buildInto(this, EmbeddedClass, fields);
-            moveToolCursorInit();
+            initializeMoveToolCursor();
 
             toolSelectCursor.mouseEnabled = false;
             toolPen.useHandCursor = false;
