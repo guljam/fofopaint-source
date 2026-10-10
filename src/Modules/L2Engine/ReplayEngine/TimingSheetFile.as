@@ -4,6 +4,7 @@ package Modules.L2Engine.ReplayEngine
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
     import flash.utils.ByteArray;
+    import Modules.L1Data.AppContext;
     import Modules.L1Data.AppDataPaths;
     import Modules.L1Data.ReplayEngine.TimingSheet;
 
@@ -23,8 +24,12 @@ package Modules.L2Engine.ReplayEngine
     public final class TimingSheetFile
     {
         // 시간 기록이 없는 프레임(옛 파일, 기록이 어긋난 부분)을 시트에 채우는 자리값. 파일 맨 앞 legacyFrames개(옛 구간)의 실제 재생 간격은
-        // 이 값이 아니라 ReplayClock이 앱 fps(1000 / stage.frameRate)로 계산함. 그 밖에 채워진 프레임(중간에 채워진 부분)은 이 값 그대로 42ms
-        public static const LEGACY_FRAME_DELTA:uint = 42;
+        // 이 값이 아니라 ReplayClock이 앱 fps(1000 / stage.frameRate)로 계산함. 그 밖에 채워진 프레임(중간에 채워진 부분)은 채울 때의 앱 fps 간격(ms)이 파일에 그대로 박힘
+        public static function get legacyFrameDelta():uint
+        {
+            return Math.round(1000 / AppContext.stage.frameRate);
+        }
+
         public static const RECORD_BYTES:int = 8;
         private static const TWO_POW_32:Number = 4294967296;
         public static const MAX_ANIM_MS:Number = 2097151; // 합친 값이 Number의 정확한 정수 범위(2^53) 안에 들도록 연출 길이는 2^21 - 1 ms(약 35분)까지
@@ -190,7 +195,7 @@ package Modules.L2Engine.ReplayEngine
             lastStamp = stamp;
         }
 
-        // 파일이 frame개의 프레임만 가지도록 모자라면 LEGACY_FRAME_DELTA로 채우고 남으면 자름
+        // 파일이 frame개의 프레임만 가지도록 모자라면 legacyFrameDelta로 채우고 남으면 자름
         // repdata와 길이가 어긋난 채로 이어 붙이지 않게 붙이기 직전에 부름
         public static function resizeToFrameCount(frame:Number):void
         {
@@ -214,10 +219,11 @@ package Modules.L2Engine.ReplayEngine
             }
 
             fs.open(file, FileMode.APPEND);
+            const fillDelta:uint = legacyFrameDelta;
 
             for (var i:Number = now; i < frame; i++)
             {
-                fs.writeUnsignedInt(LEGACY_FRAME_DELTA);
+                fs.writeUnsignedInt(fillDelta);
                 fs.writeUnsignedInt(0);
             }
 
