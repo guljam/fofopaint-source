@@ -15,7 +15,6 @@ package Modules.L2Engine
     import flash.system.WorkerDomain;
     import flash.system.MessageChannel;
     import flash.utils.ByteArray;
-    import Modules.CacheImageMetaData;
     import Modules.NativeCacheJobs;
     import Modules.NativeCore;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;

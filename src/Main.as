@@ -2,7 +2,6 @@
 {
     import Modules.AppStateVars;
     import Modules.AppUpdater;
-    import Modules.CacheImageMetaData;
     import Modules.CaptureEngine.CaptureArea;
     import Modules.CaptureEngine.CaptureController;
     import Modules.CaptureEngine.CaptureStamp;
@@ -75,6 +74,7 @@
     import Modules.L4UI.CanvasViewport;
     import Modules.L4UI.DrawEngine.CanvasResizer;
     import Modules.L4UI.HintStrings;
+    import Modules.L2Engine.CacheImageMetaData;
 
     // import
     // 층: L5 앱 흐름 - 앱 시작과 모듈 조립, 스테이지 초기화

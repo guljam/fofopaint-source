@@ -11,6 +11,7 @@ package Modules
     import flash.utils.ByteArray;
     import flash.utils.CompressionAlgorithm;
     import flash.utils.Endian;
+    import Modules.L2Engine.CacheImageMetaData;
 
     // 캐시 이미지 파일 읽기/쓰기 (형식: CacheImageFormat)
     // 네이티브를 쓸 수 있으면 내부 버퍼 원본 덤프(손실 없음)로 쓰고 읽음, 못 쓰면 straight + PixelRestore (AS3)

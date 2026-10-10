@@ -25,7 +25,6 @@ package Modules.L5App.ReplayEngine
     import flash.ui.Mouse;
     import flash.utils.ByteArray;
     import flash.utils.getTimer;
-    import Modules.CacheImageMetaData;
     import Modules.NativeCacheJobs;
     import Modules.NativeCore;
     import Modules.CaptureEngine.CaptureController;
@@ -64,6 +63,7 @@ package Modules.L5App.ReplayEngine
     import Modules.L1Data.ReplayEngine.ReplaySaveMetaData;
     import Modules.L4UI.HintStrings;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
+    import Modules.L2Engine.CacheImageMetaData;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController

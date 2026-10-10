@@ -30,7 +30,6 @@ package Modules.L5App
     import Modules.L4UI.AboutBoxController;
     import Modules.AppStateVars;
     import Modules.CacheImageFile;
-    import Modules.CacheImageMetaData;
     import Modules.L4UI.PaletteController;
     import Modules.PixelRestore;
     import Modules.ReferenceLayerController;
@@ -52,6 +51,7 @@ package Modules.L5App
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.ReplayEngine.ReplaySaveMetaData;
     import Modules.L3Feature.DrawEngine.CanvasLayers;
+    import Modules.L2Engine.CacheImageMetaData;
 
     // 층: L5 앱 흐름 - 앱 상태 저장·불러오기와 크래시 로그, 임시 폴더 관리
     public class AppStateManager

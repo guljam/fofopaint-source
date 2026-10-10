@@ -3,6 +3,7 @@ package Modules
     import flash.display.BitmapData;
     import flash.events.StatusEvent;
     import flash.utils.ByteArray;
+    import Modules.L2Engine.CacheImageMetaData;
 
     // 네이티브 캐시 이미지 쓰기 작업 (undo 캐시, 불러오기 캐시) 시작과 완료 알림
     // 네이티브는 호출 안에서 두 레이어 내부 버퍼를 복사하고 바로 돌아오고, 끝나면 StatusEvent(code: "cache", level: 작업 번호)를 보냄

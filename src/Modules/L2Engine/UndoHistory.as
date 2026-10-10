@@ -5,7 +5,6 @@ package Modules.L2Engine
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
     import Modules.L2Engine.BackgroundWorkerCoordinator;
-    import Modules.CacheImageMetaData;
     import Modules.L2Engine.ReplayEngine.ReplayClock;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;

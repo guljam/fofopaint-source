@@ -14,12 +14,10 @@ package Modules.L2Engine.ReplayEngine
     import flash.geom.Point;
     import flash.geom.Rectangle;
     import Symbols.FOFOCursorSet;
-    import Modules.CacheImageMetaData;
     import Modules.L5App.FileManager;
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L3Feature.UndoController;
     import Modules.ReplayEngine.ReplayAnim;
-    import Modules.ReplayEngine.ReplayCursorFollow;
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
@@ -27,6 +25,8 @@ package Modules.L2Engine.ReplayEngine
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L2Engine.UndoHistory;
     import Modules.L4UI.ReplayEngine.ReplayViewport;
+    import Modules.L4UI.ReplayEngine.ReplayCursorFollow;
+    import Modules.L2Engine.CacheImageMetaData;
 
     // 층: L2 엔진 - 리플레이 캔버스에 명령을 그리고 프레임 이동
     public class ReplayDrawer

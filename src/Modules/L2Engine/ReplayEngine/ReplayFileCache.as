@@ -6,7 +6,6 @@ package Modules.L2Engine.ReplayEngine
     import flash.filesystem.FileStream;
     import flash.geom.Rectangle;
     import flash.utils.ByteArray;
-    import Modules.CacheImageMetaData;
     import Modules.CacheImageFile;
     import Modules.PixelRestore;
     import Modules.CacheImageFormat;
@@ -15,6 +14,7 @@ package Modules.L2Engine.ReplayEngine
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L1Data.ReplayEngine.ReplaySaveMetaData;
+    import Modules.L2Engine.CacheImageMetaData;
 
     // 층: L2 엔진 - 리플레이 파일(repdata) 쓰기와 캐시 이미지 생성·복원
     public class ReplayFileCache
