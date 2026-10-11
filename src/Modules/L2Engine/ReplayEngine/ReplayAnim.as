@@ -24,8 +24,8 @@ package Modules.L2Engine.ReplayEngine
     // 채우기, 올가미: 그려진 영역을 배경색 덮개로 가렸다가 위에서부터 서서히 지워서 드러나게 함 (스캔라인)
     // 이동: 이동 전 레이어 이미지가 목표 위치까지 감속(ease-out)하며 움직임
     // 명령은 연출이 시작하는 시점에 이미 실행된 상태(레이어 데이터는 최종 결과)이고, 연출은 그 위에 얹은 임시 표시라서
-    // 중간에 멈추거나 탐색해도 clear만 하면 정확한 최종 상태가 보임
-    // 흐름: 그리기 루프가 명령을 실행하기 전에 arm → 명령이 실행되면서 start*를 부름 → 틱마다 update → 끝나거나 clear
+    // 중간에 멈추거나 탐색해도 clearAnimOverlay만 하면 정확한 최종 상태가 보임
+    // 흐름: 그리기 루프가 명령을 실행하기 전에 reserveAnim → 명령이 실행되면서 start*를 부름 → 틱마다 updateAnimToRecorded → 끝나거나 clearAnimOverlay
     // 층: L2 엔진 - 채우기·올가미·이동 명령의 실시간 재생 연출
     public class ReplayAnim
     {
@@ -36,7 +36,7 @@ package Modules.L2Engine.ReplayEngine
         private var armedFrame:Number = -1; // 연출할 명령의 프레임 번호 (점별 시각을 찾는데 씀)
 
         private var active:Boolean = false;
-        private var endFrameShown:Boolean = false; // 이동 연출이 끝난 프레임(진행률 1)을 이미 보여줬는지 (그 다음 틱에 clear)
+        private var endFrameShown:Boolean = false; // 이동 연출이 끝난 프레임(진행률 1)을 이미 보여줬는지 (그 다음 틱에 clearAnimOverlay)
         private var mode:int = 0; // 1 = 스캔라인 덮개, 2 = 이동, 3 = 선 도구 (점 순서대로 그려짐)
         private var startTime:Number = 0;
         private var totalMs:Number = 0;
@@ -100,15 +100,15 @@ package Modules.L2Engine.ReplayEngine
             return null;
         }
 
-        // 연출 길이가 있는 명령을 실행하기 직전에 부름. 연출을 하지 않을 명령이면 disarm
-        public function arm(animMs:Number, startRecorded:Number, frame:Number):void
+        // 연출 길이가 있는 명령을 실행하기 직전에 부름. 연출을 하지 않을 명령이면 cancelReservedAnim
+        public function reserveAnim(animMs:Number, startRecorded:Number, frame:Number):void
         {
             armedMs = animMs;
             armedStart = startRecorded;
             armedFrame = frame;
         }
 
-        public function disarm():void
+        public function cancelReservedAnim():void
         {
             armedMs = 0;
         }
@@ -116,7 +116,7 @@ package Modules.L2Engine.ReplayEngine
         // fill5가 모양을 그린 직후에 부름. 모양대로 배경색 덮개를 만들어 올림
         public function startFill(command:Vector.<int>, xyData:Vector.<Number>):void
         {
-            if (!takeArmed())
+            if (!startReservedAnim())
             {
                 return;
             }
@@ -131,7 +131,7 @@ package Modules.L2Engine.ReplayEngine
             shape.graphics.endFill();
             const bounds:Rectangle = shape.getBounds(shape);
 
-            if (!setArea(bounds))
+            if (!setOverlayAreaInCanvas(bounds))
             {
                 return;
             }
@@ -143,18 +143,18 @@ package Modules.L2Engine.ReplayEngine
             }
             catch (error:Error)
             {
-                clear();
+                clearAnimOverlay();
                 return;
             }
 
-            showOverlay();
+            showAnimOverlay();
         }
 
         // lasso2가 올가미 비트맵을 캔버스에 그린 직후에 부름. 같은 행렬로 올가미 모양 덮개를 만듬
         // layer1, layer2는 그린 쪽의 올가미 비트맵 (안 그렸으면 null)
         public function startLasso(mat:Matrix, layer1:Bitmap, layer2:Bitmap):void
         {
-            if (!takeArmed())
+            if (!startReservedAnim())
             {
                 return;
             }
@@ -204,7 +204,7 @@ package Modules.L2Engine.ReplayEngine
                 }
             }
 
-            if (!setArea(bounds))
+            if (!setOverlayAreaInCanvas(bounds))
             {
                 return;
             }
@@ -225,11 +225,11 @@ package Modules.L2Engine.ReplayEngine
             }
             catch (error:Error)
             {
-                clear();
+                clearAnimOverlay();
                 return;
             }
 
-            showOverlay();
+            showAnimOverlay();
         }
 
         // line4가 선을 그린 직후에 부름. 점(꼭짓점) 순서대로 선이 자라는 연출을 시작함
@@ -238,7 +238,7 @@ package Modules.L2Engine.ReplayEngine
         {
             const frame:Number = armedFrame;
 
-            if (!takeArmed())
+            if (!startReservedAnim())
             {
                 return;
             }
@@ -247,7 +247,7 @@ package Modules.L2Engine.ReplayEngine
 
             if (vertexCount < 2 || command.length !== vertexCount)
             {
-                clear();
+                clearAnimOverlay();
                 return;
             }
 
@@ -256,13 +256,13 @@ package Modules.L2Engine.ReplayEngine
             {
                 if (command[c] !== 1 && command[c] !== 2)
                 {
-                    clear();
+                    clearAnimOverlay();
                     return;
                 }
             }
 
             lineOffsets = new Vector.<Number>(vertexCount, true);
-            const recorded:Vector.<uint> = ReplayClock.pointOffsetsOfFrame(frame);
+            const recorded:Vector.<uint> = ReplayClock.getPointOffsetsOfFrame(frame);
             var useRecorded:Boolean = recorded !== null && recorded.length === vertexCount;
 
             // 기록된 시각은 앞에서부터 줄어들지 않아야 하고 연출 길이를 넘지 않아야 씀
@@ -305,7 +305,7 @@ package Modules.L2Engine.ReplayEngine
 
             if (lineHost.parent === null)
             {
-                clear();
+                clearAnimOverlay();
                 return;
             }
 
@@ -332,20 +332,20 @@ package Modules.L2Engine.ReplayEngine
             lineHost.visible = false;
             mode = 3;
             active = true;
-            update(startTime);
+            updateAnimToRecorded(startTime);
         }
 
         // move 명령이 레이어를 옮기기 전에 부름. 옮기기 전 레이어 이미지를 복사해서 목표 위치까지 움직이는 덮개로 보여줌
         public function startMove(dx:Number, dy:Number, layer1:Boolean, layer2:Boolean):void
         {
-            if (!takeArmed())
+            if (!startReservedAnim())
             {
                 return;
             }
 
             if (dx === 0 && dy === 0)
             {
-                clear();
+                clearAnimOverlay();
                 return;
             }
 
@@ -361,7 +361,7 @@ package Modules.L2Engine.ReplayEngine
 
             if (!show1 && !show2)
             {
-                clear();
+                clearAnimOverlay();
                 return;
             }
 
@@ -386,7 +386,7 @@ package Modules.L2Engine.ReplayEngine
                     container.addChild(ref1);
                 }
 
-                addAboveLayers(container);
+                addChildBelowCursor(container);
 
                 // 덮개가 올라간 뒤에 실제 레이어를 숨겨서 한 프레임도 빈 화면이 나오지 않게 함, 배경은 rCanvasPanel이 자기 graphics로 그림
                 if (show1)
@@ -405,17 +405,17 @@ package Modules.L2Engine.ReplayEngine
             }
             catch (error:Error)
             {
-                clear();
+                clearAnimOverlay();
                 return;
             }
 
             mode = 2;
             active = true;
-            update(startTime);
+            updateAnimToRecorded(startTime);
         }
 
         // 지금 녹화 시각 recorded까지 연출을 진행시킴. 끝났으면 덮개를 치움
-        public function update(recorded:Number):void
+        public function updateAnimToRecorded(recorded:Number):void
         {
             if (!active)
             {
@@ -429,14 +429,14 @@ package Modules.L2Engine.ReplayEngine
                 if (mode === 2 && !endFrameShown)
                 {
                     // 마지막 위치(진행률 1)를 한 프레임 실제로 보여준 뒤 다음 틱에 덮개를 치운다
-                    // (바로 clear하면 방금 맞춘 위치가 화면에 그려지지 않아 남은 오차만큼 튐)
+                    // (바로 clearAnimOverlay하면 방금 맞춘 위치가 화면에 그려지지 않아 남은 오차만큼 튐)
                     endFrameShown = true;
                     applyMoveOffset(distX, distY);
                     ReplayDrawCommands.setRCursorPos(ReplayState.RCANVAS_WIDTH / 2 + distX, ReplayState.RCANVAS_HEIGHT / 2 + distY);
                     return;
                 }
 
-                clear();
+                clearAnimOverlay();
                 return;
             }
 
@@ -457,7 +457,7 @@ package Modules.L2Engine.ReplayEngine
             }
             else if (mode === 3)
             {
-                drawLinePartial(elapsed);
+                drawLineUntilElapsed(elapsed);
             }
             else if (mode === 2)
             {
@@ -488,7 +488,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 연출 시작 후 elapsed ms 시점까지의 경로를 임시 Shape에 다시 그림: 이미 찍힌 점까지의 선분 + 다음 점을 향해 자라는 선분
-        private function drawLinePartial(elapsed:Number):void
+        private function drawLineUntilElapsed(elapsed:Number):void
         {
             const vertexCount:int = lineOffsets.length;
             var reached:int = 0; // elapsed 이하의 시각을 가진 마지막 꼭짓점
@@ -541,7 +541,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 덮개를 치우고 숨긴 레이어를 복구함 (끝났을때, 일시정지, 탐색, 모드 탈출). 쉬고 있어도 불러도 됨
-        public function clear():void
+        public function clearAnimOverlay():void
         {
             armedMs = 0;
             active = false;
@@ -636,25 +636,25 @@ package Modules.L2Engine.ReplayEngine
             }
         }
 
-        // arm한 연출을 시작 상태로 옮김. arm하지 않았으면 false
-        private function takeArmed():Boolean
+        // reserveAnim한 연출을 시작 상태로 옮김. reserveAnim하지 않았으면 false
+        private function startReservedAnim():Boolean
         {
             if (armedMs <= 0)
             {
                 return false;
             }
 
-            // clear가 arm 값도 지우므로 값을 먼저 보관해 둠
+            // clearAnimOverlay가 reserveAnim 값도 지우므로 값을 먼저 보관해 둠
             const ms:Number = armedMs;
             const start:Number = armedStart;
-            clear(); // 앞 연출이 남아 있으면 정리
+            clearAnimOverlay(); // 앞 연출이 남아 있으면 정리
             totalMs = ms;
             startTime = start;
             return true;
         }
 
         // 덮개를 올릴 영역을 비트맵 픽셀에 맞게 바깥으로 올리고 캔버스 안으로 자름. 덮을 영역이 없으면 false
-        private function setArea(bounds:Rectangle):Boolean
+        private function setOverlayAreaInCanvas(bounds:Rectangle):Boolean
         {
             area.setTo(Math.floor(bounds.x), Math.floor(bounds.y), 0, 0);
             area.right = Math.ceil(bounds.right);
@@ -670,20 +670,20 @@ package Modules.L2Engine.ReplayEngine
             return true;
         }
 
-        private function showOverlay():void
+        private function showAnimOverlay():void
         {
             overlay = new Bitmap(overlayData, "auto", true);
             overlay.x = area.x;
             overlay.y = area.y;
-            addAboveLayers(overlay);
+            addChildBelowCursor(overlay);
             revealedRows = 0;
             mode = 1;
             active = true;
-            update(startTime);
+            updateAnimToRecorded(startTime);
         }
 
         // 리플레이 커서는 항상 맨 위라서 그 바로 아래에 넣음
-        private function addAboveLayers(child:*):void
+        private function addChildBelowCursor(child:*):void
         {
             if (ReplayDrawer.rReplayFOFOCursor.parent === ReplayDrawer.rCanvasPanel)
             {

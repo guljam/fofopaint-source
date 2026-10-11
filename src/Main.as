@@ -287,8 +287,8 @@
 
             PenSizePreviewCursor.initialize();
             ReferenceLayerController.initialize();
-            ReplayController.initialize();
-            ReplayMouseAutoHide.initialize();
+            ReplayController.initializeReplayController();
+            ReplayMouseAutoHide.initializeReplayMouseAutoHide();
             registerSlots();
         }
 

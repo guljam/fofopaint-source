@@ -769,7 +769,7 @@ package Modules.L4UI.Tools
                         checklayer1 = false;
                         checklayer2 = true;
                     }
-                    ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand(["lasso2", point1, point2
+                    ReplayState.rMemoryDataBuffer.push(ReplayState.addToolRecordTimeToCommand(["lasso2", point1, point2
                                 , lassoInfo
                                 , isLassoImageCopied
                                 , checklayer1

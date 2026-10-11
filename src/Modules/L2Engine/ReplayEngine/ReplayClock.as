@@ -36,7 +36,7 @@ package Modules.L2Engine.ReplayEngine
 
         // 쉬는 구간(간격이 ENTRY_MS 이상인 곳)의 [시작 시각, 끝 시각] 쌍을 이어붙인 목록. 시간순
         private static var gapRanges:Vector.<Number> = new Vector.<Number>();
-        // 지금 배속에서 건너뛰기 대상인 쉬는 구간만 추린 [시작, 끝] 쌍 목록과 줄어든 시간의 앞쪽 합 (ensureAxis가 배속이 바뀔때 만듬)
+        // 지금 배속에서 건너뛰기 대상인 쉬는 구간만 추린 [시작, 끝] 쌍 목록과 줄어든 시간의 앞쪽 합 (rebuildSeekbarAxisIfSpeedChanged가 배속이 바뀔때 만듬)
         // idlePrefix[i] = 앞쪽 구간 i개가 줄어든 시간 sum(g - 유지 길이), 길이는 구간 수 + 1
         private static var axisSpeed:Number = -1;
         private static var idleRanges:Vector.<Number> = new Vector.<Number>();
@@ -79,7 +79,7 @@ package Modules.L2Engine.ReplayEngine
         // 색인을 만들 때 쓴 옛 구간(프레임 < L)의 프레임 수와 간격. L이 0이면 간격은 쓰지 않아 0으로 둠 (fps가 바뀌어도 새 형식 파일은 영향 없음)
         private static var indexLegacyFrames:Number = 0;
         private static var indexLegacyDelta:Number = 0;
-        private static var indexMissCount:int = 0; // 갱신 지점이 빠져서 ensureIndex가 보정한 횟수
+        private static var indexMissCount:int = 0; // 갱신 지점이 빠져서 buildOrFixFileIndex가 보정한 횟수
 
         // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음
         public static function get indexMisses():int
@@ -104,7 +104,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음. 시계 상태가 서로 맞는지 점검해 어긋난 항목을 문자열로 돌려줌 (맞으면 빈 문자열)
-        public static function invariantViolations():String
+        public static function getClockMismatchReport():String
         {
             var v:String = "";
 
@@ -155,7 +155,7 @@ package Modules.L2Engine.ReplayEngine
         public static function rebuildFileIndex():void
         {
             fileFrames = ReplayState.getRFileDataTotalFrame();
-            TimingSheetFile.resizeToFrameCount(fileFrames);
+            TimingSheetFile.resizeSheetToFrameCount(fileFrames);
             captureLegacy();
             invalidateSegmentCache();
             segmentStart = new Vector.<Number>();
@@ -163,13 +163,13 @@ package Modules.L2Engine.ReplayEngine
             fileEndTime = 0;
             fileLastAnim = 0;
             indexedFileFrames = 0;
-            readIntoFileIndex(fileFrames);
-            publishFileOnly();
+            readFileIndexUntilFrame(fileFrames);
+            refreshTotalsFromFileIndex();
         }
 
         // 파일 부분을 바꾼 함수가 끝날 때 부름: 전체 부분(길이, 메모리 부분, 쉬는 구간 합본, 축 캐시)을 "파일 부분만 있는 상태"로 같이 맞춤
         // 시계는 언제 읽혀도 서로 맞는 상태여야 해서(예: 불러오는 도중 시크바 갱신) 메모리 부분이 옛 값으로 남지 않게 함. 메모리 부분은 다음 rebuildMemoryIndex()에서 다시 붙음
-        private static function publishFileOnly():void
+        private static function refreshTotalsFromFileIndex():void
         {
             fileFrames = Math.max(0, indexedFileFrames);
             totalFrames = fileFrames;
@@ -183,7 +183,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // indexedFileFrames부터 to 프레임 앞까지만 읽어 파일 부분 색인을 이어서 갱신 (구간 경계마다 나눠 읽음)
-        private static function readIntoFileIndex(to:Number):void
+        private static function readFileIndexUntilFrame(to:Number):void
         {
             const file:File = AppDataPaths.replayTimingSheetFilePath;
             var first:Number = indexedFileFrames;
@@ -201,7 +201,7 @@ package Modules.L2Engine.ReplayEngine
                     chunk.clear();
                     fs.readBytes(chunk, 0, count * TimingSheetFile.RECORD_BYTES);
                     chunk.position = 0;
-                    consumeBytes(chunk, count);
+                    appendRecordBytesToFileIndex(chunk, count);
                     first += count;
                 }
 
@@ -210,7 +210,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 현재 위치부터 [간격(uint), 연출 길이(uint)] 기록 count개를 읽어 파일 부분 색인 끝에 반영. 파일을 읽는 경로, 덧붙인 값을 바로 받는 경로, 시트를 다시 쓰는 경로가 모두 여기서 계산함
-        private static function consumeBytes(bytes:ByteArray, count:int):void
+        private static function appendRecordBytesToFileIndex(bytes:ByteArray, count:int):void
         {
             var sum:Number = fileEndTime;
             var prevAnim:uint = fileLastAnim; // 앞 프레임의 연출 길이
@@ -250,8 +250,8 @@ package Modules.L2Engine.ReplayEngine
             fileFrames = frame;
         }
 
-        // appendGroupAtFrame이 방금 쓴 [간격, 연출 길이] 기록을 받아 파일을 다시 읽지 않고 반영. firstFrame이 색인 끝과 다르면(시트를 채워 맞춘 경우 등) 파일에서 읽음
-        public static function extendFileIndexWith(records:Vector.<uint>, firstFrame:Number):void
+        // appendGroupTimesAtFrame이 방금 쓴 [간격, 연출 길이] 기록을 받아 파일을 다시 읽지 않고 반영. firstFrame이 색인 끝과 다르면(시트를 채워 맞춘 경우 등) 파일에서 읽음
+        public static function appendRecordsToFileIndex(records:Vector.<uint>, firstFrame:Number):void
         {
             if (indexedFileFrames < 0)
             {
@@ -260,7 +260,7 @@ package Modules.L2Engine.ReplayEngine
 
             if (indexedFileFrames !== firstFrame)
             {
-                extendFileIndex();
+                extendFileIndexByAppendedFrames();
                 return;
             }
 
@@ -273,12 +273,12 @@ package Modules.L2Engine.ReplayEngine
             }
 
             bytes.position = 0;
-            consumeBytes(bytes, records.length / 2);
-            publishFileOnly();
+            appendRecordBytesToFileIndex(bytes, records.length / 2);
+            refreshTotalsFromFileIndex();
         }
 
         // 시트를 비웠을 때(새 파일, 불러오기 시작) 색인도 빈 상태로 맞춤. 비운 시트에는 읽을 것이 없으므로 이게 곧 정확한 색인
-        public static function resetIndexEmpty():void
+        public static function resetFileIndexToEmpty():void
         {
             captureLegacy();
             invalidateSegmentCache();
@@ -288,11 +288,11 @@ package Modules.L2Engine.ReplayEngine
             fileLastAnim = 0;
             indexedFileFrames = 0;
             fileFrames = 0;
-            publishFileOnly();
+            refreshTotalsFromFileIndex();
         }
 
         // [간격(uint), 연출 길이(uint)] 8바이트 기록이 이어진 ByteArray(처음부터 끝까지)를 지금 색인 끝에 이어서 반영. 시트를 다시 쓰는 쪽(앞 자르기)이 이미 가진 메모리를 쓰므로 파일을 읽지 않음
-        public static function indexBytes(bytes:ByteArray):void
+        public static function appendSheetBytesToFileIndex(bytes:ByteArray):void
         {
             if (indexedFileFrames < 0)
             {
@@ -305,10 +305,10 @@ package Modules.L2Engine.ReplayEngine
             while (bytes.bytesAvailable >= TimingSheetFile.RECORD_BYTES)
             {
                 const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES - indexedFileFrames % TimingSheet.SEGMENT_FRAMES, bytes.bytesAvailable / TimingSheetFile.RECORD_BYTES));
-                consumeBytes(bytes, count);
+                appendRecordBytesToFileIndex(bytes, count);
             }
 
-            publishFileOnly();
+            refreshTotalsFromFileIndex();
         }
 
         // ---- 요약 파일 (reptimingindex): 앱을 껐다 켜도 전체 읽기 없이 색인을 되살림 ----
@@ -318,7 +318,7 @@ package Modules.L2Engine.ReplayEngine
         private static const INDEX_MAGIC:String = "RTI2";
 
         // 시트 끝 최대 32프레임(256바이트)의 해시. 요약이 이 시트의 것인지 확인용
-        private static function sheetTailHash(frames:Number):uint
+        private static function getSheetTailHash(frames:Number):uint
         {
             const file:File = AppDataPaths.replayTimingSheetFilePath;
             var hash:uint = 2166136261;
@@ -342,7 +342,7 @@ package Modules.L2Engine.ReplayEngine
             return hash;
         }
 
-        public static function saveIndex():void
+        public static function saveClockIndexFile():void
         {
             const file:File = AppDataPaths.replayTimingIndexFilePath;
             const sheet:File = AppDataPaths.replayTimingSheetFilePath;
@@ -363,7 +363,7 @@ package Modules.L2Engine.ReplayEngine
             fs.writeUTFBytes(INDEX_MAGIC);
             fs.writeDouble(indexedFileFrames);
             fs.writeDouble(sheet.exists ? sheet.size : 0);
-            fs.writeUnsignedInt(sheetTailHash(indexedFileFrames));
+            fs.writeUnsignedInt(getSheetTailHash(indexedFileFrames));
             fs.writeDouble(indexLegacyFrames);
             fs.writeDouble(indexLegacyDelta);
             fs.writeDouble(fileEndTime);
@@ -385,10 +385,10 @@ package Modules.L2Engine.ReplayEngine
             fs.close();
         }
 
-        // 요약 파일을 읽어 시트와 맞으면 그대로 씀. 없거나 맞지 않으면 색인을 만들지 않고 둠 (첫 사용 때 ensureIndex가 전체 읽기) + 로그
-        public static function loadIndex():void
+        // 요약 파일을 읽어 시트와 맞으면 그대로 씀. 없거나 맞지 않으면 색인을 만들지 않고 둠 (첫 사용 때 buildOrFixFileIndex가 전체 읽기) + 로그
+        public static function loadClockIndexFile():void
         {
-            resetIndexEmpty(); // 이전 상태가 남지 않게 비운 뒤 요약이 맞을 때만 채움
+            resetFileIndexToEmpty(); // 이전 상태가 남지 않게 비운 뒤 요약이 맞을 때만 채움
             indexedFileFrames = -1;
             const file:File = AppDataPaths.replayTimingIndexFilePath;
             const frames:Number = ReplayState.getRFileDataTotalFrame();
@@ -430,7 +430,7 @@ package Modules.L2Engine.ReplayEngine
                     return;
                 }
 
-                if (savedFrames !== frames || !sheet.exists || savedBytes !== sheet.size || sheet.size !== frames * TimingSheetFile.RECORD_BYTES || savedHash !== sheetTailHash(frames))
+                if (savedFrames !== frames || !sheet.exists || savedBytes !== sheet.size || sheet.size !== frames * TimingSheetFile.RECORD_BYTES || savedHash !== getSheetTailHash(frames))
                 {
                     fs.close();
                     trace("[ReplayClock] 색인 요약이 시트와 맞지 않음(저장 없이 종료 등), 첫 사용 때 전체 읽기");
@@ -472,7 +472,7 @@ package Modules.L2Engine.ReplayEngine
                 fileLastAnim = lastAnim;
                 indexedFileFrames = frames;
                 fileFrames = frames;
-                publishFileOnly();
+                refreshTotalsFromFileIndex();
             }
             catch (error:Error)
             {
@@ -482,7 +482,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 파일 뒤에 프레임이 덧붙었을 때(undo 묶음이 파일로 넘어감) 덧붙은 만큼만 읽어 이어서 반영. 아직 색인을 만든 적 없으면 첫 사용 때 만들므로 건너뜀
-        public static function extendFileIndex():void
+        public static function extendFileIndexByAppendedFrames():void
         {
             if (indexedFileFrames < 0)
             {
@@ -490,8 +490,8 @@ package Modules.L2Engine.ReplayEngine
             }
 
             invalidateSegmentCache(); // 마지막 구간이 풀려 있으면 길이가 옛 값이라 무효화
-            readIntoFileIndex(ReplayState.getRFileDataTotalFrame());
-            publishFileOnly();
+            readFileIndexUntilFrame(ReplayState.getRFileDataTotalFrame());
+            refreshTotalsFromFileIndex();
         }
 
         // 파일이 frame개로 잘렸을 때 frame이 속한 구간 하나만 다시 읽어 색인을 맞춤
@@ -503,13 +503,13 @@ package Modules.L2Engine.ReplayEngine
             }
 
             truncateFileIndexCore(frame);
-            publishFileOnly();
+            refreshTotalsFromFileIndex();
         }
 
         private static function truncateFileIndexCore(frame:Number):void
         {
             invalidateSegmentCache();
-            indexLegacyFrames = TimingSheetFile.legacyFrames; // 뒤 자르기로 줄어든 L (간격은 앞 구간을 만들 때 쓴 값 그대로. fps가 바뀌었으면 ensureIndex가 다시 만듦)
+            indexLegacyFrames = TimingSheetFile.legacyFrames; // 뒤 자르기로 줄어든 L (간격은 앞 구간을 만들 때 쓴 값 그대로. fps가 바뀌었으면 buildOrFixFileIndex가 다시 만듦)
             fileFrames = frame;
             indexedFileFrames = frame;
 
@@ -529,7 +529,7 @@ package Modules.L2Engine.ReplayEngine
             const count:int = int(frame - first);
             const deltas:Vector.<uint> = new Vector.<uint>(count, true);
             const anims:Vector.<uint> = new Vector.<uint>(count, true);
-            TimingSheetFile.readRange(first, count, deltas, anims);
+            TimingSheetFile.readFrameRecords(first, count, deltas, anims);
             var sum:Number = segmentStart[s];
 
             for (var i:int = 0; i < count; i++)
@@ -562,10 +562,10 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 파일 부분 색인이 실제 프레임 수와 맞는지 확인. 처음이면 만들고, 어긋나 있으면(갱신 지점이 빠짐) 보정하고 로그
-        public static function ensureIndex():void
+        public static function buildOrFixFileIndex():void
         {
             const actual:Number = ReplayState.getRFileDataTotalFrame();
-            TimingSheetFile.resizeToFrameCount(actual); // 시트 길이를 repdata와 맞춤 (예전에는 rebuild 맨 앞에서 했음)
+            TimingSheetFile.resizeSheetToFrameCount(actual); // 시트 길이를 repdata와 맞춤 (예전에는 rebuild 맨 앞에서 했음)
 
             if (indexedFileFrames < 0)
             {
@@ -581,7 +581,7 @@ package Modules.L2Engine.ReplayEngine
             {
                 indexMissCount++;
                 trace("[ReplayClock] 색인 갱신 지점이 빠짐: " + indexedFileFrames + " < " + actual + ", 모자란 만큼 이어서 반영");
-                extendFileIndex();
+                extendFileIndexByAppendedFrames();
             }
             else if (indexedFileFrames > actual)
             {
@@ -605,7 +605,7 @@ package Modules.L2Engine.ReplayEngine
             // 메모리 묶음: 파일 마지막 프레임 이후의 간격
             const memoryDeltas:Vector.<uint> = new Vector.<uint>();
             memoryAnims = new Vector.<uint>();
-            TimingSheetFile.computeMemoryRecords(ReplayState.rMemoryDataTimingSheet, ReplayState.rMemoryData.length, memoryDeltas, memoryAnims);
+            TimingSheetFile.makeMemoryFrameRecords(ReplayState.rMemoryDataTimingSheet, ReplayState.rMemoryData.length, memoryDeltas, memoryAnims);
             memoryCumulative = new Vector.<Number>(memoryDeltas.length, true);
 
             for (var i:int = 0; i < memoryDeltas.length; i++)
@@ -630,7 +630,7 @@ package Modules.L2Engine.ReplayEngine
 
                 for (var j:int = 0; j < stamps.length; j++)
                 {
-                    const points:Array = TimingSheetFile.pointsOf(stamps[j]);
+                    const points:Array = TimingSheetFile.getPointTimesOf(stamps[j]);
 
                     if (points !== null)
                     {
@@ -646,7 +646,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 배속이 바뀌었으면 건너뛰기 대상 쉬는 구간 목록과 줄어든 시간의 합을 다시 만듬
-        private static function ensureAxis():void
+        private static function rebuildSeekbarAxisIfSpeedChanged():void
         {
             const speed:Number = ReplayState.rReplaySpeedMultipler;
 
@@ -677,14 +677,14 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 지금 배속에서 시크바 축의 전체 길이(ms) = 전체 녹화 시간 - 건너뛰는 부분. 이 값 / 배속 = 예상 재생 시간
-        public static function get axisMs():Number
+        public static function get seekbarAxisMs():Number
         {
-            ensureAxis();
+            rebuildSeekbarAxisIfSpeedChanged();
             return Math.max(0, totalTime - idlePrefix[idlePrefix.length - 1]);
         }
 
         // 배속 speed에서의 축 길이. 현재 배속과 상관없이 계산할 수 있음 (최대 배속은 1배속 기준으로 정함)
-        public static function axisMsAtSpeed(speed:Number):Number
+        public static function getSeekbarAxisMsAtSpeed(speed:Number):Number
         {
             var removed:Number = 0;
 
@@ -702,9 +702,9 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 녹화 시각 t(ms)를 시크바 축 위치(ms)로 바꿈. 쉬는 구간에서는 앞부분(유지 길이)만 1:1로 움직이고 그 뒤는 폭 0
-        private static function toAxis(t:Number):Number
+        private static function recordedToSeekbarMs(t:Number):Number
         {
-            ensureAxis();
+            rebuildSeekbarAxisIfSpeedChanged();
             const count:int = idleRanges.length / 2;
             var low:int = 0;
             var high:int = count - 1;
@@ -742,10 +742,10 @@ package Modules.L2Engine.ReplayEngine
             return axisAtStart + Math.min(t - start, keepMs);
         }
 
-        // toAxis의 반대. 쉬는 구간의 유지 길이 안이면 그 위치의 녹화 시각, 유지 길이의 끝 위치는 건너뛴 뒤인 공백 끝으로 봄
-        private static function fromAxis(u:Number):Number
+        // recordedToSeekbarMs의 반대. 쉬는 구간의 유지 길이 안이면 그 위치의 녹화 시각, 유지 길이의 끝 위치는 건너뛴 뒤인 공백 끝으로 봄
+        private static function seekbarMsToRecorded(u:Number):Number
         {
-            ensureAxis();
+            rebuildSeekbarAxisIfSpeedChanged();
             const count:int = idleRanges.length / 2;
             var low:int = 0;
             var high:int = count - 1;
@@ -783,11 +783,11 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 시크바의 쉬는 구간 표시용: [시작 비율, 끝 비율] 쌍(0~1)을 이어붙인 목록. 지금 배속에서 건너뛰기 대상인 구간의 유지 길이만 표시됨
-        public static function getIdleMarks():Vector.<Number>
+        public static function getSeekbarIdleMarks():Vector.<Number>
         {
-            ensureAxis();
+            rebuildSeekbarAxisIfSpeedChanged();
             const result:Vector.<Number> = new Vector.<Number>();
-            const length:Number = axisMs;
+            const length:Number = seekbarAxisMs;
 
             if (length <= 0)
             {
@@ -804,7 +804,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 프레임 frame(0부터)이 그려져야 하는 녹화 시각. 범위 밖이면 양끝으로 맞춤
-        public static function timeOfFrame(frame:Number):Number
+        public static function getRecordedTimeOfFrame(frame:Number):Number
         {
             if (frame < 0 || totalFrames === 0)
             {
@@ -827,7 +827,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 프레임 frame(0부터)의 점별 시각(그 명령의 시각 기준 ms), 기록이 없으면 null (선 도구의 점 순서 연출에 씀)
-        public static function pointOffsetsOfFrame(frame:Number):Vector.<uint>
+        public static function getPointOffsetsOfFrame(frame:Number):Vector.<uint>
         {
             if (frame < 0 || frame >= totalFrames)
             {
@@ -853,11 +853,11 @@ package Modules.L2Engine.ReplayEngine
                 return copy;
             }
 
-            return TimingSheetFile.readPoints(frame);
+            return TimingSheetFile.readPointTimes(frame);
         }
 
         // 프레임 frame(0부터)의 연출 길이(ms), 연출이 없는 명령은 0
-        public static function animMsOfFrame(frame:Number):Number
+        public static function getAnimMsOfFrame(frame:Number):Number
         {
             if (frame < 0 || frame >= totalFrames)
             {
@@ -885,7 +885,7 @@ package Modules.L2Engine.ReplayEngine
             const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES, fileFrames - first));
             const deltas:Vector.<uint> = new Vector.<uint>(count, true);
             const anims:Vector.<uint> = new Vector.<uint>(count, true);
-            TimingSheetFile.readRange(first, count, deltas, anims);
+            TimingSheetFile.readFrameRecords(first, count, deltas, anims);
             const times:Vector.<Number> = new Vector.<Number>(count, true);
             var sum:Number = segmentStart[segment];
 
@@ -902,7 +902,7 @@ package Modules.L2Engine.ReplayEngine
 
         // 녹화 시각 time까지 그려져야 하는 프레임 수 (시각이 time 이하인 프레임의 개수)
         // 구간 시작 시각으로 구간을 먼저 고르고 그 구간 안에서만 찾아서 구간을 여러번 풀지 않음
-        public static function framesDueAt(time:Number):Number
+        public static function getFrameCountAtRecorded(time:Number):Number
         {
             if (totalFrames === 0)
             {
@@ -934,21 +934,21 @@ package Modules.L2Engine.ReplayEngine
                 }
 
                 loadSegment(low);
-                const found:int = countAtMost(cachedTimes, time);
+                const found:int = countValuesAtMost(cachedTimes, time);
 
                 if (found < cachedTimes.length || low < segmentStart.length - 1 || memoryCumulative.length === 0)
                 {
                     return low * TimingSheet.SEGMENT_FRAMES + found;
                 }
 
-                return fileFrames + countAtMost(memoryCumulative, time);
+                return fileFrames + countValuesAtMost(memoryCumulative, time);
             }
 
-            return fileFrames === 0 ? countAtMost(memoryCumulative, time) : 0;
+            return fileFrames === 0 ? countValuesAtMost(memoryCumulative, time) : 0;
         }
 
         // 오름차순 times에서 값이 time 이하인 항목 수
-        private static function countAtMost(times:Vector.<Number>, time:Number):int
+        private static function countValuesAtMost(times:Vector.<Number>, time:Number):int
         {
             var low:int = 0;
             var high:int = times.length;
@@ -972,12 +972,12 @@ package Modules.L2Engine.ReplayEngine
 
         // frame개를 그린 상태에서 재생을 시작하거나 이어감 (처음, 건너뛰기, 일시정지 후 재개)
         // 마지막으로 그린 프레임의 시각에서 시작해서 다음 프레임의 간격만큼 기다림
-        public static function anchorAtFrame(frame:Number, speed:Number):void
+        public static function startClockAtFrame(frame:Number, speed:Number):void
         {
-            anchorRecorded = timeOfFrame(frame - 1);
+            anchorRecorded = getRecordedTimeOfFrame(frame - 1);
 
             // 기억해둔 위치가 같은 프레임에서 다음 프레임 직전 사이(쉬는 구간이나 대기 중간)면 그 시각에서 이어감
-            if (rememberedFrame === frame && rememberedRecorded > anchorRecorded && rememberedRecorded < timeOfFrame(frame))
+            if (rememberedFrame === frame && rememberedRecorded > anchorRecorded && rememberedRecorded < getRecordedTimeOfFrame(frame))
             {
                 anchorRecorded = rememberedRecorded;
             }
@@ -989,22 +989,22 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 재생 중 시계를 녹화 시각 recorded로 옮김 (자동 건너뛰기). 배속은 그대로
-        public static function anchorAtRecorded(recorded:Number):void
+        public static function moveClockToRecorded(recorded:Number):void
         {
             anchorRecorded = recorded;
             anchorReal = getTimer();
             replayWaitingEnd = -1;
         }
 
-        // 일시정지하거나 시크바를 클릭한 때 frame개를 그린 상태와 그 녹화 시각을 기억해둠. 프레임이 바뀌면 anchorAtFrame이 무시함
-        public static function rememberPosition(frame:Number, recorded:Number):void
+        // 일시정지하거나 시크바를 클릭한 때 frame개를 그린 상태와 그 녹화 시각을 기억해둠. 프레임이 바뀌면 startClockAtFrame이 무시함
+        public static function savePausedPosition(frame:Number, recorded:Number):void
         {
             rememberedFrame = frame;
             rememberedRecorded = recorded;
         }
 
         // 지금 녹화 시각 R. 배속이 바뀌면 그 순간부터 새 배속으로 이어지게 기준점을 옮김
-        public static function recordedNow(speed:Number):Number
+        public static function getRecordedTimeNow(speed:Number):Number
         {
             const now:int = getTimer();
             const current:Number = anchorRecorded + (now - anchorReal) * anchorSpeed;
@@ -1020,23 +1020,23 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 지금 녹화 시각을 기준점이나 배속은 건드리지 않고 읽기만 함 (연출 진행률 계산용)
-        public static function recordedPeek():Number
+        public static function readRecordedTimeNow():Number
         {
             return anchorRecorded + (getTimer() - anchorReal) * anchorSpeed;
         }
 
         // 지금 그려야 하는 프레임 수. Replay Waiting 중이면 그리지 않고 현재 프레임 수 그대로
         // drawnFrames: 지금까지 그린 프레임 수
-        public static function getRemaingFrameCount(drawnFrames:Number, speed:Number):Number
+        public static function getFrameCountToDrawNow(drawnFrames:Number, speed:Number):Number
         {
-            const recorded:Number = recordedNow(speed);
+            const recorded:Number = getRecordedTimeNow(speed);
 
             // 다음 프레임이 Replay Waiting 공백 뒤에 있으면 공백이 끝날때까지 기다림
             if (drawnFrames < totalFrames && drawnFrames > 0)
             {
                 // 앞 프레임의 연출(도구를 쓰던 시간)은 쉬는 시간이 아니라서 연출이 끝난 시각부터 셈
-                const gapStart:Number = timeOfFrame(drawnFrames - 1) + animMsOfFrame(drawnFrames - 1);
-                const gapEnd:Number = timeOfFrame(drawnFrames);
+                const gapStart:Number = getRecordedTimeOfFrame(drawnFrames - 1) + getAnimMsOfFrame(drawnFrames - 1);
+                const gapEnd:Number = getRecordedTimeOfFrame(drawnFrames);
 
                 if (recorded >= gapStart && gapEnd - gapStart >= ENTRY_MS * speed && recorded < gapEnd)
                 {
@@ -1053,12 +1053,12 @@ package Modules.L2Engine.ReplayEngine
                     anchorRecorded = gapEnd;
                     anchorReal = getTimer();
                     replayWaitingEnd = -1;
-                    return Math.max(drawnFrames, framesDueAt(gapEnd));
+                    return Math.max(drawnFrames, getFrameCountAtRecorded(gapEnd));
                 }
             }
 
             replayWaitingEnd = -1;
-            return Math.max(drawnFrames, framesDueAt(recorded));
+            return Math.max(drawnFrames, getFrameCountAtRecorded(recorded));
         }
 
         public static function get isWaitingNextReplayCommand():Boolean
@@ -1068,61 +1068,61 @@ package Modules.L2Engine.ReplayEngine
 
         // 자동으로 건너뛰기까지 남은 실제 시간(ms). 공백 처음에서 시작하면 CAP_MS이고, 중간에서 이어 재생하면 그만큼 줄어든 값
         // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음 (시크바 Replay Waiting 카운트다운 삭제 후 남음)
-        public static function replayWaitingRemainingMs(speed:Number):Number
+        public static function getReplayWaitingRemainingMs(speed:Number):Number
         {
             if (replayWaitingEnd < 0)
             {
                 return 0;
             }
 
-            return Math.max(0, (Math.min(replayWaitingSkipAt, replayWaitingEnd) - recordedPeek()) / speed);
+            return Math.max(0, (Math.min(replayWaitingSkipAt, replayWaitingEnd) - readRecordedTimeNow()) / speed);
         }
 
         // 시크바 위치(0~1). 프레임 수가 아니라 녹화 시간을 쉬는 구간이 줄어든 축에 놓은 값. frame개를 그린 상태의 위치
-        public static function frameRatio(frame:Number):Number
+        public static function getSeekbarRatioOfFrame(frame:Number):Number
         {
-            const length:Number = axisMs;
+            const length:Number = seekbarAxisMs;
 
             if (length <= 0)
             {
                 return totalFrames > 0 ? Math.min(1, frame / totalFrames) : 0;
             }
 
-            return Math.min(1, toAxis(timeOfFrame(frame - 1)) / length);
+            return Math.min(1, recordedToSeekbarMs(getRecordedTimeOfFrame(frame - 1)) / length);
         }
 
         // 시크바의 위치 ratio(0~1)에 해당하는 녹화 시각 (쉬는 구간의 줄어든 폭 안이면 그 구간 안의 비례한 시각)
-        public static function ratioToTime(ratio:Number):Number
+        public static function seekbarRatioToRecordedTime(ratio:Number):Number
         {
-            return fromAxis(axisMs * Math.max(0, Math.min(1, ratio)));
+            return seekbarMsToRecorded(seekbarAxisMs * Math.max(0, Math.min(1, ratio)));
         }
 
         // 시크바의 위치 ratio(0~1)에 해당하는 프레임 수 (시크바 클릭, 드래그)
-        public static function ratioToFrame(ratio:Number):Number
+        public static function seekbarRatioToFrame(ratio:Number):Number
         {
             if (ratio >= 1)
             {
                 return totalFrames;
             }
 
-            if (axisMs <= 0)
+            if (seekbarAxisMs <= 0)
             {
                 return Math.floor(totalFrames * Math.max(0, ratio));
             }
 
-            return Math.min(totalFrames, framesDueAt(ratioToTime(ratio)));
+            return Math.min(totalFrames, getFrameCountAtRecorded(seekbarRatioToRecordedTime(ratio)));
         }
 
         // 재생 중 시크바 위치. 그린 프레임이 아니라 시계가 흐르는 대로 움직여서 쉬는 구간(Replay Waiting)에도 바가 계속 감
-        public static function playRatio(speed:Number):Number
+        public static function getSeekbarRatioWhilePlaying(speed:Number):Number
         {
-            const length:Number = axisMs;
-            return length > 0 ? Math.min(1, toAxis(recordedNow(speed)) / length) : 0;
+            const length:Number = seekbarAxisMs;
+            return length > 0 ? Math.min(1, recordedToSeekbarMs(getRecordedTimeNow(speed)) / length) : 0;
         }
 
         // 녹화 시각 recorded에서 끝까지 재생하는데 걸리는 예상 실제 시간(ms). 쉬는 구간은 캡 규칙을 적용함
         // 공백 g가 ENTRY_MS * speed 이상이면 앞부분 CAP_MS 실제 시간만(공백 중간에서 시작하면 그 앞부분의 남은 만큼만), 아니면 g / speed
-        public static function remainingRealMsAt(recorded:Number, speed:Number):Number
+        public static function getRemainingRealMsAtRecorded(recorded:Number, speed:Number):Number
         {
             var current:Number = recorded;
             var real:Number = 0;
@@ -1160,34 +1160,34 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // frame개를 그린 상태에서의 예상 남은 실제 시간(ms)
-        // 테스트 하네스(test-output) 전용. 앱은 remainingRealMsAt를 직접 씀
-        public static function remainingRealMs(frame:Number, speed:Number):Number
+        // 테스트 하네스(test-output) 전용. 앱은 getRemainingRealMsAtRecorded를 직접 씀
+        public static function getRemainingRealMsAtFrame(frame:Number, speed:Number):Number
         {
-            return remainingRealMsAt(timeOfFrame(frame - 1), speed);
+            return getRemainingRealMsAtRecorded(getRecordedTimeOfFrame(frame - 1), speed);
         }
 
         // 남은 시간 표시에 쓸 현재 녹화 시각. 재생 중이면 시계 시각(쉬는 구간을 기다리는 동안에도 줄어듬),
         // 멈춰 있으면 기억해둔 위치(같은 프레임일 때) 또는 frame개를 그린 시각
-        public static function displayRecorded(frame:Number, playing:Boolean):Number
+        public static function getRecordedTimeForDisplay(frame:Number, playing:Boolean):Number
         {
             if (playing)
             {
-                return Math.min(totalTime, recordedPeek());
+                return Math.min(totalTime, readRecordedTimeNow());
             }
 
-            if (rememberedFrame === frame && rememberedRecorded >= timeOfFrame(frame - 1))
+            if (rememberedFrame === frame && rememberedRecorded >= getRecordedTimeOfFrame(frame - 1))
             {
                 return rememberedRecorded;
             }
 
-            return timeOfFrame(frame - 1);
+            return getRecordedTimeOfFrame(frame - 1);
         }
 
         // frame개를 그린 상태에서 남은 녹화 시간(ms). 표시용
         // 테스트 하네스(test-output) 전용. 앱 코드에서 호출하지 않음
-        public static function remainingMsFrom(frame:Number):Number
+        public static function getRemainingRecordedMsFromFrame(frame:Number):Number
         {
-            return Math.max(0, totalTime - timeOfFrame(frame - 1));
+            return Math.max(0, totalTime - getRecordedTimeOfFrame(frame - 1));
         }
     }
 }

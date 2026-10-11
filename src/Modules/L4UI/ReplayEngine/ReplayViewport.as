@@ -111,7 +111,7 @@ package Modules.L4UI.ReplayEngine
             ReplayState.rCanvasZoomIndex = newZoomIndex;
             moveAnchorPoint(center.x, center.y);
             setScale(newZoom);
-            ReplayDrawer.cursorFollow.updateBounds();
+            ReplayDrawer.cursorFollow.resyncCameraWithAnchor();
             HintController.showMouseHintTemp(String(Math.floor(newZoom * 100)) + "%");
         }
     }

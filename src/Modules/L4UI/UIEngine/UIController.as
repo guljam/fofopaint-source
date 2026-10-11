@@ -329,7 +329,7 @@ package Modules.L4UI.UIEngine
             if (ReplayState.isReplayModeON)
             {
                 UIController.seekBarBox.updatePos(AppContext.stage.stageWidth);
-                ReplayDrawer.cursorFollow.updateBounds();
+                ReplayDrawer.cursorFollow.resyncCameraWithAnchor();
 
                 if (ReplayState.isReplayCanvasFitToWindow)
                 {
@@ -634,7 +634,7 @@ package Modules.L4UI.UIEngine
             if (canvasOnly === false) // 보통 미러할때, canvasonly가 true일때는 appdata에서 바꿔줄때 밖에 없음
             {
                 CanvasView.canvasAnchorPoint.rotation = -CanvasView.canvasAnchorPoint.rotation; // 반대각으로 세팅
-                ReplayDrawer.setRcursorRotation(CanvasView.canvasAnchorPoint.rotation);
+                ReplayDrawer.setReplayCursorRotation(CanvasView.canvasAnchorPoint.rotation);
                 ReferenceLayerController.mirrorRefLayerImage();
             }
             CanvasGridOverlay.updateGridMirror(DrawCanvas.mirrorON);
@@ -662,7 +662,7 @@ package Modules.L4UI.UIEngine
             PenSizePreviewCursor.updateSizeAndShape();
             CanvasView.viewport.moveAnchorPoint(center.x, center.y);
             CanvasView.canvasAnchorPoint.rotation = 0;
-            ReplayDrawer.setRcursorRotation(0);
+            ReplayDrawer.setReplayCursorRotation(0);
             UIController.canvasInfoBox.setRotate(0);
         }
 

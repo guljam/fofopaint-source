@@ -96,9 +96,9 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 데이터를 읽다 말았으면 끝까지 한세트 끝나게 프레임 이동시킴
-        public static function finalizeRemainingReplayData():void
+        public static function finishRemainingCommandGroup():void
         {
-            renderReplayFrame(ReplayState.rNowFrame + ReplayDrawCommands.getRemainingData(), ReplayDrawer.JUMP_FRAME_MANUAL);
+            renderReplayFrame(ReplayState.rNowFrame + ReplayDrawCommands.getRemainingCommandCount(), ReplayDrawer.JUMP_FRAME_MANUAL);
         }
 
         public static function updateReplayCanvasFromUndoBaseInfo():void
@@ -121,8 +121,8 @@ package Modules.L2Engine.ReplayEngine
 
             ReplayState.rMirrorON = undoBaseImage[5];
 
-            ReplayDrawCommands.setData(ReplayState.rMemoryData[0]);
-            ReplayDrawCommands.drawAll();
+            ReplayDrawCommands.setCommandData(ReplayState.rMemoryData[0]);
+            ReplayDrawCommands.drawAllCommands();
 
             UndoHistory.updateUndoBaseImage(rCanvasLayer1BitmapData.clone(), rCanvasLayer2BitmapData.clone(), ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT, ReplayState.RCANVAS_BG_COLOR, ReplayState.rMirrorON);
 
@@ -161,8 +161,8 @@ package Modules.L2Engine.ReplayEngine
                 {
                     if (!ReplayState.rMemoryData[i])
                         continue;
-                    ReplayDrawCommands.setData(ReplayState.rMemoryData[i]);
-                    ReplayDrawCommands.drawAll();
+                    ReplayDrawCommands.setCommandData(ReplayState.rMemoryData[i]);
+                    ReplayDrawCommands.drawAllCommands();
                 }
             }
         }
@@ -204,7 +204,7 @@ package Modules.L2Engine.ReplayEngine
             {
                 if (tragetFrame >= ReplayFileCache.rFrameTempCachedImages[0][2].nowFrame)
                 {
-                    rMemoryCachedImageIndex = ReplayFileCache.getCacheImageIndex(tragetFrame);
+                    rMemoryCachedImageIndex = ReplayFileCache.getTempCacheImageIndex(tragetFrame);
 
                     if (ReplayFileCache.rLastMemoryCachedImageIndex !== rMemoryCachedImageIndex || tragetFrame < ReplayState.rNowFrame)
                     {
@@ -242,10 +242,10 @@ package Modules.L2Engine.ReplayEngine
                 ReplayState.rNowFrame = metaData.nowFrame; // 썸네일 이미지를 저장한 프레임
                 ReplayState.rFileLastBytePosition = metaData.lastByte; // 마지막 바이트
                 rFileStream.position = metaData.lastByte;
-                commandWindow.resetAt(metaData.lastByte, metaData.nowFrame);
+                commandWindow.resetReadPosition(metaData.lastByte, metaData.nowFrame);
                 // 원하는 프레임에서 썸네일 이미지 프레임을 빼줌 나머지 프레임만 그려주면 되니깐
                 remainingFrameCount = tragetFrame - metaData.nowFrame;
-                ReplayDrawCommands.clearData();
+                ReplayDrawCommands.clearCommandData();
                 clearCanvasReplayMode();
                 ReplayState.rMirrorON = metaData.mirrorFlag;
 
@@ -318,13 +318,13 @@ package Modules.L2Engine.ReplayEngine
                 }
             }
 
-            anim.clear();
+            anim.clearAnimOverlay();
 
             rFileStream.open(AppDataPaths.replayDataFilePath, FileMode.READ);
             const remainingFrameCount:Number = drawCacheImageFirst(frame, jumpflag);
-            const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);
+            const shouldStop:Boolean = ReplayDrawer.drawReplayCommands(remainingFrameCount, jumpflag);
             rFileStream.close();
-            commandWindow.releaseStream(); // 이번 탐색에서 묶음을 연달아 읽느라 열어 둔 창의 스트림
+            commandWindow.closeRepdataStream(); // 이번 탐색에서 묶음을 연달아 읽느라 열어 둔 창의 스트림
             // dodraw밑이기 때문에 rFrameSum이 갱신되서 위에 nowFrame은 쓸수가 없음
 
             if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
@@ -350,7 +350,7 @@ package Modules.L2Engine.ReplayEngine
 
             if (!ReplayState.isReplayCanvasFitToWindow && !UndoHistory.isDeepUndoEnabled)
             {
-                cursorFollow.snap();
+                cursorFollow.moveCameraToCursorNow();
             }
 
             return shouldStop;
@@ -363,7 +363,7 @@ package Modules.L2Engine.ReplayEngine
             rReplayFOFOCursor.scaleY = z;
         }
 
-        public static function setRcursorRotation(newAngle:Number):void
+        public static function setReplayCursorRotation(newAngle:Number):void
         {
             rReplayFOFOCursor.rotation = -newAngle;
         }
@@ -457,7 +457,7 @@ package Modules.L2Engine.ReplayEngine
             tmpbmpd = null;
         }
 
-        public static function replayLineStyleReady(shape:Boolean, size:uint, color:uint, alpha:Number):void
+        public static function setReplayLineStyleSquareRound(shape:Boolean, size:uint, color:uint, alpha:Number):void
         {
             rCanvasDrawLayer.alpha = alpha;
 
@@ -471,7 +471,7 @@ package Modules.L2Engine.ReplayEngine
             }
         }
 
-        public static function replayLineStyleReady2(shape:Boolean, size:uint, color:uint, alpha:Number):void
+        public static function setReplayLineStyleSquareBevel(shape:Boolean, size:uint, color:uint, alpha:Number):void
         {
             rCanvasDrawLayer.alpha = alpha;
 
@@ -485,7 +485,7 @@ package Modules.L2Engine.ReplayEngine
             }
         }
 
-        public static function replayLineStyleReady3(shape:Boolean, size:uint, color:uint, alpha:Number):void
+        public static function setReplayLineStyleNoCapBevel(shape:Boolean, size:uint, color:uint, alpha:Number):void
         {
             rCanvasDrawLayer.alpha = alpha;
 
@@ -597,7 +597,7 @@ package Modules.L2Engine.ReplayEngine
 
             ReplayState.RCANVAS_WIDTH = w;
             ReplayState.RCANVAS_HEIGHT = h;
-            cursorFollow.updateBounds();
+            cursorFollow.resyncCameraWithAnchor();
             viewport.keepInStage();
 
             if (ReplayState.isReplayCanvasFitToWindow)
@@ -631,7 +631,7 @@ package Modules.L2Engine.ReplayEngine
             ReplayFileCache.createRFrameTempCache(completedStepStartFrame, ReplayState.rFileCutBytePosition);
         }
 
-        public static function readyToReadMemoryData(jumpFlag:int):void
+        public static function startReadingMemoryData(jumpFlag:int):void
         {
             ReplayState.rMemoryDataReadON = true;
             ReplayState.rMemoryDataIndex = ReplayState.rMemoryDataStartIndex;
@@ -646,18 +646,18 @@ package Modules.L2Engine.ReplayEngine
             if ( ReplayState.rMemoryData.length > 0)
             {
                 ReplayState.rPrevFrame = ReplayState.rNowFrame;
-                ReplayDrawCommands.setData(ReplayState.rMemoryData[ReplayState.rMemoryDataIndex]);
+                ReplayDrawCommands.setCommandData(ReplayState.rMemoryData[ReplayState.rMemoryDataIndex]);
             }
             else
             {
-                ReplayDrawCommands.clearData();
+                ReplayDrawCommands.clearCommandData();
             }
         }
 
         // 재생 중 repdata는 commandWindow가 미리 읽어 둔 묶음에서 꺼내 씀 (스트림 위치가 아니라 꺼낸 묶음의 byte로 위치를 기록)
-        public static function readNextFileData():Boolean
+        public static function readNextFileCommandGroup():Boolean
         {
-            const item:Object = commandWindow.takeNext(ReplayState.rFileLastBytePosition, ReplayState.rNowFrame);
+            const item:Object = commandWindow.popNextCommandGroup(ReplayState.rFileLastBytePosition, ReplayState.rNowFrame);
 
             if (item === null)
             {
@@ -668,7 +668,7 @@ package Modules.L2Engine.ReplayEngine
 
             if (!obj)
                 return true;
-            ReplayDrawCommands.setData(obj);
+            ReplayDrawCommands.setCommandData(obj);
             ReplayState.rFileCutBytePosition = ReplayState.rFileLastBytePosition;
             ReplayState.rFileLastBytePosition = item.endByte;
             ReplayState.rPrevFrame = ReplayState.rNowFrame;
@@ -676,7 +676,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 리플레이 정지는 직접 하지 않고 정지가 필요한지만 반환함 (정지는 ReplayController가 처리)
-        public static function checkFinish(jumpFlag:int):Boolean
+        public static function finishReplayIfDataEnded(jumpFlag:int):Boolean
         {
             if (ReplayState.rMemoryDataIndex >= rMemoryDataLen || rMemoryDataLen === 0) // 자연적으로 끝났을때
             {
@@ -697,11 +697,11 @@ package Modules.L2Engine.ReplayEngine
         // 반환값: 리플레이를 정지해야 하면 true
         // 연출이 있는 명령(fill5, lasso2, line4, move, move1, move2)이면 실행하기 직전에 연출을 준비시킴. 실제 연출은 명령이 실행되면서 시작함
         // 실제 재생 시간이 너무 짧거나 이미 연출이 끝난 시각이면 준비하지 않음
-        private static function prepareFrameAnim():void
+        private static function reserveFrameAnimIfNeeded():void
         {
             if (!isRealtimePlay || !ReplayDrawCommands.data || ReplayDrawCommands.index >= ReplayDrawCommands.data.length)
             {
-                anim.disarm();
+                anim.cancelReservedAnim();
                 return;
             }
 
@@ -709,20 +709,20 @@ package Modules.L2Engine.ReplayEngine
 
             if (name !== "fill5" && name !== "lasso2" && name !== "line4" && name !== "move" && name !== "move1" && name !== "move2")
             {
-                anim.disarm();
+                anim.cancelReservedAnim();
                 return;
             }
 
-            const animMs:Number = ReplayClock.animMsOfFrame(ReplayState.rNowFrame);
-            const startRecorded:Number = ReplayClock.timeOfFrame(ReplayState.rNowFrame);
+            const animMs:Number = ReplayClock.getAnimMsOfFrame(ReplayState.rNowFrame);
+            const startRecorded:Number = ReplayClock.getRecordedTimeOfFrame(ReplayState.rNowFrame);
 
-            if (animMs / ReplayState.getReplayClockSpeed() >= ReplayAnim.MIN_REAL_MS && ReplayClock.recordedPeek() - startRecorded < animMs)
+            if (animMs / ReplayState.getReplayClockSpeed() >= ReplayAnim.MIN_REAL_MS && ReplayClock.readRecordedTimeNow() - startRecorded < animMs)
             {
-                anim.arm(animMs, startRecorded, ReplayState.rNowFrame);
+                anim.reserveAnim(animMs, startRecorded, ReplayState.rNowFrame);
             }
             else
             {
-                anim.disarm();
+                anim.cancelReservedAnim();
             }
         }
 
@@ -730,22 +730,22 @@ package Modules.L2Engine.ReplayEngine
         {
             for (var i:Number = 0;i < len;i++)
             {
-                if (ReplayDrawCommands.isReadFinished())
+                if (ReplayDrawCommands.isCommandReadFinished())
                 {
                     ReplayState.rMemoryDataIndex++;
 
-                    if (checkFinish(jumpFlag))
+                    if (finishReplayIfDataEnded(jumpFlag))
                     {
                         return true;
                     }
 
                     ReplayState.rPrevFrame = ReplayState.rNowFrame;
-                    ReplayDrawCommands.setData(ReplayState.rMemoryData[ReplayState.rMemoryDataIndex]);
+                    ReplayDrawCommands.setCommandData(ReplayState.rMemoryData[ReplayState.rMemoryDataIndex]);
                 }
 
-                prepareFrameAnim();
-                ReplayDrawCommands.drawNext();
-                anim.disarm();
+                reserveFrameAnimIfNeeded();
+                ReplayDrawCommands.drawNextCommand();
+                anim.cancelReservedAnim();
                 ReplayState.rNowFrame++;
             }
 
@@ -756,13 +756,13 @@ package Modules.L2Engine.ReplayEngine
         {
             for (var i:Number = 0;i < len;i++)
             {
-                if (ReplayDrawCommands.isReadFinished())
+                if (ReplayDrawCommands.isCommandReadFinished())
                 {
                     const completedStepStartFrame:Number = ReplayState.rPrevFrame;
-                    if (readNextFileData() === false)
+                    if (readNextFileCommandGroup() === false)
                     {
                         // 더이상 읽을 데이터가 없을때 메모리읽기로 넘겨줌
-                        readyToReadMemoryData(jumpFlag);
+                        startReadingMemoryData(jumpFlag);
                         return;
                     }
 
@@ -775,16 +775,16 @@ package Modules.L2Engine.ReplayEngine
                     }
                 }
 
-                prepareFrameAnim();
-                ReplayDrawCommands.drawNext();
-                anim.disarm();
+                reserveFrameAnimIfNeeded();
+                ReplayDrawCommands.drawNextCommand();
+                anim.cancelReservedAnim();
                 ReplayState.rNowFrame++;
                 readCount--;
             }
         }
 
         // 반환값: 리플레이를 정지해야 하면 true
-        public static function startDraw(commandCount:Number, jumpFlag:int):Boolean
+        public static function drawReplayCommands(commandCount:Number, jumpFlag:int):Boolean
         {
             var shouldStop:Boolean = false;
 

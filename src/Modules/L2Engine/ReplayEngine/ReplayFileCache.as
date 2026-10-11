@@ -47,7 +47,7 @@ package Modules.L2Engine.ReplayEngine
                 fs.open(AppDataPaths.replayDataFilePath, FileMode.WRITE);
                 fs.close();
                 ReplayDrawer.commandWindow.dispose(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
-                TimingSheetFile.reset();
+                TimingSheetFile.resetTimingSheet();
             }
         }
 
@@ -340,7 +340,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // targetFrame이 rFrameCacheImages데이터에 몆 번 인덱스에 있나 구해줌
-        public static function getCacheImageIndex(targetFrame:Number):int
+        public static function getTempCacheImageIndex(targetFrame:Number):int
         {
             return Utils.binarySearchIndex(rFrameTempCachedImages, targetFrame, function (item:*):Number
                 {

@@ -353,7 +353,7 @@ package Modules.L5App.InputManager
                 case "replayRotateButton":
                     {
                         ReplayController.resetRotationReplayMode();
-                        ReplayDrawer.cursorFollow.updateBounds();
+                        ReplayDrawer.cursorFollow.resyncCameraWithAnchor();
                     }
                     break;
                 case "replayZoomInButton":
@@ -488,7 +488,7 @@ package Modules.L5App.InputManager
                     break;
                 case "replaySpeedSliderWrapper":
                     {
-                        ReplayController.adjutReplaySpeedByMouse();
+                        ReplayController.adjustReplaySpeedByMouse();
                     }
                     break;
                 case "trackBar":

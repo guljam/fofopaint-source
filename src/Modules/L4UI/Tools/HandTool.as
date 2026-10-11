@@ -68,7 +68,7 @@ package Modules.L4UI.Tools
             }
             else
             {
-                ReplayDrawer.cursorFollow.updateBounds();
+                ReplayDrawer.cursorFollow.resyncCameraWithAnchor();
             }
         }
 

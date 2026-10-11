@@ -16,13 +16,13 @@ package Modules.L1Data.ReplayEngine
         public static function encodeSegment(deltas:Vector.<uint>, anims:Vector.<uint>, count:int):ByteArray
         {
             const output:ByteArray = new ByteArray();
-            writeVarints(output, deltas, count);
-            writeVarints(output, anims, count);
+            writeVarLengthInts(output, deltas, count);
+            writeVarLengthInts(output, anims, count);
             output.compress();
             return output;
         }
 
-        private static function writeVarints(output:ByteArray, values:Vector.<uint>, count:int):void
+        private static function writeVarLengthInts(output:ByteArray, values:Vector.<uint>, count:int):void
         {
             for (var i:int = 0; i < count; i++)
             {
@@ -48,8 +48,8 @@ package Modules.L1Data.ReplayEngine
 
             try
             {
-                readVarints(raw, deltas, count);
-                readVarints(raw, anims, count);
+                readVarLengthInts(raw, deltas, count);
+                readVarLengthInts(raw, anims, count);
 
                 if (raw.bytesAvailable > 0)
                 {
@@ -62,7 +62,7 @@ package Modules.L1Data.ReplayEngine
             }
         }
 
-        private static function readVarints(raw:ByteArray, values:Vector.<uint>, count:int):void
+        private static function readVarLengthInts(raw:ByteArray, values:Vector.<uint>, count:int):void
         {
             for (var i:int = 0; i < count; i++)
             {

@@ -30,7 +30,7 @@ package Modules.L4UI.Tools
             const ang:Number = getAngle(true);
 
             xAnc.rotation = ang;
-            ReplayDrawer.setRcursorRotation(xAnc.rotation);
+            ReplayDrawer.setReplayCursorRotation(xAnc.rotation);
             UIController.canvasInfoBox.setRotate(Math.abs(xAnc.rotation));
         }
 
@@ -60,7 +60,7 @@ package Modules.L4UI.Tools
                 }
 
                 KeyState.resetLastKey();
-                ReplayDrawer.cursorFollow.updateBounds();
+                ReplayDrawer.cursorFollow.resyncCameraWithAnchor();
             }
 
             UIController.hideCanvasRotateCursor();

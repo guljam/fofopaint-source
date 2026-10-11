@@ -321,7 +321,7 @@
 				return;
 			}
 
-			// adjutReplaySpeedByMouse의 오프셋 및 지수 매핑과 같아야함
+			// adjustReplaySpeedByMouse의 오프셋 및 지수 매핑과 같아야함
 			const minDist:Number = replaySpeedSlider.x + 1.5;
 			const maxDist:Number = minDist + replaySpeedSlider.width - 2.5;
 			replaySpeedSnapX = maxDist * Math.log(snapSpeed) / Math.log(maxSpeed);

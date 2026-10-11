@@ -95,62 +95,62 @@ package Modules.L4UI.ReplayEngine
         }
 
         // 카메라가 앵커를 건드리면 안 되는 상태
-        private function isBlocked():Boolean
+        private function isCameraBlocked():Boolean
         {
             return ReplayState.isReplayCanvasFitToWindow || MouseState.isLeftDown || UndoHistory.isDeepUndoEnabled;
         }
 
         // 외부가 화면을 바꿨을 때 부름. 카메라 내부 값을 실제 앵커로 다시 맞추고 진행 중인 이동을 멈춤
-        public function updateBounds():void
+        public function resyncCameraWithAnchor():void
         {
-            syncToAnchor();
+            loadCameraFromAnchor();
 
             // 재생 중 수동 줌 직후 커서가 화면 밖이면 다음 그리기 틱을 기다리지 않고 바로 안전 구역으로 끌어옴 (무시 구간이면 3-3 규칙대로 안 끌어옴)
-            if (detectExternalZoom() && ReplayState.isReplayStarted && !ignoringExcursion && !isBlocked())
+            if (isZoomChangedExternally() && ReplayState.isReplayStarted && !ignoringExcursion && !isCameraBlocked())
             {
                 keepCursorInSafeZone();
             }
         }
 
         // 이번 틱에 영역을 쓰지 못한 이유 ("": 영역 사용 중). unaligned = 탐색 직후 등으로 큐가 어긋남, fewSamples = 미리 볼 커서 지점이 3개 미만, coverage = 프레임/묶음 상한으로 목표 시간만큼 못 봄
-        public function get lookMissReason():String
+        public function get upcomingRegionMissReason():String
         {
             return lookMiss;
         }
 
         // 이번 틱에 미리 읽은 경로의 영역으로 줌/초점을 정했는지. false면 커서 한 점과 배속 규칙을 씀 (경로가 없거나, 상한 때문에 목표 시간만큼 못 봤을 때)
-        public function get isUsingRegion():Boolean
+        public function get isUsingUpcomingRegion():Boolean
         {
             return lookReady;
         }
 
         // 지금 커서가 짧은 바깥 이동(EXCURSION_IGNORE_MS 미만)으로 판단되어 따라가지 않는 중인지. 이때는 커서가 화면 밖에 있을 수 있음
-        public function get isIgnoringExcursion():Boolean
+        public function get isIgnoringShortCursorMove():Boolean
         {
             return ignoringExcursion;
         }
 
         // 재생 중 그리기 바로 뒤에 한 번 부름 (replayDrawTimer). 그리기 타이머가 갱신하므로 카메라 타이머와 두 번 움직이지 않음
-        // (즉시 맞추는 snap은 탐색 경로와 자동 건너뛰기에서만 씀)
-        public function update():void
+        // (즉시 맞추는 moveCameraToCursorNow은 탐색 경로와 자동 건너뛰기에서만 씀)
+        public function updateCameraAfterDraw():void
         {
             if (ReplayState.isReplayStarted)
             {
-                step();
+                moveCameraOneStep();
             }
         }
 
         // 목표를 계산하고 앵커와 배율을 바로 그 위치로 옮김 (탐색, 재생이 멈췄을 때). 진행 중인 줌 전환도 유지 배율로 바로 끝냄
-        // 카메라가 앵커를 움직이는 곳은 재생 중 update와 이 함수뿐임 (멈춘 뒤 남은 이동을 애니메이션하는 타이머는 없음)
-        public function snap():void
+        // 카메라가 앵커를 움직이는 곳은 재생 중 updateCameraAfterDraw와 이 함수뿐임 (멈춘 뒤 남은 이동을 애니메이션하는 타이머는 없음)
+        public function moveCameraToCursorNow():void
         {
-            if (!ReplayState.isReplayModeON || isBlocked())
+            if (!ReplayState.isReplayModeON || isCameraBlocked())
             {
                 return;
             }
 
-            syncToAnchor();
-            computeLookahead();
+            loadCameraFromAnchor();
+            computeUpcomingCursorRegion();
 
             // 멈추거나 탐색한 자리에서는 무시 중이던 바깥 이동도 커서를 화면에 보여 줌
             if (lookReady && ignoringExcursion)
@@ -162,41 +162,41 @@ package Modules.L4UI.ReplayEngine
                 ignoringExcursion = false;
             }
 
-            stepZoom(ReplayState.isReplayStarted, true);
-            syncToAnchor();
+            updateCameraZoom(ReplayState.isReplayStarted, true);
+            loadCameraFromAnchor();
             const cursor:Point = ReplayDrawCommands.getRCursorPos();
             const view:Rectangle = viewportRect();
             const canvas:Rectangle = canvasScreenRect();
             const focus:Rectangle = focusScreenRect(cursor);
-            posX += targetShift(true, focus, view, canvas);
-            posY += targetShift(false, focus, view, canvas);
+            posX += getAnchorShiftOnAxis(true, focus, view, canvas);
+            posY += getAnchorShiftOnAxis(false, focus, view, canvas);
             targetX = posX;
             targetY = posY;
-            applyToAnchor();
+            applyCameraToAnchor();
             keepCursorInSafeZone();
         }
 
-        // 줌 → 목표 재계산 → 안전 구역 → 감쇠 → 앵커 적용. update가 씀
-        private function step():void
+        // 줌 → 목표 재계산 → 안전 구역 → 감쇠 → 앵커 적용. updateCameraAfterDraw가 씀
+        private function moveCameraOneStep():void
         {
-            if (isBlocked())
+            if (isCameraBlocked())
             {
-                syncToAnchor();
+                loadCameraFromAnchor();
                 return;
             }
 
             // 소수 위치는 앵커가 외부에서 옮겨졌을 때만 버림 (매번 맞추면 작은 이동분이 반올림에 지워짐)
             if (Math.round(posX) !== ReplayDrawer.rCanvasAnchorPoint.x || Math.round(posY) !== ReplayDrawer.rCanvasAnchorPoint.y)
             {
-                syncToAnchor();
+                loadCameraFromAnchor();
             }
 
             const now:int = getTimer();
             const dt:Number = Math.min(Math.max(0, now - lastStepTime), MAX_DT_MS);
             lastStepTime = now;
-            computeLookahead();
-            stepZoom(ReplayState.isReplayStarted, false, dt);
-            retarget();
+            computeUpcomingCursorRegion();
+            updateCameraZoom(ReplayState.isReplayStarted, false, dt);
+            recalcCameraTarget();
 
             if (!ignoringExcursion)
             {
@@ -207,24 +207,24 @@ package Modules.L4UI.ReplayEngine
             posX += (targetX - posX) * k;
             posY += (targetY - posY) * k;
 
-            if (isSettled())
+            if (isCameraSettled())
             {
                 posX = targetX;
                 posY = targetY;
             }
 
-            applyToAnchor();
+            applyCameraToAnchor();
         }
 
         // 지금 화면 상태와 초점으로 목표를 다시 계산함 (현재 앵커 기준으로 필요한 이동량만큼)
-        private function retarget():void
+        private function recalcCameraTarget():void
         {
             const cursor:Point = ReplayDrawCommands.getRCursorPos();
             const view:Rectangle = viewportRect();
             const canvas:Rectangle = canvasScreenRect();
             const focus:Rectangle = focusScreenRect(cursor);
-            targetX = ReplayDrawer.rCanvasAnchorPoint.x + targetShift(true, focus, view, canvas);
-            targetY = ReplayDrawer.rCanvasAnchorPoint.y + targetShift(false, focus, view, canvas);
+            targetX = ReplayDrawer.rCanvasAnchorPoint.x + getAnchorShiftOnAxis(true, focus, view, canvas);
+            targetY = ReplayDrawer.rCanvasAnchorPoint.y + getAnchorShiftOnAxis(false, focus, view, canvas);
         }
 
         // 커서를 놓치지 않게 안전 구역 밖이면 그 축은 가장자리에 오는 위치까지 즉시 옮김
@@ -258,12 +258,12 @@ package Modules.L4UI.ReplayEngine
             {
                 posX += sx;
                 posY += sy;
-                applyToAnchor();
+                applyCameraToAnchor();
             }
 
             // 옮긴 뒤(또는 이미 안쪽일 때) 남은 목표 이동이 커서를 안전 구역 밖으로 끌고 가지 않게 자름
-            targetX = posX + clampDelta(targetX - posX, safeLeft - (cursorScreen.x + sx), safeRight - (cursorScreen.x + sx));
-            targetY = posY + clampDelta(targetY - posY, safeTop - (cursorScreen.y + sy), safeBottom - (cursorScreen.y + sy));
+            targetX = posX + clampShift(targetX - posX, safeLeft - (cursorScreen.x + sx), safeRight - (cursorScreen.x + sx));
+            targetY = posY + clampShift(targetY - posY, safeTop - (cursorScreen.y + sy), safeBottom - (cursorScreen.y + sy));
         }
 
         // 한 축의 이동량이 캔버스 경계 규칙을 넘지 않게 자름. 캔버스가 화면보다 작으면(중앙 고정) 옮기지 않음
@@ -277,12 +277,12 @@ package Modules.L4UI.ReplayEngine
             return Math.max(viewHi - EDGE_MARGIN - canvasHi, Math.min(viewLo + EDGE_MARGIN - canvasLo, shift));
         }
 
-        private function clampDelta(delta:Number, lo:Number, hi:Number):Number
+        private function clampShift(delta:Number, lo:Number, hi:Number):Number
         {
             return (lo > hi) ? 0 : Math.max(lo, Math.min(hi, delta));
         }
 
-        private function syncToAnchor():void
+        private function loadCameraFromAnchor():void
         {
             posX = ReplayDrawer.rCanvasAnchorPoint.x;
             posY = ReplayDrawer.rCanvasAnchorPoint.y;
@@ -290,13 +290,13 @@ package Modules.L4UI.ReplayEngine
             targetY = posY;
         }
 
-        private function applyToAnchor():void
+        private function applyCameraToAnchor():void
         {
             ReplayDrawer.rCanvasAnchorPoint.x = Math.round(posX);
             ReplayDrawer.rCanvasAnchorPoint.y = Math.round(posY);
         }
 
-        private function isSettled():Boolean
+        private function isCameraSettled():Boolean
         {
             return Math.abs(targetX - posX) < SETTLED_DIST && Math.abs(targetY - posY) < SETTLED_DIST;
         }
@@ -307,7 +307,7 @@ package Modules.L4UI.ReplayEngine
         // 앞으로 LOOKAHEAD_REAL_MS * 배속 동안의 커서 경로에서 시간 가중 10~90% 영역을 구함
         // 데드존 밖으로 나가는 구간이 EXCURSION_IGNORE_MS보다 짧으면 그 구간은 계산에서 빼고, 지금 커서가 그 안에 있으면 안전 구역 즉시 이동도 하지 않음
         // 읽어 둔 경로가 없거나 부족하면 lookReady=false (커서 한 점 기준으로 되돌아감)
-        private function computeLookahead():void
+        private function computeUpcomingCursorRegion():void
         {
             lookReady = false;
             lookMiss = "unaligned";
@@ -342,19 +342,19 @@ package Modules.L4UI.ReplayEngine
                 outsideSince = getTimer();
             }
 
-            if (!win.isAlignedWith(ReplayState.rFileLastBytePosition) && !ReplayState.rMemoryDataReadON)
+            if (!win.isQueueAlignedWithByte(ReplayState.rFileLastBytePosition) && !ReplayState.rMemoryDataReadON)
             {
                 return;
             }
 
             const speed:Number = Math.max(1, ReplayState.rReplaySpeedMultipler);
             const spanMs:Number = ReplayCommandWindow.LOOKAHEAD_REAL_MS * speed;
-            const t0:Number = ReplayClock.timeOfFrame(nowFrame);
+            const t0:Number = ReplayClock.getRecordedTimeOfFrame(nowFrame);
             pathBuf.length = 0;
             win.collectCursorPath(nowFrame, nowFrame + ReplayCommandWindow.LOOKAHEAD_MAX_FRAMES, pathBuf);
 
             // 프레임/묶음 상한 때문에 목표 시간(span)만큼 못 봤으면 영역이 실제보다 작게 나오므로 믿지 않음 (데이터가 끝나서 못 본 경우는 믿음)
-            if (!win.coveredToDataEnd && ReplayClock.timeOfFrame(Math.min(win.coveredEndFrame, ReplayState.TOTAL_FRAME)) - t0 < spanMs)
+            if (!win.coveredToDataEnd && ReplayClock.getRecordedTimeOfFrame(Math.min(win.coveredEndFrame, ReplayState.TOTAL_FRAME)) - t0 < spanMs)
             {
                 lookMiss = "coverage";
                 return;
@@ -372,7 +372,7 @@ package Modules.L4UI.ReplayEngine
 
             for (var i:int = 0;i < pathBuf.length;i += 3 * stride)
             {
-                const t:Number = ReplayClock.timeOfFrame(pathBuf[i]);
+                const t:Number = ReplayClock.getRecordedTimeOfFrame(pathBuf[i]);
 
                 if (t - t0 > spanMs)
                 {
@@ -483,10 +483,10 @@ package Modules.L4UI.ReplayEngine
                 }
             }
 
-            const lowX:Number = weightedQuantile(sampleX, sampleW, REGION_LOW);
-            const highX:Number = weightedQuantile(sampleX, sampleW, REGION_HIGH);
-            const lowY:Number = weightedQuantile(sampleY, sampleW, REGION_LOW);
-            const highY:Number = weightedQuantile(sampleY, sampleW, REGION_HIGH);
+            const lowX:Number = getWeightedPercentile(sampleX, sampleW, REGION_LOW);
+            const highX:Number = getWeightedPercentile(sampleX, sampleW, REGION_HIGH);
+            const lowY:Number = getWeightedPercentile(sampleY, sampleW, REGION_LOW);
+            const highY:Number = getWeightedPercentile(sampleY, sampleW, REGION_HIGH);
             regionRect.setTo(lowX, lowY, highX - lowX, highY - lowY);
 
             // 지금 커서는 항상 영역 안에 둠 (영역 밖 10%를 놓치지 않게). 짧은 바깥 이동으로 무시하는 중이면 넣지 않음
@@ -505,7 +505,7 @@ package Modules.L4UI.ReplayEngine
         }
 
         // 값(values)을 가중치(weights)로 센 분위수 q (0~1)
-        private function weightedQuantile(values:Vector.<Number>, weights:Vector.<Number>, q:Number):Number
+        private function getWeightedPercentile(values:Vector.<Number>, weights:Vector.<Number>, q:Number):Number
         {
             const n:int = values.length;
             const order:Array = new Array(n);
@@ -541,7 +541,7 @@ package Modules.L4UI.ReplayEngine
 
         // 카메라가 적용하지 않은 배율 변화(사용자 줌, 창 맞춤, 재생 끝 복원 등)면 그 값을 사용자 줌으로 받아들이고 자동 줌을 풀음
         // 반환: 외부 배율 변화를 감지했는지 (처음 값 읽기는 제외)
-        private function detectExternalZoom():Boolean
+        private function isZoomChangedExternally():Boolean
         {
             const actual:Number = ReplayState.rCanvasZoomMultiplier;
 
@@ -567,7 +567,7 @@ package Modules.L4UI.ReplayEngine
         }
 
         // 지금 회전과 창 크기에서 캔버스 전체가 화면에 들어가는 배율 (연속값, 순수 계산)
-        private function fitZoom(view:Rectangle):Number
+        private function getFitZoom(view:Rectangle):Number
         {
             const rad:Number = ReplayDrawer.rCanvasAnchorPoint.rotation * Math.PI / 180;
             const cos:Number = Math.abs(Math.cos(rad));
@@ -599,16 +599,16 @@ package Modules.L4UI.ReplayEngine
 
         // 상태를 정하고(재생 중일 때만) 배율을 유지 배율(zoomCommit)로 감쇠시킴. instant면 전환을 바로 끝냄
         // 줌아웃은 필요한 만큼 바로 낮추고, 줌인(올림)은 "더 큰 배율이어도 영역이 여유 있게 들어간다"가 RETURN_DWELL_MS 동안 이어지고 줌아웃 전환이 끝난 뒤일 때만 올림
-        private function stepZoom(playing:Boolean, instant:Boolean, dt:Number = 0):void
+        private function updateCameraZoom(playing:Boolean, instant:Boolean, dt:Number = 0):void
         {
-            detectExternalZoom();
+            isZoomChangedExternally();
             const view:Rectangle = viewportRect();
-            const fit:Number = Math.min(fitZoom(view), userZoom);
+            const fit:Number = Math.min(getFitZoom(view), userZoom);
             const cap:Number = userZoom * RETURN_ZOOM_RATIO;
 
             if (playing)
             {
-                decideZoom(view, fit, cap);
+                decideKeepZoom(view, fit, cap);
             }
 
             if (zoomState === ZOOM_FOLLOW)
@@ -622,7 +622,7 @@ package Modules.L4UI.ReplayEngine
             if (instant || Math.abs(logDiff) < ZOOM_SETTLED_LOG)
             {
                 const wasMoving:Boolean = zoomMoving;
-                applyZoom(target);
+                setZoomKeepingFocus(target);
                 zoomMoving = false;
 
                 if (target >= cap)
@@ -634,7 +634,7 @@ package Modules.L4UI.ReplayEngine
 
                 if (wasMoving)
                 {
-                    finishZoom();
+                    finishZoomTransition();
                 }
 
                 return;
@@ -642,13 +642,13 @@ package Modules.L4UI.ReplayEngine
 
             zoomMoving = true;
             const tau:Number = (logDiff < 0) ? ZOOM_OUT_TAU_MS : ZOOM_IN_TAU_MS;
-            applyZoom(Math.exp(Math.log(curZoom) + logDiff * (1 - Math.exp(-dt / tau))));
+            setZoomKeepingFocus(Math.exp(Math.log(curZoom) + logDiff * (1 - Math.exp(-dt / tau))));
         }
 
         // 지금 상황에서 유지하려는 배율(zoomCommit)을 정함
         // 줌아웃 목표(바로 따라감): 큰 연출이면 맞춤 배율, 영역이 있으면 영역이 들어가는 배율, 없으면(배속 규칙) 배속이 높을 때만 맞춤 배율
         // 줌인 후보(확인 시간 필요): 영역이 REGION_CALM_RATIO만큼 여유 있게 들어가는 더 큰 배율 (배속 규칙에서는 배속이 낮을 때 사용자 줌)
-        private function decideZoom(view:Rectangle, fit:Number, cap:Number):void
+        private function decideKeepZoom(view:Rectangle, fit:Number, cap:Number):void
         {
             // 방금 사용자가 정한 배율을 존중: 수동 줌 뒤 USER_OVERRIDE_MS 동안은 자동 줌아웃을 시작하지 않음 (큰 연출의 강제 맞춤 포함)
             if (zoomState === ZOOM_FOLLOW && getTimer() - userZoomAt < USER_OVERRIDE_MS)
@@ -723,8 +723,8 @@ package Modules.L4UI.ReplayEngine
         }
 
         // 초점(연출 영역 중심 또는 커서)의 화면 위치가 변하지 않게 배율을 바꾸고 앵커를 보정함
-        // 매 프레임 배율이 바뀌는 중이라 에어브러시 블러와 정보 상자 갱신은 하지 않음 (finishZoom에서 한 번만)
-        private function applyZoom(z:Number):void
+        // 매 프레임 배율이 바뀌는 중이라 에어브러시 블러와 정보 상자 갱신은 하지 않음 (finishZoomTransition에서 한 번만)
+        private function setZoomKeepingFocus(z:Number):void
         {
             if (z === curZoom)
             {
@@ -743,7 +743,7 @@ package Modules.L4UI.ReplayEngine
             const after:Point = canvasToScreen(fx, fy);
             posX = ReplayDrawer.rCanvasAnchorPoint.x + before.x - after.x;
             posY = ReplayDrawer.rCanvasAnchorPoint.y + before.y - after.y;
-            applyToAnchor();
+            applyCameraToAnchor();
             curZoom = z;
 
             // 배율이 커지면서 큰 캔버스의 가장자리가 화면 안쪽으로 들어왔으면 바로 되돌림 (이동 감쇠를 기다리면 그 사이 경계를 넘음)
@@ -753,11 +753,11 @@ package Modules.L4UI.ReplayEngine
             posY += (canvas.height > view.height) ? Math.max(view.bottom - EDGE_MARGIN - canvas.bottom, Math.min(view.top + EDGE_MARGIN - canvas.top, 0)) : 0;
             targetX = posX;
             targetY = posY;
-            applyToAnchor();
+            applyCameraToAnchor();
         }
 
         // 전환이 끝났을 때 한 번만 하는 갱신
-        private function finishZoom():void
+        private function finishZoomTransition():void
         {
             if (ReplayState.rAirBrushSize > 0)
             {
@@ -813,7 +813,7 @@ package Modules.L4UI.ReplayEngine
         }
 
         // 한 축에서 앵커를 옮길 양: 초점을 데드존 안에 두고, 캔버스 경계 규칙으로 자름
-        private function targetShift(isX:Boolean, focus:Rectangle, view:Rectangle, canvas:Rectangle):Number
+        private function getAnchorShiftOnAxis(isX:Boolean, focus:Rectangle, view:Rectangle, canvas:Rectangle):Number
         {
             const viewLo:Number = isX ? view.left : view.top;
             const viewHi:Number = isX ? view.right : view.bottom;

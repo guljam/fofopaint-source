@@ -251,7 +251,7 @@ package Modules.L4UI.Tools
                 drawLine();
                 hasLineTouchedCanvas = false;
                 UndoHistory.canAddUndoData = true;
-                ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenSettings.airBrushSizeDrawMode], toolStartStamp, pointStamps));
+                ReplayState.rMemoryDataBuffer.push(ReplayState.addToolRecordTimeToCommand(["line4", xShape, xSize, xColor, xAlpha, command.concat(), data.concat(), xBlendMode, subLayerFlag, PenSettings.airBrushSizeDrawMode], toolStartStamp, pointStamps));
             }
 
             StrokeBuffer.resetCanvasDrawLayerClipRect();

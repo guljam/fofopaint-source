@@ -118,45 +118,45 @@ package Modules.L2Engine.ReplayEngine
         private static var hasLastStamp:Boolean = false;
 
         // 연출 길이를 getTimer 값과 합쳐서 메모리 기록 한 칸으로 만듬. animMs가 0이면 getTimer 값만 있는 것과 같음
-        public static function packStamp(stamp:int, animMs:Number):Number
+        public static function packTimeAndAnimMs(stamp:int, animMs:Number):Number
         {
             const clamped:Number = Math.max(0, Math.min(MAX_ANIM_MS, Math.floor(animMs)));
             return clamped * TWO_POW_32 + uint(stamp);
         }
 
         // 아래 unpack 함수들은 메모리 기록 한 칸(Number, 또는 점별 시각이 붙은 [Number, Array])을 그대로 받음
-        private static function packedOf(element:*):Number
+        private static function getPackedValue(element:*):Number
         {
             return (element is Array) ? element[0] : element;
         }
 
-        public static function unpackStamp(element:*):int
+        public static function unpackTime(element:*):int
         {
-            return int(uint(packedOf(element) % TWO_POW_32));
+            return int(uint(getPackedValue(element) % TWO_POW_32));
         }
 
         public static function unpackAnimMs(element:*):Number
         {
-            return Math.floor(packedOf(element) / TWO_POW_32);
+            return Math.floor(getPackedValue(element) / TWO_POW_32);
         }
 
         // 점별 시각(도구 시작 기준 ms)이 붙어 있으면 그 배열, 아니면 null
-        public static function pointsOf(element:*):Array
+        public static function getPointTimesOf(element:*):Array
         {
             return (element is Array) ? element[1] : null;
         }
 
         // 메모리 기록 한 칸을 만듬. points가 없으면 Number 그대로
-        public static function makeElement(stamp:int, animMs:Number, points:Array):*
+        public static function makeTimingElement(stamp:int, animMs:Number, points:Array):*
         {
-            const packed:Number = packStamp(stamp, animMs);
+            const packed:Number = packTimeAndAnimMs(stamp, animMs);
             return (points !== null && points.length > 0) ? [packed, points] : packed;
         }
 
         // 기록 한 칸의 getTimer 값을 offset만큼 옮긴 새 칸 (앱을 다시 켜서 getTimer 기준이 바뀔때)
-        public static function shiftElement(element:*, offset:int):*
+        public static function shiftTimingElementTime(element:*, offset:int):*
         {
-            return makeElement((unpackStamp(element) + offset) | 0, unpackAnimMs(element), pointsOf(element));
+            return makeTimingElement((unpackTime(element) + offset) | 0, unpackAnimMs(element), getPointTimesOf(element));
         }
 
         // 파일이 없으면 만들지 않고 비어있는 것으로 봄
@@ -166,7 +166,7 @@ package Modules.L2Engine.ReplayEngine
             return file.exists ? Math.floor(file.size / RECORD_BYTES) : 0;
         }
 
-        public static function reset():void
+        public static function resetTimingSheet():void
         {
             const fs:FileStream = new FileStream();
             fs.open(AppDataPaths.replayTimingSheetFilePath, FileMode.WRITE);
@@ -175,21 +175,21 @@ package Modules.L2Engine.ReplayEngine
             fs.close();
             hasLastStamp = false;
             setLegacyFrames(0);
-            ReplayClock.resetIndexEmpty(); // 시트를 비웠으니 시간 색인도 빈 상태가 정확함
+            ReplayClock.resetFileIndexToEmpty(); // 시트를 비웠으니 시간 색인도 빈 상태가 정확함
         }
 
         // 마지막 프레임의 시각을 잊게 해서 다음 프레임의 간격을 0으로 만듬 (시계가 끊긴 직후)
-        public static function breakClock():void
+        public static function forgetLastFrameTime():void
         {
             hasLastStamp = false;
         }
 
-        public static function getLastStamp():Object
+        public static function getLastFrameTime():Object
         {
             return {has: hasLastStamp, stamp: lastStamp};
         }
 
-        public static function setLastStamp(has:Boolean, stamp:int):void
+        public static function setLastFrameTime(has:Boolean, stamp:int):void
         {
             hasLastStamp = has;
             lastStamp = stamp;
@@ -197,7 +197,7 @@ package Modules.L2Engine.ReplayEngine
 
         // 파일이 frame개의 프레임만 가지도록 모자라면 legacyFrameDelta로 채우고 남으면 자름
         // repdata와 길이가 어긋난 채로 이어 붙이지 않게 붙이기 직전에 부름
-        public static function resizeToFrameCount(frame:Number):void
+        public static function resizeSheetToFrameCount(frame:Number):void
         {
             const now:Number = frameCount;
             if (now === frame)
@@ -213,7 +213,7 @@ package Modules.L2Engine.ReplayEngine
                 fs.position = frame * RECORD_BYTES;
                 fs.truncate();
                 fs.close();
-                rewritePoints(0, frame, 0);
+                rewritePointTimesRecords(0, frame, 0);
                 setLegacyFrames(Math.min(legacyCount, frame));
                 return;
             }
@@ -230,11 +230,11 @@ package Modules.L2Engine.ReplayEngine
             fs.close();
         }
 
-        // 묶음 하나의 명령들의 기록(packStamp 값)을 간격과 연출 길이로 바꿔서 이어 붙임. 앞 프레임까지 길이를 맞춘 다음에 씀
+        // 묶음 하나의 명령들의 기록(packTimeAndAnimMs 값)을 간격과 연출 길이로 바꿔서 이어 붙임. 앞 프레임까지 길이를 맞춘 다음에 씀
         // 쓴 [간격, 연출 길이] 쌍을 이어붙인 목록을 돌려줌 (시계 색인이 파일을 다시 읽지 않고 반영하도록)
-        public static function appendGroupAtFrame(stamps:Array, firstFrame:Number):Vector.<uint>
+        public static function appendGroupTimesAtFrame(stamps:Array, firstFrame:Number):Vector.<uint>
         {
-            resizeToFrameCount(firstFrame);
+            resizeSheetToFrameCount(firstFrame);
             const written:Vector.<uint> = new Vector.<uint>(stamps.length * 2, true);
 
             const fs:FileStream = new FileStream();
@@ -242,7 +242,7 @@ package Modules.L2Engine.ReplayEngine
 
             for (var i:int = 0; i < stamps.length; i++)
             {
-                const stamp:int = unpackStamp(stamps[i]);
+                const stamp:int = unpackTime(stamps[i]);
                 var delta:int = 0;
 
                 if (hasLastStamp)
@@ -267,11 +267,11 @@ package Modules.L2Engine.ReplayEngine
 
             for (i = 0; i < stamps.length; i++)
             {
-                const points:Array = pointsOf(stamps[i]);
+                const points:Array = getPointTimesOf(stamps[i]);
 
                 if (points !== null)
                 {
-                    appendPointsRecord(firstFrame + i, points);
+                    appendPointTimesRecord(firstFrame + i, points);
                 }
             }
 
@@ -279,18 +279,18 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // frame개 이후를 자름 (뒤 자르기)
-        public static function truncateAfter(frame:Number):void
+        public static function deleteSheetAfterFrame(frame:Number):void
         {
             if (frameCount > frame)
             {
-                resizeToFrameCount(frame);
+                resizeSheetToFrameCount(frame);
             }
 
             hasLastStamp = false;
         }
 
         // 앞의 frame개를 자르고 남은 첫 프레임의 간격을 0으로 함 (앞 자르기)
-        public static function cutBefore(frame:Number):void
+        public static function deleteSheetBeforeFrame(frame:Number):void
         {
             const file:File = AppDataPaths.replayTimingSheetFilePath;
             hasLastStamp = false;
@@ -302,11 +302,11 @@ package Modules.L2Engine.ReplayEngine
 
             if (frameCount <= frame)
             {
-                reset();
+                resetTimingSheet();
                 return;
             }
 
-            rewritePoints(frame, Number.MAX_VALUE, -frame);
+            rewritePointTimesRecords(frame, Number.MAX_VALUE, -frame);
 
             const fs:FileStream = new FileStream();
             const rest:ByteArray = new ByteArray();
@@ -322,13 +322,13 @@ package Modules.L2Engine.ReplayEngine
             fs.writeBytes(rest, 0, rest.length);
             fs.close();
             setLegacyFrames(Math.max(0, legacyCount - frame));
-            ReplayClock.resetIndexEmpty();
-            ReplayClock.indexBytes(rest); // 다시 쓴 내용으로 시간 색인도 같이 만듦 (파일을 다시 읽지 않음)
+            ReplayClock.resetFileIndexToEmpty();
+            ReplayClock.appendSheetBytesToFileIndex(rest); // 다시 쓴 내용으로 시간 색인도 같이 만듦 (파일을 다시 읽지 않음)
             rest.clear();
         }
 
         // 점별 시각 레코드 하나를 파일 끝에 이어 붙임
-        private static function appendPointsRecord(frame:Number, points:Array):void
+        private static function appendPointTimesRecord(frame:Number, points:Array):void
         {
             const fs:FileStream = new FileStream();
             fs.open(AppDataPaths.replayTimingPointsFilePath, FileMode.APPEND);
@@ -344,7 +344,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 점별 시각 파일에서 프레임 번호가 [minFrame, maxFrame)인 레코드만 남기고 번호를 shift만큼 옮겨서 다시 씀 (자르기)
-        private static function rewritePoints(minFrame:Number, maxFrame:Number, shift:Number):void
+        private static function rewritePointTimesRecords(minFrame:Number, maxFrame:Number, shift:Number):void
         {
             const file:File = AppDataPaths.replayTimingPointsFilePath;
 
@@ -394,7 +394,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 프레임 frame의 점별 시각(도구 시작 기준 ms). 없으면 null. 파일을 앞에서부터 읽으며 찾음 (레코드는 프레임 번호 오름차순)
-        public static function readPoints(frame:Number):Vector.<uint>
+        public static function readPointTimes(frame:Number):Vector.<uint>
         {
             const file:File = AppDataPaths.replayTimingPointsFilePath;
 
@@ -437,7 +437,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 간격과 연출 길이를 파일 끝에 이어 붙임 (.fofo에서 불러올때 씀)
-        public static function appendRecords(deltas:Vector.<uint>, anims:Vector.<uint>):void
+        public static function appendFrameRecords(deltas:Vector.<uint>, anims:Vector.<uint>):void
         {
             const fs:FileStream = new FileStream();
             fs.open(AppDataPaths.replayTimingSheetFilePath, FileMode.APPEND);
@@ -453,7 +453,7 @@ package Modules.L2Engine.ReplayEngine
 
         // 메모리 undo 묶음(앞 groupCount개)의 기록을 간격과 연출 길이로 바꿈. 첫 프레임은 파일에 마지막으로 쓴 프레임과 이어서 구함
         // deltas, anims는 비어있는 Vector를 받아서 채움
-        public static function computeMemoryRecords(memoryStamps:Array, groupCount:int, deltas:Vector.<uint>, anims:Vector.<uint>):void
+        public static function makeMemoryFrameRecords(memoryStamps:Array, groupCount:int, deltas:Vector.<uint>, anims:Vector.<uint>):void
         {
             var last:int = lastStamp;
             var has:Boolean = hasLastStamp;
@@ -464,7 +464,7 @@ package Modules.L2Engine.ReplayEngine
 
                 for (var i:int = 0; i < group.length; i++)
                 {
-                    const stamp:int = unpackStamp(group[i]);
+                    const stamp:int = unpackTime(group[i]);
                     var delta:int = 0;
 
                     if (has)
@@ -489,11 +489,11 @@ package Modules.L2Engine.ReplayEngine
         // 앞쪽 fileFrames개는 파일에서 읽고, 그 뒤는 메모리 undo 묶음(memoryStamps의 앞 memoryGroupCount개)의 기록에서 계산함
         // 메모리 묶음 첫 프레임의 간격은 파일 마지막 프레임과 이어서 구하고, extraFrames는 끝에 간격 0으로 덧붙이는 프레임 수
         // 구간 하나씩만 풀어서 압축하니 전체를 한번에 메모리에 올리지 않음
-        public static function buildFileObject(fileFrames:Number, memoryStamps:Array, memoryGroupCount:int, extraFrames:int):Array
+        public static function makeSheetFileObject(fileFrames:Number, memoryStamps:Array, memoryGroupCount:int, extraFrames:int):Array
         {
             const memoryDeltas:Vector.<uint> = new Vector.<uint>();
             const memoryAnims:Vector.<uint> = new Vector.<uint>();
-            computeMemoryRecords(memoryStamps, memoryGroupCount, memoryDeltas, memoryAnims);
+            makeMemoryFrameRecords(memoryStamps, memoryGroupCount, memoryDeltas, memoryAnims);
 
             for (var i:int = 0; i < extraFrames; i++)
             {
@@ -513,7 +513,7 @@ package Modules.L2Engine.ReplayEngine
 
                 if (fromFile > 0)
                 {
-                    readRange(first, fromFile, deltas, anims);
+                    readFrameRecords(first, fromFile, deltas, anims);
                 }
 
                 for (i = fromFile; i < count; i++)
@@ -526,11 +526,11 @@ package Modules.L2Engine.ReplayEngine
             }
 
             // 뒤에 선택 항목으로 옛 프레임 수 L (버전은 그대로 2라 옛 앱은 무시하고 채워진 42ms로 재생)
-            return ["rTimingSheet", 2, total, TimingSheet.SEGMENT_FRAMES, blobs, buildPointsBlob(fileFrames, memoryStamps, memoryGroupCount), Math.min(legacyCount, fileFrames)];
+            return ["rTimingSheet", 2, total, TimingSheet.SEGMENT_FRAMES, blobs, makePointTimesBlob(fileFrames, memoryStamps, memoryGroupCount), Math.min(legacyCount, fileFrames)];
         }
 
         // 점별 시각 레코드를 압축한 데이터. 파일 부분(프레임 번호 < fileFrames)은 파일에서 그대로 옮기고, 메모리 묶음은 그 뒤 번호로 붙임. 없으면 null
-        private static function buildPointsBlob(fileFrames:Number, memoryStamps:Array, memoryGroupCount:int):ByteArray
+        private static function makePointTimesBlob(fileFrames:Number, memoryStamps:Array, memoryGroupCount:int):ByteArray
         {
             const raw:ByteArray = new ByteArray();
             const file:File = AppDataPaths.replayTimingPointsFilePath;
@@ -580,7 +580,7 @@ package Modules.L2Engine.ReplayEngine
 
                 for (var j:int = 0; j < group.length; j++)
                 {
-                    const points:Array = pointsOf(group[j]);
+                    const points:Array = getPointTimesOf(group[j]);
 
                     if (points !== null)
                     {
@@ -606,10 +606,10 @@ package Modules.L2Engine.ReplayEngine
             return raw;
         }
 
-        // buildFileObject로 만든 객체를 읽어서 파일 내용으로 되돌림. 모양이 틀리거나 풀 수 없으면 비워두고 false
-        public static function loadFileObject(d:Array):Boolean
+        // makeSheetFileObject로 만든 객체를 읽어서 파일 내용으로 되돌림. 모양이 틀리거나 풀 수 없으면 비워두고 false
+        public static function loadSheetFileObject(d:Array):Boolean
         {
-            reset();
+            resetTimingSheet();
 
             try
             {
@@ -623,7 +623,7 @@ package Modules.L2Engine.ReplayEngine
 
                 // 옛 프레임 수 L (선택 항목). 범위 밖이면 0. 색인을 만들기 전에 정해야 옛 구간 간격으로 계산됨
                 setLegacyFrames((d.length > 6 && d[6] is Number && d[6] >= 0 && d[6] <= d[2]) ? d[6] : 0);
-                ReplayClock.resetIndexEmpty();
+                ReplayClock.resetFileIndexToEmpty();
 
                 for (var s:int = 0; s < blobs.length; s++)
                 {
@@ -632,14 +632,14 @@ package Modules.L2Engine.ReplayEngine
                     const anims:Vector.<uint> = new Vector.<uint>(count, true);
                     TimingSheet.decodeSegment(blobs[s] as ByteArray, count, deltas, anims);
                     const firstOfSegment:Number = d[2] - remaining;
-                    appendRecords(deltas, anims);
+                    appendFrameRecords(deltas, anims);
                     remaining -= count;
-                    indexSegment(deltas, anims, firstOfSegment);
+                    addSegmentToClockIndex(deltas, anims, firstOfSegment);
                 }
 
                 if (remaining !== 0)
                 {
-                    reset();
+                    resetTimingSheet();
                     return false;
                 }
 
@@ -666,7 +666,7 @@ package Modules.L2Engine.ReplayEngine
             catch (error:Error)
             {
                 trace("Timing sheet load failed: " + error);
-                reset();
+                resetTimingSheet();
                 return false;
             }
 
@@ -674,7 +674,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 불러오며 풀어 쓴 구간을 시계 색인에도 바로 반영 (시트를 다시 읽지 않음)
-        private static function indexSegment(deltas:Vector.<uint>, anims:Vector.<uint>, firstFrame:Number):void
+        private static function addSegmentToClockIndex(deltas:Vector.<uint>, anims:Vector.<uint>, firstFrame:Number):void
         {
             const records:Vector.<uint> = new Vector.<uint>(deltas.length * 2, true);
 
@@ -684,11 +684,11 @@ package Modules.L2Engine.ReplayEngine
                 records[i * 2 + 1] = anims[i];
             }
 
-            ReplayClock.extendFileIndexWith(records, firstFrame);
+            ReplayClock.appendRecordsToFileIndex(records, firstFrame);
         }
 
         // firstFrame부터 count개의 간격과 연출 길이를 읽어서 deltas, anims(둘다 count 이상)에 채움. 파일에 모자란 부분은 0
-        public static function readRange(firstFrame:Number, count:int, deltas:Vector.<uint>, anims:Vector.<uint> = null):void
+        public static function readFrameRecords(firstFrame:Number, count:int, deltas:Vector.<uint>, anims:Vector.<uint> = null):void
         {
             const file:File = AppDataPaths.replayTimingSheetFilePath;
 

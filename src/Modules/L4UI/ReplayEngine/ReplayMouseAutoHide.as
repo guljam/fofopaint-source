@@ -18,7 +18,7 @@ package Modules.L4UI.ReplayEngine
         // 리플레이 재생 중 상단 바를 숨겨야 한다는 보고
         public static var onReplayTopbarHiddenFunc:Function;
 
-        public static function initialize():void
+        public static function initializeReplayMouseAutoHide():void
         {
             frameRate = AppContext.stage.frameRate;
         }
@@ -30,12 +30,12 @@ package Modules.L4UI.ReplayEngine
         private static var count:int = 0;
         private static const pos:Point = new Point(0, 0);
 
-        public static function get isMouseHided():Boolean
+        public static function get isMouseHidden():Boolean
         {
             return _isMouseHided;
         }
 
-        public static function start():void
+        public static function startMouseHideTimer():void
         {
             if (FOFOTimer.hasTimer(TIMER_NAME))
             {
@@ -50,7 +50,7 @@ package Modules.L4UI.ReplayEngine
                         return false;
                     }
 
-                    check();
+                    hideMouseIfIdle();
                     return true;
                 });
         }
@@ -60,7 +60,7 @@ package Modules.L4UI.ReplayEngine
             return pos.x !== AppContext.stage.mouseX || pos.y !== AppContext.stage.mouseY || MouseState.isLeftDown || MouseState.isRightDown;
         }
 
-        private static function updateMousePos():void
+        private static function saveLastMousePos():void
         {
             pos.setTo(AppContext.stage.mouseX, AppContext.stage.mouseY);
         }
@@ -72,7 +72,7 @@ package Modules.L4UI.ReplayEngine
             count = 0;
         }
 
-        private static function check():void
+        private static function hideMouseIfIdle():void
         {
             if (_isMouseHided)
             {
@@ -92,7 +92,7 @@ package Modules.L4UI.ReplayEngine
                     {
                         Mouse.hide();
                         _isMouseHided = true;
-                        updateMousePos();
+                        saveLastMousePos();
                     }
                 }
                 else
@@ -105,7 +105,7 @@ package Modules.L4UI.ReplayEngine
                     count = 0;
                 }
 
-                updateMousePos();
+                saveLastMousePos();
             }
         }
     }

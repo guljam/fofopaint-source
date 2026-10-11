@@ -333,7 +333,7 @@ package Modules.L5App
             }
 
             TimingSheetFile.loadLegacy(ReplayState.getRFileDataTotalFrame()); // 요약보다 먼저: 요약이 이 값으로 만든 것인지 확인함
-            ReplayClock.loadIndex(); // 복구한 프레임 수와 시트가 요약과 맞으면 첫 사용 때 전체 읽기를 건너뜀
+            ReplayClock.loadClockIndexFile(); // 복구한 프레임 수와 시트가 요약과 맞으면 첫 사용 때 전체 읽기를 건너뜀
 
             if (AppDataPaths.scratchPadDataFilePath.exists)
             {
@@ -381,7 +381,7 @@ package Modules.L5App
                         CanvasView.canvasAnchorPoint.y = appStateObject.canvasAnchorPointY;
                         CanvasView.canvasAnchorPoint.rotation = appStateObject.canvasAnchorPointRotation;
 
-                        ReplayDrawer.setRcursorRotation(appStateObject.canvasAnchorPointRotation);
+                        ReplayDrawer.setReplayCursorRotation(appStateObject.canvasAnchorPointRotation);
                         CanvasResizer.updateButtonPos(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
                         UIController.canvasRotateCursor.rotateArrow.rotation = appStateObject.canvasAnchorPointRotation;
 
@@ -692,7 +692,7 @@ package Modules.L5App
             saveAppState();
             saveUndoData();
             saveReplayFrameData();
-            ReplayClock.saveIndex();
+            ReplayClock.saveClockIndexFile();
             ReferenceLayerController.saveRefLayerImage();
             PaletteController.saveMypPaletteList();
             saveScratchPadImage();
@@ -805,7 +805,7 @@ package Modules.L5App
             {
                 times = fs.readObject() as Array;
                 offset = now - fs.readInt();
-                TimingSheetFile.setLastStamp(fs.readBoolean(), (fs.readInt() + offset) | 0);
+                TimingSheetFile.setLastFrameTime(fs.readBoolean(), (fs.readInt() + offset) | 0);
             }
 
             var isValid:Boolean = times !== null && times.length === ReplayState.rMemoryData.length;
@@ -821,7 +821,7 @@ package Modules.L5App
                 {
                     for (var j:int = 0;j < times[i].length;j++)
                     {
-                        times[i][j] = TimingSheetFile.shiftElement(times[i][j], offset);
+                        times[i][j] = TimingSheetFile.shiftTimingElementTime(times[i][j], offset);
                     }
                 }
 
@@ -837,13 +837,13 @@ package Modules.L5App
 
                 for (j = 0;j < filled.length;j++)
                 {
-                    filled[j] = TimingSheetFile.packStamp(now, 0);
+                    filled[j] = TimingSheetFile.packTimeAndAnimMs(now, 0);
                 }
 
                 ReplayState.rMemoryDataTimingSheet.push(filled);
             }
 
-            TimingSheetFile.breakClock();
+            TimingSheetFile.forgetLastFrameTime();
         }
 
         public static function saveUndoData():void
@@ -871,7 +871,7 @@ package Modules.L5App
             fs.writeObject(ReplayState.rMemoryData);
             fs.writeObject(ReplayState.rMemoryDataFrames);
             // 명령별 시각과 저장 시점의 getTimer, 시간 간격 파일의 마지막 시각 (불러올때 이 값을 새 getTimer 기준으로 옮김)
-            const timingLast:Object = TimingSheetFile.getLastStamp();
+            const timingLast:Object = TimingSheetFile.getLastFrameTime();
             fs.writeObject(ReplayState.rMemoryDataTimingSheet);
             fs.writeInt(getTimer());
             fs.writeBoolean(timingLast.has);

@@ -144,7 +144,7 @@ package Modules.L2Engine
 
             // 버퍼에mirror가 있을수도 있기 때문에 요소를 하나씩 push해주어야함
             const len:uint = ReplayState.rMemoryDataBuffer.length;
-            const bufferTimes:Array = ReplayState.takeTimingSheetBufferTimes();
+            const bufferTimes:Array = ReplayState.popTimingSheetBufferTimes();
 
             for (var i:uint = 0;i < len;i++)
             {
@@ -172,7 +172,7 @@ package Modules.L2Engine
 
             if (ReplayState.rMemoryDataBuffer.length > 0)
             {
-                ReplayState.rMemoryDataTimingSheet.push(ReplayState.takeTimingSheetBufferTimes());
+                ReplayState.rMemoryDataTimingSheet.push(ReplayState.popTimingSheetBufferTimes());
                 ReplayState.rMemoryData.push(ReplayState.rMemoryDataBuffer);
                 ReplayState.rMemoryDataFrames.push(ReplayState.rMemoryDataBuffer.length);
                 ReplayState.rMemoryDataBuffer = [];
@@ -211,9 +211,9 @@ package Modules.L2Engine
                 fs.writeObject(oldData);
                 fs.close();
                 oldData = null;
-                const written:Vector.<uint> = TimingSheetFile.appendGroupAtFrame(ReplayState.rMemoryDataTimingSheet[0], lastRDataTotalFrame);
+                const written:Vector.<uint> = TimingSheetFile.appendGroupTimesAtFrame(ReplayState.rMemoryDataTimingSheet[0], lastRDataTotalFrame);
                 ReplayState.increaseRFileDataTotalFrame(firstElementFrameCount);
-                ReplayClock.extendFileIndexWith(written, lastRDataTotalFrame); // 덧붙은 프레임만 시간 색인에 반영 (파일을 다시 읽지 않음)
+                ReplayClock.appendRecordsToFileIndex(written, lastRDataTotalFrame); // 덧붙은 프레임만 시간 색인에 반영 (파일을 다시 읽지 않음)
                 ReplayDrawer.updateReplayCanvasFromUndoBaseInfo();
 
                 if (ReplayState.rReplayImageCacheState === ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE)

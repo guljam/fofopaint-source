@@ -127,28 +127,28 @@ package Modules.L4UI.Tools
                 if (CanvasLayers.checkedLayer === 1)
                 {
                     command = "move1";
-                    ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand([command, movex, movey], moveStartStamp));
+                    ReplayState.rMemoryDataBuffer.push(ReplayState.addToolRecordTimeToCommand([command, movex, movey], moveStartStamp));
                 }
                 else if (CanvasLayers.checkedLayer === 2)
                 {
                     command = "move2";
-                    ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand([command, movex1, movey1], moveStartStamp));
+                    ReplayState.rMemoryDataBuffer.push(ReplayState.addToolRecordTimeToCommand([command, movex1, movey1], moveStartStamp));
                 }
                 else
                 {
                     if (!DrawCanvas.canvasLayer2Bitmap.visible)
                     {
                         command = "move1";
-                        ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand([command, movex, movey], moveStartStamp));
+                        ReplayState.rMemoryDataBuffer.push(ReplayState.addToolRecordTimeToCommand([command, movex, movey], moveStartStamp));
                     }
                     else if (!DrawCanvas.canvasLayer1Bitmap.visible)
                     {
                         command = "move2";
-                        ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand([command, movex1, movey1], moveStartStamp));
+                        ReplayState.rMemoryDataBuffer.push(ReplayState.addToolRecordTimeToCommand([command, movex1, movey1], moveStartStamp));
                     }
                     else
                     {
-                        ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand([command, movex, movey], moveStartStamp));
+                        ReplayState.rMemoryDataBuffer.push(ReplayState.addToolRecordTimeToCommand([command, movex, movey], moveStartStamp));
                     }
                 }
 

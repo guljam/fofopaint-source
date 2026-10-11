@@ -203,7 +203,7 @@ package Modules.L5App
                 }
                 else if (d[0] === "rTimingSheet")
                 {
-                    TimingSheetFile.loadFileObject(d);
+                    TimingSheetFile.loadSheetFileObject(d);
                 }
                 else if (d[0] === "refimage" || d[0] === "traceImage")
                 {
@@ -279,7 +279,7 @@ package Modules.L5App
         public static function resetDrawAndReplayCanvasState(canvasWidth:Number, canvasHeight:Number):void
         {
             CanvasView.canvasAnchorPoint.rotation = 0;
-            ReplayDrawer.setRcursorRotation(0);
+            ReplayDrawer.setReplayCursorRotation(0);
             CanvasView.canvasZoomIndex = 3;
             CanvasView.viewport.setScale(1.0);
             DrawCanvas.setCanvasSizeDrawMode(canvasWidth, canvasHeight, 0, 0, false);
@@ -1013,7 +1013,7 @@ package Modules.L5App
 
             const memoryTime:int = getTimer();
             // 타이밍 시트: 파일에 쓰는 프레임과 같은 범위 (saveFOFOFile과 같음)
-            const sheet:Array = TimingSheetFile.buildFileObject(
+            const sheet:Array = TimingSheetFile.makeSheetFileObject(
                     UndoHistory.isDeepUndoEnabled ? ReplayState.rNowFrame : ReplayState.getRFileDataTotalFrame(),
                     ReplayState.rMemoryDataTimingSheet,
                     UndoHistory.isDeepUndoEnabled ? 0 : UndoHistory.undoDataIndex + 1,
@@ -1239,7 +1239,7 @@ package Modules.L5App
                 }
 
                 // 타이밍 시트: 파일에 쓰는 프레임과 같은 범위(딥 언두면 읽은 곳까지, 아니면 파일 + 메모리 뭉치 + 임시 미러 1프레임)
-                ReplayFileCache.rTimingSheetFileObject = TimingSheetFile.buildFileObject(
+                ReplayFileCache.rTimingSheetFileObject = TimingSheetFile.makeSheetFileObject(
                         UndoHistory.isDeepUndoEnabled ? ReplayState.rNowFrame : ReplayState.getRFileDataTotalFrame(),
                         ReplayState.rMemoryDataTimingSheet,
                         UndoHistory.isDeepUndoEnabled ? 0 : UndoHistory.undoDataIndex + 1,

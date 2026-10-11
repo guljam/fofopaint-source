@@ -104,19 +104,19 @@ package Modules.L2Engine.ReplayEngine
             return rCursorPos;
         }
 
-        public static function clearData():void
+        public static function clearCommandData():void
         {
             data = [];
             index = 0;
         }
 
-        public static function setData(refData:Array, startIndex:uint = 0):void
+        public static function setCommandData(refData:Array, startIndex:uint = 0):void
         {
             data = refData;
             index = startIndex;
         }
 
-        public static function getRemainingData():uint
+        public static function getRemainingCommandCount():uint
         {
             if (!data)
                 return 0;
@@ -124,26 +124,26 @@ package Modules.L2Engine.ReplayEngine
             return data.length - index;
         }
 
-        public static function isReadFinished():Boolean
+        public static function isCommandReadFinished():Boolean
         {
             if (!data)
                 return true;
             return index > data.length - 1;
         }
 
-        public static function getDataLength():uint
+        public static function getCommandCount():uint
         {
             if (!data)
                 return 0;
             return data.length;
         }
 
-        public static function getCurrentPosition():uint
+        public static function getCommandIndex():uint
         {
             return index;
         }
 
-        public static function setIndex(newIndex:uint):void
+        public static function setCommandIndex(newIndex:uint):void
         {
             index = newIndex;
         }
@@ -153,24 +153,24 @@ package Modules.L2Engine.ReplayEngine
             return lineStyleBackup[0];
         }
 
-        public static function getrLineStyleSave():Array
+        public static function getRLineStyleSave():Array
         {
             if (lineStyleBackup.length !== 2)
                 return [1.0, null];
             return lineStyleBackup;
         }
 
-        public static function drawAll():void
+        public static function drawAllCommands():void
         {
             var len:uint = data.length;
 
             for (var i:uint = 0;i < len;i++)
             {
-                drawNext();
+                drawNextCommand();
             }
         }
 
-        public static function checkAirBrush(airBrushFlag:Boolean, size:uint):void
+        public static function updateAirBrushBlur(airBrushFlag:Boolean, size:uint):void
         {
             if (airBrushFlag === true)
             {
@@ -183,7 +183,7 @@ package Modules.L2Engine.ReplayEngine
             }
         }
 
-        public static function checkSubLayer(subLayerFlag:Boolean):void
+        public static function updateSubLayerSelection(subLayerFlag:Boolean):void
         {
             if (subLayerFlag)
             {
@@ -213,20 +213,20 @@ package Modules.L2Engine.ReplayEngine
             const subLayer:Boolean = data[9];
             const airBrushSize:Number = data[10];
             updateLineStyleBackup(alpha, blendMode);
-            checkSubLayer(subLayer);
+            updateSubLayerSelection(subLayer);
             ReplayState.rAirBrushSize2 = airBrushSize;
 
             if (fillpen)
             {
                 ReplayDrawer.rCanvasDrawShape.graphics.clear();
-                ReplayDrawer.replayLineStyleReady2(false, 1, color, 1.0);
+                ReplayDrawer.setReplayLineStyleSquareBevel(false, 1, color, 1.0);
                 ReplayDrawer.rCanvasDrawShape.graphics.beginFill(color);
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
                 ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
             }
             else
             {
-                ReplayDrawer.replayLineStyleReady3(shape, size, color, alpha);
+                ReplayDrawer.setReplayLineStyleNoCapBevel(shape, size, color, alpha);
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             }
 
@@ -253,20 +253,20 @@ package Modules.L2Engine.ReplayEngine
             const subLayer:Boolean = data[9];
             const airBrush:Boolean = data[10];
             updateLineStyleBackup(alpha, blendMode);
-            checkSubLayer(subLayer);
-            checkAirBrush(airBrush, size);
+            updateSubLayerSelection(subLayer);
+            updateAirBrushBlur(airBrush, size);
 
             if (fillpen)
             {
                 ReplayDrawer.rCanvasDrawShape.graphics.clear();
-                ReplayDrawer.replayLineStyleReady2(false, 1, color, 1.0);
+                ReplayDrawer.setReplayLineStyleSquareBevel(false, 1, color, 1.0);
                 ReplayDrawer.rCanvasDrawShape.graphics.beginFill(color);
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
                 ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
             }
             else
             {
-                ReplayDrawer.replayLineStyleReady3(shape, size, color, alpha);
+                ReplayDrawer.setReplayLineStyleNoCapBevel(shape, size, color, alpha);
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             }
 
@@ -294,18 +294,18 @@ package Modules.L2Engine.ReplayEngine
             const airBrush:Boolean = data[10];
 
             updateLineStyleBackup(alpha, blendMode);
-            checkSubLayer(subLayer);
-            checkAirBrush(airBrush, size);
+            updateSubLayerSelection(subLayer);
+            updateAirBrushBlur(airBrush, size);
 
             if (!fillpen)
             {
-                ReplayDrawer.replayLineStyleReady3(shape, size, color, alpha);
+                ReplayDrawer.setReplayLineStyleNoCapBevel(shape, size, color, alpha);
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             }
             else
             {
                 ReplayDrawer.rCanvasDrawShape.graphics.clear();
-                ReplayDrawer.replayLineStyleReady2(false, 1, color, 1.0);
+                ReplayDrawer.setReplayLineStyleSquareBevel(false, 1, color, 1.0);
                 ReplayDrawer.rCanvasDrawShape.graphics.beginFill(color);
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
                 ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
@@ -325,18 +325,18 @@ package Modules.L2Engine.ReplayEngine
             const subLayer:Boolean = data[9];
             const airBrush:Boolean = data[10];
             updateLineStyleBackup(alpha, blendMode);
-            checkSubLayer(subLayer);
-            checkAirBrush(airBrush, size);
+            updateSubLayerSelection(subLayer);
+            updateAirBrushBlur(airBrush, size);
 
             if (!fillpen)
             {
-                ReplayDrawer.replayLineStyleReady2(shape, size, color, alpha);
+                ReplayDrawer.setReplayLineStyleSquareBevel(shape, size, color, alpha);
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             }
             else
             {
                 ReplayDrawer.rCanvasDrawShape.graphics.clear();
-                ReplayDrawer.replayLineStyleReady2(false, 1, color, 1.0);
+                ReplayDrawer.setReplayLineStyleSquareBevel(false, 1, color, 1.0);
                 ReplayDrawer.rCanvasDrawShape.graphics.beginFill(color);
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
                 ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
@@ -356,18 +356,18 @@ package Modules.L2Engine.ReplayEngine
             const subLayer:Boolean = data[9];
             const airBrush:Boolean = data[10];
             updateLineStyleBackup(alpha, blendMode);
-            checkSubLayer(subLayer);
-            checkAirBrush(airBrush, size);
+            updateSubLayerSelection(subLayer);
+            updateAirBrushBlur(airBrush, size);
 
             if (!fillpen)
             {
-                ReplayDrawer.replayLineStyleReady(shape, size, color, alpha);
+                ReplayDrawer.setReplayLineStyleSquareRound(shape, size, color, alpha);
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
             }
             else
             {
                 ReplayDrawer.rCanvasDrawShape.graphics.clear();
-                ReplayDrawer.replayLineStyleReady(false, 1, color, 1.0);
+                ReplayDrawer.setReplayLineStyleSquareRound(false, 1, color, 1.0);
                 ReplayDrawer.rCanvasDrawShape.graphics.beginFill(color);
                 ReplayDrawer.rCanvasDrawShape.graphics.moveTo(startX, startY);
                 ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
@@ -444,7 +444,7 @@ package Modules.L2Engine.ReplayEngine
             const xyData:Vector.<Number> = data[5];
             const airBrushFlag:Boolean = data[6];
             const airBrushSize:uint = data[7];
-            checkAirBrush(airBrushFlag, airBrushSize);
+            updateAirBrushBlur(airBrushFlag, airBrushSize);
             updateLineStyleBackup(alpha, blendMode);
             ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
             ReplayDrawer.rCanvasDrawShape.graphics.clear();
@@ -467,7 +467,7 @@ package Modules.L2Engine.ReplayEngine
             const xyData:Vector.<Number> = data[5];
             const airBrushFlag:Boolean = data[6];
             const airBrushSize:uint = data[7];
-            checkAirBrush(airBrushFlag, airBrushSize);
+            updateAirBrushBlur(airBrushFlag, airBrushSize);
             updateLineStyleBackup(alpha, blendMode);
             ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
             ReplayDrawer.rCanvasDrawShape.graphics.clear();
@@ -539,7 +539,7 @@ package Modules.L2Engine.ReplayEngine
             const subLayer:Boolean = data[8];
             const airBrushSize:Number = data[9];
             const rotation:Number = data[10];
-            checkSubLayer(subLayer);
+            updateSubLayerSelection(subLayer);
             ReplayState.rAirBrushSize2 = airBrushSize;
             updateLineStyleBackup(alpha, blendMode);
             ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
@@ -595,8 +595,8 @@ package Modules.L2Engine.ReplayEngine
             const subLayer:Boolean = data[8];
             const airBrush:Boolean = data[9];
             const rotation:Number = data[10];
-            checkSubLayer(subLayer);
-            checkAirBrush(airBrush, size);
+            updateSubLayerSelection(subLayer);
+            updateAirBrushBlur(airBrush, size);
             updateLineStyleBackup(alpha, blendMode);
             ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
             ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
@@ -650,8 +650,8 @@ package Modules.L2Engine.ReplayEngine
             const blendMode:String = data[7];
             const subLayer:Boolean = data[8];
             const airBrush:Boolean = data[9];
-            checkSubLayer(subLayer);
-            checkAirBrush(airBrush, size);
+            updateSubLayerSelection(subLayer);
+            updateAirBrushBlur(airBrush, size);
             updateLineStyleBackup(alpha, blendMode);
             ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
             ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
@@ -682,8 +682,8 @@ package Modules.L2Engine.ReplayEngine
             const blendMode:String = data[7];
             const subLayer:Boolean = data[8];
             const airBrush:Boolean = data[9];
-            checkSubLayer(subLayer);
-            checkAirBrush(airBrush, size);
+            updateSubLayerSelection(subLayer);
+            updateAirBrushBlur(airBrush, size);
             updateLineStyleBackup(alpha, blendMode);
             ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
             ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(0, 0, 0);
@@ -716,7 +716,7 @@ package Modules.L2Engine.ReplayEngine
 
             updateLineStyleBackup(alpha, blendMode);
             ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
-            checkSubLayer(subLayer);
+            updateSubLayerSelection(subLayer);
             ReplayState.rAirBrushSize2 = airBrushSize;
 
             if (shape)
@@ -750,7 +750,7 @@ package Modules.L2Engine.ReplayEngine
             const airBrushSize:Number = data[11];
             updateLineStyleBackup(alpha, blendMode);
             ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
-            checkSubLayer(subLayer);
+            updateSubLayerSelection(subLayer);
             ReplayState.rAirBrushSize2 = airBrushSize;
 
             if (shape)
@@ -781,8 +781,8 @@ package Modules.L2Engine.ReplayEngine
             const airBrush:Boolean = data[11];
             updateLineStyleBackup(alpha, blendMode);
             ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
-            checkSubLayer(subLayer);
-            checkAirBrush(airBrush, size);
+            updateSubLayerSelection(subLayer);
+            updateAirBrushBlur(airBrush, size);
 
             if (shape)
                 ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
@@ -813,8 +813,8 @@ package Modules.L2Engine.ReplayEngine
             const airBrush:Boolean = data[11];
             updateLineStyleBackup(alpha, blendMode);
             ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
-            checkSubLayer(subLayer);
-            checkAirBrush(airBrush, size);
+            updateSubLayerSelection(subLayer);
+            updateAirBrushBlur(airBrush, size);
 
             if (shape)
                 ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.NONE, JointStyle.ROUND);
@@ -844,8 +844,8 @@ package Modules.L2Engine.ReplayEngine
             const airBrush:Boolean = data[11];
             updateLineStyleBackup(alpha, blendMode);
             ReplayDrawer.rCanvasDrawLayer.alpha = alpha;
-            checkSubLayer(subLayer);
-            checkAirBrush(airBrush, size);
+            updateSubLayerSelection(subLayer);
+            updateAirBrushBlur(airBrush, size);
 
             if (shape)
                 ReplayDrawer.rCanvasDrawShape.graphics.lineStyle(size, color, 1, false, LineScaleMode.NORMAL, CapsStyle.SQUARE, JointStyle.ROUND);
@@ -1204,7 +1204,7 @@ package Modules.L2Engine.ReplayEngine
 
         public static function drawDone5(data:Array):void
         {
-            const lineStyleData:Array = getrLineStyleSave();
+            const lineStyleData:Array = getRLineStyleSave();
             const subLayer:Boolean = data[1];
             const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
 
@@ -1241,7 +1241,7 @@ package Modules.L2Engine.ReplayEngine
 
         public static function drawDone4(data:Array):void
         {
-            const lineStyleData:Array = getrLineStyleSave();
+            const lineStyleData:Array = getRLineStyleSave();
             const subLayer:Boolean = data[1];
             const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
             ReplayDrawer.rCanvasDrawLayerBitmapData.draw(ReplayDrawer.rCanvasDrawShape);
@@ -1273,7 +1273,7 @@ package Modules.L2Engine.ReplayEngine
 
         public static function drawDone3(data:Array):void
         {
-            const lineStyleData:Array = getrLineStyleSave();
+            const lineStyleData:Array = getRLineStyleSave();
             const subLayer:Boolean = data[1];
             const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
 
@@ -1315,7 +1315,7 @@ package Modules.L2Engine.ReplayEngine
 
         public static function drawDone2(data:Array):void
         {
-            const lineStyleData:Array = getrLineStyleSave();
+            const lineStyleData:Array = getRLineStyleSave();
             const subLayer:Boolean = data[1];
             const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
 
@@ -1354,7 +1354,7 @@ package Modules.L2Engine.ReplayEngine
 
         public static function drawDone(data:Array):void
         {
-            const lineStyleData:Array = getrLineStyleSave();
+            const lineStyleData:Array = getRLineStyleSave();
             // if(!lineStyleData) return;
             const subLayer:Boolean = data[1];
             const canvasAlpha:ColorTransform = new ColorTransform(1, 1, 1, lineStyleData[0]);
@@ -1447,7 +1447,7 @@ package Modules.L2Engine.ReplayEngine
             }
         }
 
-        public static function drawNext():void
+        public static function drawNextCommand():void
         {
             if (!data || data.length === 0)
             {

@@ -441,7 +441,7 @@ package Modules.L4UI.Tools
                 data.push(data[1]); // 마지막으로 원점으로 선을 한번 이어줘야 깔끔하게 닫힘
 
                 StrokeBuffer.canvasDrawLayer.alpha = xAlpha;
-                ReplayState.rMemoryDataBuffer.push(ReplayState.stampTimingSheetToolCommand(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), PenSettings.isPenAirBrushON, PenSettings.airBrushSizeDrawMode], toolStartStamp));
+                ReplayState.rMemoryDataBuffer.push(ReplayState.addToolRecordTimeToCommand(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), PenSettings.isPenAirBrushON, PenSettings.airBrushSizeDrawMode], toolStartStamp));
 
                 showFillColor(false); // 블러는 DrawingFinish가 적용함
             }

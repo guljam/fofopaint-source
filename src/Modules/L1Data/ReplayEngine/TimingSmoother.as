@@ -4,7 +4,7 @@ package Modules.L1Data.ReplayEngine
     // 그대로 재생하면 프레임마다 점 여러 개가 한꺼번에 그려져서 실제 입력 리듬(약 8ms 간격)이 사라지므로,
     // 같은 시각으로 기록된 연속 lineTo 묶음을 직전 시각부터 그 시각까지 구간에 균등하게 나눠서 시각을 새로 매김
     //   예) 이전 시각 100, 묶음 시각 142, 점 6개 -> 107, 114, 121, 128, 135, 142 (마지막 점은 원래 시각 그대로)
-    // 이 클래스는 ReplayState.takeTimingSheetBufferTimes가 부르는 한 곳 외에는 아무것도 모름
+    // 이 클래스는 ReplayState.popTimingSheetBufferTimes가 부르는 한 곳 외에는 아무것도 모름
     // 쓰지 않으려면 ENABLED를 false로 하거나 그 호출 한 줄을 지우면 되고, 파일 형식과 다른 코드는 바뀌지 않음
     // 층: L1 데이터 - 펜 점의 시각 보정
     public final class TimingSmoother
@@ -13,7 +13,7 @@ package Modules.L1Data.ReplayEngine
         public static const MAX_GAP_MS:int = 100; // 직전 시각과 묶음 시각의 차이가 이보다 크면 쉬었다 시작한 것으로 보고 나누지 않음
 
         // times: 명령별 getTimer 값(int, 줄어들지 않음). commands: 같은 순서의 명령 배열. times를 제자리에서 고침
-        public static function spread(times:Array, commands:Array):void
+        public static function spreadCommandTimes(times:Array, commands:Array):void
         {
             if (!ENABLED)
             {
@@ -25,7 +25,7 @@ package Modules.L1Data.ReplayEngine
 
             while (i < count)
             {
-                if (!isLineTo(commands[i]))
+                if (!isLineToCommand(commands[i]))
                 {
                     i++;
                     continue;
@@ -35,7 +35,7 @@ package Modules.L1Data.ReplayEngine
                 const batchTime:int = times[i];
                 var end:int = i;
 
-                while (end + 1 < count && isLineTo(commands[end + 1]) && times[end + 1] === batchTime)
+                while (end + 1 < count && isLineToCommand(commands[end + 1]) && times[end + 1] === batchTime)
                 {
                     end++;
                 }
@@ -57,7 +57,7 @@ package Modules.L1Data.ReplayEngine
             }
         }
 
-        private static function isLineTo(command:*):Boolean
+        private static function isLineToCommand(command:*):Boolean
         {
             return command is Array && command[0] === "lineTo";
         }

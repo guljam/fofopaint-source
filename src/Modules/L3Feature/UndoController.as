@@ -196,7 +196,7 @@ package Modules.L3Feature
             const rNowFrameSave:Number = ReplayState.rNowFrame;
             ReplayFileCache.truncateCacheImagesAfterFrame(rNowFrameSave);
             ReplayState.setRFileDataTotalFrame(rNowFrameSave);
-            TimingSheetFile.truncateAfter(rNowFrameSave);
+            TimingSheetFile.deleteSheetAfterFrame(rNowFrameSave);
             ReplayClock.truncateFileIndex(rNowFrameSave);
             if (onReplayTotalFrameChangedFunc != null) onReplayTotalFrameChangedFunc(rNowFrameSave);
             if (onReplayTimeResetFunc != null) onReplayTimeResetFunc();

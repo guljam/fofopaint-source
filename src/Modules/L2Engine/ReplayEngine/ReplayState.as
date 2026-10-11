@@ -121,17 +121,17 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 펜처럼 입력 시각이 중요한 명령에 지금 시각을 기록해두고 그 명령을 그대로 돌려줌
-        // 버퍼에 push하는 식 안에서 감싸서 씀: rMemoryDataBuffer.push(ReplayState.stampTimingSheetCommand(["lineTo", x, y]))
-        public static function stampTimingSheetCommand(command:Array):Array
+        // 버퍼에 push하는 식 안에서 감싸서 씀: rMemoryDataBuffer.push(ReplayState.addRecordTimeToCommand(["lineTo", x, y]))
+        public static function addRecordTimeToCommand(command:Array):Array
         {
-            rTimingSheetBufferStamps[command] = TimingSheetFile.packStamp(getTimer(), 0);
+            rTimingSheetBufferStamps[command] = TimingSheetFile.packTimeAndAnimMs(getTimer(), 0);
             return command;
         }
 
         // 채우기, 올가미, 이동처럼 도구를 시작해서 끝낼때까지의 시간을 연출로 보여주는 명령에 씀 (명령을 버퍼에 넣는 끝낼 때 부름)
         // 명령의 시각은 도구를 시작한 startStamp(getTimer 값)이고, 지금까지 걸린 시간이 연출 길이로 기록됨
         // pointStamps는 도구 안에서 점을 찍은 때마다의 getTimer 값 (선 도구처럼 점별 시각이 연출에 필요한 명령에만 넘김, 점 개수는 명령의 꼭짓점 수와 같아야 함)
-        public static function stampTimingSheetToolCommand(command:Array, startStamp:int, pointStamps:Array = null):Array
+        public static function addToolRecordTimeToCommand(command:Array, startStamp:int, pointStamps:Array = null):Array
         {
             const elapsedMs:int = (getTimer() - startStamp);
             var animMs:int = elapsedMs;
@@ -166,15 +166,15 @@ package Modules.L2Engine.ReplayEngine
                 }
             }
 
-            rTimingSheetBufferStamps[command] = TimingSheetFile.makeElement(startStamp, animMs, points);
+            rTimingSheetBufferStamps[command] = TimingSheetFile.makeTimingElement(startStamp, animMs, points);
             return command;
         }
 
-        // 버퍼의 명령마다 기록할 값(TimingSheetFile.packStamp 형식)을 순서대로 돌려주고 기록을 비움 (묶음이 메모리 undo 데이터로 들어갈때 부름)
+        // 버퍼의 명령마다 기록할 값(TimingSheetFile.packTimeAndAnimMs 형식)을 순서대로 돌려주고 기록을 비움 (묶음이 메모리 undo 데이터로 들어갈때 부름)
         // 기록하지 않은 명령은 앞 명령의 시각을 따르고(연출 길이는 0), 맨 앞에 기록 없는 명령(mirror 등)이 있으면 처음 기록된 시각을 따름
         // 마지막으로 기록된 명령 뒤의 명령(drawDone 등)은 묶음이 확정된 지금 시각, 기록이 하나도 없는 묶음도 전부 지금 시각
         // 시각은 순서대로 줄어들지 않도록 이전 값보다 작으면 올려줌
-        public static function takeTimingSheetBufferTimes():Array
+        public static function popTimingSheetBufferTimes():Array
         {
             const now:int = getTimer();
             const count:int = rMemoryDataBuffer.length;
@@ -192,9 +192,9 @@ package Modules.L2Engine.ReplayEngine
 
                 if (stamp !== undefined)
                 {
-                    times[i] = TimingSheetFile.unpackStamp(stamp);
+                    times[i] = TimingSheetFile.unpackTime(stamp);
                     anims[i] = TimingSheetFile.unpackAnimMs(stamp);
-                    pointLists[i] = TimingSheetFile.pointsOf(stamp);
+                    pointLists[i] = TimingSheetFile.getPointTimesOf(stamp);
                     lastStamped = i;
 
                     if (firstStamped < 0)
@@ -231,11 +231,11 @@ package Modules.L2Engine.ReplayEngine
                 }
             }
 
-            TimingSmoother.spread(times, rMemoryDataBuffer); // 같은 프레임에 몰린 펜 점의 시각을 나눠서 (끄려면 이 줄을 지우면 됨)
+            TimingSmoother.spreadCommandTimes(times, rMemoryDataBuffer); // 같은 프레임에 몰린 펜 점의 시각을 나눠서 (끄려면 이 줄을 지우면 됨)
 
             for (i = 0;i < count;i++)
             {
-                times[i] = TimingSheetFile.makeElement(times[i], anims[i], pointLists[i]);
+                times[i] = TimingSheetFile.makeTimingElement(times[i], anims[i], pointLists[i]);
             }
 
             rTimingSheetBufferStamps = new Dictionary(true);
@@ -258,7 +258,7 @@ package Modules.L2Engine.ReplayEngine
                     arr[i] = rMemoryDataBuffer[0].concat();
                     rMemoryDataBuffer = [];
                     rMemoryDataFrames[index] = arr.length;
-                    rMemoryDataTimingSheet[index][i] = TimingSheetFile.packStamp(getTimer(), 0);
+                    rMemoryDataTimingSheet[index][i] = TimingSheetFile.packTimeAndAnimMs(getTimer(), 0);
                     return;
                 }
             }
