@@ -85,6 +85,7 @@ package Modules.L5App.ReplayEngine
         private static var frameOnEnterReplayMode:Number = -1; // 리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼줄때 이 프레임으로 되돌림
         public static var lastReplayTimeBoxYPos:Number = 0; // 리플레이 재생해줄때 WorkspaceView.topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
         private static var isReplayWaitingBoxShown:Boolean = false;
+        private static var isRestartPending:Boolean = false; // 자연 종료로 멈췄고 재시작 대기 타이머가 곧 시작될 차례
 
         public static function initialize():void
         {
@@ -1163,8 +1164,6 @@ package Modules.L5App.ReplayEngine
                     return true;
                 });
         }
-
-        private static var isRestartPending:Boolean = false; // 자연 종료로 멈췄고 재시작 대기 타이머가 곧 시작될 차례
 
         public static function startCheckAutoHideTopbarOnPlaybackTimer():void
         {
