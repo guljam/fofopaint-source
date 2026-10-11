@@ -54,9 +54,7 @@ package Modules.L2Engine.Tools
 		private static const backupSampleX:Vector.<Number> = new Vector.<Number>();
 		private static const backupSampleY:Vector.<Number> = new Vector.<Number>();
 		private static const backupSampleTime:Vector.<Number> = new Vector.<Number>();
-		private static const backupQueueX:Vector.<Number> = new Vector.<Number>();
-		private static const backupQueueY:Vector.<Number> = new Vector.<Number>();
-		private static const backupQueueTime:Vector.<Number> = new Vector.<Number>();
+		private static var isPreviewing:Boolean; // getPreview 안에서 finish를 돌리는 중, 대기열 앞쪽 정리를 건너뜀 (대기열 내용을 그대로 두어 queueIndex만 되돌리면 됨)
 
 		// penSmoothValue(0.85 ~ 0.02, 작을수록 강함)를 슬라이더 단계에 비례하는 0 ~ 1 강도로 바꿈
 		private static function getStrength(smoothValue:Number):Number
@@ -151,14 +149,15 @@ package Modules.L2Engine.Tools
 				const sy:Number = lastSampleY + stepY * i;
 
 				// 이번 입력 선분에서 샘플이 떨어진 거리 비율로 시간을 보간함
-				const remainX:Number = x - sx;
-				const remainY:Number = y - sy;
-				const remain:Number = Math.sqrt(remainX * remainX + remainY * remainY);
-				const ratio:Number = (inputDist > 0) ? Math.max(0, Math.min(1, 1 - remain / inputDist)) : 1;
+				// 샘플은 lastSample → (x, y) 직선 위에 SAMPLE_SPACING 간격으로 있으므로 커서까지 남은 거리를 바로 구함
+				const remain:Number = dist - SAMPLE_SPACING * i;
+				var ratio:Number = (inputDist > 0) ? 1 - remain / inputDist : 1;
+				ratio = (ratio < 0) ? 0 : (ratio > 1) ? 1 : ratio;
 
-				queueX.push(sx);
-				queueY.push(sy);
-				queueTime.push(prevTime + (time - prevTime) * ratio);
+				const queueLength:uint = queueX.length;
+				queueX[queueLength] = sx;
+				queueY[queueLength] = sy;
+				queueTime[queueLength] = prevTime + (time - prevTime) * ratio;
 			}
 
 			lastSampleX += stepX * steps;
@@ -203,14 +202,23 @@ package Modules.L2Engine.Tools
 		{
 			previewChanged = false;
 
-			copyVector(sampleX, backupSampleX);
-			copyVector(sampleY, backupSampleY);
-			copyVector(sampleTime, backupSampleTime);
-			copyVector(queueX, backupQueueX);
-			copyVector(queueY, backupQueueY);
-			copyVector(queueTime, backupQueueTime);
 			const start:int = sampleStart;
 			const count:int = sampleCount;
+			var i:int;
+
+			// 샘플 버퍼는 sampleStart부터 sampleCount개 칸만 읽히므로 그 구간만 백업함
+			backupSampleX.length = count;
+			backupSampleY.length = count;
+			backupSampleTime.length = count;
+
+			for (i = 0; i < count; i++)
+			{
+				const backupIndex:int = (start + i) % sampleCapacity;
+				backupSampleX[i] = sampleX[backupIndex];
+				backupSampleY[i] = sampleY[backupIndex];
+				backupSampleTime[i] = sampleTime[backupIndex];
+			}
+
 			const sumX:Number = sampleSumX;
 			const sumY:Number = sampleSumY;
 			const settled:Boolean = isSettled;
@@ -219,14 +227,18 @@ package Modules.L2Engine.Tools
 			const sampleXLast:Number = lastSampleX;
 			const sampleYLast:Number = lastSampleY;
 
+			isPreviewing = true;
 			finish(output);
+			isPreviewing = false;
 
-			copyVector(backupSampleX, sampleX);
-			copyVector(backupSampleY, sampleY);
-			copyVector(backupSampleTime, sampleTime);
-			copyVector(backupQueueX, queueX);
-			copyVector(backupQueueY, queueY);
-			copyVector(backupQueueTime, queueTime);
+			for (i = 0; i < count; i++)
+			{
+				const restoreIndex:int = (start + i) % sampleCapacity;
+				sampleX[restoreIndex] = backupSampleX[i];
+				sampleY[restoreIndex] = backupSampleY[i];
+				sampleTime[restoreIndex] = backupSampleTime[i];
+			}
+
 			sampleStart = start;
 			sampleCount = count;
 			sampleSumX = sumX;
@@ -273,14 +285,24 @@ package Modules.L2Engine.Tools
 				cornerCooldown = CORNER_SPAN;
 			}
 
-			// 모서리 판단에 필요한 지나온 샘플 CORNER_SPAN개만 남기고 지움
+			// 모서리 판단에 필요한 지나온 샘플 CORNER_SPAN개만 남기고 지움 (미리보기 중에는 대기열을 건드리지 않음)
 			const removeCount:int = queueIndex - CORNER_SPAN;
 
-			if (removeCount > 0)
+			if (removeCount > 0 && !isPreviewing)
 			{
-				queueX.splice(0, removeCount);
-				queueY.splice(0, removeCount);
-				queueTime.splice(0, removeCount);
+				// splice는 잘라낸 원소를 담은 새 Vector를 만들기 때문에 앞으로 당기고 length만 줄임
+				const remain:int = queueX.length - removeCount;
+
+				for (var i:int = 0; i < remain; i++)
+				{
+					queueX[i] = queueX[i + removeCount];
+					queueY[i] = queueY[i + removeCount];
+					queueTime[i] = queueTime[i + removeCount];
+				}
+
+				queueX.length = remain;
+				queueY.length = remain;
+				queueTime.length = remain;
 				queueIndex -= removeCount;
 			}
 		}
@@ -415,7 +437,9 @@ package Modules.L2Engine.Tools
 
 		private static function pushAverage(output:Vector.<Number>):void
 		{
-			output.push(sampleSumX / sampleCount, sampleSumY / sampleCount);
+			const n:uint = output.length;
+			output[n] = sampleSumX / sampleCount;
+			output[n + 1] = sampleSumY / sampleCount;
 		}
 
 		// 샘플이 하나만 남았을때 호출, 선을 커서 위치에 정확히 맞춤 (마지막 샘플은 커서에서 SAMPLE_SPACING 이내)
@@ -436,17 +460,6 @@ package Modules.L2Engine.Tools
 			lastSampleY = lastInputY;
 			isSettled = true;
 			output.push(lastInputX, lastInputY);
-		}
-
-		private static function copyVector(source:Vector.<Number>, target:Vector.<Number>):void
-		{
-			const len:uint = source.length;
-			target.length = len;
-
-			for (var i:uint = 0; i < len; i++)
-			{
-				target[i] = source[i];
-			}
 		}
 	}
 }
