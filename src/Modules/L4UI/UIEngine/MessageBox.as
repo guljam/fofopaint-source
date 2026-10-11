@@ -6,15 +6,14 @@ package Modules.L4UI.UIEngine
     import flash.display.Sprite;
     import flash.text.TextField;
 
-    // 좌하단 메시지 상자 하나. 클릭·마우스 올림 판정은 MessageController가 좌표로 함
+    // 좌하단 메시지 상자 하나. 클릭·마우스 올림 판정은 MessageBoxController가 좌표로 함
     // 층: L4 UI - 메시지 상자 하나 (배경 사각형 + 글자)
     public class MessageBox extends Sprite
     {
-        private var bg:Shape = new Shape();
-        private var field:TextField;
+        private var messageBG:Shape = new Shape();
+        private var messageText:TextField;
         private var bgColor:uint = 0xFFFFFF;
         private var bgAlpha:Number = 1.0;
-        private var textColor:uint = 0x000000;
 
         public function MessageBox(fontSize:Number)
         {
@@ -22,30 +21,29 @@ package Modules.L4UI.UIEngine
             mouseEnabled = false;
             mouseChildren = false;
 
-            field = Utils.createTextField("", textColor, fontSize);
-            field.multiline = true;
-            addChild(bg);
-            addChild(field);
+            messageText = Utils.createTextField("", 0x000000, fontSize);
+            messageText.multiline = true;
+            addChild(messageBG);
+            addChild(messageText);
         }
 
-        public function setText(str:String):void
+        public function setMessageText(str:String):void
         {
-            field.text = str;
-            redraw();
+            messageText.text = str;
+            drawMessageBG();
         }
 
-        public function getText():String
+        public function getMessageText():String
         {
-            return field.text;
+            return messageText.text;
         }
 
-        public function setStyle(newBGColor:uint, newBGAlpha:Number, newTextColor:uint):void
+        public function setMessageColors(newBGColor:uint, newBGAlpha:Number, newTextColor:uint):void
         {
             bgColor = newBGColor;
             bgAlpha = newBGAlpha;
-            textColor = newTextColor;
-            field.textColor = newTextColor;
-            redraw();
+            messageText.textColor = newTextColor;
+            drawMessageBG();
         }
 
         public function getBGColor():uint
@@ -60,16 +58,16 @@ package Modules.L4UI.UIEngine
 
         public function getTextColor():uint
         {
-            return field.textColor;
+            return messageText.textColor;
         }
 
         // HintBoxSet.setHintText와 같은 여백, 테두리 없음
-        private function redraw():void
+        private function drawMessageBG():void
         {
-            bg.graphics.clear();
-            bg.graphics.beginFill(bgColor, bgAlpha);
-            bg.graphics.drawRect(-2, -2, field.width + 6, field.height + 3);
-            bg.graphics.endFill();
+            messageBG.graphics.clear();
+            messageBG.graphics.beginFill(bgColor, bgAlpha);
+            messageBG.graphics.drawRect(-2, -2, messageText.width + 6, messageText.height + 3);
+            messageBG.graphics.endFill();
         }
     }
 }

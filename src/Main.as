@@ -396,7 +396,7 @@
                     {
                         msg = String(errorObject);
                     }
-                    MessageBoxController.showError(msg);
+                    MessageBoxController.showErrorMessage(msg);
                 }
                 catch (hintError:Error)
                 {

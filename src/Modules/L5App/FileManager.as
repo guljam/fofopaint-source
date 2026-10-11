@@ -1098,7 +1098,7 @@ package Modules.L5App
         {
             BackgroundWorkerCoordinator.isSaveInProgress = 0;
             refreshFileOperationButtonsTopbar();
-            MessageBoxController.showStatus((renamed ? "File saved as \"" + stripExtension(lastSaveFileName) + "\" (file was in use) : " : "File saved : ")
+            MessageBoxController.showStatusMessage((renamed ? "File saved as \"" + stripExtension(lastSaveFileName) + "\" (file was in use) : " : "File saved : ")
                 + (getTimer() - saveStartTime) + " ms" + getSizeSuffix(fofoSize));
 
             if (LoadBoxController.isLoadPendingAfterSaving)
@@ -1124,7 +1124,7 @@ package Modules.L5App
 
             refreshFileOperationButtonsTopbar();
             AppWindowState.markWindowTitleAsDirty();
-            MessageBoxController.showError("Save failed: " + describeWriteError(result.error));
+            MessageBoxController.showErrorMessage("Save failed: " + describeWriteError(result.error));
         }
 
         // 메시지 뒤에 붙이는 ", 크기". 크기를 모르면 쉼표까지 통째로 뺌
@@ -1138,11 +1138,11 @@ package Modules.L5App
         {
             if (error === null)
             {
-                MessageBoxController.showStatus("Image saved : \"" + fileName + "\"" + getSizeSuffix(size));
+                MessageBoxController.showStatusMessage("Image saved : \"" + fileName + "\"" + getSizeSuffix(size));
             }
             else
             {
-                MessageBoxController.showError(error.message);
+                MessageBoxController.showErrorMessage(error.message);
             }
         }
 
@@ -1382,11 +1382,11 @@ package Modules.L5App
                     if (result.status !== NativeSave.STATUS_OK)
                     {
                         AppDataPaths.writeCrashLog("Capture save failed: stage=" + result.stage + " win32 error=" + result.error + " " + result.pngPath + " " + result.message);
-                        MessageBoxController.showError("Capture save failed: " + describeWriteError(result.error));
+                        MessageBoxController.showErrorMessage("Capture save failed: " + describeWriteError(result.error));
                     }
                     else
                     {
-                        MessageBoxController.showStatus("Image saved : \"" + getFileNameFromPath(path) + "\"" + getSizeSuffix(result.fofoSize)); // PNG 작업은 이 칸에 PNG 크기가 담겨 옴
+                        MessageBoxController.showStatusMessage("Image saved : \"" + getFileNameFromPath(path) + "\"" + getSizeSuffix(result.fofoSize)); // PNG 작업은 이 칸에 PNG 크기가 담겨 옴
                     }
                 });
             composite.dispose();
@@ -1534,7 +1534,7 @@ package Modules.L5App
                 }
                 else
                 {
-                    MessageBoxController.showStatus("Already saved");
+                    MessageBoxController.showStatusMessage("Already saved");
                 }
                 return;
             }
@@ -1766,7 +1766,7 @@ package Modules.L5App
             catch (err:Error)
             {
                 // 파일 엑세스가 불가하므로 새로운 파일로 저장해줌
-                MessageBoxController.showError(err.message);
+                MessageBoxController.showErrorMessage(err.message);
 
                 if (BackgroundWorkerCoordinator.isSaveInProgress === 1)
                 {
@@ -1782,7 +1782,7 @@ package Modules.L5App
                 BackgroundWorkerCoordinator.isSaveInProgress = 0;
             }
 
-            MessageBoxController.showStatus("File saved : " + (getTimer() - FileManager.saveStartTime) + " ms" + getSizeSuffix(fofoSize));
+            MessageBoxController.showStatusMessage("File saved : " + (getTimer() - FileManager.saveStartTime) + " ms" + getSizeSuffix(fofoSize));
         }
 
     }

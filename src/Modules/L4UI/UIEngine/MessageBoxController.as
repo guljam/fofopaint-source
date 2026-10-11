@@ -10,107 +10,145 @@ package Modules.L4UI.UIEngine
 
     import flash.display.Shape;
     import flash.display.Sprite;
+    import flash.display.Stage;
     import flash.events.MouseEvent;
     import flash.geom.Rectangle;
     import flash.utils.getTimer;
 
-    // 좌하단에 쌓이는 상태(녹색)/오류(빨간색) 메시지 상자. 지우기는 왼쪽/오른쪽 클릭, 판정은 이벤트의 stageX/stageY로 함
-    // 층: L4 UI - 좌하단 메시지 상자 쌓기, 타이머, 입력 가로채기, 배치
+    // 좌하단에 쌓이는 상태(녹색)/오류(빨간색) 메시지 상자 관리. 최신 메시지가 맨 아래, 최대 6개, 정해진 시간이 지나면 사라짐
+    // 메시지 위 왼쪽 클릭: 그 메시지를 지움. 오른쪽·휠 클릭: 지우지 않고 가로채기만 함 (아래 캔버스·UI로 전달하지 않음)
+    // 클릭 판정은 상자 + 상하좌우 MESSAGE_CLICK_MARGIN, 파란 하이라이트는 상자 자체만
+    // 층: L4 UI - 좌하단 메시지 상자 쌓기, 만료 타이머, 클릭 가로채기, 배치
     public final class MessageBoxController
     {
-        public static const MAX_COUNT:int = 6;
-        public static const DEFAULT_DURATION:Number = 5.0;
-        private static const HIT_MARGIN:Number = 5; // 판정 영역: 상자 + 상하좌우 이만큼
-        private static const BOTTOM_GAP:Number = 5; // 하단 힌트 바 위 간격
-        private static const MESSAGE_GAP:Number = 2; // 메시지 사이 간격
-        private static const MAX_TEXT_LENGTH:int = 200;
-        private static const LEFT:Number = 2; // 하단 힌트의 x와 같게
-        private static const TIMER_NAME:String = "messageBoxTimer";
+        public static const MAX_MESSAGE_COUNT:int = 6;
+        public static const DEFAULT_MESSAGE_DURATION:Number = 5.0;
+        private static const MESSAGE_CLICK_MARGIN:Number = 5; // 클릭 판정 영역: 상자 + 상하좌우 이만큼
+        private static const GAP_ABOVE_BOTTOM_BAR:Number = 5; // 하단 힌트 바와 맨 아래 메시지 사이
+        private static const GAP_BETWEEN_MESSAGES:Number = 2;
+        private static const MAX_MESSAGE_LENGTH:int = 200; // 넘으면 잘라서 "..."을 붙임
+        private static const MESSAGE_LEFT_X:Number = 2; // 하단 힌트의 x와 같게
+        private static const MESSAGE_EXPIRE_TIMER:String = "messageExpireTimer";
 
-        // 버튼 번호: 0 = 왼쪽, 1 = 오른쪽, 2 = 가운데(휠)
-        private static const DOWN_TYPES:Array = [MouseEvent.MOUSE_DOWN, MouseEvent.RIGHT_MOUSE_DOWN, MouseEvent.MIDDLE_MOUSE_DOWN];
-        private static const UP_TYPES:Array = [MouseEvent.MOUSE_UP, MouseEvent.RIGHT_MOUSE_UP, MouseEvent.MIDDLE_MOUSE_UP];
-        private static const CLICK_TYPES:Array = [MouseEvent.CLICK, MouseEvent.RIGHT_CLICK, MouseEvent.MIDDLE_CLICK];
-
-        private static const container:Sprite = new Sprite();
-        private static const highlight:Shape = new Shape(); // HintController의 hintHighlightBox와 따로 씀
-        private static const boxes:Vector.<MessageBox> = new Vector.<MessageBox>();
-        private static const entries:Array = []; // {isError, raw, count, expire}. 앞이 가장 오래된 것, 맨 뒤가 맨 아래(최신)
+        private static const messageBoxContainer:Sprite = new Sprite();
+        private static const messageHighlightBox:Shape = new Shape(); // HintController의 hintHighlightBox와 따로 씀
+        private static const messageBoxes:Vector.<MessageBox> = new Vector.<MessageBox>(); // 미리 만든 상자를 재사용, messageBoxes[i]가 messages[i]를 표시
+        private static const messages:Array = []; // {isError, text, repeatCount, expireTime}. 앞이 가장 오래된(맨 위) 것, 맨 뒤가 최신(맨 아래)
         private static var isInitialized:Boolean = false;
 
-        // 가로챈 DOWN 뒤에 가로채야 할 UP/CLICK/DOUBLE_CLICK. 버튼별로 켜고, 그 이벤트를 처리한 뒤 끔
-        private static const upPending:Vector.<Boolean> = new <Boolean>[false, false, false];
-        private static const clickPending:Vector.<Boolean> = new <Boolean>[false, false, false];
-        private static var doubleClickPending:Boolean = false;
+        // 메시지 위에서 DOWN을 가로챈 버튼은 뒤따르는 UP/CLICK도 가로챔
+        // (DOWN만 막으면 MouseState에 눌림 없이 뗌만 기록되고, 아래 버튼이 UP/CLICK에 반응함)
+        // 같은 버튼의 다음 DOWN에서 다시 판정함
+        private static var isLeftClickIntercepted:Boolean = false;
+        private static var isRightClickIntercepted:Boolean = false;
+        private static var isMiddleClickIntercepted:Boolean = false;
 
-        private static const downAttached:Vector.<Boolean> = new <Boolean>[false, false, false];
-        private static const upAttached:Vector.<Boolean> = new <Boolean>[false, false, false];
-        private static const clickAttached:Vector.<Boolean> = new <Boolean>[false, false, false];
-        private static var doubleClickAttached:Boolean = false;
-        private static var moveAttached:Boolean = false;
-
-        // 컨테이너(메시지 상자 + 하이라이트)를 stage에 올림. stage 접근은 여기서만 함 (static 초기화 순서 때문)
+        // 메시지 상자들을 만들어 stage에 올리고 마우스 이벤트를 붙임. stage 접근은 여기서만 함 (static 초기화 순서 때문)
         public static function initialize():void
         {
             const fontSize:Number = Number(HintController.mouseHint.hintText.defaultTextFormat.size);
 
-            container.mouseEnabled = false;
-            container.mouseChildren = false;
-            for (var i:int = 0; i < MAX_COUNT; i++)
+            messageBoxContainer.mouseEnabled = false;
+            messageBoxContainer.mouseChildren = false;
+            for (var i:int = 0; i < MAX_MESSAGE_COUNT; i++)
             {
-                const box:MessageBox = new MessageBox(fontSize);
-                box.visible = false;
-                boxes.push(box);
-                container.addChild(box);
+                const messageBox:MessageBox = new MessageBox(fontSize);
+                messageBox.visible = false;
+                messageBoxes.push(messageBox);
+                messageBoxContainer.addChild(messageBox);
             }
-            highlight.visible = false;
-            container.addChild(highlight);
+            messageHighlightBox.visible = false;
+            messageBoxContainer.addChild(messageHighlightBox);
 
-            AppContext.stage.addChild(container);
+            AppContext.stage.addChild(messageBoxContainer);
+            addMessageBoxMouseEvents();
             isInitialized = true;
         }
 
-        public static function showStatus(str:String, duration:Number = DEFAULT_DURATION):void
+        // 캔버스·UI 입력보다 먼저 받도록 캡처 단계, 가장 높은 우선순위로 붙임. 메시지가 없으면 각 핸들러는 바로 끝남
+        private static function addMessageBoxMouseEvents():void
         {
-            add(false, str, duration);
+            const stage:Stage = AppContext.stage;
+            stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDownMessageBox, true, InputPriority.MESSAGE_BOX);
+            stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpOrClickMessageBox, true, InputPriority.MESSAGE_BOX);
+            stage.addEventListener(MouseEvent.CLICK, onMouseUpOrClickMessageBox, true, InputPriority.MESSAGE_BOX);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_DOWN, onRightMouseDownMessageBox, true, InputPriority.MESSAGE_BOX);
+            stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onRightMouseUpOrClickMessageBox, true, InputPriority.MESSAGE_BOX);
+            stage.addEventListener(MouseEvent.RIGHT_CLICK, onRightMouseUpOrClickMessageBox, true, InputPriority.MESSAGE_BOX);
+            stage.addEventListener(MouseEvent.MIDDLE_MOUSE_DOWN, onMiddleMouseDownMessageBox, true, InputPriority.MESSAGE_BOX);
+            stage.addEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMiddleMouseUpOrClickMessageBox, true, InputPriority.MESSAGE_BOX);
+            stage.addEventListener(MouseEvent.MIDDLE_CLICK, onMiddleMouseUpOrClickMessageBox, true, InputPriority.MESSAGE_BOX);
+            stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveMessageBox, true); // 하이라이트용, 전파는 건드리지 않음
         }
 
-        public static function showError(str:String, duration:Number = DEFAULT_DURATION):void
+        public static function showStatusMessage(text:String, duration:Number = DEFAULT_MESSAGE_DURATION):void
         {
-            add(true, str, duration);
+            addMessage(false, text, duration);
         }
 
-        // 창 크기, UI 배율이 바뀔 때
-        public static function updateLayout():void
+        public static function showErrorMessage(text:String, duration:Number = DEFAULT_MESSAGE_DURATION):void
         {
-            render();
+            addMessage(true, text, duration);
         }
 
-        // 테마가 바뀔 때
-        public static function updateColor():void
+        // 메시지 상자의 글자, 색, 위치를 지금 메시지 목록대로 다시 맞춤. 창 크기, UI 배율, 테마가 바뀔 때도 부름
+        public static function updateMessageBoxes():void
         {
-            render();
+            if (!isInitialized)
+            {
+                return;
+            }
+
+            const scale:Number = UITheme.getUIScale();
+            var bottom:Number = AppContext.stage.stageHeight - (HintController.BOTTOM_BAR_HEIGHT + GAP_ABOVE_BOTTOM_BAR) * scale;
+
+            // 맨 아래(최신) 상자의 아랫변을 하단 바 위에 맞추고 위로 쌓음. 높이가 달라도 아랫변 기준
+            for (var i:int = messageBoxes.length - 1; i >= 0; i--)
+            {
+                const messageBox:MessageBox = messageBoxes[i];
+                if (i >= messages.length)
+                {
+                    messageBox.visible = false;
+                    continue;
+                }
+
+                const message:Object = messages[i];
+                messageBox.visible = true;
+                messageBox.scaleX = scale;
+                messageBox.scaleY = scale;
+                messageBox.setMessageText(getMessageDisplayText(message));
+                messageBox.setMessageColors(message.isError ? UITheme.getMessageErrorBGColor() : UITheme.getMessageStatusBGColor(), UITheme.messageBGAlpha, UITheme.messageTextColor);
+                messageBox.x = 0;
+                messageBox.y = 0;
+
+                const bounds:Rectangle = messageBox.getBounds(messageBoxContainer); // 컨테이너는 (0,0), 배율 1이라 stage 좌표와 같음
+                messageBox.x = Math.round(MESSAGE_LEFT_X * scale - bounds.left);
+                messageBox.y = Math.round(bottom - bounds.bottom);
+                bottom = messageBox.y + bounds.top - GAP_BETWEEN_MESSAGES * scale;
+            }
+
+            updateMessageHighlightBox(AppContext.stage.mouseX, AppContext.stage.mouseY);
         }
 
-        public static function getCount():int
+        public static function getMessageCount():int
         {
-            return entries.length;
+            return messages.length;
         }
 
-        // index 0이 가장 오래된(맨 위) 메시지
-        public static function getDisplayText(index:int):String
+        // 화면에 보이는 문장. index 0이 가장 오래된(맨 위) 메시지
+        public static function getMessageText(index:int):String
         {
-            return getDisplayString(entries[index]);
+            return getMessageDisplayText(messages[index]);
         }
 
-        public static function getBox(index:int):MessageBox
+        public static function getMessageBox(index:int):MessageBox
         {
-            return boxes[index];
+            return messageBoxes[index];
         }
 
-        public static function getHighlight():Shape
+        public static function getMessageHighlightBox():Shape
         {
-            return highlight;
+            return messageHighlightBox;
         }
 
         // 호출할 때마다 셋 중 하나를 무작위로 실행: 성공 메시지 하나 / 실패 메시지 하나 / 같은 메시지를 1~3초 간격으로 2~5개 (성공 또는 실패)
@@ -120,164 +158,123 @@ package Modules.L4UI.UIEngine
             const id:int = int(Math.random() * 1000);
             if (kind === 0)
             {
-                showStatus("Test status " + id);
+                showStatusMessage("Test status " + id);
             }
             else if (kind === 1)
             {
-                showError("Test error " + id);
+                showErrorMessage("Test error " + id);
             }
             else
             {
                 const isError:Boolean = Math.random() < 0.5;
-                testRepeatMessage(isError, (isError ? "Test repeated error " : "Test repeated status ") + id, 2 + int(Math.random() * 4));
+                showRepeatedTestMessage(isError, (isError ? "Test repeated error " : "Test repeated status ") + id, 2 + int(Math.random() * 4));
             }
         }
 
-        private static function testRepeatMessage(isError:Boolean, str:String, remaining:int):void
+        private static function showRepeatedTestMessage(isError:Boolean, text:String, remainingCount:int):void
         {
-            add(isError, str, DEFAULT_DURATION);
-            if (remaining > 1)
+            addMessage(isError, text, DEFAULT_MESSAGE_DURATION);
+            if (remainingCount > 1)
             {
-                FOFOTimer.add(1.0 + Math.random() * 2.0, false, testRepeatMessage, [isError, str, remaining - 1]);
+                FOFOTimer.add(1.0 + Math.random() * 2.0, false, showRepeatedTestMessage, [isError, text, remainingCount - 1]);
             }
         }
 
-        private static function getDisplayString(entry:Object):String
+        // 200자를 넘으면 자르고, 같은 문장이 2번 이상이면 뒤에 " (횟수)"를 붙임 (자른 뒤에 붙여서 횟수가 항상 보이게)
+        private static function getMessageDisplayText(message:Object):String
         {
-            const raw:String = entry.raw;
-            const text:String = raw.length > MAX_TEXT_LENGTH ? raw.substr(0, MAX_TEXT_LENGTH) + "..." : raw;
-            return entry.count >= 2 ? text + " (" + entry.count + ")" : text;
+            const text:String = message.text;
+            const cutText:String = text.length > MAX_MESSAGE_LENGTH ? text.substr(0, MAX_MESSAGE_LENGTH) + "..." : text;
+            return message.repeatCount >= 2 ? cutText + " (" + message.repeatCount + ")" : cutText;
         }
 
-        private static function add(isError:Boolean, str:String, duration:Number):void
+        // 같은 종류·같은 문장이 이미 보이면 횟수를 올려 맨 아래로 옮기고 시간을 다시 잼, 없으면 맨 아래에 추가
+        private static function addMessage(isError:Boolean, text:String, duration:Number):void
         {
-            if (!isInitialized || str === null || str === "")
+            if (!isInitialized || text === null || text === "") // 초기화 전 전역 오류가 TypeError를 또 내지 않게
             {
                 return;
             }
 
-            const expire:int = getTimer() + int(duration * 1000);
-            var entry:Object = null;
-            for (var i:int = 0; i < entries.length; i++)
+            const expireTime:int = getTimer() + int(duration * 1000);
+            var message:Object = null;
+            for (var i:int = 0; i < messages.length; i++)
             {
-                if (entries[i].isError === isError && entries[i].raw === str)
+                if (messages[i].isError === isError && messages[i].text === text)
                 {
-                    entry = entries.splice(i, 1)[0];
-                    entry.count++;
-                    entry.expire = expire;
+                    message = messages.splice(i, 1)[0];
+                    message.repeatCount++;
+                    message.expireTime = expireTime;
                     break;
                 }
             }
 
-            if (entry === null)
+            if (message === null)
             {
-                entry = {isError: isError, raw: str, count: 1, expire: expire};
+                message = {isError: isError, text: text, repeatCount: 1, expireTime: expireTime};
             }
-            entries.push(entry);
-            if (entries.length > MAX_COUNT)
+            messages.push(message);
+            if (messages.length > MAX_MESSAGE_COUNT)
             {
-                entries.shift();
+                messages.shift();
             }
 
-            render();
-            Utils.setAsTopChild(container);
+            updateMessageBoxes();
+            Utils.setAsTopChild(messageBoxContainer);
             if (HintController.mouseHint.visible)
             {
                 Utils.setAsTopChild(HintController.mouseHint);
             }
 
-            if (!FOFOTimer.hasTimer(TIMER_NAME))
+            if (!FOFOTimer.hasTimer(MESSAGE_EXPIRE_TIMER))
             {
-                FOFOTimer.addByName(TIMER_NAME, 0.0, true, onTimer);
+                FOFOTimer.addByName(MESSAGE_EXPIRE_TIMER, 0.0, true, removeExpiredMessages);
             }
-            syncListeners();
         }
 
-        private static function onTimer():Boolean
+        // 매 프레임 도는 타이머. 메시지가 남아 있는 동안만 계속함 (false를 반환하면 FOFOTimer가 지움)
+        private static function removeExpiredMessages():Boolean
         {
             const now:int = getTimer();
-            var removed:Boolean = false;
-            for (var i:int = entries.length - 1; i >= 0; i--)
+            var isRemoved:Boolean = false;
+            for (var i:int = messages.length - 1; i >= 0; i--)
             {
-                if (entries[i].expire - now <= 0)
+                if (messages[i].expireTime - now <= 0)
                 {
-                    entries.splice(i, 1);
-                    removed = true;
+                    messages.splice(i, 1);
+                    isRemoved = true;
                 }
             }
 
-            if (removed)
+            if (isRemoved)
             {
-                render();
-                syncListeners();
+                updateMessageBoxes();
             }
-            return entries.length > 0;
+            return messages.length > 0;
         }
 
-        private static function removeAt(index:int):void
+        // 지운 즉시 다시 배치해서, 커서를 움직이지 않고 다시 클릭하면 내려온 다음 메시지가 지워지게 함
+        private static function removeMessageAt(index:int):void
         {
-            entries.splice(index, 1);
-            if (entries.length === 0)
-            {
-                FOFOTimer.remove(TIMER_NAME);
-            }
-            render();
-            syncListeners();
+            messages.splice(index, 1);
+            updateMessageBoxes();
         }
 
-        // 맨 아래(최신) 상자의 아랫변을 하단 바 위에 맞추고, 위로 쌓음. 높이가 달라도 아랫변 기준
-        private static function render():void
+        // stage 기준 상자 사각형. margin 0이면 상자 자체(하이라이트), MESSAGE_CLICK_MARGIN이면 클릭 판정 영역
+        private static function getMessageBoxRect(index:int, margin:Number):Rectangle
         {
-            if (!isInitialized)
-            {
-                return;
-            }
-
-            const scale:Number = UITheme.getUIScale();
-            var bottom:Number = AppContext.stage.stageHeight - (HintController.BOTTOM_BAR_HEIGHT + BOTTOM_GAP) * scale;
-
-            for (var i:int = boxes.length - 1; i >= 0; i--)
-            {
-                const box:MessageBox = boxes[i];
-                if (i >= entries.length)
-                {
-                    box.visible = false;
-                    continue;
-                }
-
-                const entry:Object = entries[i];
-                box.visible = true;
-                box.scaleX = scale;
-                box.scaleY = scale;
-                box.setText(getDisplayString(entry));
-                box.setStyle(entry.isError ? UITheme.getMessageErrorBGColor() : UITheme.getMessageStatusBGColor(), UITheme.messageBGAlpha, UITheme.messageTextColor);
-                box.x = 0;
-                box.y = 0;
-
-                const bounds:Rectangle = box.getBounds(container); // 컨테이너는 (0,0), 배율 1이라 stage 좌표와 같음
-                box.x = Math.round(LEFT * scale - bounds.left);
-                box.y = Math.round(bottom - bounds.bottom);
-                bottom = box.y + bounds.top - MESSAGE_GAP * scale;
-            }
-
-            updateHighlight(AppContext.stage.mouseX, AppContext.stage.mouseY);
-        }
-
-        // margin 0이면 상자 자체, HIT_MARGIN이면 클릭 판정 영역
-        private static function getHitRect(index:int, margin:Number):Rectangle
-        {
-            const rect:Rectangle = boxes[index].getBounds(AppContext.stage);
+            const rect:Rectangle = messageBoxes[index].getBounds(AppContext.stage);
             const scaledMargin:Number = margin * UITheme.getUIScale();
             rect.inflate(scaledMargin, scaledMargin);
             return rect;
         }
 
-        // 겹치는 곳은 아래쪽(최신) 메시지가 이김
-        private static function hitIndex(x:Number, y:Number, margin:Number):int
+        // (x, y)에 있는 메시지 번호, 없으면 -1. 영역이 겹치는 곳은 아래쪽(최신) 메시지가 이김
+        private static function findMessageIndexAt(x:Number, y:Number, margin:Number):int
         {
-            for (var i:int = entries.length - 1; i >= 0; i--)
+            for (var i:int = messages.length - 1; i >= 0; i--)
             {
-                if (getHitRect(i, margin).contains(x, y))
+                if (getMessageBoxRect(i, margin).contains(x, y))
                 {
                     return i;
                 }
@@ -285,124 +282,86 @@ package Modules.L4UI.UIEngine
             return -1;
         }
 
-        private static function updateHighlight(x:Number, y:Number):void
+        // 커서가 상자 위에 있으면 파란 테두리를 그림. 그리는 중·드래그 중(버튼을 누르고 있을 때)에는 띄우지 않음
+        private static function updateMessageHighlightBox(x:Number, y:Number):void
         {
-            // 하이라이트는 상자 자체만 감지하고 그림 (여백은 클릭 판정에만 씀)
-            const index:int = (MouseState.isLeftDown || MouseState.isRightDown) ? -1 : hitIndex(x, y, 0);
-            highlight.graphics.clear();
+            const index:int = (MouseState.isLeftDown || MouseState.isRightDown) ? -1 : findMessageIndexAt(x, y, 0);
+            messageHighlightBox.graphics.clear();
             if (index < 0)
             {
-                highlight.visible = false;
+                messageHighlightBox.visible = false;
                 return;
             }
 
-            const rect:Rectangle = getHitRect(index, 0);
-            highlight.x = rect.x;
-            highlight.y = rect.y;
-            HandDrawnLine.drawRect(highlight.graphics, 2, UITheme.getHintHightlightColor(), 1.0, 0, 0, rect.width, rect.height);
-            highlight.visible = true;
+            const rect:Rectangle = getMessageBoxRect(index, 0);
+            messageHighlightBox.x = rect.x;
+            messageHighlightBox.y = rect.y;
+            HandDrawnLine.drawRect(messageHighlightBox.graphics, 2, UITheme.getHintHightlightColor(), 1.0, 0, 0, rect.width, rect.height);
+            messageHighlightBox.visible = true;
         }
 
-        // 메시지가 보일 때만 DOWN/MOVE 리스너를 붙이고, UP/CLICK은 가로채야 할 것이 남아 있는 동안만 붙임
-        private static function syncListeners():void
+        // 클릭 판정 영역 안이면 이벤트를 가로채고 true를 반환. isRemoving이면 그 메시지를 지움
+        private static function interceptClickOnMessage(e:MouseEvent, isRemoving:Boolean):Boolean
         {
-            const hasMessage:Boolean = entries.length > 0;
-            setMoveListener(hasMessage);
-            for (var b:int = 0; b < 3; b++)
+            const index:int = findMessageIndexAt(e.stageX, e.stageY, MESSAGE_CLICK_MARGIN);
+            if (index < 0)
             {
-                const needDoubleClick:Boolean = (b === 0 && doubleClickPending);
-                downAttached[b] = setListener(downAttached[b], hasMessage || upPending[b] || clickPending[b] || needDoubleClick, DOWN_TYPES[b], onDown);
-                upAttached[b] = setListener(upAttached[b], upPending[b], UP_TYPES[b], onUp);
-                clickAttached[b] = setListener(clickAttached[b], clickPending[b], CLICK_TYPES[b], onClick);
+                return false;
             }
-            doubleClickAttached = setListener(doubleClickAttached, doubleClickPending, MouseEvent.DOUBLE_CLICK, onDoubleClick);
+
+            e.stopImmediatePropagation();
+            if (isRemoving)
+            {
+                removeMessageAt(index);
+            }
+            return true;
         }
 
-        private static function setListener(attached:Boolean, need:Boolean, type:String, listener:Function):Boolean
+        private static function onMouseDownMessageBox(e:MouseEvent):void
         {
-            if (need && !attached)
-            {
-                AppContext.stage.addEventListener(type, listener, true, InputPriority.MESSAGE_BOX);
-            }
-            else if (!need && attached)
-            {
-                AppContext.stage.removeEventListener(type, listener, true);
-            }
-            return need;
+            isLeftClickIntercepted = interceptClickOnMessage(e, true);
         }
 
-        // 하이라이트용. 다른 이동 처리를 막지 않도록 전파는 건드리지 않음
-        private static function setMoveListener(need:Boolean):void
+        private static function onRightMouseDownMessageBox(e:MouseEvent):void
         {
-            if (need && !moveAttached)
-            {
-                AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove, true);
-            }
-            else if (!need && moveAttached)
-            {
-                AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove, true);
-            }
-            moveAttached = need;
+            isRightClickIntercepted = interceptClickOnMessage(e, false);
         }
 
-        private static function onMouseMove(e:MouseEvent):void
+        private static function onMiddleMouseDownMessageBox(e:MouseEvent):void
         {
-            updateHighlight(e.stageX, e.stageY);
+            isMiddleClickIntercepted = interceptClickOnMessage(e, false);
         }
 
-        private static function onDown(e:MouseEvent):void
+        private static function onMouseUpOrClickMessageBox(e:MouseEvent):void
         {
-            const button:int = DOWN_TYPES.indexOf(e.type);
-
-            // 이전 클릭에서 CLICK이 오지 않아 남은 것이 새 클릭을 막지 않게 먼저 지움
-            upPending[button] = false;
-            clickPending[button] = false;
-            if (button === 0)
-            {
-                doubleClickPending = false;
-            }
-
-            const index:int = hitIndex(e.stageX, e.stageY, HIT_MARGIN);
-            if (index >= 0)
+            if (isLeftClickIntercepted)
             {
                 e.stopImmediatePropagation();
-                upPending[button] = true;
-                clickPending[button] = true;
-                if (button === 0)
-                {
-                    doubleClickPending = true;
-                }
-
-                if (button <= 1) // 왼쪽, 오른쪽 클릭은 그 메시지를 지움 (휠은 가로채기만)
-                {
-                    removeAt(index);
-                    return;
-                }
             }
-            syncListeners();
         }
 
-        private static function onUp(e:MouseEvent):void
+        private static function onRightMouseUpOrClickMessageBox(e:MouseEvent):void
         {
-            const button:int = UP_TYPES.indexOf(e.type);
-            e.stopImmediatePropagation();
-            upPending[button] = false;
-            syncListeners();
+            if (isRightClickIntercepted)
+            {
+                e.stopImmediatePropagation();
+            }
         }
 
-        private static function onClick(e:MouseEvent):void
+        private static function onMiddleMouseUpOrClickMessageBox(e:MouseEvent):void
         {
-            const button:int = CLICK_TYPES.indexOf(e.type);
-            e.stopImmediatePropagation();
-            clickPending[button] = false;
-            syncListeners();
+            if (isMiddleClickIntercepted)
+            {
+                e.stopImmediatePropagation();
+            }
         }
 
-        private static function onDoubleClick(e:MouseEvent):void
+        private static function onMouseMoveMessageBox(e:MouseEvent):void
         {
-            e.stopImmediatePropagation();
-            doubleClickPending = false;
-            syncListeners();
+            if (messages.length > 0)
+            {
+                updateMessageHighlightBox(e.stageX, e.stageY);
+            }
         }
     }
 }

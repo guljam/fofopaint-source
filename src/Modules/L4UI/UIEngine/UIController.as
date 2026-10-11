@@ -234,7 +234,7 @@ package Modules.L4UI.UIEngine
 
             CanvasNavigator.updateCursor();
             HintController.hideBottomHint();
-            MessageBoxController.updateLayout();
+            MessageBoxController.updateMessageBoxes();
         }
 
         // 창 크기가 바뀐 뒤의 화면 배치를 "지금 창 크기" 기준으로 다시 계산한다.
@@ -367,7 +367,7 @@ package Modules.L4UI.UIEngine
             updateStageBGSize();
             SidebarController.checkFOFOPosition();
             HintController.updateBottomBarLayoutAndColor();
-            MessageBoxController.updateLayout();
+            MessageBoxController.updateMessageBoxes();
         }
 
         // 파일 드래그 드롭등 마우스 이벤트에서도 target이 null이 되는등
@@ -456,7 +456,7 @@ package Modules.L4UI.UIEngine
         {
             updateStageBGColor();
             HintController.updateBottomBarLayoutAndColor();
-            MessageBoxController.updateColor();
+            MessageBoxController.updateMessageBoxes();
 
             CanvasNavigator.box.chanegStageColor(STAGE_BG_COLOR);
 
