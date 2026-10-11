@@ -1164,11 +1164,13 @@ package Modules.L5App.ReplayEngine
                 });
         }
 
+        private static var isRestartPending:Boolean = false; // 자연 종료로 멈췄고 재시작 대기 타이머가 곧 시작될 차례
+
         public static function startCheckAutoHideTopbarOnPlaybackTimer():void
         {
             FOFOTimer.addByName("checkAutoHideTopbarOnPlaybackTimer", 0.0, true, function ():Boolean
             {
-                if(!ReplayState.isReplayModeON || (!ReplayState.isReplayStarted && !ReplayState.isReplayRestartTimerON))
+                if(!ReplayState.isReplayModeON || (!ReplayState.isReplayStarted && !ReplayState.isReplayRestartTimerON && !isRestartPending))
                 {
                     showTopbarOnPlayback();
                     return false;
@@ -1199,7 +1201,8 @@ package Modules.L5App.ReplayEngine
                     {
                         if (drawRemaingFrames())
                         {
-                            stopReplay();
+                            isRestartPending = ReplayState.isReplayRepeatON; // 곧 재시작 대기가 시작됨 (그 사이 상단바가 잠깐 보였다 숨지 않게)
+                            stopReplay(isRestartPending && ReplayMouseAutoHide.isMouseHided);
                         }
                     }
 
@@ -1608,6 +1611,8 @@ package Modules.L5App.ReplayEngine
 
         public static function startReplayRestartTimer():void
         {
+            isRestartPending = false;
+
             if (ReplayState.isReplayRepeatON)
             {
                 Utils.setColorTransform(UIController.seekBarBox.prograssBar, UITheme.getUIReplayRestartBarColor());
@@ -1710,7 +1715,7 @@ package Modules.L5App.ReplayEngine
             stopReplay();
         }
 
-        public static function stopReplay():void
+        public static function stopReplay(keepTopbarHidden:Boolean = false):void
         {
             // 재생 중이었다면 멈춘 시각을 기억해서 다시 재생할때 같은 곳에서 이어감 (쉬는 구간 처음부터 다시 세지 않게)
             if (ReplayState.isReplayStarted && ReplayState.rNowFrame < ReplayState.TOTAL_FRAME)
@@ -1721,7 +1726,11 @@ package Modules.L5App.ReplayEngine
             FOFOTimer.remove("replayDrawTimer");
             ReplayDrawer.anim.clear();
             ReplayController.clearReplayWaitingState();
-            ReplayController.showTopbarOnPlayback();
+
+            if (!keepTopbarHidden)
+            {
+                ReplayController.showTopbarOnPlayback();
+            }
 
             if (!ReplayState.isReplayFinished)
             {
@@ -1753,6 +1762,7 @@ package Modules.L5App.ReplayEngine
                 return;
             }
 
+            isRestartPending = false;
             ReplayState.isReplayStarted = true;
             UIController.seekBarBox.resetPrograssBarColor();
             UIController.seekBarBox.playButton.visible = false;
