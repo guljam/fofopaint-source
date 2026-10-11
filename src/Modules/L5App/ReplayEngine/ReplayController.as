@@ -1612,6 +1612,12 @@ package Modules.L5App.ReplayEngine
             {
                 Utils.setColorTransform(UIController.seekBarBox.prograssBar, UITheme.getUIReplayRestartBarColor());
                 rReplayRestartTimerCount = 20;
+                // 끝나는 틱에서 자동 숨김 타이머가 재시작 타이머보다 먼저 돌면 "멈췄고 재시작도 없음"으로 보고 스스로 끝나므로, 재시작 대기 동안 다시 살림
+                if (!FOFOTimer.hasTimer("checkAutoHideTopbarOnPlaybackTimer"))
+                {
+                    startCheckAutoHideTopbarOnPlaybackTimer();
+                }
+
                 FOFOTimer.addByName("replayRestartTimer", 1.0, true, function ():Boolean
                     {
                         if (rReplayRestartTimerCount === 0)
