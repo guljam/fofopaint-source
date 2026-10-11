@@ -50,6 +50,7 @@ package Modules.L2Engine.ReplayEngine
         public static const JUMP_FRAME_MANUAL:int = (1 << 1); // 탐색바에서 마우스 특정 프레임 클릭
         public static const JUMP_FRAME_PREV:int = (1 << 2); // 이전 프레임으로 이동 (프레임 감소)
         public static const JUMP_FRAME_NEXT:int = (1 << 3); // 이후 프레임으로 이동 (프레임 증가)
+        public static const JUMP_FRAME_AUTO_SKIP:int = (1 << 4); // 재생 중 자동 건너뛰기 (재생 상태를 유지한 채 캐시 이미지를 불러오고, 시크바 탐색용 메모리 캐시는 만들지 않음)
 
         public static const anim:ReplayAnim = new ReplayAnim(); // 채우기, 올가미, 이동 연출
         public static var isRealtimePlay:Boolean = false; // 시계를 따라 재생하는 틱 안에서만 true (탐색, 슬라이드쇼, 캐시 생성에서는 연출 없이 바로 그림)
@@ -181,7 +182,7 @@ package Modules.L2Engine.ReplayEngine
             ReplayState.rMirrorON = cacheImageData.metadata.mirrorFlag;
         }
 
-        public static function drawCacheImageFirst(tragetFrame:Number):Number
+        public static function drawCacheImageFirst(tragetFrame:Number, jumpFlag:int):Number
         {
             const index:int = ReplayFileCache.getCachedFrameImageIndex(tragetFrame);
             var rMemoryCachedImageIndex:Number = -1; // 자잘 썸네일 인덱스를 넣어줌
@@ -194,7 +195,7 @@ package Modules.L2Engine.ReplayEngine
             // 아무생각없이 넣어본건데 버그 안나서 그대로 두려고함
             // ReplayState.isReplayStarted와 관련하여
             // 2026-10-04 claude 분석 결과 "재생 중에는 임시 캐시를 만들거나 지우지 않는다. 슬라이드쇼가 점프 이미지 경계를 넘을 때 디스크 재로드를 피하기 위함".
-            if (index !== ReplayFileCache.rLastCacheImageIndex && ReplayState.isReplayStarted === false)
+            if (index !== ReplayFileCache.rLastCacheImageIndex && (ReplayState.isReplayStarted === false || jumpFlag === JUMP_FRAME_AUTO_SKIP))
             {
                 ReplayFileCache.clearRFrameTempCache();
                 loadCacheFlag = 1;
@@ -269,7 +270,7 @@ package Modules.L2Engine.ReplayEngine
                 updateCanvasBGColorReplayMode(metaData.bgColor);
                 ReplayDrawCommands.setRCursorPos(metaData.rCursorPosX, metaData.rCursorPosY);
 
-                if (loadCacheFlag === 1 && ReplayState.isReplayStarted === false)
+                if (loadCacheFlag === 1 && ReplayState.isReplayStarted === false && jumpFlag !== JUMP_FRAME_AUTO_SKIP)
                 {
                     ReplayFileCache.refreshRFrameTempCachedImages();
                     ReplayFileCache.createRFrameTempCache(metaData.lastFrame, ReplayState.rFileLastBytePosition);
@@ -320,7 +321,7 @@ package Modules.L2Engine.ReplayEngine
             anim.clear();
 
             rFileStream.open(AppDataPaths.replayDataFilePath, FileMode.READ);
-            const remainingFrameCount:Number = drawCacheImageFirst(frame);
+            const remainingFrameCount:Number = drawCacheImageFirst(frame, jumpflag);
             const shouldStop:Boolean = ReplayDrawer.startDraw(remainingFrameCount, jumpflag);
             rFileStream.close();
             commandWindow.releaseStream(); // 이번 탐색에서 묶음을 연달아 읽느라 열어 둔 창의 스트림

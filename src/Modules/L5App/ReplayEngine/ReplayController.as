@@ -6,6 +6,7 @@ package Modules.L5App.ReplayEngine
     import flash.desktop.NativeDragManager;
     import flash.display.Bitmap;
     import flash.display.BitmapData;
+    import flash.display.DisplayObject;
     import flash.display.Sprite;
     import flash.events.Event;
     import flash.events.MouseEvent;
@@ -79,7 +80,8 @@ package Modules.L5App.ReplayEngine
         private static var autoSkipPlayRangeBag:Vector.<int> = new Vector.<int>();
         private static var autoSkipLastPlayRange:int = -1;
         private static const REPLAY_AUTO_SKIP_FADE_MS:Number = 250; // 건너뛴 직후 이전 화면이 사라지는 시간
-        private static var autoSkipFadeBitmap:Bitmap;
+        private static const REPLAY_AUTO_SKIP_FADE_HIDE_ALPHA:Number = 0.02; // 이 투명도 이하면 크로스페이드를 끝내고 숨김
+        private static var autoSkipFadeBitmap:Bitmap = new Bitmap(); // 건너뛰기 직전 화면. 캔버스 크기가 같으면 비트맵데이터를 재사용함 (리플레이 모드를 나갈때 해제)
         private static var rCanvasCompleteAnchorPoint:Sprite = new Sprite(); // 리플레이에어 이미지가 재생되었을때 보여주는 객체 stage와 가로세로 중앙정렬
         private static var rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0), "auto", true);
         private static var updatePrograssBarStartTime:int = 0; // 리플레이 시작 시간저장 update prograss bar에서 프레임 오차 수정할때 참고하는 변수
@@ -730,7 +732,7 @@ package Modules.L5App.ReplayEngine
             var doneCacheIndexes:Object = {}; // 다 썼지만 앞 번호가 아직이라 확정 못 한 번호 -> 임시 파일
             const cacheGeneration:int = BackgroundWorkerCoordinator.getCacheGeneration();
             const runId:int = ++loadCacheRunSeq;
-            ReplayFileCache.clearLoadCacheTempFolder();
+            ReplayFileCache.clearLoadedCacheTempFolder();
 
             function confirmDoneCaches():void
             {
@@ -749,7 +751,7 @@ package Modules.L5App.ReplayEngine
                     if (!(jumps.length > 0 && frame > jumps[jumps.length - 1]) || !ReplayFileCache.moveTempCacheImage(tempFile, index))
                     {
                         AppDataPaths.writeCrashLog("Replay cache image " + index + " commit failed (frame " + frame + ")");
-                        ReplayFileCache.deleteFileQuietly(tempFile);
+                        ReplayFileCache.deleteReplayCacheImages(tempFile);
                         fallBackToSyncCache();
                         break;
                     }
@@ -772,7 +774,7 @@ package Modules.L5App.ReplayEngine
 
                 for each (var tempFile:File in doneCacheIndexes)
                 {
-                    ReplayFileCache.deleteFileQuietly(tempFile);
+                    ReplayFileCache.deleteReplayCacheImages(tempFile);
                 }
 
                 snapshotFrames = {};
@@ -808,7 +810,7 @@ package Modules.L5App.ReplayEngine
                                 // 무효화된 작업이거나 생성이 멈췄으면 결과를 버림 (pendingCacheJobs는 무효화할때 이미 뺌)
                                 if (epoch !== cacheEpoch || isStopped)
                                 {
-                                    ReplayFileCache.deleteFileQuietly(tempFile);
+                                    ReplayFileCache.deleteReplayCacheImages(tempFile);
                                     return;
                                 }
 
@@ -825,7 +827,7 @@ package Modules.L5App.ReplayEngine
                                     {
                                         AppDataPaths.writeCrashLog("Replay cache image " + index + " failed: " + r.status + " " + r.error);
                                     }
-                                    ReplayFileCache.deleteFileQuietly(tempFile);
+                                    ReplayFileCache.deleteReplayCacheImages(tempFile);
                                     fallBackToSyncCache();
                                 }
                             });
@@ -1235,13 +1237,12 @@ package Modules.L5App.ReplayEngine
                 return false;
             }
 
-            // 시크바를 누르는 것과 같은 순서: 재생을 멈춘 상태로 가까운 캐시 이미지를 불러오고 남은 프레임만 그린 뒤 그 시각부터 이어서 재생
+            // 시크바를 누르는 것과 같은 순서: 가까운 캐시 이미지를 불러오고 남은 프레임만 그린 뒤 그 시각부터 이어서 재생
+            // JUMP_FRAME_AUTO_SKIP은 재생 상태를 유지한 채 캐시 이미지를 불러오고 시크바 탐색용 메모리 캐시는 만들지 않음 (재생 중에는 임시 캐시가 없음)
             captureReplayCanvasForAutoSkipFade();
             clearReplayWaitingState();
             ReplayDrawer.rFileStream.close();
-            ReplayState.isReplayStarted = false; // 재생 중에는 drawCacheImageFirst가 캐시 이미지를 불러오지 않음
-            ReplayDrawer.renderReplayFrame(targetFrame, ReplayDrawer.JUMP_FRAME_MANUAL);
-            ReplayState.isReplayStarted = true;
+            ReplayDrawer.renderReplayFrame(targetFrame, ReplayDrawer.JUMP_FRAME_AUTO_SKIP);
 
             if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
             {
@@ -1250,8 +1251,6 @@ package Modules.L5App.ReplayEngine
                 startReplayAutoSkipFade();
                 return true;
             }
-
-            ReplayFileCache.clearRFrameTempCache();
 
             if (!ReplayState.rMemoryDataReadON)
             {
@@ -1266,54 +1265,99 @@ package Modules.L5App.ReplayEngine
         }
 
         // 건너뛰기 직전 화면을 찍어 둠 (건너뛴 뒤 startReplayAutoSkipFade가 그 위에 얹어서 사라지게 함)
+        // 합쳐진 레이어 비트맵을 표시 순서대로 copyPixels로 복사함 (패널 전체를 draw로 렌더하는 것보다 빠름). 비트맵은 크기가 같으면 재사용
         private static function captureReplayCanvasForAutoSkipFade():void
         {
             endReplayAutoSkipFade();
-            const snapshot:BitmapData = new BitmapData(ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT, false, ReplayState.RCANVAS_BG_COLOR);
-            snapshot.draw(ReplayDrawer.rCanvasPanel);
-            autoSkipFadeBitmap = new Bitmap(snapshot);
+            const width:int = ReplayState.RCANVAS_WIDTH;
+            const height:int = ReplayState.RCANVAS_HEIGHT;
+
+            if (!autoSkipFadeBitmap.bitmapData || autoSkipFadeBitmap.bitmapData.width !== width || autoSkipFadeBitmap.bitmapData.height !== height)
+            {
+                disposeReplayAutoSkipFadeBitmapData();
+                autoSkipFadeBitmap.bitmapData = new BitmapData(width, height, false, ReplayState.RCANVAS_BG_COLOR);
+            }
+
+            const snapshot:BitmapData = autoSkipFadeBitmap.bitmapData;
+            const panel:Sprite = ReplayDrawer.rCanvasPanel;
+            const area:Rectangle = new Rectangle(0, 0, width, height);
+            snapshot.fillRect(area, 0xFF000000 | ReplayState.RCANVAS_BG_COLOR);
+
+            for (var i:int = 0; i < panel.numChildren; i++)
+            {
+                const child:DisplayObject = panel.getChildAt(i);
+
+                if (!child.visible)
+                {
+                    continue;
+                }
+
+                if (child === ReplayDrawer.rCanvasLayer1Bitmap || child === ReplayDrawer.rCanvasLayer2Bitmap)
+                {
+                    snapshot.copyPixels(Bitmap(child).bitmapData, area, new Point(0, 0), null, null, true);
+                }
+                else if (child === ReplayDrawer.rCanvasDrawLayer)
+                {
+                    snapshot.draw(child, null, new ColorTransform(1, 1, 1, child.alpha));
+                }
+            }
         }
 
         // 찍어 둔 화면을 캔버스 위에 얹고 SKIP_FADE_MS 동안 투명해지게 함. 캔버스와 같은 앵커에 넣어서 확대, 이동을 따라감
+        // 한 번 붙인 자식은 리플레이 모드를 나갈때(removeReplayAutoSkipFadeBitmap)까지 두고, 거의 투명해지면 visible만 끔
         private static function startReplayAutoSkipFade():void
         {
-            if (!autoSkipFadeBitmap)
-            {
-                return;
-            }
-
+            autoSkipFadeBitmap.alpha = 1;
+            autoSkipFadeBitmap.visible = true;
             autoSkipFadeBitmap.x = ReplayDrawer.rCanvasPanel.x;
             autoSkipFadeBitmap.y = ReplayDrawer.rCanvasPanel.y;
-            ReplayDrawer.rCanvasAnchorPoint.addChild(autoSkipFadeBitmap);
+
+            if (!autoSkipFadeBitmap.parent)
+            {
+                ReplayDrawer.rCanvasAnchorPoint.addChild(autoSkipFadeBitmap);
+            }
+
             const fadeStart:int = getTimer();
             FOFOTimer.addByName("replayAutoSkipFadeTimer", 0.0, true, function ():Boolean
                 {
-                    const progress:Number = (getTimer() - fadeStart) / REPLAY_AUTO_SKIP_FADE_MS;
+                    autoSkipFadeBitmap.alpha = 1 - (getTimer() - fadeStart) / REPLAY_AUTO_SKIP_FADE_MS;
 
-                    if (progress >= 1 || !ReplayState.isReplayModeON)
+                    if (autoSkipFadeBitmap.alpha <= REPLAY_AUTO_SKIP_FADE_HIDE_ALPHA || !ReplayState.isReplayModeON)
                     {
                         endReplayAutoSkipFade();
                         return false;
                     }
 
-                    autoSkipFadeBitmap.alpha = 1 - progress;
                     return true;
                 });
         }
 
+        // 크로스페이드를 멈추고 화면에서 안 보이게만 함 (자식에서는 제거하지 않음)
         private static function endReplayAutoSkipFade():void
         {
             FOFOTimer.remove("replayAutoSkipFadeTimer");
+            autoSkipFadeBitmap.visible = false;
+        }
 
-            if (autoSkipFadeBitmap)
+        // 리플레이 모드를 나갈때 자식에서 빼고 비트맵데이터를 해제함
+        private static function removeReplayAutoSkipFadeBitmap():void
+        {
+            endReplayAutoSkipFade();
+
+            if (autoSkipFadeBitmap.parent)
             {
-                if (autoSkipFadeBitmap.parent)
-                {
-                    autoSkipFadeBitmap.parent.removeChild(autoSkipFadeBitmap);
-                }
+                autoSkipFadeBitmap.parent.removeChild(autoSkipFadeBitmap);
+            }
 
+            disposeReplayAutoSkipFadeBitmapData();
+        }
+
+        private static function disposeReplayAutoSkipFadeBitmapData():void
+        {
+            if (autoSkipFadeBitmap.bitmapData)
+            {
                 autoSkipFadeBitmap.bitmapData.dispose();
-                autoSkipFadeBitmap = null;
+                autoSkipFadeBitmap.bitmapData = null;
             }
         }
 
@@ -1888,6 +1932,7 @@ package Modules.L5App.ReplayEngine
             ReplayModeInput.removeEvents();
             cancelReplayRestartTimer();
             ReplayDrawer.commandWindow.dispose();
+            removeReplayAutoSkipFadeBitmap();
             ReplayState.isReplayModeON = false;
             ReplayDrawer.rCanvasAnchorPoint.visible = false;
             ReplayDrawer.rReplayFOFOCursor.visible = false;
