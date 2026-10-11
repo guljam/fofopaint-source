@@ -36,6 +36,8 @@ package Modules.L2Engine
         public static var onWorkerStartedFunc:Function;
         // undo 캐시 작업이 모두 끝나 잠금을 풀고 대기 중인 불러오기를 이어가야 한다는 보고
         public static var onUndoJobsFinishedFunc:Function;
+        // worker가 보낸 캡처 PNG를 파일에 쓴 결과 보고 (인자: 최종 파일 이름, 쓴 크기, 실패 오류). 성공이면 오류가 null, 실패면 크기가 NaN
+        public static var onCaptureImageWrittenFunc:Function;
 
         public static const WORKER_WAIT_INTERVAL:Number = 1.0,
             WORKER_STATE_STOPPED:int = 0,
@@ -516,22 +518,49 @@ package Modules.L2Engine
 
                                 const fs:FileStream = new FileStream();
                                 var file:File = new File(filePath);
+                                var writtenName:String = fileName;
                                 if (fileName.lastIndexOf(".png") === -1) // png를 안붙여 줬을때
                                 {
                                     const fixedPath:String = filePath.replace(fileName, ""); // 이름짜르고 경로만 저장
                                     const dotPNG:String = fileName + ".png";
                                     file = new File(fixedPath + dotPNG);
+                                    writtenName = dotPNG;
                                 }
 
-                                fs.open(file, FileMode.WRITE);
-                                fs.writeBytes(receivedCaptureImageQueueFromWorker[0]);
-                                fs.close();
-                                receivedCaptureImageQueueFromWorker[0].clear();
-                                receivedCaptureImageQueueFromWorker[0] = null;
-                                receivedCaptureImageQueueFromWorker.shift();
+                                const size:Number = receivedCaptureImageQueueFromWorker[0].length;
+                                var writeError:Error = null;
+                                try
+                                {
+                                    fs.open(file, FileMode.WRITE);
+                                    fs.writeBytes(receivedCaptureImageQueueFromWorker[0]);
+                                    fs.close();
+                                }
+                                catch (err:Error)
+                                {
+                                    writeError = err;
+                                    try
+                                    {
+                                        fs.close();
+                                    }
+                                    catch (closeErr:Error)
+                                    {
+                                    }
+                                }
+                                finally
+                                {
+                                    // 쓰기가 실패해도 이 항목은 대기열에서 빼야 다음 캡처가 이 경로로 쓰이지 않음
+                                    receivedCaptureImageQueueFromWorker[0].clear();
+                                    receivedCaptureImageQueueFromWorker[0] = null;
+                                    receivedCaptureImageQueueFromWorker.shift();
 
-                                captureImageDataQueue[0] = null;
-                                captureImageDataQueue.shift();
+                                    captureImageDataQueue[0] = null;
+                                    captureImageDataQueue.shift();
+                                }
+
+                                if (onCaptureImageWrittenFunc !== null)
+                                {
+                                    onCaptureImageWrittenFunc(writtenName, writeError === null ? size : NaN, writeError);
+                                }
                             }
                         }
                         else if (receivedCaptureImageQueueFromWorker.length === 0 && captureImageDataQueue.length === 0)

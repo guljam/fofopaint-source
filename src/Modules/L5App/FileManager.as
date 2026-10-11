@@ -41,6 +41,7 @@ package Modules.L5App
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L4UI.UIEngine.MessageBoxController;
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
@@ -1097,8 +1098,8 @@ package Modules.L5App
         {
             BackgroundWorkerCoordinator.isSaveInProgress = 0;
             refreshFileOperationButtonsTopbar();
-            HintController.showMouseHintTemp((renamed ? "Saved as " + stripExtension(lastSaveFileName) + " (file was in use) (" : "Saved (")
-                + (getTimer() - saveStartTime) + " ms, " + ReplayFileCache.formatFileSize(fofoSize) + ")", 10.0);
+            MessageBoxController.showStatus((renamed ? "File saved as \"" + stripExtension(lastSaveFileName) + "\" (file was in use) : " : "File saved : ")
+                + (getTimer() - saveStartTime) + " ms" + getSizeSuffix(fofoSize));
 
             if (LoadBoxController.isLoadPendingAfterSaving)
             {
@@ -1123,7 +1124,26 @@ package Modules.L5App
 
             refreshFileOperationButtonsTopbar();
             AppWindowState.markWindowTitleAsDirty();
-            HintController.showMouseHintTemp("Save failed: " + describeWriteError(result.error), 10.0);
+            MessageBoxController.showError("Save failed: " + describeWriteError(result.error));
+        }
+
+        // 메시지 뒤에 붙이는 ", 크기". 크기를 모르면 쉼표까지 통째로 뺌
+        private static function getSizeSuffix(bytes:Number):String
+        {
+            return (isNaN(bytes) || bytes <= 0) ? "" : ", " + ReplayFileCache.formatFileSize(bytes);
+        }
+
+        // worker가 보낸 캡처 PNG를 파일에 쓴 결과 (BackgroundWorkerCoordinator 슬롯)
+        public static function onCaptureImageWritten(fileName:String, size:Number, error:Error):void
+        {
+            if (error === null)
+            {
+                MessageBoxController.showStatus("Image saved : \"" + fileName + "\"" + getSizeSuffix(size));
+            }
+            else
+            {
+                MessageBoxController.showError(error.message);
+            }
         }
 
         private static function describeWriteError(code:int):String
@@ -1362,7 +1382,11 @@ package Modules.L5App
                     if (result.status !== NativeSave.STATUS_OK)
                     {
                         AppDataPaths.writeCrashLog("Capture save failed: stage=" + result.stage + " win32 error=" + result.error + " " + result.pngPath + " " + result.message);
-                        HintController.showMouseHintTemp("Capture save failed: " + describeWriteError(result.error), 10.0);
+                        MessageBoxController.showError("Capture save failed: " + describeWriteError(result.error));
+                    }
+                    else
+                    {
+                        MessageBoxController.showStatus("Image saved : \"" + getFileNameFromPath(path) + "\"" + getSizeSuffix(result.fofoSize)); // PNG 작업은 이 칸에 PNG 크기가 담겨 옴
                     }
                 });
             composite.dispose();
@@ -1510,7 +1534,7 @@ package Modules.L5App
                 }
                 else
                 {
-                    HintController.showMouseHintTemp("Already saved");
+                    MessageBoxController.showStatus("Already saved");
                 }
                 return;
             }
@@ -1646,6 +1670,8 @@ package Modules.L5App
         {
             const fs:FileStream = new FileStream();
             var isWritten:Boolean = true;
+            var writeErrorMessage:String = "";
+            var fofoSize:Number = NaN;
 
             try
             {
@@ -1693,12 +1719,14 @@ package Modules.L5App
                     fs.writeObject(ReplayFileCache.rTimingSheetFileObject);
                 }
 
+                fofoSize = fs.position; // 저장 후 파일을 다시 읽지 않고 쓴 크기를 씀
                 fs.close();
             }
             catch (writeErr:Error)
             {
                 // 임시 파일 쓰기 실패(디스크 부족, 잠김 등), 아래에서 저장 잠금을 풀고 새 파일로 저장해줌
                 isWritten = false;
+                writeErrorMessage = writeErr.message;
 
                 try
                 {
@@ -1729,7 +1757,7 @@ package Modules.L5App
             {
                 if (isWritten === false)
                 {
-                    throw new Error("replay temp file write failed");
+                    throw new Error(writeErrorMessage);
                 }
                 const newPath:String = ReplayFileCache.getReplayFileNameFromPath(FileManager.lastSaveFilePath);
                 savedFile = new File(newPath);
@@ -1738,6 +1766,7 @@ package Modules.L5App
             catch (err:Error)
             {
                 // 파일 엑세스가 불가하므로 새로운 파일로 저장해줌
+                MessageBoxController.showError(err.message);
 
                 if (BackgroundWorkerCoordinator.isSaveInProgress === 1)
                 {
@@ -1753,7 +1782,7 @@ package Modules.L5App
                 BackgroundWorkerCoordinator.isSaveInProgress = 0;
             }
 
-            HintController.showMouseHintTemp("Saved (" + (getTimer() - FileManager.saveStartTime) + " ms, " + ReplayFileCache.formatFileSize(savedFile.size) + ")",10.0);
+            MessageBoxController.showStatus("File saved : " + (getTimer() - FileManager.saveStartTime) + " ms" + getSizeSuffix(fofoSize));
         }
 
     }

@@ -38,6 +38,11 @@ package Modules.L1Data.UIEngine
 
         static private const hintBGColors:Array = [0xFF7943, 0xFF8A2C, 0xFFAF45, 0xFFCF46];
         static private const hintHighlightBoxColors:Array = [0x73B5E4, 0x7AC3F0, 0x6C9CDB, 0x609CFF];
+        // 좌하단 메시지 상자 배경색 (주황색 하단 힌트처럼 UI가 밝아질수록 밝게)
+        static private const messageErrorBGColors:Array = [0xFF5A5A, 0xFF6B6B, 0xFF8080, 0xFF9999];
+        static private const messageStatusBGColors:Array = [0x4CD964, 0x5CE07A, 0x7BEA8F, 0x99F2A8];
+        public static var messageBGAlpha:Number = 0.45; // 나중에 조정
+        public static var messageTextColor:uint = 0x000000; // 나중에 조정
 
         public static function getDefaultUIColor():int
         {
@@ -119,6 +124,16 @@ package Modules.L1Data.UIEngine
         public static function getHintBGColor():uint
         {
             return hintBGColors[uiColorIndex];
+        }
+
+        public static function getMessageErrorBGColor():uint
+        {
+            return messageErrorBGColors[uiColorIndex];
+        }
+
+        public static function getMessageStatusBGColor():uint
+        {
+            return messageStatusBGColors[uiColorIndex];
         }
 
         public static function setButtonColorWithBG(btn:DisplayObjectContainer, index1:int, index2:int, alpha:Number = 1.0):void

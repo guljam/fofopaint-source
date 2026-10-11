@@ -15,6 +15,7 @@ package Modules.L5App.InputManager
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L4UI.UIEngine.MessageBoxController;
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.CanvasView;
@@ -29,6 +30,7 @@ package Modules.L5App.InputManager
     import Modules.L1Data.FOFOTimer;
     import Modules.L2Engine.DrawEngine.HandDrawnLine;
     import Modules.L1Data.InputPriority;
+    import Modules.L1Data.Utils;
 
     // 층: L5 앱 흐름 - 키보드·마우스 입력을 받아 모드별 입력 처리로 나눠줌
     public class InputManager
@@ -221,13 +223,7 @@ package Modules.L5App.InputManager
             // 디버그 확인용
             // if (KeyState.isPressedKey(KeyState.KEY.f12))
             // {
-            //     if(!UIController.topBar.updateButton.visible)
-            //     {
-            //         UIController.topBar.showUpdateButton();
-            //     }else
-            //     {
-            //         UIController.topBar.hideUpdateButton();
-            //     }
+            //     MessageController.testCallMessageBox();
             // }
 
             KeyState.checkInvalidKey();

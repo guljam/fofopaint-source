@@ -39,6 +39,7 @@
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L4UI.UIEngine.MessageBoxController;
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L2Engine.DrawEngine.CanvasView;
@@ -174,6 +175,7 @@
                 FileManager.refreshFileOperationButtonsTopbar();
             };
             BackgroundWorkerCoordinator.onWorkerStartedFunc = FileManager.refreshFileOperationButtonsTopbar;
+            BackgroundWorkerCoordinator.onCaptureImageWrittenFunc = FileManager.onCaptureImageWritten;
             BackgroundWorkerCoordinator.onUndoJobsFinishedFunc = function ():void
             {
                 FileManager.refreshFileOperationButtonsTopbar();
@@ -394,7 +396,7 @@
                     {
                         msg = String(errorObject);
                     }
-                    HintController.showMouseHintTemp(msg, 10.0);
+                    MessageBoxController.showError(msg);
                 }
                 catch (hintError:Error)
                 {

@@ -9,6 +9,7 @@ package Modules.L1Data
     // 층: L1 데이터 - stage 입력 이벤트 리스너 우선순위 값
     public class InputPriority
     {
+        public static const MESSAGE_BOX:int = 20000; // 좌하단 메시지 상자. LayerPreview(10000)보다 먼저 클릭을 받아야 함
         public static const EARLY:int = 12;
         public static const STAGE_ROOT:int = 11;
         public static const DEFAULT:int = 10;
