@@ -47,6 +47,7 @@ package Modules.L4UI.ReplayEngine
         private static const REGION_LOW:Number = 0.1; // 시간 가중 10~90% 구간을 영역으로 봄
         private static const REGION_HIGH:Number = 0.9;
         private static const MAX_PATH_SAMPLES:int = 600; // 계산에 쓰는 경로 점 수 상한
+        private static const EXCURSION_GAP_MS:Number = 150; // 데드존 밖 구간 사이에 안으로 들어와 있던 실제 시간이 이보다 짧으면 같은 바깥 이동으로 이음 (경계를 스치는 점 하나로 구간이 갈라졌다 합쳐지며 영역이 튀는 것을 막음)
 
         private static const USER_OVERRIDE_MS:Number = 3000; // 수동 줌(휠, 키, 버튼) 뒤 이 시간 동안은 자동 줌아웃을 시작하지 않음. 위치 추적과 안전 구역은 계속 동작
 
@@ -74,6 +75,7 @@ package Modules.L4UI.ReplayEngine
         private const sampleX:Vector.<Number> = new Vector.<Number>();
         private const sampleY:Vector.<Number> = new Vector.<Number>();
         private const sampleW:Vector.<Number> = new Vector.<Number>(); // 샘플의 가중치(그 위치에 머문 녹화 시간)
+        private const sampleOut:Vector.<Boolean> = new Vector.<Boolean>(); // 샘플이 데드존 밖인지
 
         // 자동 줌 상태. userZoom은 사용자가 정한 배율이고 외부가 배율을 바꿨을 때만 갱신됨 (자동 줌은 rCanvasZoomIndex 등 사용자 줌 값을 건드리지 않음)
         private var zoomState:int = ZOOM_FOLLOW;
@@ -242,6 +244,7 @@ package Modules.L4UI.ReplayEngine
         {
             const cursor:Point = ReplayDrawCommands.getRCursorPos();
             const cursorScreen:Point = canvasToScreen(cursor.x, cursor.y);
+            cursorScreen.offset(posX - ReplayDrawer.rCanvasAnchorPoint.x, posY - ReplayDrawer.rCanvasAnchorPoint.y); // 화면에 그려진 건 반올림된 앵커 기준이라 소수 위치(pos) 기준으로 맞춤 (안 맞추면 반올림 차이로 경계를 넘나들며 한 칸씩 흔들림)
             const view:Rectangle = viewportRect();
             const canvas:Rectangle = canvasScreenRect();
             const safeLeft:Number = view.left + SAFETY_PADDING;
@@ -408,18 +411,20 @@ package Modules.L4UI.ReplayEngine
             }
 
             // 데드존 밖 연속 구간의 실제 시간이 EXCURSION_IGNORE_MS보다 짧으면 제외 (구간이 span 끝까지 이어지면 끝을 알 수 없어 제외하지 않음)
+            sampleOut.length = n;
+
+            for (i = 0;i < n;i++)
+            {
+                var sx:Number = gp.x + (sampleX[i] * cos - sampleY[i] * sin) * zoom;
+                var sy:Number = gp.y + (sampleX[i] * sin + sampleY[i] * cos) * zoom;
+                sampleOut[i] = sx < zoneLeft || sx > zoneRight || sy < zoneTop || sy > zoneBottom;
+            }
+
             var runStart:int = -1;
 
             for (i = 0;i <= n;i++)
             {
-                var outside:Boolean = false;
-
-                if (i < n)
-                {
-                    const sx:Number = gp.x + (sampleX[i] * cos - sampleY[i] * sin) * zoom;
-                    const sy:Number = gp.y + (sampleX[i] * sin + sampleY[i] * cos) * zoom;
-                    outside = sx < zoneLeft || sx > zoneRight || sy < zoneTop || sy > zoneBottom;
-                }
+                var outside:Boolean = (i < n) && sampleOut[i];
 
                 if (outside && runStart < 0)
                 {
@@ -427,6 +432,22 @@ package Modules.L4UI.ReplayEngine
                 }
                 else if (!outside && runStart >= 0)
                 {
+                    // 안으로 잠깐 들어왔다 다시 나가면 같은 바깥 이동으로 이음
+                    var gapMs:Number = 0;
+                    var next:int = i;
+
+                    while (next < n && !sampleOut[next])
+                    {
+                        gapMs += sampleW[next];
+                        next++;
+                    }
+
+                    if (next < n && gapMs / speed < EXCURSION_GAP_MS)
+                    {
+                        i = next;
+                        continue;
+                    }
+
                     var runMs:Number = 0;
 
                     for (var j:int = runStart;j < i;j++)
