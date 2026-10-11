@@ -297,7 +297,7 @@ package Modules.L2Engine.ReplayEngine
             return remainingFrameCount;
         }
 
-        // 반환값: 리플레이를 정지해야 하면 true (슬라이드쇼 재생이 끝났을때)
+        // 반환값: 리플레이를 정지해야 하면 true
         public static function renderReplayFrame(frame:Number, jumpflag:int):Boolean
         {
             if (frame < 0)
@@ -347,7 +347,7 @@ package Modules.L2Engine.ReplayEngine
 
             ReplayDrawCommands.updateRCursorPos();
 
-            if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoHistory.isDeepUndoEnabled)
+            if (!ReplayState.isReplayCanvasFitToWindow && !UndoHistory.isDeepUndoEnabled)
             {
                 cursorFollow.snap();
             }
@@ -682,7 +682,7 @@ package Modules.L2Engine.ReplayEngine
                 ReplayDrawer.rReplayFOFOCursor.visible = false;
                 ReplayState.isReplayFinished = true;
 
-                if (jumpFlag === JUMP_FRAME_PLAY || ReplayState.isReplaySlideShowMode === true) // 1프레임 이상일때만 재시작 타이머 가동
+                if (jumpFlag === JUMP_FRAME_PLAY) // 1프레임 이상일때만 재시작 타이머 가동
                 {
                     // reset replay time해주지 말고 그냥 end플래그만 올려줌
                     // 왜냐하면 리플레이 자연적으로 끝나고도 스킵프레임이나 oneframe jump을 해줄수가 있기 때문
@@ -715,7 +715,7 @@ package Modules.L2Engine.ReplayEngine
             const animMs:Number = ReplayClock.animMsOfFrame(ReplayState.rNowFrame);
             const startRecorded:Number = ReplayClock.timeOfFrame(ReplayState.rNowFrame);
 
-            if (animMs / ReplayState.rReplaySpeedMultipler >= ReplayAnim.MIN_REAL_MS && ReplayClock.recordedPeek() - startRecorded < animMs)
+            if (animMs / ReplayState.getReplayClockSpeed() >= ReplayAnim.MIN_REAL_MS && ReplayClock.recordedPeek() - startRecorded < animMs)
             {
                 anim.arm(animMs, startRecorded, ReplayState.rNowFrame);
             }

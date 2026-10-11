@@ -11,6 +11,7 @@ package Modules.L2Engine.ReplayEngine
     public class ReplayState
     {
         public static var REPLAY_MAX_SPEED:Number = 0.0;
+        public static const REPLAY_AUTO_SKIP_PLAY_SPEED:Number = 60; // 이 배속을 넘으면 이 배속으로 재생하다가 중간중간 건너뜀 (ReplayController.skipReplayAfterAutoSkipPlay)
         public static const REPLAY_VISUAL_UPDATE_MS:int = 48; // 리플레이 커서 표시 갱신 주기(ms). 앱 프레임레이트와 무관
 
         public static const REPLAY_IMAGE_CAHCHE_COMPLETE:int = (1 << 0);
@@ -38,7 +39,6 @@ package Modules.L2Engine.ReplayEngine
         public static var rCanvasZoomIndex:int = 4;
         public static var isReplayCanvasFitToWindow:Boolean = false; // 리플레이에서 오른쪽 클릭해서 창 크기에 맞췄을때 올려줌 startreplay될때 줌 1.0으로 리셋 못시키게함
         public static var rReplayImageCacheState:int = REPLAY_IMAGE_CAHCHE_COMPLETE;
-        public static var isReplaySlideShowMode:Boolean = false; // doDrawSlowEvent가 켜지면 올려줌
         public static var rMemoryDataBuffer:Array = []; // draw layer에서 그려준 데이터를 이쪽으로 다모아줌
         public static var rMemoryData:Array = []; // rDataBuffer가 이쪽으로 이동되고 undo image data갯수에 똑같이맞추어줌
         public static var rMemoryDataFrames:Array = []; // rdata안에 몇프레임이 들어있는지 저장
@@ -54,6 +54,12 @@ package Modules.L2Engine.ReplayEngine
         public static var rMemoryDataIndex:int = 0; // rData에서만씀 rData 스크로크 뭉치 인덱스
         public static var rFileLastBytePosition:Number = 0; // fs position 저장
         public static var rFileCutBytePosition:Number = 0; // super undo에서 파일 잘라줄때 필요함
+
+        // 시계가 실제로 흐르는 배속. 선택한 배속이 자동 건너뛰기 재생 배속을 넘으면 그 배속으로 재생하고 나머지는 건너뛰어서 맞춤
+        public static function getReplayClockSpeed():Number
+        {
+            return Math.min(rReplaySpeedMultipler, REPLAY_AUTO_SKIP_PLAY_SPEED);
+        }
 
         public static function isZeroReplayFrame():Boolean
         {

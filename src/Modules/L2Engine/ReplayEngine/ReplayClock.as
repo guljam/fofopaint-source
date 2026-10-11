@@ -988,6 +988,14 @@ package Modules.L2Engine.ReplayEngine
             replayWaitingEnd = -1;
         }
 
+        // 재생 중 시계를 녹화 시각 recorded로 옮김 (자동 건너뛰기). 배속은 그대로
+        public static function anchorAtRecorded(recorded:Number):void
+        {
+            anchorRecorded = recorded;
+            anchorReal = getTimer();
+            replayWaitingEnd = -1;
+        }
+
         // 일시정지하거나 시크바를 클릭한 때 frame개를 그린 상태와 그 녹화 시각을 기억해둠. 프레임이 바뀌면 anchorAtFrame이 무시함
         public static function rememberPosition(frame:Number, recorded:Number):void
         {

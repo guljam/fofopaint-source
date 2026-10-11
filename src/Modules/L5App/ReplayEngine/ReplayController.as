@@ -70,17 +70,21 @@ package Modules.L5App.ReplayEngine
     public class ReplayController
     {
 
-        private static const REPLAY_SLIDESHOW_ACTIVE_SPEED:Number = 60;
+        private static const REPLAY_MAX_SPEED_PLAY_MS:Number = 30000; // 배속을 끝까지 올렸을때 전체를 보는데 걸리는 시간(ms)
         private static const REPLAY_DRAW_CHUNK_FRAMES:Number = 200; // 시계를 따라가려고 한번에 그리는 프레임 수 단위
         private static const REPLAY_DRAW_TIME_BUDGET:int = 14; // 한 틱에 그리기에 쓰는 최대 시간(ms)
-        private static const REPLAY_SLIDESHOW_FRAME_RATE:Number = 1.5; // 1/1.5초마다 갱신
-        private static const REPLAY_SLIDESHOW_UPDATE_TIME:Number = 1000 / REPLAY_SLIDESHOW_FRAME_RATE;
+        private static const REPLAY_AUTO_SKIP_PLAY_MIN_MS:Number = 1000; // 자동 건너뛰기 재생 구간 길이 범위
+        private static const REPLAY_AUTO_SKIP_PLAY_MAX_MS:Number = 3000;
+        private static const REPLAY_AUTO_SKIP_PLAY_RANGE_COUNT:int = 3; // 범위를 이만큼 나눠서 한 바퀴씩 골고루 뽑음
+        private static var autoSkipPlayRangeBag:Vector.<int> = new Vector.<int>();
+        private static var autoSkipLastPlayRange:int = -1;
+        private static const REPLAY_AUTO_SKIP_FADE_MS:Number = 250; // 건너뛴 직후 이전 화면이 사라지는 시간
+        private static var autoSkipFadeBitmap:Bitmap;
         private static var rCanvasCompleteAnchorPoint:Sprite = new Sprite(); // 리플레이에어 이미지가 재생되었을때 보여주는 객체 stage와 가로세로 중앙정렬
         private static var rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0), "auto", true);
         private static var updatePrograssBarStartTime:int = 0; // 리플레이 시작 시간저장 update prograss bar에서 프레임 오차 수정할때 참고하는 변수
         private static var rReplayRestartTimerCount:uint = 0; // 리스타트 타이머
         private static var isReplaySpeedDragging:Boolean = false; // 속도 슬라이더 드래그 중에는 s eekbar 텍스트에 속도 힌트를 보여줌
-        private static var rSeekbarTextUpdateTime:int = 0; // 프레임 바 딜레이
         private static var stopGeneratingCacheImageFunc:Function = null; // 캐시 이미지 만드는 중이면 멈추는 함수
         private static var frameOnEnterReplayMode:Number = -1; // 리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼줄때 이 프레임으로 되돌림
         public static var lastReplayTimeBoxYPos:Number = 0; // 리플레이 재생해줄때 WorkspaceView.topbar 사라지게 할때 원래 위치 저장해서 끝나면 이 위치로 복원해줌
@@ -110,14 +114,14 @@ package Modules.L5App.ReplayEngine
             ReferenceLayerController.resetRefLayerImageTransform();
         }
 
-        //리플레이 배속을 끝까지 올렸을때 총 프레임수을 고려해서 10초가 걸리도록 갱신해줌
-        public static function updateTotalFrameAndReplayMaxSpeedFor10Sec(totalframe:Number):void
+        //리플레이 배속을 끝까지 올렸을때 총 프레임수을 고려해서 30초가 걸리도록 갱신해줌
+        public static function updateTotalFrameAndReplayMaxSpeed(totalframe:Number):void
         {
             ReplayState.TOTAL_FRAME = totalframe;
             // 파일 부분 색인은 바꾼 곳에서 증분으로 갱신하고(ReplayClock.extendFileIndex, truncateFileIndex, rebuildFileIndex) 여기서는 맞는지 확인만 함. 메모리 부분은 매번 새로 만듬
             ReplayClock.ensureIndex();
             ReplayClock.rebuildMemoryIndex();
-            var maxSpeed:Number = Math.floor(ReplayClock.axisMsAtSpeed(1) / 10000); // 1배속 기준으로 쉬는 구간을 줄인 길이 (배속에 따라 길이가 바뀌는 순환을 피함)
+            var maxSpeed:Number = Math.floor(ReplayClock.axisMsAtSpeed(1) / REPLAY_MAX_SPEED_PLAY_MS); // 1배속 기준으로 쉬는 구간을 줄인 길이 (배속에 따라 길이가 바뀌는 순환을 피함)
 
             if (maxSpeed < 1.0)
             {
@@ -128,7 +132,7 @@ package Modules.L5App.ReplayEngine
 
             if (UIController.topBar)
             {
-                UIController.topBar.updateReplaySpeedSnapMarker(maxSpeed, REPLAY_SLIDESHOW_ACTIVE_SPEED);
+                UIController.topBar.updateReplaySpeedSnapMarker(maxSpeed, ReplayState.REPLAY_AUTO_SKIP_PLAY_SPEED);
             }
 
             if (ReplayState.rReplaySpeedMultipler > maxSpeed)
@@ -216,7 +220,7 @@ package Modules.L5App.ReplayEngine
                 ReplayState.rMemoryData.splice(0, ReplayState.rMemoryDataIndex + 1);
                 ReplayState.rMemoryDataFrames.splice(0, ReplayState.rMemoryDataIndex + 1);
                 ReplayState.rMemoryDataTimingSheet.splice(0, ReplayState.rMemoryDataIndex + 1);
-                updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
+                updateTotalFrameAndReplayMaxSpeed(ReplayState.getTotalFrame());
                 updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
 
                 if (ReplayState.isZeroReplayFrame())
@@ -298,7 +302,7 @@ package Modules.L5App.ReplayEngine
                 ReplayState.rMemoryData.splice(ReplayState.rMemoryDataIndex + 1);
                 ReplayState.rMemoryDataFrames.splice(ReplayState.rMemoryDataIndex + 1);
                 ReplayState.rMemoryDataTimingSheet.splice(ReplayState.rMemoryDataIndex + 1);
-                updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
+                updateTotalFrameAndReplayMaxSpeed(ReplayState.getTotalFrame());
                 resetReplayTime();
             }
             else if (ReplayState.rMemoryDataReadON === false)
@@ -316,7 +320,7 @@ package Modules.L5App.ReplayEngine
                 ReplayState.setRFileDataTotalFrame(rNowFrameSave);
                 TimingSheetFile.truncateAfter(rNowFrameSave);
                 ReplayClock.truncateFileIndex(rNowFrameSave);
-                updateTotalFrameAndReplayMaxSpeedFor10Sec(rNowFrameSave);
+                updateTotalFrameAndReplayMaxSpeed(rNowFrameSave);
                 DrawCanvas.canvasLayer1BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer1BitmapData, ReplayDrawer.rCanvasLayer1BitmapData, DrawCanvas.canvasLayer1Bitmap);
                 DrawCanvas.canvasLayer1Bitmap.bitmapData = DrawCanvas.canvasLayer1BitmapData;
                 DrawCanvas.canvasLayer2BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer2BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, DrawCanvas.canvasLayer2Bitmap);
@@ -377,36 +381,6 @@ package Modules.L5App.ReplayEngine
 
             UIController.seekBarBox.updateDeleteDangeBarPosWidth(mode);
             return false;
-        }
-
-        public static function drawCanvasFromReplayDataSlideShowMode():void
-        {
-            const nowTime:int = getTimer();
-
-            if (nowTime - rSeekbarTextUpdateTime >= REPLAY_SLIDESHOW_UPDATE_TIME)
-            {
-                rSeekbarTextUpdateTime = nowTime;
-                // 시계 기준으로 지금 그려야 하는 프레임까지 한번에 그림
-                const dueFrame:Number = ReplayClock.getRemaingFrameCount(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
-                const shouldStop:Boolean = ReplayDrawer.renderReplayFrame(dueFrame, ReplayDrawer.JUMP_FRAME_MANUAL);
-
-                if (shouldStop)
-                {
-                    stopReplay();
-
-                    // 예전에는 renderReplayFrame 안에서 정지된 뒤(슬라이드쇼 플래그 꺼진 상태로) 실행되던 검사라서 순서 유지를 위해 여기서 다시 해줌
-                    if (!ReplayState.isReplaySlideShowMode && !ReplayState.isReplayCanvasFitToWindow && !UndoHistory.isDeepUndoEnabled)
-                    {
-                        ReplayDrawer.cursorFollow.snap();
-                    }
-                }
-
-                if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
-                {
-                    ReplayState.isReplayFinished = true;
-                    stopReplay();
-                }
-            }
         }
 
         public static function updateDeleteReplayDataButtonsState():void
@@ -568,7 +542,6 @@ package Modules.L5App.ReplayEngine
                 FOFOTimer.remove("prograssBarUpdateTimer");
                 UIController.seekBarBox.setReplayPrograssBarWidth(clickX);
                 clampFrame();
-                ReplayState.isReplaySlideShowMode = false;
                 ReplayState.isReplayFinished = false;
                 UIController.seekBarBox.resetPrograssBarColor();
             }
@@ -636,7 +609,7 @@ package Modules.L5App.ReplayEngine
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReplayFileCache.deleteCacheProgress();
             resetReplayTime();
-            updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame());
+            updateTotalFrameAndReplayMaxSpeed(ReplayState.getTotalFrame());
             ReplayState.rNowFrame = ReplayState.TOTAL_FRAME;
             frameOnEnterReplayMode = ReplayState.TOTAL_FRAME;
             ReplayState.rPrevFrame = _frameSumLast;
@@ -1080,7 +1053,6 @@ package Modules.L5App.ReplayEngine
             ReplayFileCache.rLastCacheImageIndex = -2;
             ReplayFileCache.rTempCachedLastImageIndex = -2;
             ReplayState.isReplayFinished = true;
-            ReplayState.isReplaySlideShowMode = false;
             ReplayDrawCommands.clearData();
         }
 
@@ -1145,7 +1117,7 @@ package Modules.L5App.ReplayEngine
                     // 재생 중 시크바는 시계가 흐르는 대로 매 프레임 움직임 (쉬는 구간에도 멈추지 않음)
                     if (ReplayState.isReplayStarted)
                     {
-                        UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.playRatio(ReplayState.rReplaySpeedMultipler));
+                        UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.playRatio(ReplayState.getReplayClockSpeed()));
                     }
 
                     if (nowTime - lastTextUpdateTime >= textUpdateTime)
@@ -1182,36 +1154,167 @@ package Modules.L5App.ReplayEngine
 
         public static function startReplayDrawTimer():void
         {
+            var autoSkipPlayStartAt:int = getTimer(); // 자동 건너뛰기 재생 구간을 시작한 시각 (배속이 자동 건너뛰기 재생 배속 이하면 매 틱 갱신)
+            var autoSkipPlayMs:Number = getNextAutoSkipPlayMs();
             FOFOTimer.addByName("replayDrawTimer", 0.0, true, function ():Boolean
                 {
-                    if (ReplayState.isReplaySlideShowMode)
+                    if (ReplayState.rReplaySpeedMultipler > ReplayState.REPLAY_AUTO_SKIP_PLAY_SPEED)
                     {
-                        startReplaySlideShowMode();
-                        return true;
-                    }
+                        const autoSkipPlayElapsed:int = getTimer() - autoSkipPlayStartAt;
 
-                    if (shouldUseReplaySlideShowMode())
-                    {
-                        ReplayState.isReplaySlideShowMode = true;
-                        ReplayController.clearReplayWaitingState(); 
-                        ReplayDrawer.rFileStream.close();
+                        if (autoSkipPlayElapsed >= autoSkipPlayMs)
+                        {
+                            if (skipReplayAfterAutoSkipPlay(autoSkipPlayElapsed))
+                            {
+                                return true;
+                            }
+
+                            autoSkipPlayStartAt = getTimer();
+                            autoSkipPlayMs = getNextAutoSkipPlayMs();
+                        }
                     }
                     else
                     {
-                        if (drawRemaingFrames())
-                        {
-                            isRestartPending = ReplayState.isReplayRepeatON; // 곧 재시작 대기가 시작됨 (그 사이 상단바가 잠깐 보였다 숨지 않게)
-                            stopReplay(isRestartPending && ReplayMouseAutoHide.isMouseHided);
-                        }
+                        autoSkipPlayStartAt = getTimer();
                     }
 
-                    ReplayDrawer.commandWindow.refill(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
+                    if (drawRemaingFrames())
+                    {
+                        isRestartPending = ReplayState.isReplayRepeatON; // 곧 재시작 대기가 시작됨 (그 사이 상단바가 잠깐 보였다 숨지 않게)
+                        stopReplay(isRestartPending && ReplayMouseAutoHide.isMouseHided);
+                    }
+
+                    ReplayDrawer.commandWindow.refill(ReplayState.rNowFrame, ReplayState.getReplayClockSpeed());
                     if(!ReplayState.isReplayCanvasFitToWindow)
                     {
                         ReplayDrawer.cursorFollow.update();
                     }
                     return true;
                 });
+        }
+
+        // 자동 건너뛰기 재생 구간 길이(ms). 범위를 같은 폭으로 나눈 구간을 한 바퀴씩 섞어서 하나씩 뽑고 (1초 근처만 연달아 나오는 일이 없게) 구간 안에서는 균등 랜덤
+        private static function getNextAutoSkipPlayMs():Number
+        {
+            if (autoSkipPlayRangeBag.length === 0)
+            {
+                do
+                {
+                    autoSkipPlayRangeBag.length = 0;
+
+                    for (var i:int = 0; i < REPLAY_AUTO_SKIP_PLAY_RANGE_COUNT; i++)
+                    {
+                        autoSkipPlayRangeBag.push(i);
+                    }
+
+                    for (var j:int = REPLAY_AUTO_SKIP_PLAY_RANGE_COUNT - 1; j > 0; j--)
+                    {
+                        const k:int = int(Math.random() * (j + 1));
+                        const swap:int = autoSkipPlayRangeBag[j];
+                        autoSkipPlayRangeBag[j] = autoSkipPlayRangeBag[k];
+                        autoSkipPlayRangeBag[k] = swap;
+                    }
+                }
+                while (autoSkipPlayRangeBag[autoSkipPlayRangeBag.length - 1] === autoSkipLastPlayRange); // 바퀴가 바뀌는 곳에서 같은 구간이 연달아 나오지 않게
+            }
+
+            autoSkipLastPlayRange = autoSkipPlayRangeBag.pop();
+            return REPLAY_AUTO_SKIP_PLAY_MIN_MS + (autoSkipLastPlayRange + Math.random()) * (REPLAY_AUTO_SKIP_PLAY_MAX_MS - REPLAY_AUTO_SKIP_PLAY_MIN_MS) / REPLAY_AUTO_SKIP_PLAY_RANGE_COUNT;
+        }
+
+        // 자동 건너뛰기 재생 배속으로 autoSkipPlayedMs 동안 재생한 뒤, 선택한 배속에 맞게 그만큼 더 앞으로 건너뜀 (건너뛴 구간의 그림은 한 번에 그림)
+        // 건너뛰는 녹화 시간 = 재생 구간 실제 시간 * (선택 배속 - 자동 건너뛰기 재생 배속). 반환값: 끝까지 가서 재생을 멈췄으면 true
+        private static function skipReplayAfterAutoSkipPlay(autoSkipPlayedMs:Number):Boolean
+        {
+            const target:Number = ReplayClock.recordedPeek() + autoSkipPlayedMs * (ReplayState.rReplaySpeedMultipler - ReplayState.REPLAY_AUTO_SKIP_PLAY_SPEED);
+            const targetFrame:Number = ReplayClock.framesDueAt(target);
+
+            if (targetFrame <= ReplayState.rNowFrame)
+            {
+                ReplayClock.anchorAtRecorded(target);
+                return false;
+            }
+
+            // 시크바를 누르는 것과 같은 순서: 재생을 멈춘 상태로 가까운 캐시 이미지를 불러오고 남은 프레임만 그린 뒤 그 시각부터 이어서 재생
+            captureReplayCanvasForAutoSkipFade();
+            clearReplayWaitingState();
+            ReplayDrawer.rFileStream.close();
+            ReplayState.isReplayStarted = false; // 재생 중에는 drawCacheImageFirst가 캐시 이미지를 불러오지 않음
+            ReplayDrawer.renderReplayFrame(targetFrame, ReplayDrawer.JUMP_FRAME_MANUAL);
+            ReplayState.isReplayStarted = true;
+
+            if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME)
+            {
+                ReplayState.isReplayFinished = true;
+                stopReplay();
+                startReplayAutoSkipFade();
+                return true;
+            }
+
+            ReplayFileCache.clearRFrameTempCache();
+
+            if (!ReplayState.rMemoryDataReadON)
+            {
+                ReplayDrawer.rFileStream.open(AppDataPaths.replayDataFilePath, FileMode.READ);
+                ReplayDrawer.rFileStream.position = ReplayState.rFileLastBytePosition;
+            }
+
+            ReplayClock.rememberPosition(ReplayState.rNowFrame, target);
+            ReplayClock.anchorAtFrame(ReplayState.rNowFrame, ReplayState.getReplayClockSpeed());
+            startReplayAutoSkipFade();
+            return false;
+        }
+
+        // 건너뛰기 직전 화면을 찍어 둠 (건너뛴 뒤 startReplayAutoSkipFade가 그 위에 얹어서 사라지게 함)
+        private static function captureReplayCanvasForAutoSkipFade():void
+        {
+            endReplayAutoSkipFade();
+            const snapshot:BitmapData = new BitmapData(ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT, false, ReplayState.RCANVAS_BG_COLOR);
+            snapshot.draw(ReplayDrawer.rCanvasPanel);
+            autoSkipFadeBitmap = new Bitmap(snapshot);
+        }
+
+        // 찍어 둔 화면을 캔버스 위에 얹고 SKIP_FADE_MS 동안 투명해지게 함. 캔버스와 같은 앵커에 넣어서 확대, 이동을 따라감
+        private static function startReplayAutoSkipFade():void
+        {
+            if (!autoSkipFadeBitmap)
+            {
+                return;
+            }
+
+            autoSkipFadeBitmap.x = ReplayDrawer.rCanvasPanel.x;
+            autoSkipFadeBitmap.y = ReplayDrawer.rCanvasPanel.y;
+            ReplayDrawer.rCanvasAnchorPoint.addChild(autoSkipFadeBitmap);
+            const fadeStart:int = getTimer();
+            FOFOTimer.addByName("replayAutoSkipFadeTimer", 0.0, true, function ():Boolean
+                {
+                    const progress:Number = (getTimer() - fadeStart) / REPLAY_AUTO_SKIP_FADE_MS;
+
+                    if (progress >= 1 || !ReplayState.isReplayModeON)
+                    {
+                        endReplayAutoSkipFade();
+                        return false;
+                    }
+
+                    autoSkipFadeBitmap.alpha = 1 - progress;
+                    return true;
+                });
+        }
+
+        private static function endReplayAutoSkipFade():void
+        {
+            FOFOTimer.remove("replayAutoSkipFadeTimer");
+
+            if (autoSkipFadeBitmap)
+            {
+                if (autoSkipFadeBitmap.parent)
+                {
+                    autoSkipFadeBitmap.parent.removeChild(autoSkipFadeBitmap);
+                }
+
+                autoSkipFadeBitmap.bitmapData.dispose();
+                autoSkipFadeBitmap = null;
+            }
         }
 
         public static function clearReplayWaitingState():void
@@ -1243,7 +1346,7 @@ package Modules.L5App.ReplayEngine
         // 반환값: 리플레이를 정지해야 하면 true
         private static function drawRemaingFrames():Boolean
         {
-            var remaining:Number = ReplayClock.getRemaingFrameCount(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler) - ReplayState.rNowFrame;
+            var remaining:Number = ReplayClock.getRemaingFrameCount(ReplayState.rNowFrame, ReplayState.getReplayClockSpeed()) - ReplayState.rNowFrame;
             const startTime:int = getTimer();
             updateAfkState();
             ReplayDrawer.anim.update(ReplayClock.recordedPeek()); // 진행 중인 연출(채우기, 올가미, 이동)을 시계에 맞춰 진행
@@ -1276,35 +1379,6 @@ package Modules.L5App.ReplayEngine
             }
 
             return false;
-        }
-
-        public static function startReplaySlideShowMode():void
-        {
-            if (!shouldUseReplaySlideShowMode())
-            {
-                ReplayState.isReplaySlideShowMode = false;
-                ReplayDrawer.rFileStream.close();
-
-                if (!ReplayState.rMemoryDataReadON)
-                {
-                    ReplayDrawer.rFileStream.open(AppDataPaths.replayDataFilePath, FileMode.READ);
-                    ReplayDrawer.rFileStream.position = ReplayState.rFileLastBytePosition;
-                }
-            }
-            else
-            {
-                drawCanvasFromReplayDataSlideShowMode();
-            }
-
-            if(!ReplayState.isReplayCanvasFitToWindow)
-            {
-                ReplayDrawer.cursorFollow.update();
-            }
-        }
-
-        public static function shouldUseReplaySlideShowMode():Boolean
-        {
-            return ReplayState.rReplaySpeedMultipler > REPLAY_SLIDESHOW_ACTIVE_SPEED;
         }
 
         private static function getReplaySpeedHintText():String
@@ -1507,8 +1581,8 @@ package Modules.L5App.ReplayEngine
                 if (isSnapped)
                 {
                     // floor 오차로 59가 되지 않도록 스냅 속도를 직접 지정
-                    oldSpeed = REPLAY_SLIDESHOW_ACTIVE_SPEED;
-                    ReplayState.rReplaySpeedMultipler = REPLAY_SLIDESHOW_ACTIVE_SPEED;
+                    oldSpeed = ReplayState.REPLAY_AUTO_SKIP_PLAY_SPEED;
+                    ReplayState.rReplaySpeedMultipler = ReplayState.REPLAY_AUTO_SKIP_PLAY_SPEED;
                     onReplaySpeedChanged();
                 }
                 updateReplayPrograssText(); // 드래그 중에는 속도 힌트가 seekbar 텍스트에 표시됨
@@ -1738,7 +1812,6 @@ package Modules.L5App.ReplayEngine
 
             ReplayDrawer.rFileStream.close();
             ReplayState.isReplayStarted = false;
-            ReplayState.isReplaySlideShowMode = false;
             updateDeleteReplayDataButtonsState();
             ReplayDrawer.cursorFollow.snap(); // 남은 이동을 애니메이션하지 않고 최종 위치와 배율로 바로 마무리
         }
@@ -1793,7 +1866,7 @@ package Modules.L5App.ReplayEngine
             }
 
             ReplayFileCache.clearRFrameTempCache();
-            ReplayClock.anchorAtFrame(ReplayState.rNowFrame, ReplayState.rReplaySpeedMultipler);
+            ReplayClock.anchorAtFrame(ReplayState.rNowFrame, ReplayState.getReplayClockSpeed());
             ReplayMouseAutoHide.start();
             startReplayDrawTimer();
             startCheckAutoHideTopbarOnPlaybackTimer();
@@ -1921,7 +1994,7 @@ package Modules.L5App.ReplayEngine
             HintController.hideBottomHint();
             UndoController.suspendDeepUndo();
             frameOnEnterReplayMode = ReplayState.rNowFrame;
-            updateTotalFrameAndReplayMaxSpeedFor10Sec(ReplayState.getTotalFrame()); // 최대 속도 계산
+            updateTotalFrameAndReplayMaxSpeed(ReplayState.getTotalFrame()); // 최대 속도 계산
             updateReplayPrograssBarAndText();
             updateReplaySpeedSliderAlpha();
             UIController.seekBarBox.updatePos(AppContext.stage.stageWidth);
@@ -1954,7 +2027,6 @@ package Modules.L5App.ReplayEngine
                 }
 
                 updateDeleteReplayDataButtonsState();
-                ReplayState.isReplaySlideShowMode = false;
                 ReplayDrawer.viewport.keepInStage();
                 SidebarController.hideSidebarTemporary();
                 UIController.updateTopbarIconsReplayMode();
@@ -2234,7 +2306,7 @@ package Modules.L5App.ReplayEngine
             ReplayState.mirrorCommandReady = false;
             ReplayState.setRFileDataTotalFrame(0);
             ReplayClock.rebuildFileIndex();
-            updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
+            updateTotalFrameAndReplayMaxSpeed(0);
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             CanvasLayers.isLayerSwapped = false;
             ReferenceLayerController.resetRefLayerImageTransform();

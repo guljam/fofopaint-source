@@ -196,7 +196,7 @@
                 FileManager.isFileAlreadySaved = false;
             };
             UndoController.onNewFileButtonNeededFunc = FileManager.enableNewFileButton;
-            UndoController.onReplayTotalFrameChangedFunc = ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec;
+            UndoController.onReplayTotalFrameChangedFunc = ReplayController.updateTotalFrameAndReplayMaxSpeed;
             UndoController.onReplayTimeResetFunc = ReplayController.resetReplayTime;
             UndoController.onMirrorChangedFunc = UIController.canvasInfoBox.setMirror;
             UndoController.onNavigatorImageChangedFunc = CanvasNavigator.box.updateImage;

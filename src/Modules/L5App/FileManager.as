@@ -267,7 +267,7 @@ package Modules.L5App
         {
             ReplayState.setRFileDataTotalFrame(0);
             ReplayClock.rebuildFileIndex();
-            ReplayController.updateTotalFrameAndReplayMaxSpeedFor10Sec(0);
+            ReplayController.updateTotalFrameAndReplayMaxSpeed(0);
             ReplayState.rReplayImageCacheState = ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE;
             ReferenceLayerController.refLayerRawBitmapData = null;
             ReferenceLayerController.refLayerRawTransformData = null;
