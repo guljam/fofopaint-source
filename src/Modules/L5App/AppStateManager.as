@@ -189,7 +189,7 @@ package Modules.L5App
         public static function loadAppState():void
         {
             AppDataPaths.isLoadingAppData = true;
-            ReplayFileCache.clearLoadCacheTempFolder(); // 지난 실행에서 끝나지 못한 불러오기 캐시 임시 파일
+            ReplayFileCache.clearLoadedCacheTempFolder(); // 지난 실행에서 끝나지 못한 불러오기 캐시 임시 파일
             const fs:FileStream = new FileStream();
             var arr:Array = [];
             var metaData:CacheImageMetaData;

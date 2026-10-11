@@ -365,7 +365,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // worker(또는 네이티브)가 임시 파일로 써둔 캐시 이미지를 다음 번호로 확정해줌 (undo 캐시)
-        public static function commitCacheImage(tempFile:File, metadata:CacheImageMetaData):Boolean
+        public static function pushCacheImageToRJumpImageFrameData(tempFile:File, metadata:CacheImageMetaData):Boolean
         {
             // 이진 탐색이 깨지지 않게 마지막 캐시보다 뒤이고 리플레이 파일 안에 있는 프레임만 받음
             if (rJumpImageFrameData.length === 0
@@ -413,7 +413,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 불러오기 캐시 임시 폴더를 만들고 안의 파일을 지움 (생성 시작, 앱 시작 때), 못 지운 파일은 남겨도 이름이 겹치지 않음
-        public static function clearLoadCacheTempFolder():void
+        public static function clearLoadedCacheTempFolder():void
         {
             const folder:File = AppDataPaths.replayCacheImageLoadTempFolderPath;
 
@@ -429,7 +429,7 @@ package Modules.L2Engine.ReplayEngine
 
                 for (var i:int = 0;i < list.length;i++)
                 {
-                    deleteFileQuietly(list[i]);
+                    deleteReplayCacheImages(list[i]);
                 }
             }
             catch (error:Error)
@@ -438,7 +438,7 @@ package Modules.L2Engine.ReplayEngine
             }
         }
 
-        public static function deleteFileQuietly(file:File):void
+        public static function deleteReplayCacheImages(file:File):void
         {
             try
             {

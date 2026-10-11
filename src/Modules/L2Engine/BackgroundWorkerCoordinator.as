@@ -410,7 +410,7 @@ package Modules.L2Engine
                 {
                     deleteFileQuietly(tempFile);
                 }
-                else if (result !== "done" || !ReplayFileCache.commitCacheImage(tempFile, job[3]))
+                else if (result !== "done" || !ReplayFileCache.pushCacheImageToRJumpImageFrameData(tempFile, job[3]))
                 {
                     // 세대 변경으로 인한 취소가 아닌 쓰기, 이동 실패만 기록해서 다음 캐시 간격 동안 재시도를 쉼
                     cacheFailedFrame = Math.max(cacheFailedFrame, job[3].nowFrame);
