@@ -40,6 +40,8 @@
 		private var onMouseOverTarget:DisplayObject;
 		private var menuBoxBorderUI:MenuBoxBorderUI; //배경 조각의 겉 테두리를 해진 모양으로 자르는 마스크 (생성자 맨 끝에서 만듦)
 		private static const MENU_BOX_BORDER_SEED:uint = 401;
+		private static const MENU_BUTTON_OVER_BORDER_SEED:uint = 4010; //버튼 마우스 올림 배경 마스크 seed (버튼 번호를 더해 씀)
+		private static const MENU_BUTTON_OVER_EROSION_SCALE:Number = 1.3; //버튼 마우스 올림 배경 깎임 강도 배율 (1.0이 기본)
 		private static const MENU_BOX_BORDER_EROSION_SCALE:Number = 1.1; //이 상자 가장자리 깎임 강도 배율 (1.0이 기본)
 
 		private const resizeButtonWaitPrograssBar:Shape = new Shape();
@@ -262,6 +264,8 @@
 
 			menuBoxBorderUI = new MenuBoxBorderUI(this, [toolBoxBG2, toolBoxBG], [resizeButtonWaitPrograssBar], MENU_BOX_BORDER_SEED, MENU_BOX_BORDER_EROSION_SCALE);
 			resizeButtonWaitPrograssBarWidth = this.width / constScale;
+			MenuBoxBorderUI.applyBorderMaskToButtonOverStates([toolZoom, toolMove, toolRotate2, toolRefLayer, toolPen, toolFillPen, toolEraser, toolUndo, toolRedo, toolEyedropper, toolMirror, toolLasso, toolLine, toolQuickSidebar], MENU_BUTTON_OVER_BORDER_SEED, MENU_BUTTON_OVER_EROSION_SCALE);
+
 		}
 	}
 

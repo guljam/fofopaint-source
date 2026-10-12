@@ -1,7 +1,10 @@
 package Modules.L4UI.UIEngine
 {
     import flash.display.DisplayObject;
+    import flash.display.DisplayObjectContainer;
+    import flash.display.SimpleButton;
     import flash.display.Sprite;
+    import flash.geom.Rectangle;
 
     // 층: L4 UI - 우클릭 툴 메뉴(toolBox2), 올가미 메뉴, 참조 레이어 메뉴처럼 배경 사각형 조각 여러 개가 맞붙어 한 상자를 이루는 메뉴의
     // 겉 테두리를 손으로 그린 듯 해진 모양으로 자르는 마스크(WornBorderMask)를 소유함.
@@ -79,6 +82,33 @@ package Modules.L4UI.UIEngine
                 borderMask.x = boxLeft;
                 borderMask.y = boxTop;
                 borderMask.updateMaskSize(boxWidth, boxHeight);
+            }
+        }
+
+        // 버튼들의 마우스 올림 상태(overState) 배경에 해진 가장자리 마스크를 검. 마우스를 올렸을 때(누를 때도 downState가 overState와 같은 객체) 배경 사각형만 깎이고 클릭 영역(hitTestState)은 그대로임.
+        // overState가 [0: 배경, 1: 아이콘] 구조인 버튼만 처리하고 다른 구조는 건너뜀. 색 지정 코드가 getChildAt(0/1)을 쓰므로 마스크는 맨 끝 자식으로 넣음.
+        // 버튼마다 baseSeed + 목록 번호를 seed로 써서 타일마다 모양이 다름. 마스크는 배경 크기로 한 번만 그리며 상태 안 좌표라 버튼과 상자 배율을 그대로 받음
+        public static function applyBorderMaskToButtonOverStates(buttonList:Array, baseSeed:uint, erosionScale:Number):void
+        {
+            for (var buttonIndex:int = 0; buttonIndex < buttonList.length; buttonIndex++)
+            {
+                const targetButton:SimpleButton = buttonList[buttonIndex] as SimpleButton;
+                const overStateContainer:DisplayObjectContainer = targetButton.overState as DisplayObjectContainer;
+
+                if (overStateContainer === null || overStateContainer.numChildren !== 2)
+                {
+                    continue;
+                }
+
+                const overBackground:DisplayObject = overStateContainer.getChildAt(0);
+                const overBackgroundBounds:Rectangle = overBackground.getBounds(overStateContainer);
+                const overBackgroundMask:WornBorderMask = new WornBorderMask(baseSeed + buttonIndex, erosionScale);
+
+                overBackgroundMask.x = overBackgroundBounds.x;
+                overBackgroundMask.y = overBackgroundBounds.y;
+                overBackgroundMask.updateMaskSize(overBackgroundBounds.width, overBackgroundBounds.height);
+                overStateContainer.addChild(overBackgroundMask);
+                overBackground.mask = overBackgroundMask;
             }
         }
 

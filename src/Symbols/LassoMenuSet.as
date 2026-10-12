@@ -38,6 +38,8 @@
 		private var lassoInfoPos:Array = [0, 0];
 		private var menuBoxBorderUI:MenuBoxBorderUI; //배경 조각의 겉 테두리를 해진 모양으로 자르는 마스크 (생성자 맨 끝에서 만듦)
 		private static const MENU_BOX_BORDER_SEED:uint = 402;
+		private static const MENU_BUTTON_OVER_BORDER_SEED:uint = 4020; //버튼 마우스 올림 배경 마스크 seed (버튼 번호를 더해 씀)
+		private static const MENU_BUTTON_OVER_EROSION_SCALE:Number = 1.3; //버튼 마우스 올림 배경 깎임 강도 배율 (1.0이 기본)
 		private static const MENU_BOX_BORDER_EROSION_SCALE:Number = 1.1; //이 상자 가장자리 깎임 강도 배율 (1.0이 기본)
 
 		public function updateUIColor():void
@@ -155,6 +157,8 @@
 			lassoInfoPos[1] = lassoInfo.height;
 
 			menuBoxBorderUI = new MenuBoxBorderUI(this, [lassoMenuBG, lassoMenuMoveButton, lassoMenuBG2], [], MENU_BOX_BORDER_SEED, MENU_BOX_BORDER_EROSION_SCALE);
+			MenuBoxBorderUI.applyBorderMaskToButtonOverStates([lassoOK, lassoCancel, lassoRefLayer, lassoLayerSwap, lassoLayerMerge, lassoCopy, lassoRotate, lassoResize, lassoMirror, lasso1pxLeft, lasso1pxRight, lasso1pxUp, lasso1pxDown], MENU_BUTTON_OVER_BORDER_SEED, MENU_BUTTON_OVER_EROSION_SCALE);
+
 		}
 	}
 }
