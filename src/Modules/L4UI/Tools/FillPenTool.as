@@ -11,6 +11,7 @@ package Modules.L4UI.Tools
     import flash.geom.Rectangle;
     import flash.filters.BlurFilter;
     import Modules.L4UI.ColorPickerController;
+    import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.KeyState;
@@ -444,6 +445,17 @@ package Modules.L4UI.Tools
                 ReplayState.rMemoryDataBuffer.push(ReplayState.addToolRecordTimeToCommand(["fill5", xColor, xAlpha, xBlendMode, command.concat(), data.concat(), PenSettings.isPenAirBrushON, PenSettings.airBrushSizeDrawMode], toolStartStamp));
 
                 showFillColor(false); // 블러는 DrawingFinish가 적용함
+
+                // 채우는 중에 색을 바꿀 수 있으므로 시작할 때가 아니라 실제로 칠한 색(xColor) 기준으로 사용한 색을 갱신함
+                if (xBlendMode === null)
+                {
+                    if (xColor !== ColorPickerController.colorPickerBox.getCurrentColor())
+                    {
+                        ColorPickerController.updatePickerCurrentColor(xColor);
+                        ColorHistory.add(xColor);
+                    }
+                    PenSizePreviewCursor.markPenColorAndAlphaAsUsed();
+                }
             }
 
             StrokeBuffer.resetCanvasDrawLayerClipRect();
@@ -541,15 +553,6 @@ package Modules.L4UI.Tools
             if (PenSettings.isPenAirBrushON || PenSettings.isEraserAirBrushON)
             {
                 StrokeBuffer.canvasDrawLayerChild.filters = [];
-            }
-
-            if (!PenSettings.isTransparentPenColor)
-            {
-                if (!ColorPickerController.isCurrentColorSamePickedColor())
-                {
-                    ColorPickerController.updatePickerCurrentColor(ColorPickerController.colorPickerBox.getRGBInfoBGColor());
-                    ColorHistory.add(ColorPickerController.colorPickerBox.getRGBInfoBGColor());
-                }
             }
 
             if (ReferenceLayerController.isRefLayerMenuON)

@@ -631,6 +631,7 @@ package Modules.L4UI.Tools
 						ColorPickerController.updatePickerCurrentColor(ColorPickerController.colorPickerBox.getRGBInfoBGColor());
 						ColorHistory.add(ColorPickerController.colorPickerBox.getRGBInfoBGColor());
 					}
+					PenSizePreviewCursor.markPenColorAndAlphaAsUsed();
 				}
 			}
 			else

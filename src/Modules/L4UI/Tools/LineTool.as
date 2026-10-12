@@ -337,9 +337,10 @@ package Modules.L4UI.Tools
                         ColorPickerController.updatePickerCurrentColor(ColorPickerController.colorPickerBox.getRGBInfoBGColor());
                         ColorHistory.add(ColorPickerController.colorPickerBox.getRGBInfoBGColor());
                     }
+                    PenSizePreviewCursor.markPenColorAndAlphaAsUsed();
                 }
 
-                command = new Vector.<int>();
+                command =new Vector.<int>();
                 data = new Vector.<Number>();
 
                 const mx:Number = StrokeBuffer.canvasDrawLayerChild.mouseX;

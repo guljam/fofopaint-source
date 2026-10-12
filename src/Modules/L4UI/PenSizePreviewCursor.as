@@ -1,6 +1,7 @@
 package Modules.L4UI
 {
     import Modules.L1Data.AppContext;
+    import flash.display.Shape;
     import flash.geom.Matrix;
     import flash.geom.Rectangle;
     import flash.utils.getTimer;
@@ -46,6 +47,15 @@ package Modules.L4UI
 
         private static const _cursor:PenCursorPreviewPixel = new PenCursorPreviewPixel(); // 펜사이즈 미리 보기
 
+        private static const PEN_COLOR_PREVIEW_MIN_SCREEN_SIZE:Number = 2.0; // 고른 펜 색 미리보기의 화면상 최소 지름/변 길이
+        private static const penColorPreviewShape:Shape = new Shape(); // 고른 펜 색(알파 포함)을 보여주는 채움. 반전이 색에 걸리지 않게 _cursor의 자식이 아니라 형제로 둠
+        private static var lastUsedPenAlpha:Number = NaN; // 마지막으로 그린 획의 펜 투명도. NaN이면 처음 확인할 때 현재 값으로 채움
+        private static var lastDrawnPenColorPreviewColor:int = -1;
+        private static var lastDrawnPenColorPreviewAlpha:Number = -1;
+        private static var lastDrawnPenColorPreviewWidth:Number = -1;
+        private static var lastDrawnPenColorPreviewHeight:Number = -1;
+        private static var lastDrawnPenColorPreviewIsSquare:Boolean = false;
+
         // 테두리 점 목록 (커서 로컬 좌표). 크기/모양이 바뀔 때만 다시 만듦
         private static const outlineLocalXList:Vector.<Number> = new Vector.<Number>();
         private static const outlineLocalYList:Vector.<Number> = new Vector.<Number>();
@@ -69,6 +79,76 @@ package Modules.L4UI
         public static function setRotation(angle:Number):void
         {
             _cursor.rotation = angle;
+            penColorPreviewShape.rotation = angle;
+        }
+
+        public static function getPenColorPreviewShape():Shape
+        {
+            return penColorPreviewShape;
+        }
+
+        // 고른 색과 투명도로 한 획을 시작할 때 호출. 미리보기를 끄고 원래 커서로 돌아감
+        public static function markPenColorAndAlphaAsUsed():void
+        {
+            lastUsedPenAlpha = PenSettings.penAlpha;
+            updatePenColorPreview();
+        }
+
+        private static function isPenColorPreviewNeeded():Boolean
+        {
+            if (PenSettings.isTransparentPenColor || ColorPickerController.isColorPickerModeBG
+                    || !(ToolState.isSelectedToolPenOrLine() || ToolState.isSelectedTool(ToolState.TOOL_FILLPEN)))
+            {
+                return false;
+            }
+            if (isNaN(lastUsedPenAlpha))
+            {
+                lastUsedPenAlpha = PenSettings.penAlpha;
+            }
+            return ColorPickerController.colorPickerBox.getRGBInfoBGColor() !== ColorPickerController.colorPickerBox.getCurrentColor()
+                || PenSettings.penAlpha !== lastUsedPenAlpha;
+        }
+
+        // 위치와 각도는 _cursor와 같게 맞추고, 색/알파/크기/모양이 바뀐 때만 다시 그림
+        private static function updatePenColorPreview():void
+        {
+            if (!isPenColorPreviewNeeded())
+            {
+                penColorPreviewShape.visible = false;
+                return;
+            }
+            const isFillPen:Boolean = ToolState.isSelectedTool(ToolState.TOOL_FILLPEN);
+            const isSquare:Boolean = !isFillPen && PenSettings.penIsSquare;
+            // 펜 커서(PenCursorPreviewPixel)와 같게 펜 크기 * 캔버스 줌을 화면 픽셀로 반올림해서 씀
+            const penScreenSize:Number = Math.round(PenSettings.penSize * CanvasView.canvasZoomMultiplier);
+            const previewWidth:Number = isFillPen ? PEN_COLOR_PREVIEW_MIN_SCREEN_SIZE : Math.max(penScreenSize, PEN_COLOR_PREVIEW_MIN_SCREEN_SIZE);
+            const previewHeight:Number = isSquare ? Math.max(Math.round(penScreenSize / 4), PEN_COLOR_PREVIEW_MIN_SCREEN_SIZE) : previewWidth;
+            const previewColor:uint = ColorPickerController.colorPickerBox.getRGBInfoBGColor();
+            if (lastDrawnPenColorPreviewColor !== previewColor || lastDrawnPenColorPreviewAlpha !== PenSettings.penAlpha
+                    || lastDrawnPenColorPreviewWidth !== previewWidth || lastDrawnPenColorPreviewHeight !== previewHeight
+                    || lastDrawnPenColorPreviewIsSquare !== isSquare)
+            {
+                lastDrawnPenColorPreviewColor = previewColor;
+                lastDrawnPenColorPreviewAlpha = PenSettings.penAlpha;
+                lastDrawnPenColorPreviewWidth = previewWidth;
+                lastDrawnPenColorPreviewHeight = previewHeight;
+                lastDrawnPenColorPreviewIsSquare = isSquare;
+                penColorPreviewShape.graphics.clear();
+                penColorPreviewShape.graphics.beginFill(previewColor, PenSettings.penAlpha);
+                if (isSquare)
+                {
+                    penColorPreviewShape.graphics.drawRect(-previewWidth / 2, -previewHeight / 2, previewWidth, previewHeight);
+                }
+                else
+                {
+                    penColorPreviewShape.graphics.drawCircle(0, 0, previewWidth / 2);
+                }
+                penColorPreviewShape.graphics.endFill();
+            }
+            penColorPreviewShape.x = _cursor.x;
+            penColorPreviewShape.y = _cursor.y;
+            penColorPreviewShape.rotation = isSquare ? _cursor.rotation : 0;
+            penColorPreviewShape.visible = true;
         }
 
         public static function getSize():Number
@@ -99,6 +179,10 @@ package Modules.L4UI
         public static function setVisible(flag:Boolean):void
         {
             _cursor.visible = flag;
+            if (!flag)
+            {
+                penColorPreviewShape.visible = false;
+            }
         }
 
         public static function checkCursorVisibility():void
@@ -158,6 +242,7 @@ package Modules.L4UI
                     || UIController.loadMenuBox.visible)
             {
                 _cursor.visible = false;
+                penColorPreviewShape.visible = false;
             }
             else
             {
@@ -165,6 +250,7 @@ package Modules.L4UI
                 _cursor.x = Math.floor(mx);
                 _cursor.y = Math.floor(my);
                 checkCursorVisibility();
+                updatePenColorPreview();
                 startOutlineColorScanOnCursorMove();
             }
         }
@@ -204,6 +290,7 @@ package Modules.L4UI
                 _cursor.createRectangleCursorShape(-_cursorSize / 2, -_cursorSize / 8, _cursorSize, _cursorSize / 4, z);
             }
             buildOutlineLocalPoints(_cursorSize * z, z);
+            updatePenColorPreview(); // 펜 커서 모양을 다시 만든 때(크기, 줌, 모양 변경)에 같이 갱신
         }
 
         // 테두리 점 목록을 새로 만들고 처음부터 다시 시작. 점 간격은 캔버스 약 1픽셀 (줌아웃이면 화면 1px)

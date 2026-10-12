@@ -615,6 +615,7 @@ package Modules.L4UI.UIEngine
             AppContext.stage.addChild(EyeDropperTool.eyedropperLens);
             AppContext.stage.addChild(LassoTool._lassoMenuBox);
             AppContext.stage.addChild(CanvasView.canvasAnchorPoint);
+            AppContext.stage.addChild(PenSizePreviewCursor.getPenColorPreviewShape());
             AppContext.stage.addChild(PenSizePreviewCursor.getCursorShape());
             AppContext.stage.setChildIndex(CanvasView.canvasAnchorPoint, 0);
             AppContext.stage.setChildIndex(UIController.stageBG, 0);
