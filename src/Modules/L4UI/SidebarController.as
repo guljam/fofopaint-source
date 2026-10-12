@@ -507,14 +507,18 @@ package Modules.L4UI
         // 마우스 이동은 한 프레임에 여러 번 올 수 있으므로 확인 요청만 표시하고, 실제 확인은 그리기 직전(RENDER)에 한 번만 함
         private static function onMouseMoveSideBar(e:MouseEvent):void
         {
-            isSidebarMousePosCheckPending = true;
-            AppContext.stage.invalidate();
+            if(isSidebarMousePosCheckPending === false)
+            {
+                isSidebarMousePosCheckPending = true;
+                AppContext.stage.invalidate();
+            }
         }
 
         private static function onStageRenderSideBar(e:Event):void
         {
             if (isSidebarMousePosCheckPending)
             {
+                isSidebarMousePosCheckPending = false;
                 checkSidebarTemporaryShowAndHideByMousePos();
             }
         }

@@ -277,14 +277,18 @@ package Modules.L5App.InputManager
         // 마우스 이동은 한 프레임에 여러 번 올 수 있으므로 갱신 요청만 표시하고, 실제 갱신은 그리기 직전(RENDER)에 한 번만 함
         public static function onMouseMoveRequestPenPreviewCursorUpdate(e:MouseEvent):void
         {
-            isPenPreviewCursorUpdatePending = true;
-            AppContext.stage.invalidate();
+            if(isPenPreviewCursorUpdatePending === false)
+            {
+                isPenPreviewCursorUpdatePending = true;
+                AppContext.stage.invalidate();
+            }
         }
 
         public static function onStageRenderUpdatePenPreviewCursor(e:Event):void
         {
             if (isPenPreviewCursorUpdatePending)
             {
+                isPenPreviewCursorUpdatePending = false;
                 updatePenPreviewCursorAndSelectedToolBadge();
             }
         }
