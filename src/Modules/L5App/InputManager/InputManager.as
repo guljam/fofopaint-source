@@ -270,6 +270,8 @@ package Modules.L5App.InputManager
 
         public static function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
         {
+            ToolPanel.followMouseWithSelectedToolViewBitmap();
+
             if (ReplayState.isReplayModeON || CaptureController.isCaptureModeON)
             {
                 return;

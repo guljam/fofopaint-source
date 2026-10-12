@@ -52,6 +52,7 @@ package Modules.L4UI.Tools
 
 
         private static const TOOL_BOX_ON_DELAY_TIME:Number = 0.12;
+        private static const SELECTED_TOOL_BADGE_OFFSET_FROM_MOUSE:Number = 16; // 마우스에서 선택 툴 아이콘까지 띄우는 간격 (UI 스케일 1 기준 px)
         public static const toolBox:ToolMenuSet = new ToolMenuSet();
         public static const toolBox2:ToolMenuSet2 = new ToolMenuSet2();
         public static const toolOptionsBox:ToolOptionsSet = new ToolOptionsSet();
@@ -73,10 +74,26 @@ package Modules.L4UI.Tools
 
         public static function updateSelectedToolViewBoxPos():void
         {
-            const viewportRect:Rectangle = UIController.getViewportRect();
+            // 시선이 있는 마우스 커서 우하단에 표시. OS 커서 몸체를 가리지 않도록 UI 스케일만큼 띄움
+            const badgeOffsetFromMouse:Number = SELECTED_TOOL_BADGE_OFFSET_FROM_MOUSE * UITheme.getUIScale();
 
-            selectedToolViewBitmap.x = viewportRect.x + viewportRect.width / 2 - selectedToolViewBitmap.width / 2;
-            selectedToolViewBitmap.y = viewportRect.y + 20 * UITheme.getUIScale();
+            selectedToolViewBitmap.x = Math.round(AppContext.stage.mouseX + badgeOffsetFromMouse);
+            selectedToolViewBitmap.y = Math.round(AppContext.stage.mouseY + badgeOffsetFromMouse);
+        }
+
+        // 마우스가 움직일 때 호출. 선택 툴 아이콘이 떠 있는 동안 커서를 따라가고, 그리는 중(왼쪽 버튼)에는 숨김
+        public static function followMouseWithSelectedToolViewBitmap():void
+        {
+            if (!selectedToolViewBitmap.visible)
+            {
+                return;
+            }
+            if (MouseState.isLeftDown)
+            {
+                selectedToolViewBitmap.visible = false;
+                return;
+            }
+            updateSelectedToolViewBoxPos();
         }
 
         public static function getToolButtonFromToolIndex(toolIndex:*):SimpleButton
