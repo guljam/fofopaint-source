@@ -45,7 +45,7 @@
 |---|---|---|
 | 보고용 슬롯 명명 규칙 | `on` + 사건 + `Func` (예: `onToolChangedFunc`) | 아래층의 `public static var …:Function`. 위층이 `Main.registerSlots`에서 등록. 근거: Function 변수의 `~Func` 접미사 관례 (mainPickColorFunc 등) |
 | 슬롯 등록 메서드 | `Main.registerSlots()` | `initializeModule` 끝에서 부름 (`loadAppState`보다 앞) |
-| 올가미 이미지 상자 클래스 | `LassoLayers` (L2) | 올가미 표시 객체(상자 1, 2)와 이미지 옮기기·바꾸기 함수 |
+| 올가미 이미지 상자 클래스 | `LassoSelectionBoxes` (L2) | 올가미 표시 객체(상자 1, 2)와 이미지 옮기기·바꾸기 함수 |
 | 이동한 함수 이름 규칙 | 팔레트로 옮긴 색 히스토리 함수는 `…ColorHistory` 접미사 | `selectColorHistory` 등 |
 | 층 변경 | `CanvasViewport`, `DrawViewport`, `ReplayViewport` L2 → L4 | 사이드바·상단 바·UI 여백에 따라 캔버스 위치를 계산하는 화면 배치 클래스라 UI 층으로 (사용자 승인) |
 | 층 변경 | `UndoHistory` L1 → L2 | 값을 읽는 L2 클래스(DrawCanvas, ReplayDrawer 등)가 많아 엔진 층으로 (사용자 승인) |
@@ -207,4 +207,4 @@
 | KeyState | L1 | (신설) | Modules.L1Data |
 | AppDataPaths | L1 | (신설) | Modules.L1Data |
 | ToolState | L1 | (신설) | Modules.L1Data |
-| LassoLayers | L2 | (신설) | Modules.L2Engine |
+| LassoSelectionBoxes | L2 | (신설) | Modules.L2Engine |

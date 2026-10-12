@@ -22,7 +22,7 @@ package Modules.L4UI.UIEngine
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L4UI.PenSizePreviewCursor;
-    import Modules.L2Engine.LassoLayers;
+    import Modules.L2Engine.LassoSelectionBoxes;
     import Modules.L4UI.CanvasViewport;
     import Modules.L4UI.DrawEngine.CanvasResizer;
     import Modules.L2Engine.ReplayEngine.ReplayState;
@@ -575,14 +575,14 @@ package Modules.L4UI.UIEngine
             ReferenceLayerController.canvasRefLayer.name = "canvasRefLayer";
             CanvasGridOverlay.canvasGrid.name = "canvasGrid";
             CanvasView.canvasFlashEffect.name = "canvasFlash";
-            LassoLayers.lassoLayer1.name = "lassoBox1";
-            LassoLayers.lassoLayer1.addChild(LassoLayers.lassoLayer1Bitmap);
-            LassoLayers.lassoLayer1.addChild(LassoLayers.lassoDraw);
-            LassoLayers.lassoLayer1.addChild(LassoLayers.lassoDrawCloseLine);
-            LassoLayers.lassoLayer1.visible = false;
-            LassoLayers.lassoLayer2.name = "lassoBox2";
-            LassoLayers.lassoLayer2.addChild(LassoLayers.lassoLayer2Bitmap);
-            LassoLayers.lassoLayer2.visible = false;
+            LassoSelectionBoxes.lassoLayer1.name = "lassoBox1";
+            LassoSelectionBoxes.lassoLayer1.addChild(LassoSelectionBoxes.lassoLayer1Bitmap);
+            LassoSelectionBoxes.lassoLayer1.addChild(LassoSelectionBoxes.lassoDraw);
+            LassoSelectionBoxes.lassoLayer1.addChild(LassoSelectionBoxes.lassoDrawCloseLine);
+            LassoSelectionBoxes.lassoLayer1.visible = false;
+            LassoSelectionBoxes.lassoLayer2.name = "lassoBox2";
+            LassoSelectionBoxes.lassoLayer2.addChild(LassoSelectionBoxes.lassoLayer2Bitmap);
+            LassoSelectionBoxes.lassoLayer2.visible = false;
             // setCanvasBGColorDrawMode는 같은 색이면 바로 리턴하므로, 초기값(흰색)은 스크래치 패드에 전달되지 않아
             // 최초 실행시 패드 배경이 안 그려졌음. 초기 색은 직접 전달함
             ColorPickerController.colorPickerBox.scratchPad.updateBGColor(DrawCanvas.CANVAS_BG_COLOR);
@@ -596,9 +596,9 @@ package Modules.L4UI.UIEngine
             ReferenceLayerController.canvasRefHolder.addChild(ReferenceLayerController.canvasRefLayer);
             CanvasView.canvasPanel.addChild(ReferenceLayerController.canvasRefHolder);
             CanvasView.canvasPanel.addChild(DrawCanvas.canvasLayer2Bitmap);
-            CanvasView.canvasPanel.addChild(LassoLayers.lassoLayer2);
+            CanvasView.canvasPanel.addChild(LassoSelectionBoxes.lassoLayer2);
             CanvasView.canvasPanel.addChild(DrawCanvas.canvasLayer1Bitmap);
-            CanvasView.canvasPanel.addChild(LassoLayers.lassoLayer1);
+            CanvasView.canvasPanel.addChild(LassoSelectionBoxes.lassoLayer1);
             CanvasView.canvasPanel.addChild(StrokeBuffer.canvasDrawLayer);
             CanvasView.canvasPanel.addChild(CanvasGridOverlay.canvasGrid);
             CanvasView.canvasPanel.addChild(ReplayDrawer.rReplayFOFOCursor);

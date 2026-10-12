@@ -9,7 +9,7 @@ package Modules.L4UI.Tools
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L2Engine.LassoLayers;
+    import Modules.L2Engine.LassoSelectionBoxes;
     import Modules.L1Data.DragInteraction;
     import Modules.L1Data.Utils;
     import Modules.L4UI.Tools.LassoTool;
@@ -165,7 +165,7 @@ package Modules.L4UI.Tools
 
                 if (LassoTool.isLassoMenuHiddenTemp === true)
                 {
-                    gp = LassoLayers.lassoLayer1.localToGlobal(new Point(0, 0));
+                    gp = LassoSelectionBoxes.lassoLayer1.localToGlobal(new Point(0, 0));
                     CanvasView.viewport.moveAnchorPoint(gp.x, gp.y);
                 }
                 else

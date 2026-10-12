@@ -8,7 +8,7 @@ package Modules.L3Feature.DrawEngine
     import Modules.L3Feature.UndoController;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L2Engine.LassoLayers;
+    import Modules.L2Engine.LassoSelectionBoxes;
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L2Engine.DrawEngine.StrokeBuffer;
@@ -121,7 +121,7 @@ package Modules.L3Feature.DrawEngine
             }
             else
             {
-                panel.addChildAt(StrokeBuffer.canvasDrawLayer, panel.getChildIndex(LassoLayers.lassoLayer1) + 1);
+                panel.addChildAt(StrokeBuffer.canvasDrawLayer, panel.getChildIndex(LassoSelectionBoxes.lassoLayer1) + 1);
             }
         }
 
@@ -132,7 +132,7 @@ package Modules.L3Feature.DrawEngine
 
             const panel:Sprite = CanvasView.canvasPanel;
             const current:int = panel.getChildIndex(StrokeBuffer.canvasDrawLayer);
-            const anchor:int = panel.getChildIndex(LassoLayers.lassoLayer1);
+            const anchor:int = panel.getChildIndex(LassoSelectionBoxes.lassoLayer1);
             const target:int = (current < anchor) ? anchor : anchor + 1; // setChildIndex는 이동 후의 인덱스를 받음
 
             if (current !== target)

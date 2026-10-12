@@ -26,7 +26,7 @@ package Modules.L4UI.Tools
     import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
-    import Modules.L2Engine.LassoLayers;
+    import Modules.L2Engine.LassoSelectionBoxes;
     import Modules.L2Engine.UndoHistory;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L4UI.HintStrings;
@@ -83,10 +83,10 @@ package Modules.L4UI.Tools
 
         private static function setOptimizeView(flag:Boolean):void
         {
-            LassoLayers.lassoDraw.visible = !flag;
-            LassoLayers.lassoDrawCloseLine.visible = !flag;
-            LassoLayers.lassoLayer1Bitmap.smoothing = !flag;
-            LassoLayers.lassoLayer2Bitmap.smoothing = !flag;
+            LassoSelectionBoxes.lassoDraw.visible = !flag;
+            LassoSelectionBoxes.lassoDrawCloseLine.visible = !flag;
+            LassoSelectionBoxes.lassoLayer1Bitmap.smoothing = !flag;
+            LassoSelectionBoxes.lassoLayer2Bitmap.smoothing = !flag;
             _lassoMenuBox.visible = !flag;
         }
 
@@ -101,10 +101,10 @@ package Modules.L4UI.Tools
                 return;
 
             // 라소 이미지 리사이즈 배율까지 반영해야 화면에서 늘 1px / 5px 로 보임
-            DottedLineTool.setLineScale(CanvasView.canvasZoomMultiplier * Math.abs(LassoLayers.lassoLayer1.scaleY));
+            DottedLineTool.setLineScale(CanvasView.canvasZoomMultiplier * Math.abs(LassoSelectionBoxes.lassoLayer1.scaleY));
 
-            LassoLayers.lassoDraw.graphics.clear(); // lassoDraw.x/y 보정값은 그대로 두므로 위치는 유지됨
-            DottedLineTool.moveTo(LassoLayers.lassoDraw.graphics, pts[0][0], pts[0][1]);
+            LassoSelectionBoxes.lassoDraw.graphics.clear(); // lassoDraw.x/y 보정값은 그대로 두므로 위치는 유지됨
+            DottedLineTool.moveTo(LassoSelectionBoxes.lassoDraw.graphics, pts[0][0], pts[0][1]);
             for (var i:uint = 1;i < len;i++)
             {
                 DottedLineTool.lineTo(pts[i][0], pts[i][1]);
@@ -114,21 +114,21 @@ package Modules.L4UI.Tools
 
         private static function resetLassoLayerScale():void
         {
-            if (LassoLayers.lassoLayer1.scaleY !== 1.0)
+            if (LassoSelectionBoxes.lassoLayer1.scaleY !== 1.0)
             {
-                LassoLayers.lassoLayer1.scaleX = (isLassoMirrorON) ? -1.0 : 1.0;
-                LassoLayers.lassoLayer1.scaleY = 1.0;
-                LassoLayers.lassoLayer2.scaleX = LassoLayers.lassoLayer1.scaleX;
-                LassoLayers.lassoLayer2.scaleY = LassoLayers.lassoLayer1.scaleY;
+                LassoSelectionBoxes.lassoLayer1.scaleX = (isLassoMirrorON) ? -1.0 : 1.0;
+                LassoSelectionBoxes.lassoLayer1.scaleY = 1.0;
+                LassoSelectionBoxes.lassoLayer2.scaleX = LassoSelectionBoxes.lassoLayer1.scaleX;
+                LassoSelectionBoxes.lassoLayer2.scaleY = LassoSelectionBoxes.lassoLayer1.scaleY;
                 LassoTool.redrawLassoOutline();
             }
         }
         private static function resetLassoLayerRotation():void
         {
-            if (LassoLayers.lassoLayer1.rotation !== 0)
+            if (LassoSelectionBoxes.lassoLayer1.rotation !== 0)
             {
-                LassoLayers.lassoLayer1.rotation = 0;
-                LassoLayers.lassoLayer2.rotation = 0;
+                LassoSelectionBoxes.lassoLayer1.rotation = 0;
+                LassoSelectionBoxes.lassoLayer2.rotation = 0;
             }
         }
         public static function get isStarted():Boolean
@@ -303,7 +303,7 @@ package Modules.L4UI.Tools
         private static function mergeLayerByLassoTool():void
         {
             _lassoMenuBox.lassoLayerMerge.alpha = UITheme.OFFALPHA;
-            LassoLayers.mergeLassoImage();
+            LassoSelectionBoxes.mergeLassoImage();
             addLassoLayerMergeCommand(1);
         }
         private static function swapLayerByLassoTool():void
@@ -313,7 +313,7 @@ package Modules.L4UI.Tools
                 return;
             }
             isLassoLayerSwapButtonClicked = !isLassoLayerSwapButtonClicked;
-            LassoLayers.swapLassoImage();
+            LassoSelectionBoxes.swapLassoImage();
             addLassoLayerMergeCommand(0);
             _lassoMenuBox.hint(HintStrings.getLassoMenuHintSwapLayer());
             ToolPanel.playLayerSwapEffect(_lassoMenuBox.lassoLayerSwap);
@@ -332,7 +332,7 @@ package Modules.L4UI.Tools
 
         private static function startLassoImageRotation():void
         {
-            var getAngle:Function = UIController.showCanvasRotateCursorMouseDrag(LassoLayers.lassoLayer1);
+            var getAngle:Function = UIController.showCanvasRotateCursorMouseDrag(LassoSelectionBoxes.lassoLayer1);
             function onDragStart():void
             {
                 setOptimizeView(true);
@@ -346,21 +346,21 @@ package Modules.L4UI.Tools
             function onMouseMove():void
             {
                 const angle:Number = getAngle(false);
-                LassoLayers.lassoLayer1.rotation = angle;
-                LassoLayers.lassoLayer2.rotation = angle;
+                LassoSelectionBoxes.lassoLayer1.rotation = angle;
+                LassoSelectionBoxes.lassoLayer2.rotation = angle;
             }
             DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
 
         private static function startLassoImageResize():void
         {
-            const mirrorScale:Number = (LassoLayers.lassoLayer1.scaleX < 0) ? -1.0 : 1.0;
-            var getScale:Function = LassoTool.updateImageScaleMouseDrag(LassoLayers.lassoLayer1.scaleX);
+            const mirrorScale:Number = (LassoSelectionBoxes.lassoLayer1.scaleX < 0) ? -1.0 : 1.0;
+            var getScale:Function = LassoTool.updateImageScaleMouseDrag(LassoSelectionBoxes.lassoLayer1.scaleX);
 
             function onDragStart():void
             {
                 setOptimizeView(true);
-                HintController.showMouseHint(HintStrings.getImageScaleHint(LassoLayers.lassoLayer1.width, LassoLayers.lassoLayer1.height, Math.abs(LassoLayers.lassoLayer1.scaleX), false));
+                HintController.showMouseHint(HintStrings.getImageScaleHint(LassoSelectionBoxes.lassoLayer1.width, LassoSelectionBoxes.lassoLayer1.height, Math.abs(LassoSelectionBoxes.lassoLayer1.scaleX), false));
             }
             function onMouseUp():void
             {
@@ -373,11 +373,11 @@ package Modules.L4UI.Tools
             function onMouseMove():void
             {
                 const scale:Number = getScale(AppContext.stage.mouseX, AppContext.stage.mouseY);
-                LassoLayers.lassoLayer1.scaleX = scale * mirrorScale;
-                LassoLayers.lassoLayer1.scaleY = scale;
-                LassoLayers.lassoLayer2.scaleX = LassoLayers.lassoLayer1.scaleX;
-                LassoLayers.lassoLayer2.scaleY = LassoLayers.lassoLayer1.scaleY;
-                HintController.showMouseHint(HintStrings.getImageScaleHint(LassoLayers.lassoLayer1.width, LassoLayers.lassoLayer1.height, Math.abs(LassoLayers.lassoLayer1.scaleX), false));
+                LassoSelectionBoxes.lassoLayer1.scaleX = scale * mirrorScale;
+                LassoSelectionBoxes.lassoLayer1.scaleY = scale;
+                LassoSelectionBoxes.lassoLayer2.scaleX = LassoSelectionBoxes.lassoLayer1.scaleX;
+                LassoSelectionBoxes.lassoLayer2.scaleY = LassoSelectionBoxes.lassoLayer1.scaleY;
+                HintController.showMouseHint(HintStrings.getImageScaleHint(LassoSelectionBoxes.lassoLayer1.width, LassoSelectionBoxes.lassoLayer1.height, Math.abs(LassoSelectionBoxes.lassoLayer1.scaleX), false));
             }
             DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
@@ -385,11 +385,11 @@ package Modules.L4UI.Tools
         public static function hasLassoImageChanges():Boolean
         {
             if (isLassoImageCopied
-                    || lassoFirstData[0] !== LassoLayers.lassoLayer1.x
-                    || lassoFirstData[1] !== LassoLayers.lassoLayer1.y
-                    || lassoFirstData[2] !== LassoLayers.lassoLayer1.scaleX
-                    || lassoFirstData[3] !== LassoLayers.lassoLayer1.scaleY
-                    || lassoFirstData[4] !== LassoLayers.lassoLayer1.rotation
+                    || lassoFirstData[0] !== LassoSelectionBoxes.lassoLayer1.x
+                    || lassoFirstData[1] !== LassoSelectionBoxes.lassoLayer1.y
+                    || lassoFirstData[2] !== LassoSelectionBoxes.lassoLayer1.scaleX
+                    || lassoFirstData[3] !== LassoSelectionBoxes.lassoLayer1.scaleY
+                    || lassoFirstData[4] !== LassoSelectionBoxes.lassoLayer1.rotation
                     || (lassoLayerCommandData && lassoLayerCommandData.length > 0))
             {
                 return true;
@@ -399,7 +399,7 @@ package Modules.L4UI.Tools
 
         private static function startLassoImageMove():void
         {
-            var getMovedPos:Function = LassoTool.updateImagePosMouseDrag(LassoLayers.lassoLayer1, CanvasView.canvasAnchorPoint.rotation);
+            var getMovedPos:Function = LassoTool.updateImagePosMouseDrag(LassoSelectionBoxes.lassoLayer1, CanvasView.canvasAnchorPoint.rotation);
             function onMouseUp():void
             {
                 getMovedPos = null;
@@ -409,10 +409,10 @@ package Modules.L4UI.Tools
             function onMouseMove():void
             {
                 const pos:Point = getMovedPos();
-                LassoLayers.lassoLayer1.x = Math.round(pos.x);
-                LassoLayers.lassoLayer1.y = Math.round(pos.y);
-                LassoLayers.lassoLayer2.x = LassoLayers.lassoLayer1.x;
-                LassoLayers.lassoLayer2.y = LassoLayers.lassoLayer1.y;
+                LassoSelectionBoxes.lassoLayer1.x = Math.round(pos.x);
+                LassoSelectionBoxes.lassoLayer1.y = Math.round(pos.y);
+                LassoSelectionBoxes.lassoLayer2.x = LassoSelectionBoxes.lassoLayer1.x;
+                LassoSelectionBoxes.lassoLayer2.y = LassoSelectionBoxes.lassoLayer1.y;
             }
             function onDragStart():void
             {
@@ -471,15 +471,15 @@ package Modules.L4UI.Tools
             lassoStartStamp = getTimer();
             lassoPreviewDrawnCount = 0;
             _lassoMenuBox.hint("Lasso tool");
-            LassoLayers.lassoDraw.x = 0;
-            LassoLayers.lassoDraw.y = 0;
+            LassoSelectionBoxes.lassoDraw.x = 0;
+            LassoSelectionBoxes.lassoDraw.y = 0;
             lassoSelectRect = new <Number>[clickX, clickY, clickX, clickY];
             lassoSelectPoints = [[clickX, clickY]];
             lassoTransformData = [];
             StrokeBuffer.canvasDrawLayer.alpha = 1.0; // 알파값이 조정되어 있을 수도 있기 때문에 해줌
-            LassoLayers.lassoDraw.graphics.clear();
-            LassoLayers.lassoDrawCloseLine.graphics.clear();
-            LassoLayers.lassoLayer1.visible = true;
+            LassoSelectionBoxes.lassoDraw.graphics.clear();
+            LassoSelectionBoxes.lassoDrawCloseLine.graphics.clear();
+            LassoSelectionBoxes.lassoLayer1.visible = true;
             DottedLineTool.setLineScale(CanvasView.canvasZoomMultiplier);
 
             const needLayer1:Boolean = DrawCanvas.canvasLayer1Bitmap.visible && CanvasLayers.checkedLayer !== 2;
@@ -508,7 +508,7 @@ package Modules.L4UI.Tools
         private static function resetLassoSelectionData():void
         {
             lassoPreviewDrawnCount = 0;
-            LassoLayers.lassoDrawCloseLine.graphics.clear();
+            LassoSelectionBoxes.lassoDrawCloseLine.graphics.clear();
 
             if (lassoSelectRect)
                 lassoSelectRect.length = 0;
@@ -528,8 +528,8 @@ package Modules.L4UI.Tools
 
             if (lassoPreviewDrawnCount === 0)
             {
-                LassoLayers.lassoDraw.graphics.clear();
-                DottedLineTool.moveTo(LassoLayers.lassoDraw.graphics, points[0][0], points[0][1]);
+                LassoSelectionBoxes.lassoDraw.graphics.clear();
+                DottedLineTool.moveTo(LassoSelectionBoxes.lassoDraw.graphics, points[0][0], points[0][1]);
                 lassoPreviewDrawnCount = 1;
             }
 
@@ -539,7 +539,7 @@ package Modules.L4UI.Tools
             }
             lassoPreviewDrawnCount = len;
 
-            LassoLayers.lassoDrawCloseLine.graphics.clear();
+            LassoSelectionBoxes.lassoDrawCloseLine.graphics.clear();
 
             if (isFinal)
             {
@@ -549,17 +549,17 @@ package Modules.L4UI.Tools
             else
             {
                 // 드래그 중: 점선 상태를 건드리지 않고 별도 Shape에 닫는 점선
-                DottedLineTool.drawClosingLine(LassoLayers.lassoDrawCloseLine.graphics, points[0][0], points[0][1]);
+                DottedLineTool.drawClosingLine(LassoSelectionBoxes.lassoDrawCloseLine.graphics, points[0][0], points[0][1]);
             }
         }
 
         private static function setDefaultLassoMenuPos(lassoMenu:LassoMenuSet):void
         {
-            const g:Point = LassoLayers.lassoLayer1.localToGlobal(new Point(0, 0));
+            const g:Point = LassoSelectionBoxes.lassoLayer1.localToGlobal(new Point(0, 0));
             const lassoW:Number = (lassoMenu.width > AppContext.stage.stageWidth)
                 ? AppContext.stage.stageWidth : lassoMenu.width;
             lassoMenu.x = Math.floor(g.x - lassoW / 2);
-            lassoMenu.y = Math.floor(g.y + (((LassoLayers.lassoLayer1.height) / 2) * CanvasView.canvasZoomMultiplier + 20));
+            lassoMenu.y = Math.floor(g.y + (((LassoSelectionBoxes.lassoLayer1.height) / 2) * CanvasView.canvasZoomMultiplier + 20));
         }
 
         private static function onMouseMoveLassoSelection(e:MouseEvent):void
@@ -634,7 +634,7 @@ package Modules.L4UI.Tools
                 checklayer2 = true;
             }
 
-            if (LassoLayers.moveSelectedAreaToLassoBox(false, rect, lassoSelectPoints, isLassoImageCopied, checklayer1, checklayer2) === false)
+            if (LassoSelectionBoxes.moveSelectedAreaToLassoBox(false, rect, lassoSelectPoints, isLassoImageCopied, checklayer1, checklayer2) === false)
             {
                 resetLassoBox();
                 return;
@@ -642,7 +642,7 @@ package Modules.L4UI.Tools
 
             drawLassoPreviewLine(true);
             // 라소 메뉴 마우스 커서에보이기
-            lassoFirstData = [LassoLayers.lassoLayer1.x, LassoLayers.lassoLayer1.y, LassoLayers.lassoLayer1.scaleX, LassoLayers.lassoLayer1.scaleY, LassoLayers.lassoLayer1.rotation];
+            lassoFirstData = [LassoSelectionBoxes.lassoLayer1.x, LassoSelectionBoxes.lassoLayer1.y, LassoSelectionBoxes.lassoLayer1.scaleX, LassoSelectionBoxes.lassoLayer1.scaleY, LassoSelectionBoxes.lassoLayer1.rotation];
             _isStarted = true;
             setDefaultLassoMenuPos(_lassoMenuBox);
             UIController.keepBoxInsideViewPort(_lassoMenuBox);
@@ -656,7 +656,7 @@ package Modules.L4UI.Tools
                 _lassoMenuBox.lassoLayerSwap.alpha = 1.0;
                 _lassoMenuBox.lassoLayerMerge.alpha = 1.0;
             }
-            LassoLayers.lassoLayer2.visible = true;
+            LassoSelectionBoxes.lassoLayer2.visible = true;
             _lassoMenuBox.visible = true;
             Utils.setAsTopChild(_lassoMenuBox);
             if (ReferenceLayerController.isRefLayerMenuON === true)
@@ -671,31 +671,31 @@ package Modules.L4UI.Tools
         // 캔버스 판넬위치 따라 다니면서 크기 똑같이 해줌
         public static function applyLassoBoxImageToCanvas(isTransferRefLayer:Boolean):Array
         {
-            const lassoBMPScaleX:Number = LassoLayers.lassoLayer1.scaleX;
-            const lassoBMPScaleY:Number = LassoLayers.lassoLayer1.scaleY;
-            var lassoBMPWidth:Number = LassoLayers.lassoLayer1Bitmap.width * lassoBMPScaleX;
-            var lassoBMPHeight:Number = LassoLayers.lassoLayer1Bitmap.height * lassoBMPScaleY;
+            const lassoBMPScaleX:Number = LassoSelectionBoxes.lassoLayer1.scaleX;
+            const lassoBMPScaleY:Number = LassoSelectionBoxes.lassoLayer1.scaleY;
+            var lassoBMPWidth:Number = LassoSelectionBoxes.lassoLayer1Bitmap.width * lassoBMPScaleX;
+            var lassoBMPHeight:Number = LassoSelectionBoxes.lassoLayer1Bitmap.height * lassoBMPScaleY;
             if (CanvasLayers.checkedLayer === 2 || DrawCanvas.canvasLayer1Bitmap.visible === false)
             {
-                lassoBMPWidth = LassoLayers.lassoLayer2Bitmap.width * lassoBMPScaleX;
-                lassoBMPHeight = LassoLayers.lassoLayer2Bitmap.height * lassoBMPScaleY;
+                lassoBMPWidth = LassoSelectionBoxes.lassoLayer2Bitmap.width * lassoBMPScaleX;
+                lassoBMPHeight = LassoSelectionBoxes.lassoLayer2Bitmap.height * lassoBMPScaleY;
             }
-            const boxX:Number = LassoLayers.lassoLayer1.x;
-            const boxY:Number = LassoLayers.lassoLayer1.y;
-            const ang:Number = LassoLayers.lassoLayer1.rotation * Math.PI / 180;
+            const boxX:Number = LassoSelectionBoxes.lassoLayer1.x;
+            const boxY:Number = LassoSelectionBoxes.lassoLayer1.y;
+            const ang:Number = LassoSelectionBoxes.lassoLayer1.rotation * Math.PI / 180;
             var posMatrix:Matrix = new Matrix();
             posMatrix.scale(lassoBMPScaleX, lassoBMPScaleY); // 스케일부터 조절해주고
             posMatrix.translate(-lassoBMPWidth / 2, -lassoBMPHeight / 2); // 회전 중심점을 bmp중심으로 옮겨주고
             posMatrix.rotate(ang); // 회전해줌
             posMatrix.translate(boxX, boxY); // 라소박스 위치 그대로 붙여주면됨
-            LassoLayers.lassoLayer1Bitmap.smoothing = true;
-            LassoLayers.lassoLayer2Bitmap.smoothing = true;
+            LassoSelectionBoxes.lassoLayer1Bitmap.smoothing = true;
+            LassoSelectionBoxes.lassoLayer2Bitmap.smoothing = true;
             if (isTransferRefLayer === false)
             {
                 if (DrawCanvas.canvasLayer1Bitmap.visible)
-                    DrawCanvas.canvasLayer1BitmapData.draw(LassoLayers.lassoLayer1Bitmap, posMatrix);
+                    DrawCanvas.canvasLayer1BitmapData.draw(LassoSelectionBoxes.lassoLayer1Bitmap, posMatrix);
                 if (DrawCanvas.canvasLayer2Bitmap.visible)
-                    DrawCanvas.canvasLayer2BitmapData.draw(LassoLayers.lassoLayer2Bitmap, posMatrix);
+                    DrawCanvas.canvasLayer2BitmapData.draw(LassoSelectionBoxes.lassoLayer2Bitmap, posMatrix);
             }
             else
             {
@@ -704,12 +704,12 @@ package Modules.L4UI.Tools
                 if (DrawCanvas.canvasLayer1Bitmap.visible)
                 {
                     layer1Bmpd = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
-                    layer1Bmpd.draw(LassoLayers.lassoLayer1Bitmap, posMatrix);
+                    layer1Bmpd.draw(LassoSelectionBoxes.lassoLayer1Bitmap, posMatrix);
                 }
                 if (DrawCanvas.canvasLayer2Bitmap.visible)
                 {
                     layer2Bmpd = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
-                    layer2Bmpd.draw(LassoLayers.lassoLayer2Bitmap, posMatrix);
+                    layer2Bmpd.draw(LassoSelectionBoxes.lassoLayer2Bitmap, posMatrix);
                 }
                 ReferenceLayerController.mergeImageToRefLayer(layer1Bmpd, layer2Bmpd);
                 if (layer1Bmpd)
@@ -788,13 +788,13 @@ package Modules.L4UI.Tools
 
         public static function disposeAllLayerBitmapData():void
         {
-            if (LassoLayers.lassoLayer1Bitmap.bitmapData)
+            if (LassoSelectionBoxes.lassoLayer1Bitmap.bitmapData)
             {
-                LassoLayers.lassoLayer1Bitmap.bitmapData.dispose();
+                LassoSelectionBoxes.lassoLayer1Bitmap.bitmapData.dispose();
             }
-            if (LassoLayers.lassoLayer2Bitmap.bitmapData)
+            if (LassoSelectionBoxes.lassoLayer2Bitmap.bitmapData)
             {
-                LassoLayers.lassoLayer2Bitmap.bitmapData.dispose();
+                LassoSelectionBoxes.lassoLayer2Bitmap.bitmapData.dispose();
             }
         }
 
@@ -849,27 +849,27 @@ package Modules.L4UI.Tools
             isLassoLayerSwapButtonClicked = false;
             lassoFirstData = [];
             lassoTransformData = [];
-            LassoLayers.lassoLayer1Bitmap.filters = [];
-            LassoLayers.lassoLayer2Bitmap.filters = [];
+            LassoSelectionBoxes.lassoLayer1Bitmap.filters = [];
+            LassoSelectionBoxes.lassoLayer2Bitmap.filters = [];
             _lassoMenuBox.visible = false;
-            LassoLayers.lassoDraw.x = 0;
-            LassoLayers.lassoDraw.y = 0;
-            LassoLayers.lassoLayer1.visible = false;
-            LassoLayers.lassoLayer1.x = 0;
-            LassoLayers.lassoLayer1.y = 0;
-            LassoLayers.lassoLayer1.scaleX = 1.0;
-            LassoLayers.lassoLayer1.scaleY = 1.0;
-            LassoLayers.lassoLayer1.rotation = 0;
-            LassoLayers.lassoLayer2.visible = false;
-            LassoLayers.lassoLayer2.x = 0;
-            LassoLayers.lassoLayer2.y = 0;
-            LassoLayers.lassoLayer2.scaleX = 1.0;
-            LassoLayers.lassoLayer2.scaleY = 1.0;
-            LassoLayers.lassoLayer2.rotation = 0;
+            LassoSelectionBoxes.lassoDraw.x = 0;
+            LassoSelectionBoxes.lassoDraw.y = 0;
+            LassoSelectionBoxes.lassoLayer1.visible = false;
+            LassoSelectionBoxes.lassoLayer1.x = 0;
+            LassoSelectionBoxes.lassoLayer1.y = 0;
+            LassoSelectionBoxes.lassoLayer1.scaleX = 1.0;
+            LassoSelectionBoxes.lassoLayer1.scaleY = 1.0;
+            LassoSelectionBoxes.lassoLayer1.rotation = 0;
+            LassoSelectionBoxes.lassoLayer2.visible = false;
+            LassoSelectionBoxes.lassoLayer2.x = 0;
+            LassoSelectionBoxes.lassoLayer2.y = 0;
+            LassoSelectionBoxes.lassoLayer2.scaleX = 1.0;
+            LassoSelectionBoxes.lassoLayer2.scaleY = 1.0;
+            LassoSelectionBoxes.lassoLayer2.rotation = 0;
             _lassoMenuBox.lassoCopy.alpha = 1.0;
             _lassoMenuBox.lassoLayerMerge.alpha = 1.0;
-            LassoLayers.lassoDraw.visible = true;
-            LassoLayers.lassoDrawCloseLine.visible = true;
+            LassoSelectionBoxes.lassoDraw.visible = true;
+            LassoSelectionBoxes.lassoDrawCloseLine.visible = true;
             resetLassoSelectionData();
             if (lassoLayer1LastBitmapdata)
             {
@@ -930,10 +930,10 @@ package Modules.L4UI.Tools
                 posX = 1;
 
             const rotatedPoint:Point = Utils.rotatePoint(posX, posY, CanvasView.canvasAnchorPoint.rotation);
-            LassoLayers.lassoLayer1.x += rotatedPoint.x;
-            LassoLayers.lassoLayer1.y += rotatedPoint.y;
-            LassoLayers.lassoLayer2.x = LassoLayers.lassoLayer1.x;
-            LassoLayers.lassoLayer2.y = LassoLayers.lassoLayer1.y;
+            LassoSelectionBoxes.lassoLayer1.x += rotatedPoint.x;
+            LassoSelectionBoxes.lassoLayer1.y += rotatedPoint.y;
+            LassoSelectionBoxes.lassoLayer2.x = LassoSelectionBoxes.lassoLayer1.x;
+            LassoSelectionBoxes.lassoLayer2.y = LassoSelectionBoxes.lassoLayer1.y;
         }
 
         // ---- 입력 처리 ----
@@ -1002,11 +1002,11 @@ package Modules.L4UI.Tools
                 case "lassoMirror":
                     {
                         isLassoMirrorON = !isLassoMirrorON;
-                        LassoLayers.lassoLayer1.scaleX = -LassoLayers.lassoLayer1.scaleX;
-                        LassoLayers.lassoLayer2.scaleX = LassoLayers.lassoLayer1.scaleX;
+                        LassoSelectionBoxes.lassoLayer1.scaleX = -LassoSelectionBoxes.lassoLayer1.scaleX;
+                        LassoSelectionBoxes.lassoLayer2.scaleX = LassoSelectionBoxes.lassoLayer1.scaleX;
                         // 캔버스가 회전한각도도 있어서 항상 세로축을 중심으로 대칭되게 regpoint각도를 보정값으로 넣어줌
-                        LassoLayers.lassoLayer1.rotation = -LassoLayers.lassoLayer1.rotation - (CanvasView.canvasAnchorPoint.rotation * 2);
-                        LassoLayers.lassoLayer2.rotation = LassoLayers.lassoLayer1.rotation;
+                        LassoSelectionBoxes.lassoLayer1.rotation = -LassoSelectionBoxes.lassoLayer1.rotation - (CanvasView.canvasAnchorPoint.rotation * 2);
+                        LassoSelectionBoxes.lassoLayer2.rotation = LassoSelectionBoxes.lassoLayer1.rotation;
                     }
                     break;
             }

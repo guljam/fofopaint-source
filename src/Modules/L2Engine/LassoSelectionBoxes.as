@@ -14,7 +14,7 @@ package Modules.L2Engine
     // 올가미로 고른 이미지를 올려 두는 표시 객체(상자 1, 2)와 그 이미지를 옮기고 바꾸는 함수
     // 드로우 모드의 LassoTool과 리플레이 재생(ReplayDrawCommands)이 함께 씀
     // 층: L2 엔진 - 올가미 이미지 상자 1/2와 이미지 옮기기·바꾸기
-    public class LassoLayers
+    public class LassoSelectionBoxes
     {
         public static const LASSO_SHARP_DATA:Array = [[[
                         0, -1, 0,
