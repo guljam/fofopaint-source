@@ -46,7 +46,7 @@ package Modules.L2Engine.ReplayEngine
                 const fs:FileStream = new FileStream();
                 fs.open(AppDataPaths.replayDataFilePath, FileMode.WRITE);
                 fs.close();
-                ReplayDrawer.commandWindow.dispose(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
+                ReplayDrawer.commandWindow.disposeQueuedCommandGroups(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
                 TimingSheetFile.resetTimingSheet();
             }
         }

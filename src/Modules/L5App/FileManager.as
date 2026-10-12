@@ -250,7 +250,7 @@ package Modules.L5App
                 ReplayFileCache.repFileTemp.moveTo(AppDataPaths.replayDataFilePath, true);
             }
 
-            ReplayDrawer.commandWindow.dispose(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
+            ReplayDrawer.commandWindow.disposeQueuedCommandGroups(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
 
             if (ReplayFileCache.repFileTemp.exists)
             {
