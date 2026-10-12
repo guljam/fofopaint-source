@@ -232,7 +232,7 @@ package Modules.L5App.InputManager
                     break;
                 case "gridButton":
                     {
-                        CanvasGridOverlay.gridButton.start(false);
+                        CanvasGridOverlay.toggleGridAdjustMode(false);
                     }
                     break;
                 case "aboutButton":
