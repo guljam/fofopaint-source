@@ -16,6 +16,7 @@ package Modules.L4UI.Tools
     import flash.geom.Rectangle;
     import Modules.L4UI.DrawEngine.LayerPreview;
     import Modules.L4UI.SidebarController;
+    import Modules.L4UI.ToolMouseCursorController;
     import Modules.L3Feature.UndoController;
     import Modules.L1Data.KeyState;
     import Modules.L4UI.UIEngine.UIController;
@@ -133,6 +134,8 @@ package Modules.L4UI.Tools
 
         public static function showNowToolIconToCursorTemp(toolIndex:int):void
         {
+            ToolMouseCursorController.updateToolMouseCursorByToolAndPointerArea();
+
             if (SidebarController.isQuickSidebarActive)
             {
                 return;

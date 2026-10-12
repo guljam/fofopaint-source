@@ -18,6 +18,7 @@ $out = "${PSScriptRoot}\$($opts.output)"
 $stamp = "$out.srchash"
 
 $inputs = @(Get-ChildItem -Path "${PSScriptRoot}\$($opts.'source-path'[0])" -Recurse -File) +
+    @(Get-ChildItem -Path "${PSScriptRoot}\resource\mousecursor" -File) + # ToolMouseCursorController가 [Embed]하는 커서 그림
     @(Get-Item -Path $configPath, "${PSScriptRoot}\$($config.application)") +
     @($opts.'library-path' | ForEach-Object { Get-Item -Path "${PSScriptRoot}\$_" })
 
