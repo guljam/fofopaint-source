@@ -53,6 +53,7 @@ package Modules.L4UI.Tools
 
         private static const TOOL_BOX_ON_DELAY_TIME:Number = 0.12;
         private static const SELECTED_TOOL_BADGE_GAP_ABOVE_MOUSE:Number = 15; // 마우스 포인트에서 선택 툴 아이콘 아래쪽까지 띄우는 간격 (UI 스케일 1 기준 px)
+        private static const SELECTED_TOOL_BADGE_SCALE:Number = 0.8; // 선택 툴 아이콘 크기 배율
         public static const toolBox:ToolMenuSet = new ToolMenuSet();
         public static const toolBox2:ToolMenuSet2 = new ToolMenuSet2();
         public static const toolOptionsBox:ToolOptionsSet = new ToolOptionsSet();
@@ -81,6 +82,16 @@ package Modules.L4UI.Tools
             selectedToolViewBitmap.y = Math.round(AppContext.stage.mouseY - badgeGapAboveMouse - selectedToolViewBitmap.height);
         }
 
+        // 그리는 영역 안이면서 참고 레이어 메뉴나 라소 메뉴 위가 아닐 때만 선택 툴 아이콘을 보여줌
+        private static function canShowSelectedToolViewBitmapAtMouse():Boolean
+        {
+            const mx:Number = AppContext.stage.mouseX;
+            const my:Number = AppContext.stage.mouseY;
+            return UIController.isCursorInDrawArea()
+                && !(ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mx, my))
+                && !(LassoTool._lassoMenuBox.visible && LassoTool._lassoMenuBox.hitTestPoint(mx, my));
+        }
+
         // 마우스가 움직일 때 호출. 선택 툴 아이콘이 떠 있는 동안 커서를 따라가고, 그리는 중(왼쪽 버튼)에는 숨김
         public static function followMouseWithSelectedToolViewBitmap():void
         {
@@ -88,7 +99,8 @@ package Modules.L4UI.Tools
             {
                 return;
             }
-            if (MouseState.isLeftDown)
+            // 상단 바나 툴 메뉴 위처럼 그리는 영역 밖으로 나가면 숨김
+            if (MouseState.isLeftDown || !canShowSelectedToolViewBitmapAtMouse())
             {
                 selectedToolViewBitmap.visible = false;
                 return;
@@ -133,7 +145,7 @@ package Modules.L4UI.Tools
 
         public static function showNowToolIconToCursorTemp(toolIndex:int):void
         {
-            if (SidebarController.isQuickSidebarActive)
+            if (SidebarController.isQuickSidebarActive || !canShowSelectedToolViewBitmapAtMouse())
             {
                 return;
             }
@@ -146,6 +158,8 @@ package Modules.L4UI.Tools
             }
 
             selectedToolViewBitmap.bitmapData = toolBox.getToolSelectViewBmpd(toolIndex, toolButton);
+            selectedToolViewBitmap.scaleX = SELECTED_TOOL_BADGE_SCALE;
+            selectedToolViewBitmap.scaleY = SELECTED_TOOL_BADGE_SCALE;
             updateSelectedToolViewBoxPos();
             Utils.showDisplayTargetAndFadeOut(selectedToolViewBitmap, 1.0, 1.0);
         }
