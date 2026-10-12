@@ -332,7 +332,7 @@ package Modules.L5App
                 isRebuildFromReplayFileNeeded = true;
             }
 
-            TimingSheetFile.loadLegacy(ReplayState.getRFileDataTotalFrame()); // 요약보다 먼저: 요약이 이 값으로 만든 것인지 확인함
+            TimingSheetFile.loadLegacyFrameCountFromFile(ReplayState.getRFileDataTotalFrame()); // 요약보다 먼저: 요약이 이 값으로 만든 것인지 확인함
             ReplayClock.loadClockIndexFile(); // 복구한 프레임 수와 시트가 요약과 맞으면 첫 사용 때 전체 읽기를 건너뜀
 
             if (AppDataPaths.scratchPadDataFilePath.exists)

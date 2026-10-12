@@ -192,8 +192,8 @@ package Modules.L2Engine.ReplayEngine
 
                 if (stamp !== undefined)
                 {
-                    times[i] = TimingSheetFile.unpackTime(stamp);
-                    anims[i] = TimingSheetFile.unpackAnimMs(stamp);
+                    times[i] = TimingSheetFile.unpackTimerStamp(stamp);
+                    anims[i] = TimingSheetFile.unpackAnimLengthMs(stamp);
                     pointLists[i] = TimingSheetFile.getPointTimesOf(stamp);
                     lastStamped = i;
 

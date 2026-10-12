@@ -597,7 +597,7 @@ package Modules.L5App.ReplayEngine
             stopGeneratingCacheImageFunc = null;
             ReplayDrawCommands.clearCommandData();
             ReplayState.setRFileDataTotalFrame(_frameSum);
-            const sheetFramesBefore:Number = TimingSheetFile.frameCount;
+            const sheetFramesBefore:Number = TimingSheetFile.sheetFrameCount;
             TimingSheetFile.resizeSheetToFrameCount(_frameSum); // 시트가 없거나 길이가 다르면 repdata 프레임 수에 맞춤
 
             if (sheetFramesBefore !== _frameSum)

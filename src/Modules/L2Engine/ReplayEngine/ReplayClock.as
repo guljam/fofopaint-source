@@ -348,7 +348,7 @@ package Modules.L2Engine.ReplayEngine
             const sheet:File = AppDataPaths.replayTimingSheetFilePath;
 
             // 색인이 지금 시트와 맞지 않으면 옛 요약이 남지 않게 지움
-            if (indexedFileFrames < 0 || indexedFileFrames !== ReplayState.getRFileDataTotalFrame() || indexedFileFrames !== TimingSheetFile.frameCount || indexLegacyFrames !== TimingSheetFile.legacyFrames || indexLegacyDelta !== currentLegacyDelta())
+            if (indexedFileFrames < 0 || indexedFileFrames !== ReplayState.getRFileDataTotalFrame() || indexedFileFrames !== TimingSheetFile.sheetFrameCount || indexLegacyFrames !== TimingSheetFile.legacyFrames || indexLegacyDelta !== currentLegacyDelta())
             {
                 if (file.exists)
                 {
