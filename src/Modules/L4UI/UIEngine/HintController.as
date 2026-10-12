@@ -113,10 +113,10 @@ package Modules.L4UI.UIEngine
                 FOFOTimer.remove("bottomHintOffDelay");
 
                 const targetName:String = target.name;
-                const xCanvasPanel:Sprite = CanvasViewport.current().panel;
+                const xCanvasPanel:Sprite = CanvasViewport.getCurrentVisibleViewport().canvasPanel;
                 if (CaptureController.isFullImageCapture() && xCanvasPanel.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY, true))
                 {
-                    showHintHighlightBox(CanvasViewport.current().layer1Bitmap);
+                    showHintHighlightBox(CanvasViewport.getCurrentVisibleViewport().layer1Bitmap);
                     showBottomHint(hint);
                 }
                 else if (!(targetName === "rCanvasPanel"

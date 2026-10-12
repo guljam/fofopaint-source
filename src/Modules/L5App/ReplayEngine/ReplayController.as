@@ -635,7 +635,7 @@ package Modules.L5App.ReplayEngine
                 ReplayFileCache.rLastCacheImageIndex = -2;
                 ReplayFileCache.rTempCachedLastImageIndex = -2;
                 UndoController.undoToIndex(ReplayState.rMemoryData.length - 1);
-                ReplayDrawer.viewport.centerIn("replay");
+                ReplayDrawer.viewport.centerCanvasInStage("replay");
                 ReplayModeInput.addEvents();
                 ReplayDrawer.rCanvasAnchorPoint.visible = true;
             }
@@ -647,8 +647,8 @@ package Modules.L5App.ReplayEngine
                 CanvasView.canvasAnchorPoint.rotation = 0;
                 ReplayDrawer.setReplayCursorRotation(0);
                 CanvasView.canvasZoomIndex = 3;
-                CanvasView.viewport.setScale(1.0);
-                CanvasView.viewport.centerIn("draw");
+                CanvasView.viewport.setCanvasScale(1.0);
+                CanvasView.viewport.centerCanvasInStage("draw");
                 UndoController.resetUndoState();
                 DrawModeInput.addEvents();
             }
@@ -1724,7 +1724,7 @@ package Modules.L5App.ReplayEngine
             FOFOTimer.remove("replayRestartTimer");
             updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
             Utils.setColorTransform(UIController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
-            ReplayDrawer.viewport.setScale(ReplayState.rLastCanvasZoomMultiplier);
+            ReplayDrawer.viewport.setCanvasScale(ReplayState.rLastCanvasZoomMultiplier);
         }
 
         public static function startReplayRestartTimer():void
@@ -2057,7 +2057,7 @@ package Modules.L5App.ReplayEngine
             {
                 ReplayState.rMemoryDataReadON = false;
                 updateReplayTimeBarFromDrawMode();
-                ReplayDrawer.viewport.centerIn("replay");
+                ReplayDrawer.viewport.centerCanvasInStage("replay");
 
                 // 이거 안해주고 리플레이틀고 프레임 조작 안하고 재생하면 중간부터 되서 데이터가 꼬임
                 ReplayState.isReplayFinished = true;
@@ -2074,7 +2074,7 @@ package Modules.L5App.ReplayEngine
                 }
 
                 updateDeleteReplayDataButtonsState();
-                ReplayDrawer.viewport.keepInStage();
+                ReplayDrawer.viewport.keepCanvasInStage();
                 SidebarController.hideSidebarTemporary();
                 UIController.updateTopbarIconsReplayMode();
                 ReplayModeInput.addEvents();
@@ -2108,7 +2108,7 @@ package Modules.L5App.ReplayEngine
             ReplayState.rLastCanvasZoomMultiplier = 1.0;
             ReplayState.rCanvasZoomIndex = CanvasView.canvasZoomMultiplierList.indexOf(1.0);
             ReplayDrawer.viewport.moveAnchorPoint(center.x, center.y);
-            ReplayDrawer.viewport.setScale(1.0);
+            ReplayDrawer.viewport.setCanvasScale(1.0);
             setFitReplayCanvasToViewportOFF();
             ReplayDrawer.cursorFollow.resyncCameraWithAnchor();
         }
@@ -2326,7 +2326,7 @@ package Modules.L5App.ReplayEngine
         {
             FOFOTimer.addByName("rFitZoomedDelayTimer", 0.15, false, function ():void
                 {
-                    CanvasViewport.current().fitToViewportMargin(true);
+                    CanvasViewport.getCurrentVisibleViewport().fitToViewportMargin(true);
                     ReplayState.rCanvasZoomIndex = CanvasView.getNearZoomIndex(ReplayState.rCanvasZoomMultiplier);
                     ReplayState.rCanvasZoomMultiplier = CanvasView.canvasZoomMultiplierList[ReplayState.rCanvasZoomIndex];
                 });
@@ -2372,7 +2372,7 @@ package Modules.L5App.ReplayEngine
 
         private static function replayCompleteEffect():void
         {
-            CanvasViewport.current().fitToViewportMargin(ReplayState.isReplayCanvasFitToWindow);
+            CanvasViewport.getCurrentVisibleViewport().fitToViewportMargin(ReplayState.isReplayCanvasFitToWindow);
             CanvasView.applyCanvasFlashEffect(ReplayDrawer.rCanvasPanel, 0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT, function ():Boolean
                 {
                     return !ReplayState.isReplayModeON;

@@ -598,7 +598,7 @@ package Modules.L2Engine.ReplayEngine
             ReplayState.RCANVAS_WIDTH = w;
             ReplayState.RCANVAS_HEIGHT = h;
             cursorFollow.resyncCameraWithAnchor();
-            viewport.keepInStage();
+            viewport.keepCanvasInStage();
 
             if (ReplayState.isReplayCanvasFitToWindow)
             {

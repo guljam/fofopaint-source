@@ -101,7 +101,7 @@ package Modules.L4UI.UIEngine
                 }
                 MouseState.endDrag("canvasNavigator");
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
-                CanvasView.viewport.keepInStage();
+                CanvasView.viewport.keepCanvasInStage();
                 updateCursor();
                 if (LassoTool.isStarted)
                 {

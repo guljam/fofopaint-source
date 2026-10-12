@@ -58,7 +58,7 @@ package Modules.L4UI.Tools
 
             const zoomValue:Number = CanvasView.canvasZoomMultiplierList[startZoomIndex];
             CanvasView.canvasZoomIndex = startZoomIndex;
-            CanvasView.viewport.setScale(zoomValue);
+            CanvasView.viewport.setCanvasScale(zoomValue);
 
             HintController.showMouseHint(Math.floor(zoomValue * 100) + "%");
             fixMouseHintPos();

@@ -281,12 +281,12 @@ package Modules.L5App
             CanvasView.canvasAnchorPoint.rotation = 0;
             ReplayDrawer.setReplayCursorRotation(0);
             CanvasView.canvasZoomIndex = 3;
-            CanvasView.viewport.setScale(1.0);
+            CanvasView.viewport.setCanvasScale(1.0);
             DrawCanvas.setCanvasSizeDrawMode(canvasWidth, canvasHeight, 0, 0, false);
             CanvasView.updateCanvasPanelColorAndSize();
             ReplayDrawer.setReplayCanvasBmpdFromDrawMode();
             ReplayController.setReplayCanvasStateFromDrawMode();
-            CanvasView.viewport.centerIn("draw");
+            CanvasView.viewport.centerCanvasInStage("draw");
         }
 
         public static function finalizeLoadFile(width:uint, height:uint, imageData:IBitmapDrawable, imageData1:IBitmapDrawable, imageOnlyFlag:Boolean, bgColor:uint):void
@@ -652,8 +652,8 @@ package Modules.L5App
                 return;
             }
             DrawCanvas.clearCanvas();
-            ReplayDrawer.viewport.centerIn("replay");
-            CanvasView.viewport.centerIn("draw");
+            ReplayDrawer.viewport.centerCanvasInStage("replay");
+            CanvasView.viewport.centerCanvasInStage("draw");
             UIController.resetZoomDrawMode();
             UIController.resetRotationDrawMode();
             ReplayController.resetCanvasAndReplayData();

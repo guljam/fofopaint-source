@@ -62,12 +62,12 @@ package Modules.L5App.InputManager
                     break;
                 case "replayZoomInButton":
                     {
-                        ReplayDrawer.viewport.zoomStep(true);
+                        ReplayDrawer.viewport.zoomByOneStep(true);
                     }
                     break;
                 case "replayZoomOutButton":
                     {
-                        ReplayDrawer.viewport.zoomStep(false);
+                        ReplayDrawer.viewport.zoomByOneStep(false);
                     }
                     break;
                 case "replayFitToWindowButton":
@@ -205,7 +205,7 @@ package Modules.L5App.InputManager
                             if (!KeyState.isPressingShift() && !KeyState.isPressingControl())
                             {
                                 KeyState.updateLastKey();
-                                ReplayDrawer.viewport.zoomStep(true);
+                                ReplayDrawer.viewport.zoomByOneStep(true);
                             }
                         }
                         break;
@@ -215,7 +215,7 @@ package Modules.L5App.InputManager
                             if (!KeyState.isPressingShift() && !KeyState.isPressingControl())
                             {
                                 KeyState.updateLastKey();
-                                ReplayDrawer.viewport.zoomStep(false);
+                                ReplayDrawer.viewport.zoomByOneStep(false);
                             }
                         }
                         break;
@@ -298,13 +298,13 @@ package Modules.L5App.InputManager
                 case KeyState.KEY.w:
                 case KeyState.KEY.i:
                     {
-                        ReplayDrawer.viewport.zoomStep(true); // 반복 없음: 위에서 updateLastKey를 불러 키를 떼기 전에는 다시 들어오지 않음
+                        ReplayDrawer.viewport.zoomByOneStep(true); // 반복 없음: 위에서 updateLastKey를 불러 키를 떼기 전에는 다시 들어오지 않음
                     }
                     break;
                 case KeyState.KEY.s:
                 case KeyState.KEY.k:
                     {
-                        ReplayDrawer.viewport.zoomStep(false);
+                        ReplayDrawer.viewport.zoomByOneStep(false);
                     }
                     break;
                 case KeyState.KEY.backspace:

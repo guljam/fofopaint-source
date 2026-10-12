@@ -446,12 +446,12 @@ package Modules.L4UI.Tools
                         break;
                     case "toolZoomIn":
                         {
-                            CanvasView.viewport.zoomStep(true);
+                            CanvasView.viewport.zoomByOneStep(true);
                         }
                         break;
                     case "toolZoomOut":
                         {
-                            CanvasView.viewport.zoomStep(false);
+                            CanvasView.viewport.zoomByOneStep(false);
                         }
                         break;
                     case "toolRefLayer":

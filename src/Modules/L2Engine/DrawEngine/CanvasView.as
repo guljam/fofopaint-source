@@ -101,7 +101,7 @@ package Modules.L2Engine.DrawEngine
             canvasPanel.graphics.drawRect(0, 0, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
             canvasPanel.graphics.endFill();
 
-            viewport.keepInStage();
+            viewport.keepCanvasInStage();
             if (onCanvasPanelResizedFunc != null) onCanvasPanelResizedFunc();
         }
     }

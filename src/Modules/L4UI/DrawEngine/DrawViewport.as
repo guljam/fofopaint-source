@@ -19,12 +19,12 @@ package Modules.L4UI.DrawEngine
     // 층: L4 UI - 드로우 모드 캔버스의 화면 배치 (CanvasView.viewport)
     public class DrawViewport extends CanvasViewport
     {
-        override public function get anchor():Sprite
+        override public function get canvasAnchorPoint():Sprite
         {
             return CanvasView.canvasAnchorPoint;
         }
 
-        override public function get panel():Sprite
+        override public function get canvasPanel():Sprite
         {
             return CanvasView.canvasPanel;
         }
@@ -49,18 +49,18 @@ package Modules.L4UI.DrawEngine
             return DrawCanvas.CANVAS_HEIGHT;
         }
 
-        override public function get zoom():Number
+        override public function get zoomMultiplier():Number
         {
             return CanvasView.canvasZoomMultiplier;
         }
 
         // 배율을 CanvasView에 저장하고, 캡처 모드가 아니면 펜 크기 미리보기를, 올가미 중이면 올가미 윤곽선을 새 배율에 맞춤
-        override protected function storeZoom(zoomValue:Number):void
+        override protected function storeZoomMultiplier(newZoomMultiplier:Number):void
         {
-            CanvasView.canvasZoomMultiplier = zoomValue;
+            CanvasView.canvasZoomMultiplier = newZoomMultiplier;
             if (!CaptureController.isCaptureModeON)
             {
-                PenSizePreviewCursor.updateZoom(zoomValue);
+                PenSizePreviewCursor.updateZoom(newZoomMultiplier);
             }
             if (LassoTool.isStarted)
             {
@@ -69,11 +69,11 @@ package Modules.L4UI.DrawEngine
         }
 
         // 화면 중심 기준으로 한 단계 확대/축소함. 캔버스가 화면 밖으로 나가지 않게 제한하고 펜 커서, 네비게이터, 격자를 갱신함
-        override public function zoomStep(zoomIn:Boolean):void
+        override public function zoomByOneStep(zoomIn:Boolean):void
         {
-            const currentAnchor:Sprite = anchor;
-            const currentPanel:Sprite = panel;
-            const newZoomIndex:int = nextZoomIndex(CanvasView.canvasZoomIndex, zoomIn);
+            const currentAnchor:Sprite = canvasAnchorPoint;
+            const currentPanel:Sprite = canvasPanel;
+            const newZoomIndex:int = getNextZoomIndex(CanvasView.canvasZoomIndex, zoomIn);
             const newZoom:Number = CanvasView.canvasZoomMultiplierList[newZoomIndex];
             const stageCenterPos:Point = UIController.getStageCenterPos("draw");
             const panelLocalCenterPos:Point = currentPanel.globalToLocal(new Point(stageCenterPos.x, stageCenterPos.y));
@@ -81,7 +81,7 @@ package Modules.L4UI.DrawEngine
             const panelLimitedCenterPos:Point = ZoomTool.getCanvasBoundLimitPoint(currentPanel, panelLocalCenterPos.x, panelLocalCenterPos.y, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, currentAnchor.scaleY, -currentAnchor.rotation);
             CanvasView.canvasZoomIndex = newZoomIndex;
             moveAnchorPoint(panelLimitedCenterPos.x + panelGlobalOriginPos.x, panelLimitedCenterPos.y + panelGlobalOriginPos.y);
-            setScale(newZoom);
+            setCanvasScale(newZoom);
             PenSizePreviewCursor.updateSizeAndShape();
             CanvasNavigator.updateCursor();
             if (CanvasGridOverlay.gridGapMultiplier > 0)

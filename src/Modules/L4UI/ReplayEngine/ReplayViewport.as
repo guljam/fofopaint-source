@@ -18,12 +18,12 @@ package Modules.L4UI.ReplayEngine
         // 리플레이 캔버스 화면 맞춤을 꺼야 한다는 보고
         public static var onReplayFitOffFunc:Function;
 
-        override public function get anchor():Sprite
+        override public function get canvasAnchorPoint():Sprite
         {
             return ReplayDrawer.rCanvasAnchorPoint;
         }
 
-        override public function get panel():Sprite
+        override public function get canvasPanel():Sprite
         {
             return ReplayDrawer.rCanvasPanel;
         }
@@ -48,14 +48,14 @@ package Modules.L4UI.ReplayEngine
             return ReplayState.RCANVAS_HEIGHT;
         }
 
-        override public function get zoom():Number
+        override public function get zoomMultiplier():Number
         {
             return ReplayState.rCanvasZoomMultiplier;
         }
 
-        override protected function storeZoom(zoomValue:Number):void
+        override protected function storeZoomMultiplier(newZoomMultiplier:Number):void
         {
-            ReplayState.rCanvasZoomMultiplier = zoomValue;
+            ReplayState.rCanvasZoomMultiplier = newZoomMultiplier;
             if (ReplayState.rAirBrushSize > 0)
             {
                 ReplayDrawer.blurReplayCanvasByValue(ReplayState.rAirBrushSize);
@@ -66,15 +66,15 @@ package Modules.L4UI.ReplayEngine
         // 지금 배율이 정확히 단계 값이면 그 다음 단계 (상대 오차 1e-6 미만은 같은 값으로 봄). 그 방향에 더 간 단계가 없으면 -1 (배율을 바꾸지 않음)
         private function nextZoomIndexFromVisible(zoomIn:Boolean):int
         {
-            const list:Array = CanvasView.canvasZoomMultiplierList;
-            const now:Number = ReplayState.rCanvasZoomMultiplier;
+            const zoomMultiplierList:Array = CanvasView.canvasZoomMultiplierList;
+            const visibleZoomMultiplier:Number = ReplayState.rCanvasZoomMultiplier;
             var i:int;
 
             if (zoomIn)
             {
-                for (i = 0;i < list.length;i++)
+                for (i = 0;i < zoomMultiplierList.length;i++)
                 {
-                    if (list[i] > now * (1 + 1e-6))
+                    if (zoomMultiplierList[i] > visibleZoomMultiplier * (1 + 1e-6))
                     {
                         return i;
                     }
@@ -83,9 +83,9 @@ package Modules.L4UI.ReplayEngine
                 return -1;
             }
 
-            for (i = list.length - 1;i >= 0;i--)
+            for (i = zoomMultiplierList.length - 1;i >= 0;i--)
             {
-                if (list[i] < now * (1 - 1e-6))
+                if (zoomMultiplierList[i] < visibleZoomMultiplier * (1 - 1e-6))
                 {
                     return i;
                 }
@@ -94,7 +94,7 @@ package Modules.L4UI.ReplayEngine
             return -1;
         }
 
-        override public function zoomStep(zoomIn:Boolean):void
+        override public function zoomByOneStep(zoomIn:Boolean):void
         {
             const newZoomIndex:int = nextZoomIndexFromVisible(zoomIn);
 
@@ -105,12 +105,12 @@ package Modules.L4UI.ReplayEngine
             }
 
             const newZoom:Number = CanvasView.canvasZoomMultiplierList[newZoomIndex];
-            const center:Point = UIController.getStageCenterPos("replay");
+            const stageCenterPos:Point = UIController.getStageCenterPos("replay");
             ReplayState.rLastCanvasZoomMultiplier = newZoom;
             if (onReplayFitOffFunc != null) onReplayFitOffFunc();
             ReplayState.rCanvasZoomIndex = newZoomIndex;
-            moveAnchorPoint(center.x, center.y);
-            setScale(newZoom);
+            moveAnchorPoint(stageCenterPos.x, stageCenterPos.y);
+            setCanvasScale(newZoom);
             ReplayDrawer.cursorFollow.resyncCameraWithAnchor();
             HintController.showMouseHintTemp(String(Math.floor(newZoom * 100)) + "%");
         }

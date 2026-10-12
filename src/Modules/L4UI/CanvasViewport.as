@@ -20,28 +20,29 @@ package Modules.L4UI
     // 층: L4 UI - 캔버스 하나의 화면 배치 공통 동작 (앵커 이동, 배율, 가운데 정렬)
     public class CanvasViewport
     {
-        public static function forMode(isReplayMode:Boolean):CanvasViewport
+        // 리플레이 모드 여부로 리플레이/드로우 캔버스의 뷰포트를 고름 (모드를 저장해 두고 쓰는 도구용)
+        public static function getViewportByReplayMode(isReplayMode:Boolean):CanvasViewport
         {
             return (isReplayMode) ? ReplayDrawer.viewport : CanvasView.viewport;
         }
 
         // 지금 보이는 캔버스 (리플레이 모드면 리플레이 캔버스, 아니면 드로우 캔버스)
-        public static function current():CanvasViewport
+        public static function getCurrentVisibleViewport():CanvasViewport
         {
-            return forMode(ReplayState.isReplayModeON);
+            return getViewportByReplayMode(ReplayState.isReplayModeON);
         }
 
         // 줌 단계 목록(드로우/리플레이 공용)에서 한 단계 이동한 인덱스
-        public static function nextZoomIndex(index:int, zoomIn:Boolean):int
+        public static function getNextZoomIndex(currentZoomIndex:int, zoomIn:Boolean):int
         {
-            const zoomMax:int = CanvasView.canvasZoomMultiplierList.length - 1;
-            var newZoomIndex:int = index;
+            const maxZoomIndex:int = CanvasView.canvasZoomMultiplierList.length - 1;
+            var newZoomIndex:int = currentZoomIndex;
             if (zoomIn)
             {
                 newZoomIndex++;
-                if (newZoomIndex > zoomMax)
+                if (newZoomIndex > maxZoomIndex)
                 {
-                    newZoomIndex = zoomMax;
+                    newZoomIndex = maxZoomIndex;
                 }
             }
             else
@@ -57,14 +58,14 @@ package Modules.L4UI
 
         // ---- 하위 클래스가 재정의 ----
 
-        public function get anchor():Sprite // 회전/배율이 걸리는 부모
+        public function get canvasAnchorPoint():Sprite // 회전/배율이 걸리는 부모
         {
-            throw new Error("CanvasViewport.anchor must be overridden");
+            throw new Error("CanvasViewport.canvasAnchorPoint must be overridden");
         }
 
-        public function get panel():Sprite // 레이어들이 들어있는 캔버스 패널
+        public function get canvasPanel():Sprite // 레이어들이 들어있는 캔버스 패널
         {
-            throw new Error("CanvasViewport.panel must be overridden");
+            throw new Error("CanvasViewport.canvasPanel must be overridden");
         }
 
         public function get layer1Bitmap():Bitmap
@@ -87,136 +88,138 @@ package Modules.L4UI
             throw new Error("CanvasViewport.canvasHeight must be overridden");
         }
 
-        public function get zoom():Number
+        public function get zoomMultiplier():Number
         {
-            throw new Error("CanvasViewport.zoom must be overridden");
+            throw new Error("CanvasViewport.zoomMultiplier must be overridden");
         }
 
         // 줌 단계 한칸 확대/축소
-        public function zoomStep(zoomIn:Boolean):void
+        public function zoomByOneStep(zoomIn:Boolean):void
         {
-            throw new Error("CanvasViewport.zoomStep must be overridden");
+            throw new Error("CanvasViewport.zoomByOneStep must be overridden");
         }
 
         // 배율 값을 저장하고 모드별 후속 처리 (앵커에 배율이 적용되기 전에 호출됨)
-        protected function storeZoom(zoomValue:Number):void
+        protected function storeZoomMultiplier(newZoomMultiplier:Number):void
         {
-            throw new Error("CanvasViewport.storeZoom must be overridden");
+            throw new Error("CanvasViewport.storeZoomMultiplier must be overridden");
         }
 
         // ---- 공용 동작 ----
 
-        public function moveAnchorPoint(tx:Number, ty:Number):void
+        // 앵커를 (targetX, targetY)로 옮기고, 캔버스 패널은 회전과 배율을 반영해 반대로 움직여 캔버스 내용이 화면에서 제자리에 있게 함
+        public function moveAnchorPoint(targetX:Number, targetY:Number):void
         {
-            tx = Math.round(tx);
-            ty = Math.round(ty);
-            const xAnc:Sprite = anchor;
-            if (xAnc.x === tx && xAnc.y === ty)
+            targetX = Math.round(targetX);
+            targetY = Math.round(targetY);
+            const anchorSprite:Sprite = canvasAnchorPoint;
+            if (anchorSprite.x === targetX && anchorSprite.y === targetY)
             {
                 return;
             }
             // round하면 정확도가 약간 줄어드는데, 안하면 그릴때 픽셀 어긋남
             // 캔버스 회전됐을때 점 위치를 구해줌
             // zoom된값을 나눠줘야 제대로된 이동거리가 나옴
-            const xZoomed:Number = zoom;
-            const rotateToolMoveEvent:Point = Utils.rotatePoint((xAnc.x - tx) / xZoomed,
-                    (xAnc.y - ty) / xZoomed,
-                    xAnc.rotation);
-            xAnc.x = tx;
-            xAnc.y = ty;
-            const xCanvas:Sprite = panel;
-            xCanvas.x += Math.round(rotateToolMoveEvent.x); // 이동한 만큼 거꾸로 움직여줌
-            xCanvas.y += Math.round(rotateToolMoveEvent.y); // rotate값 포함해서 움직여야함
+            const zoomMultiplierNow:Number = zoomMultiplier;
+            const rotatedMoveOffset:Point = Utils.rotatePoint((anchorSprite.x - targetX) / zoomMultiplierNow,
+                    (anchorSprite.y - targetY) / zoomMultiplierNow,
+                    anchorSprite.rotation);
+            anchorSprite.x = targetX;
+            anchorSprite.y = targetY;
+            const panelSprite:Sprite = canvasPanel;
+            panelSprite.x += Math.round(rotatedMoveOffset.x); // 이동한 만큼 거꾸로 움직여줌
+            panelSprite.y += Math.round(rotatedMoveOffset.y); // rotate값 포함해서 움직여야함
         }
 
-        public function setScale(zoomValue:Number):void
+        // 캔버스 배율을 정함 (0이면 1배, 음수면 절댓값). 모드별 저장(storeZoomMultiplier)과 캡처 반전, 배율 표시, 리플레이 커서 크기까지 갱신함
+        public function setCanvasScale(newZoomMultiplier:Number):void
         {
-            if (!zoomValue)
-                zoomValue = 1.0;
-            if (zoomValue < 0.0)
-                zoomValue = Math.abs(zoomValue);
-            storeZoom(zoomValue);
-            const xAnc:Sprite = anchor;
-            xAnc.scaleX = zoomValue;
-            xAnc.scaleY = zoomValue;
+            if (!newZoomMultiplier)
+                newZoomMultiplier = 1.0;
+            if (newZoomMultiplier < 0.0)
+                newZoomMultiplier = Math.abs(newZoomMultiplier);
+            storeZoomMultiplier(newZoomMultiplier);
+            const anchorSprite:Sprite = canvasAnchorPoint;
+            anchorSprite.scaleX = newZoomMultiplier;
+            anchorSprite.scaleY = newZoomMultiplier;
             if (CaptureController.isCaptureModeON && CaptureController.isCaptureCanvasFlipped)
             {
-                xAnc.scaleX = -xAnc.scaleX;
+                anchorSprite.scaleX = -anchorSprite.scaleX;
             }
             if (!CaptureController.isCaptureModeON)
             {
-                UIController.canvasInfoBox.setZoom(zoomValue);
+                UIController.canvasInfoBox.setZoom(newZoomMultiplier);
             }
-            ReplayDrawer.updateReplayCursorScale(zoomValue);
+            ReplayDrawer.updateReplayCursorScale(newZoomMultiplier);
         }
 
-        // check box position함수는 요소 전체가 창에서 넘어가만 않게 하는거고
-        public function keepInStage():void
+        // 캔버스가 화면 밖으로 완전히 나가지 않게 앵커를 끌어옴 (최소 minVisiblePx 만큼은 보이게). 요소 전체가 창에서 넘어가지만 않게 하는 용도
+        public function keepCanvasInStage():void
         {
-            const xAnc:Sprite = anchor;
-            const offset:int = 100; // 최소 100픽셀 은 보여야함
+            const anchorSprite:Sprite = canvasAnchorPoint;
+            const minVisiblePx:int = 100; // 최소 100픽셀 은 보여야함
             const bounds:Object = Utils.getBoundRect(layer1Bitmap);
-            const leftLimit:Number = UIController.STAGE_LEFT_OFFSET + offset;
-            const rightLimit:Number = AppContext.stage.stageWidth - (UIController.STAGE_RIGHT_OFFSET + offset);
-            const topLimit:Number = UIController.STAGE_TOP_OFFSET + offset;
-            const bottomLimit:Number = AppContext.stage.stageHeight - (UIController.STAGE_BOTTOM_OFFSET + offset);
+            const leftLimit:Number = UIController.STAGE_LEFT_OFFSET + minVisiblePx;
+            const rightLimit:Number = AppContext.stage.stageWidth - (UIController.STAGE_RIGHT_OFFSET + minVisiblePx);
+            const topLimit:Number = UIController.STAGE_TOP_OFFSET + minVisiblePx;
+            const bottomLimit:Number = AppContext.stage.stageHeight - (UIController.STAGE_BOTTOM_OFFSET + minVisiblePx);
             // getbound는 보이는 그대로 사각형 끝점 좌표를 반환함
             const left:Number = bounds.left;
             const top:Number = bounds.top;
             const right:Number = bounds.right;
             const bottom:Number = bounds.bottom;
-            // 꼭지점이 경계offset을 넘어가면 넘어간 거리만큼 regpoint를 반대로 움직여줌
+            // 꼭지점이 화면 경계에서 minVisiblePx 안쪽 한계를 넘어가면 넘어간 거리만큼 regpoint를 반대로 움직여줌
             if (left > rightLimit)
-                xAnc.x -= left - rightLimit;
+                anchorSprite.x -= left - rightLimit;
             else if (right < leftLimit)
-                xAnc.x += leftLimit - right;
+                anchorSprite.x += leftLimit - right;
             if (bottom < topLimit)
-                xAnc.y += topLimit - bottom;
+                anchorSprite.y += topLimit - bottom;
             else if (top > bottomLimit)
-                xAnc.y -= top - bottomLimit;
+                anchorSprite.y -= top - bottomLimit;
         }
 
-        // 리플레이/캡처 모드에서 캔버스를 창 여백 안에 맞춤 (fitting이면 1배보다 크게도 맞춤). 현재 보이는 캔버스의 viewport에 호출
-        public function fitToViewportMargin(fitting:Boolean = false):void
+        // 리플레이/캡처 모드에서 캔버스를 창 여백 안에 맞춤 (allowScaleAboveOne이면 1배보다 크게도 맞춤). 현재 보이는 캔버스의 viewport에 호출
+        public function fitToViewportMargin(allowScaleAboveOne:Boolean = false):void
         {
             if (!ReplayState.isReplayModeON && !CaptureController.isCaptureModeON)
             {
                 return;
             }
-            const uiscale:Number = UITheme.getUIScale();
+            const uiScale:Number = UITheme.getUIScale();
             const offsetX:Number = 44 + UIController.STAGE_LEFT_OFFSET + UIController.STAGE_RIGHT_OFFSET;
-            const offsetY:Number = (CaptureController.isCaptureModeON) ? (UIController.topBar.BARSIZE) * uiscale + 42 * uiscale : (UIController.topBar.BARSIZE) * uiscale + 42 * uiscale;
-            const stw:int = AppContext.stage.stageWidth - offsetX;
-            const sth:int = AppContext.stage.stageHeight - offsetY - UIController.STAGE_BOTTOM_OFFSET;
+            const offsetY:Number = (CaptureController.isCaptureModeON) ? (UIController.topBar.BARSIZE) * uiScale + 42 * uiScale : (UIController.topBar.BARSIZE) * uiScale + 42 * uiScale;
+            const availableStageWidth:int = AppContext.stage.stageWidth - offsetX;
+            const availableStageHeight:int = AppContext.stage.stageHeight - offsetY - UIController.STAGE_BOTTOM_OFFSET;
             var fitWidth:Number = canvasWidth;
             var fitHeight:Number = canvasHeight;
-            if (ReplayState.isReplayModeON && fitting)
+            if (ReplayState.isReplayModeON && allowScaleAboveOne)
             {
-                anchor.scaleX = 1.0;
-                anchor.scaleY = 1.0; // 크기를 원래대로 해놓고 해야 길이 측정이 됨
-                const b:Rectangle = layer1Bitmap.getBounds(AppContext.stage);
-                fitWidth = b.right - b.left;
-                fitHeight = b.bottom - b.top;
+                canvasAnchorPoint.scaleX = 1.0;
+                canvasAnchorPoint.scaleY = 1.0; // 크기를 원래대로 해놓고 해야 길이 측정이 됨
+                const layer1StageBounds:Rectangle = layer1Bitmap.getBounds(AppContext.stage);
+                fitWidth = layer1StageBounds.right - layer1StageBounds.left;
+                fitHeight = layer1StageBounds.bottom - layer1StageBounds.top;
             }
             if (CaptureController.isCaptureModeON)
             {
                 if (CaptureController.captureCanvasRotationStep === 1 || CaptureController.captureCanvasRotationStep === 3)
                 {
-                    const widthSave:Number = fitWidth;
+                    const savedFitWidth:Number = fitWidth;
                     fitWidth = fitHeight;
-                    fitHeight = widthSave;
+                    fitHeight = savedFitWidth;
                 }
             }
-            const scaleW:Number = stw / fitWidth;
-            const scaleH:Number = sth / fitHeight;
-            var scale:Number = Math.min(scaleW, scaleH);
-            if (!fitting && scale > 1.0)
+            const scaleW:Number = availableStageWidth / fitWidth;
+            const scaleH:Number = availableStageHeight / fitHeight;
+            var fitScale:Number = Math.min(scaleW, scaleH);
+            if (!allowScaleAboveOne && fitScale > 1.0)
             {
-                scale = 1.0;
+                fitScale = 1.0;
             }
             if (CaptureController.isCaptureModeON)
             {
-                anchor.rotation = 90 * CaptureController.captureCanvasRotationStep;
+                canvasAnchorPoint.rotation = 90 * CaptureController.captureCanvasRotationStep;
             }
             if (ReplayState.isReplayModeON && !ReplayState.isReplayCanvasFitToWindow)
             {
@@ -224,29 +227,29 @@ package Modules.L4UI
             }
             if (CaptureController.isCaptureModeON)
             {
-                setScale(scale);
-                centerIn("capture");
+                setCanvasScale(fitScale);
+                centerCanvasInStage("capture");
             }
             else if (ReplayState.isReplayModeON)
             {
-                setScale(scale);
-                centerIn("replay");
+                setCanvasScale(fitScale);
+                centerCanvasInStage("replay");
             }
-            if (!fitting || ReplayState.isReplayFinished)
+            if (!allowScaleAboveOne || ReplayState.isReplayFinished)
             {
                 layer1Bitmap.smoothing = true;
                 layer2Bitmap.smoothing = true;
             }
         }
 
-        // 캔버스 정 가운데로. mode("draw"/"replay"/"capture")는 화면 중심 좌표를 구하는 기준
-        public function centerIn(mode:String):void
+        // 캔버스 정 가운데로. centerMode("draw"/"replay"/"capture")는 화면 중심 좌표를 구하는 기준
+        public function centerCanvasInStage(centerMode:String):void
         {
-            const center:Point = UIController.getStageCenterPos(mode);
-            anchor.x = Math.floor(center.x);
-            anchor.y = Math.floor(center.y);
-            panel.x = Math.floor(-canvasWidth / 2);
-            panel.y = Math.floor(-canvasHeight / 2);
+            const stageCenterPos:Point = UIController.getStageCenterPos(centerMode);
+            canvasAnchorPoint.x = Math.floor(stageCenterPos.x);
+            canvasAnchorPoint.y = Math.floor(stageCenterPos.y);
+            canvasPanel.x = Math.floor(-canvasWidth / 2);
+            canvasPanel.y = Math.floor(-canvasHeight / 2);
         }
     }
 }

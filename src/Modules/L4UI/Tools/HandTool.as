@@ -45,7 +45,7 @@ package Modules.L4UI.Tools
             AppContext.stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
 
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
-            CanvasViewport.forMode(isReplayMode).keepInStage();
+            CanvasViewport.getViewportByReplayMode(isReplayMode).keepCanvasInStage();
 
             if (!isReplayMode)
             {
@@ -110,7 +110,7 @@ package Modules.L4UI.Tools
         {
             isReplayMode = fromReplayMode;
 
-            xAnc = CanvasViewport.forMode(isReplayMode).anchor;
+            xAnc = CanvasViewport.getViewportByReplayMode(isReplayMode).canvasAnchorPoint;
 
             old.setTo(AppContext.stage.mouseX, AppContext.stage.mouseY);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);

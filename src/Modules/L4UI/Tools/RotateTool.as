@@ -64,7 +64,7 @@ package Modules.L4UI.Tools
             }
 
             UIController.hideCanvasRotateCursor();
-            CanvasViewport.forMode(isReplayMode).keepInStage();
+            CanvasViewport.getViewportByReplayMode(isReplayMode).keepCanvasInStage();
         }
 
         private static function onDragStart():void
@@ -78,7 +78,7 @@ package Modules.L4UI.Tools
 
             const center:Point = UIController.getStageCenterPos("replay");
 
-            CanvasViewport.forMode(isReplayMode).moveAnchorPoint(center.x, center.y);
+            CanvasViewport.getViewportByReplayMode(isReplayMode).moveAnchorPoint(center.x, center.y);
 
             // 캔버스 이동이 완료된후 함수를 초기화 시켜줌
             HintController.hideBottomHint();
@@ -97,7 +97,7 @@ package Modules.L4UI.Tools
         private static function _start(fromReplayMode:Boolean):void
         {
             isReplayMode = fromReplayMode;
-            xAnc = CanvasViewport.forMode(isReplayMode).anchor;
+            xAnc = CanvasViewport.getViewportByReplayMode(isReplayMode).canvasAnchorPoint;
             getAngle = UIController.showCanvasRotateCursorMouseDrag(xAnc);
 
             DragInteraction.start(onDragStart, onMouseMove, onMouseUp);

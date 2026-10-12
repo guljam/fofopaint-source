@@ -372,7 +372,7 @@ package Modules.L5App
 
                         // Canvas Settings
                         CanvasView.canvasZoomIndex = appStateObject.canvasZoomIndex;
-                        CanvasView.viewport.setScale(appStateObject.canvasZoomedMultiplier);
+                        CanvasView.viewport.setCanvasScale(appStateObject.canvasZoomedMultiplier);
 
                         CanvasView.canvasPanel.x = appStateObject.canvasPanelX;
                         CanvasView.canvasPanel.y = appStateObject.canvasPanelY;
@@ -505,9 +505,9 @@ package Modules.L5App
 
                         // 혹시 몰라서 위치 체크 해줌
                         UIController.canvasInfoBox.setRotate(CanvasView.canvasAnchorPoint.rotation);
-                        ReplayDrawer.viewport.centerIn("replay");
-                        CanvasView.viewport.keepInStage();
-                        ReplayDrawer.viewport.keepInStage();
+                        ReplayDrawer.viewport.centerCanvasInStage("replay");
+                        CanvasView.viewport.keepCanvasInStage();
+                        ReplayDrawer.viewport.keepCanvasInStage();
 
                         // Palette Settings
                         PaletteController.myPaletteSaveColorBeforeOtherType[0] = PenTool.penColor;
@@ -625,7 +625,7 @@ package Modules.L5App
                     {
                         if (AppContext.stage.nativeWindow.width === 1000 && AppContext.stage.nativeWindow.height === 800)
                         {
-                            CanvasView.viewport.centerIn("draw");
+                            CanvasView.viewport.centerCanvasInStage("draw");
                             CanvasNavigator.updateCursor();
 
                             // lastAppWindowSize를 미리 1000x800으로 채워뒀기 때문에 리사이즈 이벤트의 applyLayout은 dx/dy 0으로 지나간다.

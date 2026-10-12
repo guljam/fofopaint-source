@@ -191,7 +191,7 @@ package Modules.L4UI.CaptureEngine
 
         public static function executeCaptureFlashEffect():void
         {
-            var xPanel:Sprite = CanvasViewport.current().panel;
+            var xPanel:Sprite = CanvasViewport.getCurrentVisibleViewport().canvasPanel;
             var posX:Number;
             var posY:Number;
             var canvasWidth:Number;
@@ -303,8 +303,8 @@ package Modules.L4UI.CaptureEngine
         public static function flipCaptureImage(flag:Boolean, initFlag:Boolean):void
         {
             _isCaptureCanvasFlipped = flag;
-            CanvasViewport.current().fitToViewportMargin();
-            const xAnc:Sprite = CanvasViewport.current().anchor;
+            CanvasViewport.getCurrentVisibleViewport().fitToViewportMargin();
+            const xAnc:Sprite = CanvasViewport.getCurrentVisibleViewport().canvasAnchorPoint;
 
             if (_captureCanvasRotationStep === 1)
             {
@@ -385,7 +385,7 @@ package Modules.L4UI.CaptureEngine
             }
             _captureCanvasRotationStep = rotateValue;
 
-            CanvasViewport.current().fitToViewportMargin();
+            CanvasViewport.getCurrentVisibleViewport().fitToViewportMargin();
             UIController.topBar.capClipBoard.alpha = 1.0;
             if (!initFlag)
             {
@@ -478,7 +478,7 @@ package Modules.L4UI.CaptureEngine
             UIController.topBar.capClipBoard.alpha = 1.0;
             _captureCanvasRotationStep = 0;
             _isCaptureCanvasFlipped = false;
-            CanvasViewport.current().fitToViewportMargin();
+            CanvasViewport.getCurrentVisibleViewport().fitToViewportMargin();
             applyTransparentCanvasBGCaptureMode(false);
             CaptureStamp.initialize();
 
@@ -577,10 +577,10 @@ package Modules.L4UI.CaptureEngine
         {
             const replayMode:Boolean = ReplayState.isReplayModeON;
             const data:Object = canvasStateBeforeCaptureMode;
-            const xBitmap1:Bitmap = CanvasViewport.forMode(replayMode).layer1Bitmap;
-            const xBitmap11:Bitmap = CanvasViewport.forMode(replayMode).layer2Bitmap;
-            const xAnc:Sprite = CanvasViewport.forMode(replayMode).anchor;
-            const xPanel:Sprite = CanvasViewport.forMode(replayMode).panel;
+            const xBitmap1:Bitmap = CanvasViewport.getViewportByReplayMode(replayMode).layer1Bitmap;
+            const xBitmap11:Bitmap = CanvasViewport.getViewportByReplayMode(replayMode).layer2Bitmap;
+            const xAnc:Sprite = CanvasViewport.getViewportByReplayMode(replayMode).canvasAnchorPoint;
+            const xPanel:Sprite = CanvasViewport.getViewportByReplayMode(replayMode).canvasPanel;
 
             xBitmap1.smoothing = false;
             xBitmap11.smoothing = false;
@@ -613,7 +613,7 @@ package Modules.L4UI.CaptureEngine
 
             if (!ReplayState.isReplayCanvasFitToWindow)
             {
-                CanvasViewport.forMode(replayMode).setScale(data.z);
+                CanvasViewport.getViewportByReplayMode(replayMode).setCanvasScale(data.z);
             }
 
             HintController.resetLastBottomHintTargetRect();
@@ -635,7 +635,7 @@ package Modules.L4UI.CaptureEngine
                 restoreCanvasBackgroundColorDrawMode();
             }
 
-            CanvasViewport.forMode(replayMode).keepInStage();
+            CanvasViewport.getViewportByReplayMode(replayMode).keepCanvasInStage();
             canvasStateBeforeCaptureMode = {};
         }
     }

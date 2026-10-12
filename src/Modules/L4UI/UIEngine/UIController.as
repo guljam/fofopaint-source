@@ -276,7 +276,7 @@ package Modules.L4UI.UIEngine
             if (CaptureController.isCaptureModeON)
             {
                 CaptureController.addCaptureWindowMove(dx, dy);
-                CanvasViewport.current().fitToViewportMargin();
+                CanvasViewport.getCurrentVisibleViewport().fitToViewportMargin();
 
                 if (!CaptureController.isFullImageCapture())
                 {
@@ -287,7 +287,7 @@ package Modules.L4UI.UIEngine
             {
                 if (ReplayState.isReplayRestartTimerON)
                 {
-                    ReplayDrawer.viewport.centerIn("replay");
+                    ReplayDrawer.viewport.centerCanvasInStage("replay");
                 }
                 else
                 {
@@ -673,7 +673,7 @@ package Modules.L4UI.UIEngine
                 const panelLimitedPos:Point = ZoomTool.getCanvasBoundLimitPoint(CanvasView.canvasPanel, gcenter.x, gcenter.y, DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, CanvasView.canvasAnchorPoint.scaleY, -CanvasView.canvasAnchorPoint.rotation);
                 CanvasView.viewport.moveAnchorPoint(panelLimitedPos.x + gp.x, panelLimitedPos.y + gp.y);
                 CanvasView.canvasZoomIndex = CanvasView.canvasZoomMultiplierList.indexOf(1.0);
-                CanvasView.viewport.setScale(1.0);
+                CanvasView.viewport.setCanvasScale(1.0);
                 PenSizePreviewCursor.updateSizeAndShape();
                 CanvasGridOverlay.drawGrid();
             }
