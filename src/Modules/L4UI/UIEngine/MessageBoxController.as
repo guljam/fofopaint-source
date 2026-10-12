@@ -32,6 +32,9 @@ package Modules.L4UI.UIEngine
 
         private static const messageBoxContainer:Sprite = new Sprite();
         private static const messageHighlightBox:Shape = new Shape(); // HintController의 hintHighlightBox와 따로 씀
+        private static var messageHighlightDrawnWidth:Number = NaN; // messageHighlightBox에 마지막으로 그린 크기와 색. 같으면 다시 그리지 않고 위치만 옮김
+        private static var messageHighlightDrawnHeight:Number = NaN;
+        private static var messageHighlightDrawnColor:uint = 0;
         private static const messageBoxes:Vector.<MessageBox> = new Vector.<MessageBox>(); // 미리 만든 상자를 재사용, messageBoxes[i]가 messages[i]를 표시
         private static const messages:Array = []; // {isError, text, repeatCount, expireTime}. 앞이 가장 오래된(맨 위) 것, 맨 뒤가 최신(맨 아래)
         private static var isInitialized:Boolean = false;
@@ -282,11 +285,11 @@ package Modules.L4UI.UIEngine
             return -1;
         }
 
-        // 커서가 상자 위에 있으면 파란 테두리를 그림. 그리는 중·드래그 중(버튼을 누르고 있을 때)에는 띄우지 않음
+        // 커서가 상자 위에 있으면 파란 테두리를 보여줌. 그리는 중·드래그 중(버튼을 누르고 있을 때)에는 띄우지 않음
+        // 상자 크기는 글자에 따라 바뀌므로 크기별로 저장하지 않고, 크기나 색이 지난번과 다를 때만 지우고 다시 그림 (모양은 HintController와 같은 seed로 고정)
         private static function updateMessageHighlightBox(x:Number, y:Number):void
         {
             const index:int = (MouseState.isLeftDown || MouseState.isRightDown) ? -1 : findMessageIndexAt(x, y, 0);
-            messageHighlightBox.graphics.clear();
             if (index < 0)
             {
                 messageHighlightBox.visible = false;
@@ -294,9 +297,18 @@ package Modules.L4UI.UIEngine
             }
 
             const rect:Rectangle = getMessageBoxRect(index, 0);
+            const highlightColor:uint = UITheme.getHintHightlightColor();
+            if (rect.width !== messageHighlightDrawnWidth || rect.height !== messageHighlightDrawnHeight || highlightColor !== messageHighlightDrawnColor)
+            {
+                messageHighlightBox.graphics.clear();
+                HandDrawnLine.drawRect(messageHighlightBox.graphics, 2, highlightColor, 1.0, 0, 0, rect.width, rect.height, null, 1.0, 0.01, HintController.HIGHLIGHT_BOX_SEED);
+                messageHighlightDrawnWidth = rect.width;
+                messageHighlightDrawnHeight = rect.height;
+                messageHighlightDrawnColor = highlightColor;
+            }
+
             messageHighlightBox.x = rect.x;
             messageHighlightBox.y = rect.y;
-            HandDrawnLine.drawRect(messageHighlightBox.graphics, 2, UITheme.getHintHightlightColor(), 1.0, 0, 0, rect.width, rect.height);
             messageHighlightBox.visible = true;
         }
 

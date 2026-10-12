@@ -41,12 +41,16 @@ package Modules.L4UI.UIEngine
         public static const bottomBar:Sprite = new Sprite();
         private static const bottomHintBorderUI:BottomHintBorderUI = new BottomHintBorderUI(bottomBar); // 하단 힌트 바 가장자리를 해진 모양으로 자르는 마스크
         private static const hintHighlightBox:Sprite = new Sprite(); // 요소에 마우스 클릭하면 사각형으로 하이라이트 표시해줌. 크기별로 그려 둔 Shape 중 하나를 담음
-        private static const HIGHLIGHT_BOX_SEED:int = int(Math.random() * 2147483647); // 앱을 켤 때 한 번 정해져서 실행 중에는 같은 크기의 하이라이트가 항상 같은 모양임
-        private static const HIGHLIGHT_BOX_CACHE_LIMIT:int = 64; // 캔버스처럼 크기가 계속 바뀌는 대상 때문에 저장이 끝없이 늘지 않게 하는 한도
+        public static const HIGHLIGHT_BOX_SEED:int = int(Math.random() * 2147483647); // 앱을 켤 때 한 번 정해져서 실행 중에는 같은 크기의 하이라이트가 항상 같은 모양임. MessageBoxController의 메시지 하이라이트도 같이 씀
+        private static const HIGHLIGHT_BOX_CACHE_LIMIT:int = 64; // 크기별 저장이 끝없이 늘지 않게 하는 한도
         private static var highlightBoxShapeBySize:Object = {}; // "가로x세로" -> 그 크기로 한 번 그려 둔 Shape
         private static var highlightBoxShapeCount:int = 0;
         private static var highlightBoxCachedColor:uint = 0;
         private static var highlightBoxShowingShape:Shape = null; // hintHighlightBox에 지금 들어 있는 Shape
+        private static const variableSizeHighlightShape:Shape = new Shape(); // 창 크기·확대에 따라 크기가 계속 바뀌는 대상(사이드바 스크롤 바, 시크바 트랙, 캡처 모드 캔버스)이 같이 쓰는 하이라이트 Shape. 크기별로 저장하지 않고 크기나 색이 바뀔 때만 다시 그림
+        private static var variableSizeHighlightDrawnWidth:Number = NaN;
+        private static var variableSizeHighlightDrawnHeight:Number = NaN;
+        private static var variableSizeHighlightDrawnColor:uint = 0;
         private static const lastBottomHintTargetRect:Rectangle = new Rectangle(); // bottomhint mosue move에서 자꾸 호출해주니까 저장해서 호출 덜하게 해줌
         private static const BOTTOM_HINT_SCROLL_TIMER:String = "bottomHintScrollTimer";
         private static var bottomHintScrollWaitFrames:int = 0;
@@ -278,9 +282,41 @@ package Modules.L4UI.UIEngine
 
             hintHighlightBox.x = rect.x;
             hintHighlightBox.y = rect.y;
-            showHintHighlightShapeOfSize(rect.width, rect.height);
+            if (isHighlightSizeVariableTarget(target))
+            {
+                showVariableSizeHighlightShape(rect.width, rect.height);
+            }
+            else
+            {
+                showHintHighlightShapeOfSize(rect.width, rect.height);
+            }
             updateHightLightBoxZOrderByTarget(target);
             hintHighlightBox.visible = true;
+        }
+
+        // 창 크기·확대에 따라 크기가 계속 바뀌어서 크기별로 저장해 봐야 다시 쓸 일이 거의 없는 대상인지 (사이드바 스크롤 바, 시크바 트랙, 캡처 모드 캔버스)
+        private static function isHighlightSizeVariableTarget(target:DisplayObject):Boolean
+        {
+            return target === SidebarController.sideBarScrollBar
+                || target === UIController.seekBarBox.trackBar
+                || target === CanvasViewport.getCurrentVisibleViewport().layer1Bitmap;
+        }
+
+        // 크기가 계속 바뀌는 대상들이 같이 쓰는 Shape 하나를 hintHighlightBox에 보여줌. 크기나 하이라이트 색이 지난번과 다를 때만 지우고 다시 그림
+        private static function showVariableSizeHighlightShape(boxWidth:Number, boxHeight:Number):void
+        {
+            const highlightColor:uint = UITheme.getHintHightlightColor();
+
+            if (boxWidth !== variableSizeHighlightDrawnWidth || boxHeight !== variableSizeHighlightDrawnHeight || highlightColor !== variableSizeHighlightDrawnColor)
+            {
+                variableSizeHighlightShape.graphics.clear();
+                HandDrawnLine.drawRect(variableSizeHighlightShape.graphics, 2, highlightColor, 1.0, 0, 0, boxWidth, boxHeight, null, 1.0, 0.01, HIGHLIGHT_BOX_SEED);
+                variableSizeHighlightDrawnWidth = boxWidth;
+                variableSizeHighlightDrawnHeight = boxHeight;
+                variableSizeHighlightDrawnColor = highlightColor;
+            }
+
+            setHintHighlightBoxShowingShape(variableSizeHighlightShape);
         }
 
         // boxWidth x boxHeight 크기로 한 번 그려 둔 하이라이트 Shape를 hintHighlightBox에 보여줌. 처음 보는 크기만 새로 그리고 같은 크기는 저장해 둔 것을 그대로 씀.
@@ -306,15 +342,21 @@ package Modules.L4UI.UIEngine
                 highlightBoxShapeCount++;
             }
 
-            if (highlightBoxShowingShape !== sizeShape)
+            setHintHighlightBoxShowingShape(sizeShape);
+        }
+
+        // hintHighlightBox에 들어 있는 Shape를 shape로 바꿈. 이미 들어 있으면 아무것도 안 함
+        private static function setHintHighlightBoxShowingShape(shape:Shape):void
+        {
+            if (highlightBoxShowingShape !== shape)
             {
                 if (highlightBoxShowingShape !== null)
                 {
                     hintHighlightBox.removeChild(highlightBoxShowingShape);
                 }
 
-                hintHighlightBox.addChild(sizeShape);
-                highlightBoxShowingShape = sizeShape;
+                hintHighlightBox.addChild(shape);
+                highlightBoxShowingShape = shape;
             }
         }
 
