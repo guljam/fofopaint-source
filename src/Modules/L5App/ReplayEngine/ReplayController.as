@@ -66,6 +66,7 @@ package Modules.L5App.ReplayEngine
     import Modules.L1Data.NativeCacheJobs;
     import Modules.L1Data.NativeCore;
     import Modules.L1Data.UIEngine.UITheme;
+    import Modules.L4UI.Tools.ToolPanel;
 
     // 층: L5 앱 흐름 - 리플레이 모드 진입·종료와 재생 제어
     public class ReplayController
@@ -2012,6 +2013,7 @@ package Modules.L5App.ReplayEngine
             UIController.seekBarBox.visible = true;
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             PenSizePreviewCursor.setVisible(false);
+            ToolPanel.selectedToolViewBitmap.visible = false;
             UIController.seekBarBox.pauseButton.visible = false;
             UIController.seekBarBox.y = Math.floor(UIController.topBar.BARSIZE * UITheme.getUIScale() - 4);
             lastReplayTimeBoxYPos = UIController.seekBarBox.y;

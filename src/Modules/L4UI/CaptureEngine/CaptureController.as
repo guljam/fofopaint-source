@@ -26,6 +26,7 @@ package Modules.L4UI.CaptureEngine
     import Modules.L4UI.ReferenceLayerController;
     import Modules.L1Data.FOFOTimer;
     import Modules.L1Data.UIEngine.UITheme;
+    import Modules.L4UI.Tools.ToolPanel;
 
     // 층: L4 UI - 캡처 모드 진입·종료와 캡처 처리
     public class CaptureController
@@ -514,6 +515,7 @@ package Modules.L4UI.CaptureEngine
 
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             PenSizePreviewCursor.setVisible(false);
+            ToolPanel.selectedToolViewBitmap.visible = false;
             ReferenceLayerController.canvasRefLayer.visible = false;
 
             if (ReferenceLayerController.isRefLayerMenuON)
