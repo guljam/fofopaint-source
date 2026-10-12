@@ -13,7 +13,7 @@ package Modules.L1Data
 
         private static var isWritingCrashLog:Boolean = false;
 
-        public static var appStateFilePath:File;
+        public static var lastAppStateFilePath:File;
 
         public static var scratchPadDataFilePath:File;
 
@@ -51,7 +51,7 @@ package Modules.L1Data
         public static function initialize(appStateVersion:String):void
         {
             dataFolderPath = File.applicationStorageDirectory.resolvePath("portable_"+appStateVersion);
-            appStateFilePath = dataFolderPath.resolvePath("appstate" + appStateVersion);
+            lastAppStateFilePath = dataFolderPath.resolvePath("lastappstate");
             scratchPadDataFilePath = dataFolderPath.resolvePath("scratchdata");
             undoDataFilePath = dataFolderPath.resolvePath("undodata");
             myPaletteDataFilePath = dataFolderPath.resolvePath("mypalettedata");

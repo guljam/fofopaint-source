@@ -181,7 +181,7 @@ package Modules.L5App
             appStateObject.isRefLayerMemoryTrainingON = ReferenceLayerController.isRefLayerMemoryTrainingON;
 
             const fs:FileStream = new FileStream();
-            fs.open(AppDataPaths.appStateFilePath, FileMode.WRITE);
+            fs.open(AppDataPaths.lastAppStateFilePath, FileMode.WRITE);
             fs.writeObject(appStateObject);
             fs.close();
         }
@@ -340,9 +340,9 @@ package Modules.L5App
                 loadScratchPadImage();
             }
 
-            if (AppDataPaths.appStateFilePath.exists)
+            if (AppDataPaths.lastAppStateFilePath.exists)
             {
-                fs.open(AppDataPaths.appStateFilePath, FileMode.READ);
+                fs.open(AppDataPaths.lastAppStateFilePath, FileMode.READ);
                 const appStateObject:AppStateVars = fs.readObject() as AppStateVars;
                 fs.close();
 
