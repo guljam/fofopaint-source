@@ -1098,7 +1098,7 @@ package Modules.L5App.ReplayEngine
                     }
 
                     // 마지막 명령의 연출(채우기, 올가미, 이동, 선)이 아직 진행 중이면 끝날때까지 완료 처리를 미룸
-                    if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME && !ReplayDrawer.anim.isActive)
+                    if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME && !ReplayDrawer.anim.isAnimActive)
                     {
                         UIController.seekBarBox.setReplayPrograssBarMaxWidth();
                         updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
@@ -1418,7 +1418,7 @@ package Modules.L5App.ReplayEngine
 
             // 마지막 프레임까지 그렸으면 한번 더 읽어서 끝났다는 것을 확인 (정지 판단은 읽는 쪽에서 함)
             // 마지막 명령의 연출(채우기, 올가미, 이동)이 아직 진행 중이면 끝날때까지 기다림
-            if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME && !ReplayDrawer.anim.isActive)
+            if (ReplayState.rNowFrame >= ReplayState.TOTAL_FRAME && !ReplayDrawer.anim.isAnimActive)
             {
                 return ReplayDrawer.drawReplayCommands(1, ReplayDrawer.JUMP_FRAME_PLAY);
             }

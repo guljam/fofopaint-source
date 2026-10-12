@@ -582,7 +582,7 @@ package Modules.L4UI.ReplayEngine
         // 연출 영역이 사용자 줌에서 화면의 BIG_ANIM_RATIO보다 큰지
         private function isBigAnim(view:Rectangle):Boolean
         {
-            const area:Rectangle = ReplayDrawer.anim.focusRect;
+            const area:Rectangle = ReplayDrawer.anim.animFocusRect;
 
             if (area === null)
             {
@@ -732,7 +732,7 @@ package Modules.L4UI.ReplayEngine
             }
 
             const cursor:Point = ReplayDrawCommands.getRCursorPos();
-            const area:Rectangle = ReplayDrawer.anim.focusRect;
+            const area:Rectangle = ReplayDrawer.anim.animFocusRect;
             const fx:Number = (area === null) ? cursor.x : area.x + area.width / 2;
             const fy:Number = (area === null) ? cursor.y : area.y + area.height / 2;
             const before:Point = canvasToScreen(fx, fy);
@@ -786,7 +786,7 @@ package Modules.L4UI.ReplayEngine
         // 카메라가 따라갈 초점의 화면 사각형: 연출 영역이 있으면 그 영역, 없으면 커서 한 점
         private function focusScreenRect(cursor:Point):Rectangle
         {
-            const area:Rectangle = ReplayDrawer.anim.focusRect;
+            const area:Rectangle = ReplayDrawer.anim.animFocusRect;
 
             if (area === null && !lookReady)
             {
