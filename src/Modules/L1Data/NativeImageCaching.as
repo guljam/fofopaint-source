@@ -37,10 +37,10 @@ package Modules.L1Data
                 return 0;
             }
 
-            const cacheWriteJobId:int = NativeCore.nextJobId();
+            const cacheWriteJobId:int = NativeCore.nextNativeJobId();
             const cacheImageMetaDataBytes:ByteArray = new ByteArray();
             cacheImageMetaDataBytes.writeObject(cacheImageMetaData);
-            const nativeResultCode:int = NativeCore.callResult("cacheWrite", cacheWriteJobId, cacheFilePath, layer1BitmapData, layer2BitmapData, cacheImageMetaDataBytes, cacheGeneration, forceIgnoreMemoryLimit);
+            const nativeResultCode:int = NativeCore.callNativeFunctionForResultCode("cacheWrite", cacheWriteJobId, cacheFilePath, layer1BitmapData, layer2BitmapData, cacheImageMetaDataBytes, cacheGeneration, forceIgnoreMemoryLimit);
             cacheImageMetaDataBytes.clear();
 
             if (nativeResultCode !== NativeCore.OK)
@@ -51,7 +51,7 @@ package Modules.L1Data
             if (!isStatusListenerRegistered)
             {
                 isStatusListenerRegistered = true;
-                NativeCore.addStatusListener(onCacheWriteStatusEvent);
+                NativeCore.addNativeStatusListener(onCacheWriteStatusEvent);
             }
 
             onCacheWriteDoneByJobId[cacheWriteJobId] = onCacheWriteDone;
@@ -64,7 +64,7 @@ package Modules.L1Data
         {
             if (isAvailable)
             {
-                NativeCore.call("cacheSetGeneration", cacheGeneration);
+                NativeCore.callNativeFunction("cacheSetGeneration", cacheGeneration);
             }
         }
 
@@ -87,7 +87,7 @@ package Modules.L1Data
             delete onCacheWriteDoneByJobId[cacheWriteJobId];
             _pendingCacheWriteCount--;
             // status, compressMs, writeMs, size, win32 error (anesrc/fofonative/src/cache.cpp resultText)
-            const cacheWriteResultFields:Array = String(NativeCore.call("takeJobResult", cacheWriteJobId)).split("\n");
+            const cacheWriteResultFields:Array = String(NativeCore.callNativeFunction("takeJobResult", cacheWriteJobId)).split("\n");
             onCacheWriteDone({ status: cacheWriteResultFields[0], compressMs: Number(cacheWriteResultFields[1]), writeMs: Number(cacheWriteResultFields[2]), size: Number(cacheWriteResultFields[3]), error: int(cacheWriteResultFields[4]) });
         }
     }

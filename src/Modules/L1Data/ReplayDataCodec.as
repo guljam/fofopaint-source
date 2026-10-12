@@ -55,7 +55,7 @@ package Modules.L1Data
             if (NativeCore.isAvailable)
             {
                 const output:ByteArray = new ByteArray();
-                const result:int = NativeCore.callResult("frc2Decode", input, output);
+                const result:int = NativeCore.callNativeFunctionForResultCode("frc2Decode", input, output);
 
                 if (result === NativeCore.OK)
                 {
@@ -76,7 +76,7 @@ package Modules.L1Data
             if (NativeCore.isAvailable)
             {
                 const output:ByteArray = new ByteArray();
-                const result:int = NativeCore.callResult("frc2Encode", input, output, true);
+                const result:int = NativeCore.callNativeFunctionForResultCode("frc2Encode", input, output, true);
 
                 if (result === NativeCore.OK)
                 {

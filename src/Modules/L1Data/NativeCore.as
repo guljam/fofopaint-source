@@ -10,34 +10,36 @@ package Modules.L1Data
     public final class NativeCore
     {
         // ANE의 library.swf에 있는 연결 클래스, ANE가 없는 환경을 위해 직접 참조하지 않고 이름으로 찾음
-        private static const BRIDGE_CLASS_NAME:String = "com.fofo.nativecore.NativeBridge";
+        private static const NATIVE_BRIDGE_CLASS_NAME:String = "com.fofo.nativecore.NativeBridge";
         public static const OK:int = 1;
 
         // 테스트에서 대체 경로를 시험할때 처음 쓰기 전에 true로 둠
         public static var isDisabled:Boolean = false;
-        private static var bridge:Object = null;
-        private static var isOpenTried:Boolean = false;
-        private static var jobSeq:int = 0;
+        private static var nativeBridge:Object = null;
+        private static var isNativeBridgeOpenTried:Boolean = false;
+        private static var nativeJobSequence:int = 0;
 
         // 네이티브 작업 번호 (저장, 캐시 작업의 결과를 같은 표에 보관하므로 한곳에서 발급)
-        public static function nextJobId():int
+        public static function nextNativeJobId():int
         {
-            return ++jobSeq;
+            return ++nativeJobSequence;
         }
 
+        // 네이티브 확장을 쓸 수 있는지 (처음 물어볼때 한 번만 열어봄)
         public static function get isAvailable():Boolean
         {
-            if (!isOpenTried)
+            if (!isNativeBridgeOpenTried)
             {
-                open();
+                openNativeBridge();
             }
 
-            return bridge !== null;
+            return nativeBridge !== null;
         }
 
-        private static function open():void
+        // 네이티브 확장 연결을 한 번 열어봄. 실패하거나 워커이면 nativeBridge는 null로 남음
+        private static function openNativeBridge():void
         {
-            isOpenTried = true;
+            isNativeBridgeOpenTried = true;
 
             // 워커에서도 ANE 클래스는 보이지만 ExtensionContext를 만들 수 없음(#3731)
             if (isDisabled || !Worker.current.isPrimordial)
@@ -45,11 +47,11 @@ package Modules.L1Data
                 return;
             }
 
-            var api:Object;
+            var nativeBridgeClass:Object;
 
             try
             {
-                api = getDefinitionByName(BRIDGE_CLASS_NAME);
+                nativeBridgeClass = getDefinitionByName(NATIVE_BRIDGE_CLASS_NAME);
             }
             catch (error:Error)
             {
@@ -60,9 +62,9 @@ package Modules.L1Data
             try
             {
                 // 네이티브 빌드가 없는 운영체제(default 플랫폼)면 false
-                if (api.open())
+                if (nativeBridgeClass.open())
                 {
-                    bridge = api;
+                    nativeBridge = nativeBridgeClass;
                 }
             }
             catch (error:Error)
@@ -70,11 +72,11 @@ package Modules.L1Data
                 trace("NativeCore: " + error);
             }
 
-            trace("NativeCore: " + ((bridge !== null) ? "native" : "actionscript"));
+            trace("NativeCore: " + ((nativeBridge !== null) ? "native" : "actionscript"));
         }
 
         // 네이티브 함수 호출, 쓸 수 없거나 예외가 나면 undefined
-        public static function call(name:String, ...args):*
+        public static function callNativeFunction(nativeFunctionName:String, ...nativeArguments):*
         {
             if (!isAvailable)
             {
@@ -83,18 +85,18 @@ package Modules.L1Data
 
             try
             {
-                return bridge.call(name, args);
+                return nativeBridge.call(nativeFunctionName, nativeArguments);
             }
             catch (error:Error)
             {
-                trace("NativeCore " + name + ": " + error);
+                trace("NativeCore " + nativeFunctionName + ": " + error);
             }
 
             return undefined;
         }
 
-        // 결과 코드(int)를 돌려주는 함수용, 실패하면 0 이하
-        public static function callResult(name:String, ...args):int
+        // 결과 코드(int)를 돌려주는 네이티브 함수용, 실패하면 0 이하
+        public static function callNativeFunctionForResultCode(nativeFunctionName:String, ...nativeArguments):int
         {
             if (!isAvailable)
             {
@@ -103,22 +105,23 @@ package Modules.L1Data
 
             try
             {
-                const result:* = bridge.call(name, args);
-                return (result is int) ? result : 0;
+                const nativeReturnValue:* = nativeBridge.call(nativeFunctionName, nativeArguments);
+                return (nativeReturnValue is int) ? nativeReturnValue : 0;
             }
             catch (error:Error)
             {
-                trace("NativeCore " + name + ": " + error);
+                trace("NativeCore " + nativeFunctionName + ": " + error);
             }
 
             return 0;
         }
 
-        public static function addStatusListener(listener:Function):void
+        // 네이티브가 보내는 StatusEvent를 받을 리스너를 등록
+        public static function addNativeStatusListener(nativeStatusListener:Function):void
         {
             if (isAvailable)
             {
-                bridge.addStatusListener(listener);
+                nativeBridge.addStatusListener(nativeStatusListener);
             }
         }
     }

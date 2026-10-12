@@ -1053,7 +1053,7 @@ package Modules.L5App
             composite.draw(mergedImage);
             const compositeTime:int = getTimer();
             const pngPath:String = lastSaveFilePath;
-            const started:Boolean = NativeSave.startSave(pngPath, ReplayFileCache.getReplayFileNameFromPath(pngPath), composite,
+            const started:Boolean = NativeSave.startReplayFileAndPngSave(pngPath, ReplayFileCache.getReplayFileNameFromPath(pngPath), composite,
                     first1, first2, current1, current2, reference,
                     AppDataPaths.replayDataFilePath.nativePath, repdataLength, memoryGroups, mirrorBytes, timingBytes,
                     firstMeta, finalMeta, referenceMeta, nativeSaveOptions, onNativeSaveDone);
@@ -1377,7 +1377,7 @@ package Modules.L5App
             const composite:BitmapData = new BitmapData(captureImage.width, captureImage.height, true, 0);
             composite.draw(captureImage);
             captureImage.dispose();
-            const started:Boolean = NativeSave.startPng(path, composite, function (result:Object):void
+            const started:Boolean = NativeSave.startCapturePngSave(path, composite, function (result:Object):void
                 {
                     if (result.status !== NativeSave.STATUS_OK)
                     {

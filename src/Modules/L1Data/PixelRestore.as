@@ -75,7 +75,7 @@ package Modules.L1Data
             {
                 // 네이티브는 비트맵 전체를 한번에 채우는 경우만 처리
                 if (isNativeReady && rect.x === 0 && rect.y === 0 && rect.width === bmpd.width && rect.height === bmpd.height
-                        && NativeCore.callResult("restore", bmpd, pixels, pixels.position) === NativeCore.OK)
+                        && NativeCore.callNativeFunctionForResultCode("restore", bmpd, pixels, pixels.position) === NativeCore.OK)
                 {
                     pixels.position += rect.width * rect.height * 4; // setPixels처럼 읽은 만큼 넘겨줌
                     return;
@@ -186,14 +186,14 @@ package Modules.L1Data
 
             try
             {
-                if (NativeCore.callResult("fillSaveProbe", probe) !== NativeCore.OK)
+                if (NativeCore.callNativeFunctionForResultCode("fillSaveProbe", probe) !== NativeCore.OK)
                 {
                     trace("PixelRestore native save: probe failed");
                     return;
                 }
 
                 probe.copyPixelsToByteArray(probe.rect, output);
-                const tableResult:int = NativeCore.callResult("setSaveTable", output);
+                const tableResult:int = NativeCore.callNativeFunctionForResultCode("setSaveTable", output);
 
                 if (tableResult !== NativeCore.OK)
                 {
@@ -209,11 +209,11 @@ package Modules.L1Data
                 const probePng:ByteArray = new ByteArray();
                 probe.encode(probe.rect, new PNGEncoderOptions(), probePng);
 
-                if (NativeCore.callResult("setPngTable", probePng) === NativeCore.OK)
+                if (NativeCore.callNativeFunctionForResultCode("setPngTable", probePng) === NativeCore.OK)
                 {
                     const samplePng:ByteArray = new ByteArray();
                     sample.encode(sample.rect, new PNGEncoderOptions(), samplePng);
-                    isNativePngReady = NativeCore.callResult("checkPngTable", sample, samplePng) === NativeCore.OK;
+                    isNativePngReady = NativeCore.callNativeFunctionForResultCode("checkPngTable", sample, samplePng) === NativeCore.OK;
                     samplePng.clear();
                 }
 
@@ -235,7 +235,7 @@ package Modules.L1Data
             bmpd.copyPixelsToByteArray(bmpd.rect, expected);
             const actual:ByteArray = new ByteArray();
             actual.length = expected.length;
-            var same:Boolean = NativeCore.callResult("toStraight", bmpd, actual) === NativeCore.OK && actual.length === expected.length;
+            var same:Boolean = NativeCore.callNativeFunctionForResultCode("toStraight", bmpd, actual) === NativeCore.OK && actual.length === expected.length;
 
             for (var i:uint = 0;same && i < expected.length;i += 4)
             {
@@ -256,7 +256,7 @@ package Modules.L1Data
                 return;
             }
 
-            const tableResult:int = NativeCore.callResult("setRestoreTable", internalTable);
+            const tableResult:int = NativeCore.callNativeFunctionForResultCode("setRestoreTable", internalTable);
 
             if (tableResult !== NativeCore.OK)
             {
@@ -357,7 +357,7 @@ package Modules.L1Data
 
         private static function restoreWithNative(bitmap:BitmapData, saved:ByteArray):Boolean
         {
-            return NativeCore.callResult("restore", bitmap, saved, 0) === NativeCore.OK;
+            return NativeCore.callNativeFunctionForResultCode("restore", bitmap, saved, 0) === NativeCore.OK;
         }
 
         // 채널마다 다른 무작위 반투명 픽셀로 저장 -> 복원을 해보고 내부값이 그대로인지 확인

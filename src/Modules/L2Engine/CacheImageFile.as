@@ -126,7 +126,7 @@ package Modules.L2Engine
             const layer2:BitmapData = new BitmapData(width, height, true, 0);
 
             // 네이티브: 블록을 병렬로 풀어 내부 버퍼에 바로 씀
-            if (NativeCore.isAvailable && PixelRestore.isNativeEnabled && NativeCore.callResult("cacheRead", file.nativePath, layer1, layer2) === NativeCore.OK)
+            if (NativeCore.isAvailable && PixelRestore.isNativeEnabled && NativeCore.callNativeFunctionForResultCode("cacheRead", file.nativePath, layer1, layer2) === NativeCore.OK)
             {
                 all.clear();
                 return { bmpd1: layer1, bmpd2: layer2, metadata: metadata };
@@ -228,7 +228,7 @@ package Modules.L2Engine
             const metadataBytes:ByteArray = new ByteArray();
             metadataBytes.writeObject(metadata);
 
-            if (NativeCore.isAvailable && NativeCore.callResult("cacheWriteSync", file.nativePath, layer1, layer2, metadataBytes) === NativeCore.OK)
+            if (NativeCore.isAvailable && NativeCore.callNativeFunctionForResultCode("cacheWriteSync", file.nativePath, layer1, layer2, metadataBytes) === NativeCore.OK)
             {
                 return;
             }

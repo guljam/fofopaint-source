@@ -165,7 +165,7 @@ package Modules.L5App
             }
 
             // worker와 네이티브 저장이 끝날때까지 기다린 뒤 종료 (네이티브 저장은 최대 NATIVE_SAVE_EXIT_WAIT초, 넘으면 로그를 남기고 종료)
-            if (BackgroundWorkerCoordinator.isWorkerBusy() || NativeSave.isBusy)
+            if (BackgroundWorkerCoordinator.isWorkerBusy() || NativeSave.hasPendingNativeSave)
             {
                 const waitStart:int = getTimer();
 
@@ -175,14 +175,14 @@ package Modules.L5App
                     LoadBoxController.openLoadMenuBoxOnClosing();
                     FOFOTimer.addByName("pollTimerWaitWorkerStop", BackgroundWorkerCoordinator.getWaitPollingInterval(), true, function ():Boolean
                         {
-                            const nativeTimedOut:Boolean = NativeSave.isBusy && getTimer() - waitStart > NATIVE_SAVE_EXIT_WAIT * 1000;
+                            const nativeTimedOut:Boolean = NativeSave.hasPendingNativeSave && getTimer() - waitStart > NATIVE_SAVE_EXIT_WAIT * 1000;
 
                             if (nativeTimedOut)
                             {
                                 AppDataPaths.writeCrashLog("Exit while native save still running");
                             }
 
-                            if (BackgroundWorkerCoordinator.isWorkerStopped() && (!NativeSave.isBusy || nativeTimedOut))
+                            if (BackgroundWorkerCoordinator.isWorkerStopped() && (!NativeSave.hasPendingNativeSave || nativeTimedOut))
                             {
                                 FOFOTimer.remove("pollTimerWaitWorkerStop");
                                 AppStateManager.checkWindowMaximizedAndSaveAllData();

@@ -14,10 +14,11 @@ package Modules.L1Data
         public static const STATUS_RENAMED:String = "renamed"; // 원래 이름으로 교체하지 못해서 이름_new 쌍으로 저장함
         public static const STATUS_FAILED:String = "failed"; // 폴더 없음, 권한 없음, 디스크 부족 등 쓰기 실패
         public static const STATUS_INTERNAL:String = "internal"; // 네이티브 내부 오류, 기존 worker 경로로 다시 저장해야 함
+        private static const PNG_COMPRESSION_LEVEL:int = 6; // 캡처 PNG 저장에 쓰는 압축 단계
 
-        private static var isListening:Boolean = false;
-        private static const handlers:Object = {}; // 작업 번호 -> function(result:Object):void
-        private static var pendingCount:int = 0;
+        private static var isStatusListenerRegistered:Boolean = false;
+        private static const onSaveDoneByJobId:Object = {}; // 작업 번호 -> function(result:Object):void
+        private static var pendingSaveCount:int = 0;
 
         // 테스트에서 기존 worker 저장 경로를 시험할때 true
         public static var isDisabled:Boolean = false;
@@ -29,102 +30,104 @@ package Modules.L1Data
         }
 
         // 아직 완료 알림을 받지 못한 네이티브 저장 작업이 있는지
-        public static function get isBusy():Boolean
+        public static function get hasPendingNativeSave():Boolean
         {
-            return pendingCount > 0;
+            return pendingSaveCount > 0;
         }
 
         // .png와 .fofo 저장 시작, 시작하지 못하면 false (호출한 쪽이 기존 worker 경로로 저장)
-        // composite: PNG로 쓸 합성 이미지, reference/referenceMeta: 참고 레이어가 없으면 null
-        // repdataLength: repdata 파일 앞에서 읽을 바이트 수, memoryGroups: 그 뒤에 붙일 메모리 뭉치(writeObject)
-        public static function startSave(pngPath:String, fofoPath:String, composite:BitmapData,
-                first1:BitmapData, first2:BitmapData, current1:BitmapData, current2:BitmapData, reference:BitmapData,
-                repdataPath:String, repdataLength:Number, memoryGroups:ByteArray, mirrorBytes:ByteArray, timingBytes:ByteArray,
-                firstMeta:Array, finalMeta:Array, referenceMeta:Array, options:int, onDone:Function):Boolean
+        // compositeBitmapData: PNG로 쓸 합성 이미지, referenceBitmapData/referenceImageMetaArray: 참고 레이어가 없으면 null
+        // repdataReadByteLength: repdata 파일 앞에서 읽을 바이트 수, memoryGroupsBytes: 그 뒤에 붙일 메모리 뭉치(writeObject)
+        public static function startReplayFileAndPngSave(pngPath:String, fofoPath:String, compositeBitmapData:BitmapData,
+                firstLayer1BitmapData:BitmapData, firstLayer2BitmapData:BitmapData, currentLayer1BitmapData:BitmapData, currentLayer2BitmapData:BitmapData, referenceBitmapData:BitmapData,
+                repdataPath:String, repdataReadByteLength:Number, memoryGroupsBytes:ByteArray, mirrorBytes:ByteArray, timingSheetBytes:ByteArray,
+                firstImageMetaArray:Array, finalImageMetaArray:Array, referenceImageMetaArray:Array, nativeSaveOptions:int, onSaveDone:Function):Boolean
         {
             if (!isAvailable)
             {
                 return false;
             }
 
-            const id:int = NativeCore.nextJobId();
-            const result:int = NativeCore.callResult("saveStart", id, pngPath, fofoPath, composite, first1, first2, current1, current2, reference,
-                    repdataPath, repdataLength, memoryGroups, mirrorBytes, timingBytes, firstMeta, finalMeta, referenceMeta, options);
+            const saveJobId:int = NativeCore.nextNativeJobId();
+            const nativeResultCode:int = NativeCore.callNativeFunctionForResultCode("saveStart", saveJobId, pngPath, fofoPath, compositeBitmapData, firstLayer1BitmapData, firstLayer2BitmapData, currentLayer1BitmapData, currentLayer2BitmapData, referenceBitmapData,
+                    repdataPath, repdataReadByteLength, memoryGroupsBytes, mirrorBytes, timingSheetBytes, firstImageMetaArray, finalImageMetaArray, referenceImageMetaArray, nativeSaveOptions);
 
-            if (result !== NativeCore.OK)
+            if (nativeResultCode !== NativeCore.OK)
             {
-                trace("NativeSave saveStart failed: " + result);
+                trace("NativeSave saveStart failed: " + nativeResultCode);
                 return false;
             }
 
-            register(id, onDone);
+            registerSaveDoneHandler(saveJobId, onSaveDone);
             return true;
         }
 
         // 캡처 이미지 PNG 저장 시작, 시작하지 못하면 false
-        public static function startPng(path:String, image:BitmapData, onDone:Function):Boolean
+        public static function startCapturePngSave(pngFilePath:String, captureBitmapData:BitmapData, onSaveDone:Function):Boolean
         {
             if (!isAvailable)
             {
                 return false;
             }
 
-            const id:int = NativeCore.nextJobId();
-            const result:int = NativeCore.callResult("pngStart", id, path, image, 6);
+            const saveJobId:int = NativeCore.nextNativeJobId();
+            const nativeResultCode:int = NativeCore.callNativeFunctionForResultCode("pngStart", saveJobId, pngFilePath, captureBitmapData, PNG_COMPRESSION_LEVEL);
 
-            if (result !== NativeCore.OK)
+            if (nativeResultCode !== NativeCore.OK)
             {
-                trace("NativeSave pngStart failed: " + result);
+                trace("NativeSave pngStart failed: " + nativeResultCode);
                 return false;
             }
 
-            register(id, onDone);
+            registerSaveDoneHandler(saveJobId, onSaveDone);
             return true;
         }
 
-        private static function register(id:int, onDone:Function):void
+        // 저장 작업 번호에 완료 콜백을 등록하고, 처음이면 네이티브 알림 수신을 시작
+        private static function registerSaveDoneHandler(saveJobId:int, onSaveDone:Function):void
         {
-            if (!isListening)
+            if (!isStatusListenerRegistered)
             {
-                isListening = true;
-                NativeCore.addStatusListener(onStatus);
+                isStatusListenerRegistered = true;
+                NativeCore.addNativeStatusListener(onSaveStatusEvent);
             }
 
-            handlers[id] = onDone;
-            pendingCount++;
+            onSaveDoneByJobId[saveJobId] = onSaveDone;
+            pendingSaveCount++;
         }
 
-        private static function onStatus(e:StatusEvent):void
+        // 네이티브의 "save"/"png" 완료 알림을 받아 그 작업의 결과를 읽고 등록된 콜백을 부름
+        private static function onSaveStatusEvent(statusEvent:StatusEvent):void
         {
-            if (e.code !== "save" && e.code !== "png")
+            if (statusEvent.code !== "save" && statusEvent.code !== "png")
             {
                 return;
             }
 
-            const id:int = int(e.level);
-            const onDone:Function = handlers[id] as Function;
+            const saveJobId:int = int(statusEvent.level);
+            const onSaveDone:Function = onSaveDoneByJobId[saveJobId] as Function;
 
-            if (onDone === null)
+            if (onSaveDone === null)
             {
                 return;
             }
 
-            delete handlers[id];
-            pendingCount--;
-            const fields:Array = String(NativeCore.call("takeJobResult", id)).split("\n");
+            delete onSaveDoneByJobId[saveJobId];
+            pendingSaveCount--;
+            const saveResultFields:Array = String(NativeCore.callNativeFunction("takeJobResult", saveJobId)).split("\n");
             const result:Object = {
-                    status: fields[0],
-                    pngPath: fields[1],
-                    fofoPath: fields[2],
-                    fofoSize: Number(fields[3]),
-                    stage: fields[4],
-                    error: int(fields[5]),
-                    codec: fields[6],
-                    encodeMs: Number(fields[7]),
-                    writeMs: Number(fields[8]),
-                    message: fields.slice(9).join("\n")
+                    status: saveResultFields[0],
+                    pngPath: saveResultFields[1],
+                    fofoPath: saveResultFields[2],
+                    fofoSize: Number(saveResultFields[3]),
+                    stage: saveResultFields[4],
+                    error: int(saveResultFields[5]),
+                    codec: saveResultFields[6],
+                    encodeMs: Number(saveResultFields[7]),
+                    writeMs: Number(saveResultFields[8]),
+                    message: saveResultFields.slice(9).join("\n")
                 };
-            onDone(result);
+            onSaveDone(result);
         }
     }
 }
