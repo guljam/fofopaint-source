@@ -1019,7 +1019,6 @@ package Modules.L4UI.Tools
                 KeyState.updateLastKey();
                 _isLassoMenuHiddenTemp = true;
                 ToolState.setSelectedTool(ToolState.TOOL_HAND);
-                ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_HAND);
             }
         }
 
@@ -1179,7 +1178,6 @@ package Modules.L4UI.Tools
                 KeyState.updateLastKey();
                 _isLassoMenuHiddenTemp = true;
                 ToolState.setSelectedTool(ToolState.TOOL_HAND);
-                ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_HAND);
             }
             else if (KeyState.isPressingShift())
             {
@@ -1215,7 +1213,6 @@ package Modules.L4UI.Tools
                     _isLassoMenuHiddenTemp = true;
                     KeyState.updateLastKey();
                     ToolState.setSelectedTool(ToolState.TOOL_ZOOM);
-                    ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_ZOOM);
                     break;
 
                 case KeyState.KEY.s:
@@ -1223,7 +1220,6 @@ package Modules.L4UI.Tools
                     _isLassoMenuHiddenTemp = true;
                     KeyState.updateLastKey();
                     ToolState.setSelectedTool(ToolState.TOOL_ROTATE);
-                    ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_ROTATE);
                     break;
 
                 case KeyState.KEY.enter:

@@ -359,11 +359,6 @@ package Modules.L4UI.UIEngine
                 UIController.loadMenuBox.updateClickBlockerSize(AppContext.stage.stageWidth, AppContext.stage.stageHeight);
             }
 
-            if (ToolPanel.selectedToolViewSprite.visible)
-            {
-                ToolPanel.updateSelectedToolViewBoxPos();
-            }
-
             updateStageBGSize();
             SidebarController.checkFOFOPosition();
             HintController.updateBottomBarLayoutAndColor();

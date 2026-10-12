@@ -192,7 +192,6 @@ package Modules.L4UI.Tools
                     {
                         ToolState.setLastTool(ToolState.TOOL_PEN);
                         selectFillPenTool();
-                        ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_FILLPEN);
                     }
                     break;
                 case KeyState.KEY.c:
@@ -201,11 +200,6 @@ package Modules.L4UI.Tools
                         if (!ToolState.isSelectedTool(ToolState.TOOL_EYEDROPPER))
                         {
                             EyeDropperTool.start();
-
-                            if (ToolState.isSelectedTool(ToolState.TOOL_EYEDROPPER))
-                            {
-                                ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_EYEDROPPER);
-                            }
                         }
                     }
                     break;
@@ -216,7 +210,6 @@ package Modules.L4UI.Tools
                         {
                             ToolState.updateLastTool();
                             selectLassoTool();
-                            ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_LASSO);
                         }
                     }
                     break;
@@ -226,7 +219,6 @@ package Modules.L4UI.Tools
                         {
                             ToolState.updateLastTool();
                             ToolState.setSelectedTool(ToolState.TOOL_HAND);
-                            ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_HAND);
                         }
                     }
                     break;
@@ -238,7 +230,6 @@ package Modules.L4UI.Tools
                             ToolState.updateLastTool();
                             selectEraserTool();
                             PenSizePreviewCursor.updateSizeAndShape();
-                            ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_ERASER);
                         }
                     }
                     break;
@@ -249,7 +240,6 @@ package Modules.L4UI.Tools
                         {
                             ToolState.updateLastTool();
                             selectRotateTool();
-                            ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_ROTATE);
                         }
                     }
                     break;
@@ -260,7 +250,6 @@ package Modules.L4UI.Tools
                         {
                             ToolState.updateLastTool();
                             selectMoveTool();
-                            ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_MOVE);
                         }
                     }
                     break;
@@ -271,7 +260,6 @@ package Modules.L4UI.Tools
                         {
                             ToolState.updateLastTool();
                             selectZoomTool();
-                            ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_ZOOM);
                         }
                     }
                     break;

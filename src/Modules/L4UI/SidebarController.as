@@ -586,10 +586,6 @@ package Modules.L4UI
 
             checkFOFOPosition();
 
-            if (ToolPanel.selectedToolViewSprite.visible)
-            {
-                ToolPanel.updateSelectedToolViewBoxPos();
-            }
         }
 
         public static function showSidebarPermanent():void

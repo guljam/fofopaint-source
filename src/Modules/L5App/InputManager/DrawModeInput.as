@@ -316,7 +316,6 @@ package Modules.L5App.InputManager
                     if (ToolState.lastTool > ToolState.TOOL_NONE)
                     {
                         ToolController.selectLastUsedTool();
-                        ToolPanel.showNowToolIconToCursorTemp(ToolState.nowTool);
                     }
                     PenSizePreviewCursor.updatePosAndVisibility();
                 }
@@ -573,7 +572,6 @@ package Modules.L5App.InputManager
                 case KeyState.KEY.l:
                     {
                         UIController.mirrorCanvas();
-                        ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_MIRROR);
                     }
                     break;
                 case KeyState.KEY.c:
@@ -656,14 +654,12 @@ package Modules.L5App.InputManager
                 case KeyState.KEY.comma:
                     {
                         KeyState.startKeyRepeat(true, UndoController.redo);
-                        ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_REDO);
                     }
                     return true;
                 case KeyState.KEY.z:
                 case KeyState.KEY.dot:
                     {
                         KeyState.startKeyRepeat(true, UndoController.undo);
-                        ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_UNDO);
                     }
                     return true;
                 case KeyState.KEY.tab:

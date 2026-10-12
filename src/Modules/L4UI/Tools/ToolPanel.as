@@ -51,17 +51,15 @@ package Modules.L4UI.Tools
         // 우클릭 툴박스의 입력 이벤트를 다시 달아야 한다는 보고
         public static var onToolBox2EventsAddedFunc:Function;
 
-
         private static const TOOL_BOX_ON_DELAY_TIME:Number = 0.12;
-        private static const SELECTED_TOOL_BADGE_GAP_ABOVE_MOUSE:Number = 7; // 마우스 포인트에서 선택 툴 아이콘 아래쪽까지 띄우는 간격 (UI 스케일 1 기준 px)
-        private static const SELECTED_TOOL_BADGE_SCALE:Number = 0.5; // 선택 툴 아이콘 크기 배율
+        private static const SELECTED_TOOL_BADGE_GAP_ABOVE_MOUSE:Number = 8; // 마우스 포인트에서 선택 툴 아이콘 아래쪽까지 띄우는 간격 (UI 스케일 1 기준 px)
+        private static const SELECTED_TOOL_BADGE_SCALE:Number = 0.7; // 선택 툴 아이콘 크기 배율
         private static const SELECTED_TOOL_VIEW_HIDE_DELAY:Number = 1.0; // 선택 툴 아이콘이 떠 있는 시간 (초)
         public static const toolBox:ToolMenuSet = new ToolMenuSet();
         public static const toolBox2:ToolMenuSet2 = new ToolMenuSet2();
         public static const toolOptionsBox:ToolOptionsSet = new ToolOptionsSet();
         public static var isToolBox2Showing:Boolean = false; // 툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
         public static var selectedToolViewSprite:Sprite = makeSelectedToolViewSprite();
-        private static var selectedToolViewHeldKeyCode:int = -1; // 선택 툴 아이콘을 띄울 때 누르고 있던 단축키 (마우스로 골랐으면 -1)
         private static var selectedToolViewHideTime:int = 0; // 이 getTimer() 시각이 지나면 선택 툴 아이콘을 숨김
         public static var lastEraserPosButton:SimpleButton = null; // 지우개 툴이 이동한 버튼 저장; 복원용
         private static var isFillPenOptionsShown:Boolean = false; // 채우기 펜 선택으로 크기/모양 버튼을 흐리게 한 상태, 다른 도구를 고르면 되돌림
@@ -125,8 +123,8 @@ package Modules.L4UI.Tools
                 && !(LassoTool._lassoMenuBox.visible && LassoTool._lassoMenuBox.hitTestPoint(mx, my));
         }
 
-        // 마우스가 움직일 때 호출. 선택 툴 아이콘이 떠 있는 동안 커서를 따라가고, 그리는 중(왼쪽 버튼)에는 숨김
-        public static function followMouseWithSelectedToolViewSprite():void
+        // 마우스가 움직일 때 호출. 선택 툴 아이콘은 뜬 자리에 고정이고, 그리는 중(왼쪽 버튼)이거나 그리는 영역 밖이면 숨김
+        public static function hideSelectedToolViewSpriteIfMouseLeftDrawArea():void
         {
             if (!selectedToolViewSprite.visible)
             {
@@ -136,9 +134,7 @@ package Modules.L4UI.Tools
             if (MouseState.isLeftDown || !canShowSelectedToolViewSpriteAtMouse())
             {
                 selectedToolViewSprite.visible = false;
-                return;
             }
-            updateSelectedToolViewBoxPos();
         }
 
         public static function getToolButtonFromToolIndex(toolIndex:*):SimpleButton
@@ -198,10 +194,9 @@ package Modules.L4UI.Tools
             startHideTimerForSelectedToolViewSprite();
         }
 
-        // 선택 툴 아이콘을 띄움. 띄울 때 누르고 있던 단축키를 계속 누르는 동안은 유지하고, 뗀 뒤(마우스로 골랐으면 바로) 1.5초 후 숨김
+        // 선택 툴 아이콘을 띄우고 일정 시간 뒤 숨김 (단축키로 툴을 고를 때는 띄우지 않음)
         private static function startHideTimerForSelectedToolViewSprite():void
         {
-            selectedToolViewHeldKeyCode = KeyState.isKeyPressed() ? KeyState.getLastPressedKey() : -1;
             selectedToolViewHideTime = getTimer() + SELECTED_TOOL_VIEW_HIDE_DELAY * 1000;
             selectedToolViewSprite.alpha = 1.0;
             selectedToolViewSprite.visible = true;
@@ -211,11 +206,6 @@ package Modules.L4UI.Tools
                     if (!selectedToolViewSprite.visible)
                     {
                         return false;
-                    }
-                    if (selectedToolViewHeldKeyCode !== -1 && KeyState.isPressedKey(selectedToolViewHeldKeyCode))
-                    {
-                        selectedToolViewHideTime = getTimer() + SELECTED_TOOL_VIEW_HIDE_DELAY * 1000;
-                        return true;
                     }
                     if (getTimer() < selectedToolViewHideTime)
                     {
