@@ -101,6 +101,39 @@
                 "reveal": "always",
                 "panel": "shared"
             }
+        },
+        {
+            "label": "Publish AIR and Bundle",
+            "type": "shell",
+            "dependsOn": [
+                "Build nativecore ANE"
+            ],
+            "command": "pwsh",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/publish-air-and-bundle.ps1"
+            ],
+            "options": {
+                "env": {
+                    "FOFO_STOREPASS": "${input:p12StorePassword}"
+                }
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "p12StorePassword",
+            "type": "promptString",
+            "description": "p12 인증서 비밀번호 (storepass)",
+            "password": true
         }
     ]
 }

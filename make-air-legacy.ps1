@@ -4,8 +4,13 @@
 # fofoPaint-app.xml은 51.4/extendedDesktop/<extensions>라 그대로는 못 쓰므로 임시 descriptor를 만듦 (원본은 그대로)
 #   네임스페이스 51.4 -> 51.3, <extensions> 제거, supportedProfiles -> desktop
 # 버전 표기는 옛 형식(xx.xx)으로 맞춤: 컴파일 때만 Main.as 복사본(bin\legacy-src)의 APP_VERSION/APP_STATE_VERSION과 descriptor versionNumber를 바꿈 (원본 소스는 그대로)
-# 인증서 비밀번호는 넣지 않음: adt가 실행 중에 물어보면 터미널에 입력
+# 인증서 비밀번호: -StorePass를 안 주면 adt가 실행 중에 물어보면 터미널에 입력
+param(
+    [string]$StorePass = ''
+)
 Set-Location $PSScriptRoot
+$storePassArguments = @()
+if ($StorePass -ne '') { $storePassArguments = @('-storepass', $StorePass) }
 $legacySdk = 'D:\adobe_air_sdk_manager\AIRSDK_51.3.4'
 # 버전은 legacy_version.txt (예: 28.01)에서 읽음, 올릴 때는 그 파일만 고치면 됨 (28.02, 28.03 ...)
 $legacyVersion = ([IO.File]::ReadAllText("$PSScriptRoot\legacy_version.txt")).Trim()
@@ -44,7 +49,7 @@ $xml = $xml -replace '<supportedProfiles>[^<]*</supportedProfiles>', '<supported
 [IO.File]::WriteAllText("$PSScriptRoot\$desc", $xml, (New-Object System.Text.UTF8Encoding($false)))
 
 Write-Host 'Packaging bin\fofoPaint.air (certificate password prompt) ...'
-& "$legacySdk\bin\adt.bat" -package -storetype pkcs12 -keystore $keystore 'bin\fofoPaint.air' $desc 'resource\icon' 'manual' -C $release 'fofoPaint.swf' 'worker.swf'
+& "$legacySdk\bin\adt.bat" -package -storetype pkcs12 -keystore $keystore @storePassArguments 'bin\fofoPaint.air' $desc 'resource\icon' 'manual' -C $release 'fofoPaint.swf' 'worker.swf'
 $code = $LASTEXITCODE
 Remove-Item $desc -ErrorAction SilentlyContinue
 if ($code -eq 0) { Write-Host 'Built bin\fofoPaint.air' }

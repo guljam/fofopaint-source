@@ -7,9 +7,12 @@
 # 인증서 비밀번호가 들어 있어서 저장소에 넣지 않음 (.gitignore)
 param(
     [ValidateSet('both', 'x86', 'x64')]
-    [string]$Arch = 'both'
+    [string]$Arch = 'both',
+    [string]$StorePass = ''
 )
 Set-Location $PSScriptRoot
+$storePassArguments = @()
+if ($StorePass -ne '') { $storePassArguments = @('-storepass', $StorePass) }
 $sdk = 'D:\adobe_air_sdk_manager\AIRSDK_51.4.1'
 $adt = "$sdk\bin\adt.bat"
 $release = 'bin\release'
@@ -30,7 +33,7 @@ foreach ($a in $archs) {
     if (Test-Path $out) { Remove-Item $out -Recurse -Force }
     Write-Host "Packaging $out ..."
     # 패키지 루트 이름이 descriptor의 <content>fofoPaint.swf</content>, 앱의 URLRequest("worker.swf")와 맞게 -C로 넣음
-    & $adt -package -storetype pkcs12 -keystore "F:\페인트앱_백업\fofopaintKey\secretkey3.p12" -target bundle -arch $a $out 'fofoPaint-app.xml' 'resource\icon' 'manual' -C $release 'fofoPaint.swf' 'worker.swf' -extdir 'extension'
+    & $adt -package -storetype pkcs12 -keystore "F:\페인트앱_백업\fofopaintKey\secretkey3.p12" @storePassArguments -target bundle -arch $a $out 'fofoPaint-app.xml' 'resource\icon' 'manual' -C $release 'fofoPaint.swf' 'worker.swf' -extdir 'extension'
     if ($LASTEXITCODE -ne 0) { $code = $LASTEXITCODE; Write-Host "$a bundle failed ($LASTEXITCODE)" } else { Write-Host "Built $out" }
 }
 
