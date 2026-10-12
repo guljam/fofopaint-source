@@ -174,7 +174,7 @@ package Modules.L4UI.UIEngine
         // 상단바·시크바·고정 사이드바가 차지하는 stage 가장자리 폭(STAGE_*_OFFSET)을 다시 계산하고, 뷰포트 좌상단에 붙는 메시지 상자도 다시 배치함
         // 캡처·리플레이 모드에서는 사이드바를 빼지 않음
         // 시크바는 BARSIZE보다 배경이 크게 그려지고 y도 상단바 표시에 따라 바뀌므로, 보이면 배경의 실제 아래 끝을 위쪽 여백으로 씀
-        // 왼쪽 사이드바는 배율이 곱해진 스크롤 바 오른쪽 끝(경계선 포함)을 왼쪽 여백으로 씀
+        // 고정 사이드바는 배율이 곱해진 스크롤 바 바깥 끝(경계선 포함)까지를 좌/우 여백으로 씀
         // 리플레이 상단바 자동 숨김·표시(ReplayController.hide/showTopbarOnPlayback)에서도 부름
         public static function updateStageOffset():void
         {
@@ -197,14 +197,15 @@ package Modules.L4UI.UIEngine
 
             if (!CaptureController.isCaptureModeON && !ReplayState.isReplayModeON && SidebarController.sideBar.visible)
             {
+                // 스크롤 바는 사이드바 자식이라 폭에도 배율이 곱해지고, 2px 경계선이 바깥으로 1px 더 나감
+                // getBounds는 앱 시작 직후 스크롤 바가 아직 안 그려졌을 때 엉뚱한 값을 주므로 계산으로 구함
                 if (SidebarController.isRightSidebar)
                 {
-                    STAGE_RIGHT_OFFSET = Math.round(SidebarController.sideBar.getWidth() + SidebarController.SCROLL_BAR_WIDTH);
+                    // 오른쪽은 스크롤 바를 경계선 포함 폭(SCROLL_BAR_WIDTH+2)만큼 사이드바 왼쪽에 붙이므로(resetScrollBarX) 경계선 1px까지 더해 +3
+                    STAGE_RIGHT_OFFSET = Math.ceil(SidebarController.sideBar.getWidth() + (SidebarController.SCROLL_BAR_WIDTH + 3) * SidebarController.sideBar.scaleX);
                 }
                 else
                 {
-                    // 스크롤 바는 사이드바 자식이라 폭에도 배율이 곱해지고, 2px 경계선이 바깥으로 1px 더 나감
-                    // getBounds는 앱 시작 직후 스크롤 바가 아직 안 그려졌을 때 엉뚱한 값을 주므로 계산으로 구함
                     STAGE_LEFT_OFFSET = Math.ceil((SidebarController.sideBar.WIDTH + SidebarController.SCROLL_BAR_WIDTH + 1) * SidebarController.sideBar.scaleX);
                 }
             }
