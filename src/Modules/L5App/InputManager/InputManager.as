@@ -17,7 +17,6 @@ package Modules.L5App.InputManager
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.UIEngine.MessageBoxController;
     import Modules.L4UI.PenSizePreviewCursor;
-    import Modules.L1Data.ToolState;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.MouseState;
@@ -120,6 +119,7 @@ package Modules.L5App.InputManager
             {
                 updatePenPreviewCursorAndSelectedToolBadge(); // 펜 커서 위치를 읽는 마우스 다운 처리보다 먼저 이번 프레임 전의 이동을 반영
             }
+            ToolPanel.hideSelectedToolViewSpriteOnDrawAreaClick();
             KeyState.checkInvalidKey();
             MouseState.onLeftDown();
             HintController.hideBottomHint();
@@ -133,6 +133,7 @@ package Modules.L5App.InputManager
 
         public static function onRightMouseDownStage(e:MouseEvent):void
         {
+            ToolPanel.hideSelectedToolViewSpriteOnDrawAreaClick();
             KeyState.checkInvalidKey();
             MouseState.onRightDown();
         }
@@ -196,6 +197,7 @@ package Modules.L5App.InputManager
 
         public static function onMiddleMouseDownStage(e:MouseEvent):void
         {
+            ToolPanel.hideSelectedToolViewSpriteOnDrawAreaClick();
             MouseState.onMiddleDown();
 
             if (CaptureController.isCaptureModeON)
@@ -220,8 +222,6 @@ package Modules.L5App.InputManager
             {
                 HandTool.startInDrawModeWithWheelClick();
             }
-
-            ToolPanel.showNowToolIconToCursorTemp(ToolState.TOOL_HAND);
         }
 
         public static function onKeyUpStage(e:KeyboardEvent):void

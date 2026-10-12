@@ -13,6 +13,7 @@ package Modules.L4UI.Tools
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import flash.geom.Rectangle;
+    import flash.utils.getTimer;
     import Modules.L4UI.DrawEngine.LayerPreview;
     import Modules.L4UI.SidebarController;
     import Modules.L3Feature.UndoController;
@@ -52,13 +53,16 @@ package Modules.L4UI.Tools
 
 
         private static const TOOL_BOX_ON_DELAY_TIME:Number = 0.12;
-        private static const SELECTED_TOOL_BADGE_GAP_ABOVE_MOUSE:Number = 15; // 마우스 포인트에서 선택 툴 아이콘 아래쪽까지 띄우는 간격 (UI 스케일 1 기준 px)
-        private static const SELECTED_TOOL_BADGE_SCALE:Number = 0.8; // 선택 툴 아이콘 크기 배율
+        private static const SELECTED_TOOL_BADGE_GAP_ABOVE_MOUSE:Number = 7; // 마우스 포인트에서 선택 툴 아이콘 아래쪽까지 띄우는 간격 (UI 스케일 1 기준 px)
+        private static const SELECTED_TOOL_BADGE_SCALE:Number = 0.5; // 선택 툴 아이콘 크기 배율
+        private static const SELECTED_TOOL_VIEW_HIDE_DELAY:Number = 1.0; // 선택 툴 아이콘이 떠 있는 시간 (초)
         public static const toolBox:ToolMenuSet = new ToolMenuSet();
         public static const toolBox2:ToolMenuSet2 = new ToolMenuSet2();
         public static const toolOptionsBox:ToolOptionsSet = new ToolOptionsSet();
         public static var isToolBox2Showing:Boolean = false; // 툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
         public static var selectedToolViewSprite:Sprite = makeSelectedToolViewSprite();
+        private static var selectedToolViewHeldKeyCode:int = -1; // 선택 툴 아이콘을 띄울 때 누르고 있던 단축키 (마우스로 골랐으면 -1)
+        private static var selectedToolViewHideTime:int = 0; // 이 getTimer() 시각이 지나면 선택 툴 아이콘을 숨김
         public static var lastEraserPosButton:SimpleButton = null; // 지우개 툴이 이동한 버튼 저장; 복원용
         private static var isFillPenOptionsShown:Boolean = false; // 채우기 펜 선택으로 크기/모양 버튼을 흐리게 한 상태, 다른 도구를 고르면 되돌림
 
@@ -191,7 +195,44 @@ package Modules.L4UI.Tools
             selectedToolViewSprite.scaleX = SELECTED_TOOL_BADGE_SCALE * UITheme.getUIScale();
             selectedToolViewSprite.scaleY = SELECTED_TOOL_BADGE_SCALE * UITheme.getUIScale();
             updateSelectedToolViewBoxPos();
-            Utils.showDisplayTargetAndFadeOut(selectedToolViewSprite, 1.0, 1.0);
+            startHideTimerForSelectedToolViewSprite();
+        }
+
+        // 선택 툴 아이콘을 띄움. 띄울 때 누르고 있던 단축키를 계속 누르는 동안은 유지하고, 뗀 뒤(마우스로 골랐으면 바로) 1.5초 후 숨김
+        private static function startHideTimerForSelectedToolViewSprite():void
+        {
+            selectedToolViewHeldKeyCode = KeyState.isKeyPressed() ? KeyState.getLastPressedKey() : -1;
+            selectedToolViewHideTime = getTimer() + SELECTED_TOOL_VIEW_HIDE_DELAY * 1000;
+            selectedToolViewSprite.alpha = 1.0;
+            selectedToolViewSprite.visible = true;
+            FOFOTimer.addByName("selectedToolViewHideTimer", 0.0, true, function ():Boolean
+                {
+                    // 클릭, 모드 전환, 그리는 영역 밖 등 다른 곳에서 이미 숨겼으면 끝
+                    if (!selectedToolViewSprite.visible)
+                    {
+                        return false;
+                    }
+                    if (selectedToolViewHeldKeyCode !== -1 && KeyState.isPressedKey(selectedToolViewHeldKeyCode))
+                    {
+                        selectedToolViewHideTime = getTimer() + SELECTED_TOOL_VIEW_HIDE_DELAY * 1000;
+                        return true;
+                    }
+                    if (getTimer() < selectedToolViewHideTime)
+                    {
+                        return true;
+                    }
+                    selectedToolViewSprite.visible = false;
+                    return false;
+                });
+        }
+
+        // 마우스 클릭(왼쪽/오른쪽/휠)이 그리는 영역에서 일어나면 선택 툴 아이콘을 바로 숨김
+        public static function hideSelectedToolViewSpriteOnDrawAreaClick():void
+        {
+            if (selectedToolViewSprite.visible && UIController.isCursorInDrawArea())
+            {
+                selectedToolViewSprite.visible = false;
+            }
         }
 
         public static function onMouseOverToolBox2Hint(e:MouseEvent):void
