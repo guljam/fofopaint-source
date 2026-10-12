@@ -227,7 +227,7 @@ package Modules.L4UI.Tools
             {
                 arr[0] = _lassoMenuBox.x;
                 arr[1] = _lassoMenuBox.y;
-                UIController.keepBoxInsideViewPort(_lassoMenuBox);
+                UIController.keepBoxInsideViewPortLassoRefLayer(_lassoMenuBox);
                 arr[2] = _lassoMenuBox.x;
                 arr[3] = _lassoMenuBox.y;
             }
@@ -235,7 +235,7 @@ package Modules.L4UI.Tools
             {
                 arr[4] = ReferenceLayerController.refLayerMenuBox.x;
                 arr[5] = ReferenceLayerController.refLayerMenuBox.y;
-                UIController.keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
+                UIController.keepBoxInsideViewPortLassoRefLayer(ReferenceLayerController.refLayerMenuBox);
                 arr[6] = ReferenceLayerController.refLayerMenuBox.x;
                 arr[7] = ReferenceLayerController.refLayerMenuBox.y;
             }
@@ -365,7 +365,6 @@ package Modules.L4UI.Tools
             function onMouseUp():void
             {
                 getScale = null;
-                UIController.keepBoxInsideViewPort(_lassoMenuBox);
                 HintController.hideMouseHint();
                 LassoTool.redrawLassoOutline();
                 setOptimizeView(false);
@@ -403,7 +402,6 @@ package Modules.L4UI.Tools
             function onMouseUp():void
             {
                 getMovedPos = null;
-                UIController.keepBoxInsideViewPort(_lassoMenuBox);
                 setOptimizeView(false);
             }
             function onMouseMove():void
@@ -645,7 +643,8 @@ package Modules.L4UI.Tools
             lassoFirstData = [LassoSelectionBoxes.lassoLayer1.x, LassoSelectionBoxes.lassoLayer1.y, LassoSelectionBoxes.lassoLayer1.scaleX, LassoSelectionBoxes.lassoLayer1.scaleY, LassoSelectionBoxes.lassoLayer1.rotation];
             _isStarted = true;
             setDefaultLassoMenuPos(_lassoMenuBox);
-            UIController.keepBoxInsideViewPort(_lassoMenuBox);
+            UIController.keepBoxInsideViewPortLassoRefLayer(_lassoMenuBox);
+
             if (CanvasLayers.checkedLayer || !checklayer1 || !checklayer2)
             {
                 _lassoMenuBox.lassoLayerSwap.alpha = UITheme.OFFALPHA;

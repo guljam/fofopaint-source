@@ -775,12 +775,12 @@ package Modules.L4UI
 
             if (LassoTool.isStarted)
             {
-                UIController.keepBoxInsideViewPort(LassoTool._lassoMenuBox);
+                UIController.keepBoxInsideViewPortLassoRefLayer(LassoTool._lassoMenuBox);
             }
 
             if (ReferenceLayerController.isRefLayerMenuON)
             {
-                UIController.keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
+                UIController.keepBoxInsideViewPortLassoRefLayer(ReferenceLayerController.refLayerMenuBox);
             }
 
             HintController.hideBottomHint();

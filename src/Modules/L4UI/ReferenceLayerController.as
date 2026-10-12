@@ -253,7 +253,7 @@ package Modules.L4UI
             refLayerMenuBox.y = Math.floor(AppContext.stage.mouseY - 8);
             refLayerMenuBox.visible = true;
 
-            UIController.keepBoxInsideViewPort(refLayerMenuBox);
+            UIController.keepBoxInsideViewPortLassoRefLayer(refLayerMenuBox);
 
             if (isRefLayerMenuON === false)
             {

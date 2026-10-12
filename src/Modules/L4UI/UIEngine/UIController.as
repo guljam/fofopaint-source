@@ -247,9 +247,9 @@ package Modules.L4UI.UIEngine
             SidebarController.sideBar.updateSideBGSize(SidebarController.getSideBarBGHeight());
 
             if (LassoTool.isStarted)
-                keepBoxInsideViewPort(LassoTool._lassoMenuBox);
+                keepBoxInsideViewPortLassoRefLayer(LassoTool._lassoMenuBox);
             if (ReferenceLayerController.isRefLayerMenuON)
-                keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
+                keepBoxInsideViewPortLassoRefLayer(ReferenceLayerController.refLayerMenuBox);
 
             CanvasNavigator.updateCursor();
             HintController.hideBottomHint();
@@ -326,14 +326,14 @@ package Modules.L4UI.UIEngine
             {
                 LassoTool._lassoMenuBox.x += dx;
                 LassoTool._lassoMenuBox.y += dy;
-                keepBoxInsideViewPort(LassoTool._lassoMenuBox);
+                keepBoxInsideViewPortLassoRefLayer(LassoTool._lassoMenuBox);
             }
 
             if (ReferenceLayerController.isRefLayerMenuON)
             {
                 ReferenceLayerController.refLayerMenuBox.x += dx;
                 ReferenceLayerController.refLayerMenuBox.y += dy;
-                keepBoxInsideViewPort(ReferenceLayerController.refLayerMenuBox);
+                keepBoxInsideViewPortLassoRefLayer(ReferenceLayerController.refLayerMenuBox);
             }
         }
 
@@ -406,14 +406,27 @@ package Modules.L4UI.UIEngine
             UIController.lastAppWindowSize.setTo(0, 0, AppContext.stage.nativeWindow.width, AppContext.stage.nativeWindow.height);
         }
 
-        public static function keepBoxInsideViewPort(target:DisplayObject):void
+        public static function keepBoxInsideViewPortLassoRefLayer(target:DisplayObject):void
+        {
+            if(target === ReferenceLayerController.refLayerMenuBox || target === LassoTool._lassoMenuBox)
+            {
+                trace('enter');
+                keepBoxInsideViewPort(target,2,2);
+            }
+            else
+            {
+                keepBoxInsideViewPort(target,0,0);
+            }
+        }
+
+        public static function keepBoxInsideViewPort(target:DisplayObject,marginLeft:Number,marginRight:Number):void
         {
             const rect:Rectangle = target.getBounds(AppContext.stage);
 
-            if (rect.x < STAGE_LEFT_OFFSET)
-                target.x = STAGE_LEFT_OFFSET;
-            else if (rect.x + rect.width > AppContext.stage.stageWidth - STAGE_RIGHT_OFFSET)
-                target.x = AppContext.stage.stageWidth - rect.width - STAGE_RIGHT_OFFSET;
+            if (rect.x < STAGE_LEFT_OFFSET+marginLeft)
+                target.x = STAGE_LEFT_OFFSET+marginLeft;
+            else if (rect.x + rect.width > AppContext.stage.stageWidth - STAGE_RIGHT_OFFSET+marginRight)
+                target.x = AppContext.stage.stageWidth - rect.width - STAGE_RIGHT_OFFSET+marginRight;
 
             if (rect.y < STAGE_TOP_OFFSET)
                 target.y = STAGE_TOP_OFFSET;
