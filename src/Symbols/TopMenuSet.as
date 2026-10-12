@@ -336,7 +336,7 @@
 
 			const halfH:Number = replaySpeedSliderCursor.height / 2;
 			replaySpeedSnapMarker.graphics.clear();
-			replaySpeedSnapMarker.graphics.lineStyle(1, UITheme.getUIFGColor(), 1, true);
+			replaySpeedSnapMarker.graphics.lineStyle(2, UITheme.getUIFGColor(), 1, true);
 			replaySpeedSnapMarker.graphics.moveTo(replaySpeedSnapX, replaySpeedSlider.y - halfH);
 			replaySpeedSnapMarker.graphics.lineTo(replaySpeedSnapX, replaySpeedSlider.y + halfH);
 		}
