@@ -108,7 +108,7 @@ package Modules.L4UI.CaptureEngine
 
         public static function startCaptureAreaSelection():void
         {
-            CaptureArea.start();
+            CaptureArea.startCaptureAreaDrag();
         }
 
         public static function resetCaptureAreaSelection():void
@@ -118,7 +118,7 @@ package Modules.L4UI.CaptureEngine
 
         public static function resetCaptureArea():void
         {
-            CaptureArea.reset();
+            CaptureArea.resetCaptureAreaAndCanvasInfo();
         }
 
         public static function updateCaptureAreaOverlay(forceFlag:Boolean = false):void
@@ -419,8 +419,8 @@ package Modules.L4UI.CaptureEngine
             }
 
             activateCaptureUI();
-            CaptureArea.initCanvas();
-            CaptureArea.startHoverTracking();
+            CaptureArea.initCaptureCanvasInfo();
+            CaptureArea.startEdgeHoverTracking();
             HintController.hideBottomHint();
 
             var xAnc:Sprite;
@@ -587,7 +587,7 @@ package Modules.L4UI.CaptureEngine
             _isCaptureModeON = false;
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
 
-            CaptureArea.stopHoverTracking();
+            CaptureArea.stopEdgeHoverTracking();
             CaptureArea.captureDragAreaOverlay.graphics.clear();
             CaptureStamp.off();
             CaptureArea.captureDragAreaOverlay.visible = false;
