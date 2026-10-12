@@ -100,7 +100,7 @@
 | HintStrings | L4 | (층 변경) | Modules.L4UI |
 | InputPriority | L1 | Modules | Modules.L1Data |
 | MouseState | L1 | Modules | Modules.L1Data |
-| NativeCacheJobs | L1 | Modules | Modules.L1Data |
+| NativeImageCaching | L1 | Modules | Modules.L1Data |
 | NativeCore | L1 | Modules | Modules.L1Data |
 | NativeSave | L1 | Modules | Modules.L1Data |
 | PixelRestore | L1 | Modules | Modules.L1Data |

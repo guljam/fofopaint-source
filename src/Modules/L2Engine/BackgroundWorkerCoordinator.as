@@ -22,7 +22,7 @@ package Modules.L2Engine
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.FOFOTimer;
-    import Modules.L1Data.NativeCacheJobs;
+    import Modules.L1Data.NativeImageCaching;
     import Modules.L1Data.NativeCore;
 
     // 층: L2 엔진 - 백그라운드 워커 시작·중지와 데이터 전달
@@ -293,7 +293,7 @@ package Modules.L2Engine
         {
             const oldGeneration:int = cacheGeneration++;
             cacheGenerationShared.atomicCompareAndSwapIntAt(0, oldGeneration, cacheGeneration);
-            NativeCacheJobs.setGeneration(cacheGeneration);
+            NativeImageCaching.setCacheGeneration(cacheGeneration);
             // 캐시를 잘라내거나 새로 만들면 프레임 기준이 바뀌므로 실패 기록도 버림
             cacheFailedFrame = 0;
         }
@@ -352,7 +352,7 @@ package Modules.L2Engine
             undoDataQueue.push([jobId, generation, tempFile, metadata]);
 
             // 네이티브: 두 레이어 내부 버퍼를 복사하고 압축·쓰기는 네이티브 스레드에서 (내부 버퍼 원본 덤프라 손실 없음)
-            if (NativeCacheJobs.start(tempFile.nativePath, layer1, layer2, metadata, generation, true, function (result:Object):void
+            if (NativeImageCaching.startCacheFileWrite(tempFile.nativePath, layer1, layer2, metadata, generation, true, function (result:Object):void
                     {
                         finishCacheImageJob(jobId, (result.status === "done") ? "done" : (result.status === "cancelled") ? "cancelled:native" : "error:native " + result.error);
                     }) === NativeCore.OK)

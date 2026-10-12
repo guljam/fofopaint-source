@@ -63,7 +63,7 @@ package Modules.L5App.ReplayEngine
     import Modules.L4UI.UIEngine.CanvasNavigator;
     import Modules.L1Data.FOFOTimer;
     import Modules.L1Data.InputPriority;
-    import Modules.L1Data.NativeCacheJobs;
+    import Modules.L1Data.NativeImageCaching;
     import Modules.L1Data.NativeCore;
     import Modules.L1Data.UIEngine.UITheme;
     import Modules.L4UI.Tools.ToolPanel;
@@ -722,7 +722,7 @@ package Modules.L5App.ReplayEngine
             // 작업은 작업마다 다른 임시 파일(imagecache_loadtmp)에 쓰고, main이 앞에서부터 이어진 번호만 imagecache/<번호>로 옮겨서
             // rJumpImageFrameData와 진행 기록에 확정 (undo 캐시의 commitCacheImage와 같은 구조, 이어 만들기는 확정된 번호까지만 믿음)
             // 대체 경로로 바꾸거나 멈출때는 cacheEpoch를 올려서 그 전에 시작한 작업의 결과(늦게 온 완료 알림)는 임시 파일만 지우고 버림
-            var useNativeCache:Boolean = NativeCacheJobs.isAvailable;
+            var useNativeCache:Boolean = NativeImageCaching.isAvailable;
             var isStopped:Boolean = false;
             var nextCacheIndex:int = ReplayFileCache.rJumpImageFrameData.length;
             var cacheEpoch:int = 0;
@@ -805,7 +805,7 @@ package Modules.L5App.ReplayEngine
                     const index:int = nextCacheIndex;
                     const epoch:int = cacheEpoch;
                     const tempFile:File = AppDataPaths.replayCacheImageLoadTempFolderPath.resolvePath(runId + "_" + epoch + "_" + index);
-                    const result:int = NativeCacheJobs.start(tempFile.nativePath,
+                    const result:int = NativeImageCaching.startCacheFileWrite(tempFile.nativePath,
                             ReplayDrawer.rCanvasLayer1BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, metadata, cacheGeneration, false, function (r:Object):void
                             {
                                 // 무효화된 작업이거나 생성이 멈췄으면 결과를 버림 (pendingCacheJobs는 무효화할때 이미 뺌)
@@ -833,7 +833,7 @@ package Modules.L5App.ReplayEngine
                                 }
                             });
 
-                    if (result === NativeCacheJobs.RESULT_BUSY)
+                    if (result === NativeImageCaching.RESULT_BUSY)
                     {
                         return false;
                     }
