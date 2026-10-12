@@ -47,6 +47,7 @@ package Modules.L4UI
         private static var sideBarConstHeight:Number = 780;
 
         public static var isSidebarVisible:Boolean = true; // 사이드바 표시 여부
+        private static var isSidebarMousePosCheckPending:Boolean = false; // 마우스가 움직였지만 사이드바 임시 표시/숨김 확인을 아직 하지 않음
         private static var isSidebarTempShowDeactivated:Boolean = false; // 사이드바 임시로 보여주는 기능이 잠시 꺼졌을때 올려줌
         private static var isReactivateSidebarTempShowEventsAdded:Boolean = false; // 사이드바 임시로 보여주는 기능을 끄는 이벤트들이 등록되면 올려줌
         private static var isSidebarHideEventAdded:Boolean = false; // 사이드바가 임시로 보여졌을때 마우스 클릭하면 꺼주는 이벤트가 추가되면 올려줌
@@ -503,8 +504,24 @@ package Modules.L4UI
             }
         }
 
+        // 마우스 이동은 한 프레임에 여러 번 올 수 있으므로 확인 요청만 표시하고, 실제 확인은 그리기 직전(RENDER)에 한 번만 함
         private static function onMouseMoveSideBar(e:MouseEvent):void
         {
+            isSidebarMousePosCheckPending = true;
+            AppContext.stage.invalidate();
+        }
+
+        private static function onStageRenderSideBar(e:Event):void
+        {
+            if (isSidebarMousePosCheckPending)
+            {
+                checkSidebarTemporaryShowAndHideByMousePos();
+            }
+        }
+
+        private static function checkSidebarTemporaryShowAndHideByMousePos():void
+        {
+            isSidebarMousePosCheckPending = false;
             if (canShowSidebarTemporarily())
             {
                 const mx:Number = AppContext.stage.mouseX;
@@ -591,6 +608,8 @@ package Modules.L4UI
             AppContext.stage.removeEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpSideBar);
             AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpSideBar);
             AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveSideBar);
+            AppContext.stage.removeEventListener(Event.RENDER, onStageRenderSideBar);
+            isSidebarMousePosCheckPending = false;
             AppContext.stage.removeEventListener(Event.MOUSE_LEAVE, onMouseLeaveSideBar);
         }
 
@@ -612,6 +631,7 @@ package Modules.L4UI
             AppContext.stage.addEventListener(MouseEvent.RIGHT_MOUSE_UP, onMouseUpSideBar, false, InputPriority.DEFAULT);
             AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpSideBar, false, InputPriority.DEFAULT);
             AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveSideBar);
+            AppContext.stage.addEventListener(Event.RENDER, onStageRenderSideBar);
             AppContext.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeaveSideBar);
         }
 

@@ -4,6 +4,7 @@ package Modules.L4UI.UIEngine
     import Symbols.CanvasNavigatorBoxSet;
 
     import flash.display.DisplayObject;
+    import flash.events.Event;
     import flash.events.MouseEvent;
     import flash.geom.Point;
     import Modules.L4UI.SidebarController;
@@ -72,6 +73,7 @@ package Modules.L4UI.UIEngine
             var sy:Number = box.mouseY;
             const prevCursorScale:Number = box.navCursorMultiply;
             const uiScale:Number = UITheme.getUIScale();
+            var isNavigatorMovePending:Boolean = false;
 
             ReferenceLayerController.setRefLayerAndGridVisible(false);
             HintController.hideBottomHint();
@@ -93,6 +95,10 @@ package Modules.L4UI.UIEngine
 
             function onMouseUpCanvasNavigator(e:MouseEvent):void
             {
+                if (isNavigatorMovePending)
+                {
+                    moveCanvasByNavigatorMousePos(); // 아직 반영하지 않은 마지막 이동
+                }
                 MouseState.endDrag("canvasNavigator");
                 ReferenceLayerController.setRefLayerAndGridVisible(true);
                 CanvasView.viewport.keepInStage();
@@ -105,12 +111,29 @@ package Modules.L4UI.UIEngine
                     }
                 }
                 AppContext.stage.removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
+                AppContext.stage.removeEventListener(Event.RENDER, onRenderCanvasNavigator);
                 AppContext.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator);
                 canvasMoveEventStarted = false;
             }
 
+            // 마우스 이동은 한 프레임에 여러 번 올 수 있으므로 요청만 표시하고, 실제 이동은 그리기 직전(RENDER)에 한 번만 함
             function onMouseMoveCanvasNavigator(e:MouseEvent):void
             {
+                isNavigatorMovePending = true;
+                AppContext.stage.invalidate();
+            }
+
+            function onRenderCanvasNavigator(e:Event):void
+            {
+                if (isNavigatorMovePending)
+                {
+                    moveCanvasByNavigatorMousePos();
+                }
+            }
+
+            function moveCanvasByNavigatorMousePos():void
+            {
+                isNavigatorMovePending = false;
                 const scale:Number = UITheme.getUIScale();
                 var mx:Number = box.mouseX;
                 var my:Number = box.mouseY;
@@ -141,6 +164,7 @@ package Modules.L4UI.UIEngine
                 canvasMoveEventStarted = true;
                 AppContext.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUpCanvasNavigator, false, InputPriority.DEFAULT);
                 AppContext.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMoveCanvasNavigator);
+                AppContext.stage.addEventListener(Event.RENDER, onRenderCanvasNavigator);
                 MouseState.beginDrag("canvasNavigator", function ():void
                     {
                         onMouseUpCanvasNavigator(null);

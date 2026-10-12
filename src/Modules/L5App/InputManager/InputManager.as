@@ -35,6 +35,8 @@ package Modules.L5App.InputManager
     // 층: L5 앱 흐름 - 키보드·마우스 입력을 받아 모드별 입력 처리로 나눠줌
     public class InputManager
     {
+        private static var isPenPreviewCursorUpdatePending:Boolean = false; // 마우스가 움직였지만 펜 커서에 아직 반영하지 않음
+
         // handle mouse click 이벤트에서 이벤트 한번만 추가되게 하기
         public static var handMouseClickEventStarted:Boolean = false;
 
@@ -114,6 +116,10 @@ package Modules.L5App.InputManager
 
         public static function onMouseDownStage(e:MouseEvent):void
         {
+            if (isPenPreviewCursorUpdatePending)
+            {
+                updatePenPreviewCursorAndSelectedToolBadge(); // 펜 커서 위치를 읽는 마우스 다운 처리보다 먼저 이번 프레임 전의 이동을 반영
+            }
             KeyState.checkInvalidKey();
             MouseState.onLeftDown();
             HintController.hideBottomHint();
@@ -268,8 +274,30 @@ package Modules.L5App.InputManager
                 });
         }
 
-        public static function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
+        // 마우스 이동은 한 프레임에 여러 번 올 수 있으므로 갱신 요청만 표시하고, 실제 갱신은 그리기 직전(RENDER)에 한 번만 함
+        public static function onMouseMoveRequestPenPreviewCursorUpdate(e:MouseEvent):void
         {
+            isPenPreviewCursorUpdatePending = true;
+            AppContext.stage.invalidate();
+        }
+
+        public static function onStageRenderUpdatePenPreviewCursor(e:Event):void
+        {
+            if (isPenPreviewCursorUpdatePending)
+            {
+                updatePenPreviewCursorAndSelectedToolBadge();
+            }
+        }
+
+        // 마우스를 뗄 때는 획 종료 처리 뒤에 바로 갱신해야 해서 즉시 실행
+        public static function onMouseUpUpdatePenPreviewCursor(e:MouseEvent):void
+        {
+            updatePenPreviewCursorAndSelectedToolBadge();
+        }
+
+        private static function updatePenPreviewCursorAndSelectedToolBadge():void
+        {
+            isPenPreviewCursorUpdatePending = false;
             ToolPanel.followMouseWithSelectedToolViewBitmap();
 
             if (ReplayState.isReplayModeON || CaptureController.isCaptureModeON)

@@ -360,8 +360,9 @@
             stage.addEventListener(MouseEvent.MOUSE_MOVE, MouseState.onMouseMoveHeal, true, InputPriority.STAGE_ROOT);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, InputManager.onKeyDownStage, true, InputPriority.STAGE_ROOT);
             stage.addEventListener(KeyboardEvent.KEY_UP, InputManager.onKeyUpStage, false, InputPriority.STAGE_ROOT);
-            stage.addEventListener(MouseEvent.MOUSE_MOVE, InputManager.onMouseMoveUpdatePenPreviewCursor);
-            stage.addEventListener(MouseEvent.MOUSE_UP, InputManager.onMouseMoveUpdatePenPreviewCursor, false, InputPriority.MODE);
+            stage.addEventListener(MouseEvent.MOUSE_MOVE, InputManager.onMouseMoveRequestPenPreviewCursorUpdate);
+            stage.addEventListener(Event.RENDER, InputManager.onStageRenderUpdatePenPreviewCursor);
+            stage.addEventListener(MouseEvent.MOUSE_UP, InputManager.onMouseUpUpdatePenPreviewCursor, false, InputPriority.MODE);
             stage.addEventListener(Event.MOUSE_LEAVE, InputManager.onMouseLeaveStage, true);
             stage.addEventListener(MouseEvent.MOUSE_MOVE, HintController.onMouseMoveBottomHint);
             stage.nativeWindow.x = Capabilities.screenResolutionX / 2 - 680 / 2;
