@@ -30,16 +30,18 @@ package Modules.L4UI
         private static const LIGHTNESS_THRESHOLD:Number = 49;
         // 캔버스 안에 있는 테두리 점 중 이 비율 이상이 커서와 비슷하면 반전
         private static const INVERT_SIMILAR_OUTLINE_RATIO:Number = 0.51;
-        private static const OUTLINE_COLOR_UNKNOWN:int = 0;
+        private static const OUTLINE_COLOR_UNKNOWN:int = 0; // 반드시 0이어야 함. Vector.<int>의 길이를 늘리면 0으로 채워지는 것으로 초기화하기 때문
         private static const OUTLINE_COLOR_DARK:int = 1; // 밝기 L* <= LIGHTNESS_THRESHOLD
         private static const OUTLINE_COLOR_LIGHT:int = 2; // 밝기 L* >= 100 - LIGHTNESS_THRESHOLD
         private static const OUTLINE_COLOR_MIDDLE:int = 3;
         private static const OUTLINE_COLOR_OUTSIDE_CANVAS:int = 4;
+        private static const OUTLINE_COLOR_COUNT:int = 5; // 위 분류 수
         // 위 밝기 기준(L*)을 휘도 Y로 바꾼 값 (L* = 116 * Y^(1/3) - 16). 점마다 pow를 하지 않으려고 미리 계산
         private static const DARK_CURSOR_SIMILAR_MAX_LUMINANCE:Number = Math.pow((LIGHTNESS_THRESHOLD + 16) / 116, 3);
         private static const LIGHT_CURSOR_SIMILAR_MIN_LUMINANCE:Number = Math.pow((100 - LIGHTNESS_THRESHOLD + 16) / 116, 3);
         private static const SCAN_TIME_BUDGET_PER_FRAME_MS:int = 4; // 한 프레임에 테두리 탐색에 쓸 최대 시간
         private static const SCAN_POINTS_PER_TIME_CHECK:int = 32; // getTimer 호출은 이 점 수마다 한 번
+        private static const OUTLINE_SCAN_INTERVAL_SEC:Number = 0.3; // 테두리 검사(한 바퀴)를 시작하는 주기. 검정/흰색 경계에서 프레임마다 반전이 깜빡이는 것을 막음
         private static const CHECK_TIMER_NAME:String = "penCursorInvertTimer";
 
         private static const _cursor:PenCursorPreviewPixel = new PenCursorPreviewPixel(); // 펜사이즈 미리 보기
@@ -52,11 +54,12 @@ package Modules.L4UI
         // 점마다 마지막으로 본 밑 색 분류. 커서가 움직여도 지우지 않고 점을 다시 볼 때마다 갱신하므로 개수가 계속 따라감
         // 분류는 커서 색과 무관하게 저장하므로 반전되어도 그대로 쓸 수 있음
         private static const outlineColorStateList:Vector.<int> = new Vector.<int>();
-        private static var darkPointCount:int = 0;
-        private static var lightPointCount:int = 0;
-        private static var middlePointCount:int = 0;
-        private static var outsideCanvasPointCount:int = 0; // 캔버스 밖이라 비율 계산에서 뺀 점
+        // 분류별 점 개수 (인덱스 = OUTLINE_COLOR_* 상수). OUTLINE_COLOR_OUTSIDE_CANVAS 칸은 비율 계산에서 뺄 점 수
+        private static const colorStateCountList:Vector.<int> = new Vector.<int>(OUTLINE_COLOR_COUNT, true);
         private static var isInvertSettled:Boolean = false; // 반전을 마친 상태. 커서가 움직이거나 분류를 버리기 전까지 탐색을 건너뜀
+        private static var isOutlineScanInProgress:Boolean = false; // 한 바퀴 검사 중 (프레임 예산을 넘겨 다음 프레임에 이어서 도는 중 포함)
+        private static var scannedPointCountInCurrentScan:int = 0; // 이번 검사에서 본 점 수. outlinePointCount가 되면 한 바퀴 끝
+        private static var isScanTimerRunningEveryFrame:Boolean = false; // 타이머 지연값이 0(매 프레임)인지, OUTLINE_SCAN_INTERVAL_SEC인지
         private static const cursorLocalToCanvasMatrix:Matrix = new Matrix();
         private static var _cursorSize:Number = PenSettings.penSize;
         private static var _cursorShape:Boolean = PenSettings.penIsSquare;
@@ -209,18 +212,17 @@ package Modules.L4UI
         {
             const pointSpacingInScreenPixels:Number = Math.max(1, canvasZoom);
             const outlineHalfWidth:Number = Math.max(cursorScreenDiameter / 2 - 0.5, 0);
-            outlineLocalXList.length = 0;
-            outlineLocalYList.length = 0;
             if (_cursorShape === false)
             {
-                const circlePointCount:int = Math.max(8, Math.ceil(2 * Math.PI * outlineHalfWidth / pointSpacingInScreenPixels));
-                for (var circlePointIndex:int = 0; circlePointIndex < circlePointCount; circlePointIndex++)
+                outlinePointCount = Math.max(8, Math.ceil(2 * Math.PI * outlineHalfWidth / pointSpacingInScreenPixels));
+                outlineLocalXList.length = outlinePointCount;
+                outlineLocalYList.length = outlinePointCount;
+                for (var circlePointIndex:int = 0; circlePointIndex < outlinePointCount; circlePointIndex++)
                 {
-                    const pointAngle:Number = 2 * Math.PI * circlePointIndex / circlePointCount;
+                    const pointAngle:Number = 2 * Math.PI * circlePointIndex / outlinePointCount;
                     outlineLocalXList[circlePointIndex] = Math.cos(pointAngle) * outlineHalfWidth;
                     outlineLocalYList[circlePointIndex] = Math.sin(pointAngle) * outlineHalfWidth;
                 }
-                outlinePointCount = circlePointCount;
             }
             else
             {
@@ -228,10 +230,12 @@ package Modules.L4UI
                 const rectangleWidth:Number = outlineHalfWidth * 2;
                 const rectangleHeight:Number = outlineHalfHeight * 2;
                 const perimeterLength:Number = 2 * (rectangleWidth + rectangleHeight);
-                const rectanglePointCount:int = Math.max(8, Math.ceil(perimeterLength / pointSpacingInScreenPixels));
-                for (var rectanglePointIndex:int = 0; rectanglePointIndex < rectanglePointCount; rectanglePointIndex++)
+                outlinePointCount = Math.max(8, Math.ceil(perimeterLength / pointSpacingInScreenPixels));
+                outlineLocalXList.length = outlinePointCount;
+                outlineLocalYList.length = outlinePointCount;
+                for (var rectanglePointIndex:int = 0; rectanglePointIndex < outlinePointCount; rectanglePointIndex++)
                 {
-                    var distanceFromRectangleTopLeft:Number = perimeterLength * rectanglePointIndex / rectanglePointCount;
+                    var distanceFromRectangleTopLeft:Number = perimeterLength * rectanglePointIndex / outlinePointCount;
                     if (distanceFromRectangleTopLeft < rectangleWidth)
                     {
                         outlineLocalXList[rectanglePointIndex] = -outlineHalfWidth + distanceFromRectangleTopLeft;
@@ -253,70 +257,36 @@ package Modules.L4UI
                         outlineLocalYList[rectanglePointIndex] = outlineHalfHeight - (distanceFromRectangleTopLeft - 2 * rectangleWidth - rectangleHeight);
                     }
                 }
-                outlinePointCount = rectanglePointCount;
             }
             nextScanPointIndex = 0;
+            isInvertSettled = false;
             clearOutlineColorStates();
         }
 
         // 모든 점의 분류를 "아직 모름"으로 되돌림. 크기/모양이 바뀌거나 그림이 바뀌어 예전 분류를 믿을 수 없을 때 호출
+        // 길이를 0으로 줄였다가 늘리면 Vector.<int>가 0(= OUTLINE_COLOR_UNKNOWN)으로 채워지므로 따로 돌며 채우지 않음
         private static function clearOutlineColorStates():void
         {
-            isInvertSettled = false;
+            outlineColorStateList.length = 0;
             outlineColorStateList.length = outlinePointCount;
-            for (var pointIndex:int = 0; pointIndex < outlinePointCount; pointIndex++)
+            for (var colorState:int = 0; colorState < OUTLINE_COLOR_COUNT; colorState++)
             {
-                outlineColorStateList[pointIndex] = OUTLINE_COLOR_UNKNOWN;
+                colorStateCountList[colorState] = 0;
             }
-            darkPointCount = 0;
-            lightPointCount = 0;
-            middlePointCount = 0;
-            outsideCanvasPointCount = 0;
-        }
-
-        // 점 하나의 분류가 바뀔 때 분류별 개수를 맞춰 줌
-        private static function updatePointColorStateAndCounts(pointIndex:int, newColorState:int):void
-        {
-            const oldColorState:int = outlineColorStateList[pointIndex];
-            if (oldColorState === newColorState)
-            {
-                return;
-            }
-            addAmountToColorStateCount(oldColorState, -1);
-            addAmountToColorStateCount(newColorState, 1);
-            outlineColorStateList[pointIndex] = newColorState;
-        }
-
-        private static function addAmountToColorStateCount(colorState:int, amount:int):void
-        {
-            if (colorState === OUTLINE_COLOR_DARK)
-            {
-                darkPointCount += amount;
-            }
-            else if (colorState === OUTLINE_COLOR_LIGHT)
-            {
-                lightPointCount += amount;
-            }
-            else if (colorState === OUTLINE_COLOR_MIDDLE)
-            {
-                middlePointCount += amount;
-            }
-            else if (colorState === OUTLINE_COLOR_OUTSIDE_CANVAS)
-            {
-                outsideCanvasPointCount += amount;
-            }
+            colorStateCountList[OUTLINE_COLOR_UNKNOWN] = outlinePointCount; // 아직 한 점도 보지 않은 상태
         }
 
         // 마우스를 누르면 대기 중인 확인을 취소함 (드래그 중에 실행되면 안 됨)
         public static function stopOutlineColorScanTimer():void
         {
             FOFOTimer.remove(CHECK_TIMER_NAME);
+            isOutlineScanInProgress = false;
+            isScanTimerRunningEveryFrame = false;
         }
 
-        // 획이 레이어 비트맵에 반영된 뒤 호출. 대기 시간 없이 즉시 한 번 확인함
+        // 획이 레이어 비트맵에 반영된 뒤 호출. 예전 분류를 버리고 처음부터 다시 봄
         public static function rescanOutlineColorsAfterStrokeApplied():void
         {
-            stopOutlineColorScanTimer();
             if (_cursor.visible)
             {
                 clearOutlineColorStates(); // 그림이 바뀌었으므로 예전 분류는 버림
@@ -337,10 +307,29 @@ package Modules.L4UI
         private static function startOutlineColorScanTimer():void
         {
             isInvertSettled = false;
+            // 타이머가 이미 있으면 다시 등록하지 않음. 마우스를 계속 움직여도 검사 주기가 밀리지 않게 하기 위함
             if (!FOFOTimer.hasTimer(CHECK_TIMER_NAME))
             {
-                FOFOTimer.addByName(CHECK_TIMER_NAME, 0, true, scanOutlineColorsWithinFrameBudget);
+                setOutlineScanTimerRunEveryFrame(true);
             }
+        }
+
+        // 타이머 지연값을 0(이어서 검사 중이라 매 프레임)과 OUTLINE_SCAN_INTERVAL_SEC(다음 검사까지 대기) 사이에서 바꿈. 이미 그 상태면 아무것도 하지 않음
+        private static function setOutlineScanTimerRunEveryFrame(runEveryFrame:Boolean):void
+        {
+            if (isScanTimerRunningEveryFrame === runEveryFrame && FOFOTimer.hasTimer(CHECK_TIMER_NAME))
+            {
+                return;
+            }
+            isScanTimerRunningEveryFrame = runEveryFrame;
+            FOFOTimer.addByName(CHECK_TIMER_NAME, runEveryFrame ? 0 : OUTLINE_SCAN_INTERVAL_SEC, true, scanOutlineColorsWithinFrameBudget);
+        }
+
+        // 한 바퀴 검사를 마침. 다음 검사는 OUTLINE_SCAN_INTERVAL_SEC 뒤에 시작
+        private static function finishCurrentOutlineScan():void
+        {
+            isOutlineScanInProgress = false;
+            setOutlineScanTimerRunEveryFrame(false);
         }
 
         // 캔버스 좌표 (px, py) 한 점의 합성색: 배경 위에 레이어2, 그 위에 레이어1 (숨긴 레이어는 건너뜀)
@@ -376,11 +365,18 @@ package Modules.L4UI
         {
             if (MouseState.isLeftDown || !_cursor.visible || outlinePointCount === 0)
             {
+                isOutlineScanInProgress = false;
+                isScanTimerRunningEveryFrame = false; // false를 돌려주면 FOFOTimer가 타이머를 지움
                 return false;
             }
             if (isInvertSettled)
             {
                 return true; // 반전을 마쳤으면 커서가 다시 움직일 때까지 타이머만 두고 바로 돌아옴
+            }
+            if (!isOutlineScanInProgress)
+            {
+                isOutlineScanInProgress = true;
+                scannedPointCountInCurrentScan = 0;
             }
             // 커서 로컬 -> 캔버스 좌표 행렬 (줌, 캔버스 회전, 미러, 커서 회전, 위치가 한 번에 반영됨)
             const canvasPanelInverseMatrix:Matrix = CanvasView.canvasPanel.transform.concatenatedMatrix;
@@ -393,9 +389,10 @@ package Modules.L4UI
             var scannedPointCountInThisFrame:int = 0;
             while (true)
             {
-                const pointLocalX:Number = outlineLocalXList[nextScanPointIndex];
-                const pointLocalY:Number = outlineLocalYList[nextScanPointIndex];
-                nextScanPointIndex = (nextScanPointIndex + 1 === outlinePointCount) ? 0 : nextScanPointIndex + 1;
+                const scanPointIndex:int = nextScanPointIndex;
+                const pointLocalX:Number = outlineLocalXList[scanPointIndex];
+                const pointLocalY:Number = outlineLocalYList[scanPointIndex];
+                nextScanPointIndex = (scanPointIndex + 1 === outlinePointCount) ? 0 : scanPointIndex + 1;
 
                 const canvasPixelX:int = Math.floor(cursorLocalToCanvasMatrix.a * pointLocalX + cursorLocalToCanvasMatrix.c * pointLocalY + cursorLocalToCanvasMatrix.tx);
                 const canvasPixelY:int = Math.floor(cursorLocalToCanvasMatrix.b * pointLocalX + cursorLocalToCanvasMatrix.d * pointLocalY + cursorLocalToCanvasMatrix.ty);
@@ -420,24 +417,34 @@ package Modules.L4UI
                         pointColorState = OUTLINE_COLOR_MIDDLE;
                     }
                 }
-                updatePointColorStateAndCounts(nextScanPointIndex === 0 ? outlinePointCount - 1 : nextScanPointIndex - 1, pointColorState);
+                const previousPointColorState:int = outlineColorStateList[scanPointIndex];
+                if (previousPointColorState !== pointColorState)
+                {
+                    colorStateCountList[previousPointColorState]--;
+                    colorStateCountList[pointColorState]++;
+                    outlineColorStateList[scanPointIndex] = pointColorState;
+                }
 
                 // 아직 못 본 점도 모두 캔버스 안이라고 보고 센 최대 개수. 이 개수 기준으로 과반이 넘으면 나머지 점을 다 봐도 비율이 넘음
-                const maxInsideCanvasPointCount:int = outlinePointCount - outsideCanvasPointCount;
-                if (maxInsideCanvasPointCount === 0)
-                {
-                    return true; // 전부 캔버스 밖이어도 커서가 움직이면 바뀌므로 계속 돔
-                }
-                const similarPointCount:int = isCursorInverted ? lightPointCount : darkPointCount;
-                if (similarPointCount >= INVERT_SIMILAR_OUTLINE_RATIO * maxInsideCanvasPointCount)
+                const maxInsideCanvasPointCount:int = outlinePointCount - colorStateCountList[OUTLINE_COLOR_OUTSIDE_CANVAS];
+                // 전부 캔버스 밖이면 비율을 낼 수 없으므로 판정만 건너뜀
+                const similarPointCount:int = isCursorInverted ? colorStateCountList[OUTLINE_COLOR_LIGHT] : colorStateCountList[OUTLINE_COLOR_DARK];
+                if (maxInsideCanvasPointCount > 0 && similarPointCount >= INVERT_SIMILAR_OUTLINE_RATIO * maxInsideCanvasPointCount)
                 {
                     _cursor.setCursorColorInverted(!isCursorInverted);
                     isInvertSettled = true;
+                    finishCurrentOutlineScan();
                     return true; // 타이머는 계속 돌지만, 커서가 다시 움직이기 전까지는 맨 앞에서 바로 돌아옴
                 }
-                ++scannedPointCountInThisFrame;
-                if (scannedPointCountInThisFrame >= outlinePointCount || (scannedPointCountInThisFrame % SCAN_POINTS_PER_TIME_CHECK === 0 && getTimer() - scanStartTime >= SCAN_TIME_BUDGET_PER_FRAME_MS)) // 한 프레임에 한 바퀴를 넘게 돌지 않음
+                ++scannedPointCountInCurrentScan;
+                if (scannedPointCountInCurrentScan >= outlinePointCount)
                 {
+                    finishCurrentOutlineScan(); // 한 바퀴를 봤으면 이번 검사는 끝. 다음 검사는 OUTLINE_SCAN_INTERVAL_SEC 뒤
+                    return true;
+                }
+                if (++scannedPointCountInThisFrame % SCAN_POINTS_PER_TIME_CHECK === 0 && getTimer() - scanStartTime >= SCAN_TIME_BUDGET_PER_FRAME_MS)
+                {
+                    setOutlineScanTimerRunEveryFrame(true); // 프레임 예산을 넘겼으므로 다음 프레임에 이어서 검사
                     return true;
                 }
             }
