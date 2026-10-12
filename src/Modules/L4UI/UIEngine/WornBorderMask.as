@@ -9,12 +9,15 @@ package Modules.L4UI.UIEngine
     public class WornBorderMask extends Shape
     {
         private var wornSeed:uint;
+        private var erosionScale:Number;
         private var drawnWidth:Number = -1;
         private var drawnHeight:Number = -1;
 
-        public function WornBorderMask(wornSeed:uint)
+        // erosionScale은 가장자리가 깎이는 두께에 곱하는 배율(1.0이 기본)
+        public function WornBorderMask(wornSeed:uint, erosionScale:Number = 1.0)
         {
             this.wornSeed = wornSeed;
+            this.erosionScale = erosionScale;
         }
 
         // 마스크를 maskWidth x maskHeight 크기로 맞춤. 마지막으로 그린 크기와 같으면 다시 그리지 않음
@@ -28,7 +31,7 @@ package Modules.L4UI.UIEngine
             drawnWidth = maskWidth;
             drawnHeight = maskHeight;
             graphics.clear();
-            HandDrawnLine.drawWornRectFill(graphics, maskWidth, maskHeight, wornSeed);
+            HandDrawnLine.drawWornRectFill(graphics, maskWidth, maskHeight, wornSeed, erosionScale);
         }
     }
 }

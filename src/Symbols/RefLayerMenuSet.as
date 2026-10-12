@@ -40,6 +40,7 @@
 		private var constScale:Number = 1.0;
 		private var menuBoxBorderUI:MenuBoxBorderUI; //배경 조각의 겉 테두리를 해진 모양으로 자르는 마스크 (생성자 맨 끝에서 만듦)
 		private static const MENU_BOX_BORDER_SEED:uint = 403;
+		private static const MENU_BOX_BORDER_EROSION_SCALE:Number = 1.1; //이 상자 가장자리 깎임 강도 배율 (1.0이 기본)
 
 		public function updateUIColor():void
 		{
@@ -168,7 +169,7 @@
 			refLayerMenuInfoPos[0] = refInfoText.y;
 			refLayerMenuInfoPos[1] = refInfoText.height;
 
-			menuBoxBorderUI = new MenuBoxBorderUI(this, [refLayerMenuMoveButton, refLayerMenuBGLeft, refLayerMenuBGRight], [], MENU_BOX_BORDER_SEED);
+			menuBoxBorderUI = new MenuBoxBorderUI(this, [refLayerMenuMoveButton, refLayerMenuBGLeft, refLayerMenuBGRight], [], MENU_BOX_BORDER_SEED, MENU_BOX_BORDER_EROSION_SCALE);
 		}
 	}
 }

@@ -123,21 +123,23 @@ package Modules.L2Engine.DrawEngine
 
         // 마스크용: 사각형 가장자리를 안쪽으로만 불규칙하게 깎아서 손으로 그린 듯 해진 모양으로 채움.
         // 바깥으로는 나가지 않아서 원래 사각형 범위 안에 머물고, 같은 seed는 항상 같은 모양이 나옴.
-        // 깎임 값을 변의 절대 위치(위/아래 변은 x, 왼쪽/오른쪽 변은 y)로 정해서, 너비나 높이가 바뀌어도 겹치는 부분의 모양은 그대로임
+        // 깎임 값을 변의 절대 위치(위/아래 변은 x, 왼쪽/오른쪽 변은 y)로 정해서, 너비나 높이가 바뀌어도 겹치는 부분의 모양은 그대로임.
+        // erosionScale은 깎이는 두께에 곱하는 배율(1.0이 기본). 모양은 그대로이고 깊이만 달라짐
         public static function drawWornRectFill(
             graphics:Graphics,
             width:Number,
             height:Number,
-            seed:uint
+            seed:uint,
+            erosionScale:Number = 1.0
         ):void
         {
             const outlinePointList:Vector.<Number> = new Vector.<Number>();
 
             // 시계 방향 네 변: 위(왼→오), 오른쪽(위→아래), 아래(오→왼), 왼쪽(아래→위). 각 변은 안쪽 방향(inward)으로 깎임
-            appendWornEdgePoints(outlinePointList, seed, 0, false, 0, 0, 1, 0, 0, 1, width);
-            appendWornEdgePoints(outlinePointList, seed, 1, false, width, 0, 0, 1, -1, 0, height);
-            appendWornEdgePoints(outlinePointList, seed, 2, true, width, height, -1, 0, 0, -1, width);
-            appendWornEdgePoints(outlinePointList, seed, 3, true, 0, height, 0, -1, 1, 0, height);
+            appendWornEdgePoints(outlinePointList, seed, 0, false, 0, 0, 1, 0, 0, 1, width, erosionScale);
+            appendWornEdgePoints(outlinePointList, seed, 1, false, width, 0, 0, 1, -1, 0, height, erosionScale);
+            appendWornEdgePoints(outlinePointList, seed, 2, true, width, height, -1, 0, 0, -1, width, erosionScale);
+            appendWornEdgePoints(outlinePointList, seed, 3, true, 0, height, 0, -1, 1, 0, height, erosionScale);
 
             graphics.beginFill(0);
             graphics.moveTo(outlinePointList[0], outlinePointList[1]);
@@ -163,7 +165,8 @@ package Modules.L2Engine.DrawEngine
             dirY:Number,
             inwardX:Number,
             inwardY:Number,
-            edgeLength:Number
+            edgeLength:Number,
+            erosionScale:Number
         ):void
         {
             // 훑는 점을 축 좌표 1.5px 격자에 맞춰서 변 길이가 달라져도 같은 자리의 점은 같은 위치에 찍힘. 반대 방향 변은 시작 모서리 점을 먼저 찍고 격자를 거꾸로 따라감
@@ -196,6 +199,8 @@ package Modules.L2Engine.DrawEngine
                     const cornerRatio:Number = 1.0 - distanceFromEdgeEnd / WORN_CORNER_RADIUS;
                     erosion += WORN_CORNER_RADIUS * cornerRatio * cornerRatio;
                 }
+
+                erosion *= erosionScale;
 
                 outlinePointList.push(
                     startX + dirX * distanceFromEdgeStart + inwardX * erosion,

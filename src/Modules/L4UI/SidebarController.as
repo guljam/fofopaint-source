@@ -29,6 +29,7 @@ package Modules.L4UI
     import Modules.L4UI.Tools.ToolController;
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L4UI.UIEngine.CanvasNavigator;
+    import Modules.L4UI.UIEngine.WornBorderMask;
     import Modules.L1Data.FOFOTimer;
     import Modules.L1Data.InputPriority;
     import Modules.L1Data.UIEngine.UITheme;
@@ -41,6 +42,8 @@ package Modules.L4UI
         public static const fofo:FOFO = new FOFO();
         public static const sideBarScrollBar:Sprite = new Sprite();
         public static const sideBarScrollPanel:Sprite = new Sprite();
+        private static const SIDE_BAR_SCROLL_BAR_SEED:uint = 501;
+        private static const sideBarScrollBarBorderMask:WornBorderMask = new WornBorderMask(SIDE_BAR_SCROLL_BAR_SEED); // sideBarScrollBar의 자식이면서 mask로 걸려 가장자리를 해진 모양으로 자름
 
         public static var scrollSetMovedY:Number = 0;
         private static var scrollBarHeight:Number = 0;
@@ -783,6 +786,8 @@ package Modules.L4UI
             HintController.hideBottomHint();
         }
 
+        // 스크롤 바의 색과 높이를 다시 그리고, 2px 선까지 포함한 바깥 경계(-1, 0, 폭 SCROLL_BAR_WIDTH+2, 높이 height)에 맞춰 가장자리 마스크 크기를 갱신함.
+        // 마스크는 그려진 경계 안쪽에만 있어서 sideBarScrollBar.width/height는 그대로임
         public static function updateScrollBarColorAndHeight():void
         {
             const scale:Number = UITheme.getUIScale();
@@ -797,6 +802,15 @@ package Modules.L4UI
             sideBarScrollBar.graphics.beginFill(color2);
             sideBarScrollBar.graphics.drawRect(0, 1, SCROLL_BAR_WIDTH, height - 2);
             sideBarScrollBar.graphics.endFill();
+
+            if (sideBarScrollBarBorderMask.parent !== sideBarScrollBar)
+            {
+                sideBarScrollBar.addChild(sideBarScrollBarBorderMask);
+                sideBarScrollBar.mask = sideBarScrollBarBorderMask;
+            }
+            sideBarScrollBarBorderMask.x = -1;
+            sideBarScrollBarBorderMask.y = 0;
+            sideBarScrollBarBorderMask.updateMaskSize(SCROLL_BAR_WIDTH + 2, height);
 
             scrollBarHeight = height;
         }

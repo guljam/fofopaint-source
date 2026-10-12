@@ -19,8 +19,8 @@ package Modules.L4UI.UIEngine
         private var borderMaskList:Array = [];
 
         // backgroundPieceList의 조각들은 바깥쪽 변을 EXTEND_PX 늘리고 마스크를 걸며, maskOnlyObjectList의 객체(진행 막대 등)는 크기는 그대로 두고 마스크만 걸어서
-        // 같은 상자 테두리로 잘라냄. 두 목록 모두 menuBox의 직계 자식이어야 하고, menuBox 생성자 맨 끝(조각들이 자리를 잡은 뒤)에서 불러야 함
-        public function MenuBoxBorderUI(menuBox:Sprite, backgroundPieceList:Array, maskOnlyObjectList:Array, wornSeed:uint)
+        // 같은 상자 테두리로 잘라냄. erosionScale은 상자별 깎임 강도 배율(1.0이 기본). 두 목록 모두 menuBox의 직계 자식이어야 하고, menuBox 생성자 맨 끝(조각들이 자리를 잡은 뒤)에서 불러야 함
+        public function MenuBoxBorderUI(menuBox:Sprite, backgroundPieceList:Array, maskOnlyObjectList:Array, wornSeed:uint, erosionScale:Number = 1.0)
         {
             this.backgroundPieceList = backgroundPieceList;
 
@@ -30,7 +30,7 @@ package Modules.L4UI.UIEngine
 
             for each (var maskTarget:DisplayObject in maskTargetList)
             {
-                const borderMask:WornBorderMask = new WornBorderMask(wornSeed);
+                const borderMask:WornBorderMask = new WornBorderMask(wornSeed, erosionScale);
                 menuBox.addChild(borderMask);
                 maskTarget.mask = borderMask;
                 borderMaskList.push(borderMask);

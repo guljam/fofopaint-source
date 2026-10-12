@@ -40,6 +40,7 @@
 		private var onMouseOverTarget:DisplayObject;
 		private var menuBoxBorderUI:MenuBoxBorderUI; //배경 조각의 겉 테두리를 해진 모양으로 자르는 마스크 (생성자 맨 끝에서 만듦)
 		private static const MENU_BOX_BORDER_SEED:uint = 401;
+		private static const MENU_BOX_BORDER_EROSION_SCALE:Number = 1.1; //이 상자 가장자리 깎임 강도 배율 (1.0이 기본)
 
 		private const resizeButtonWaitPrograssBar:Shape = new Shape();
 		private const resizeButtonWaitPrograssBarDuration:Number = 0.9;
@@ -259,7 +260,7 @@
 			resizeButtonWaitPrograssBar.y = 0;
 			addChild(resizeButtonWaitPrograssBar);
 
-			menuBoxBorderUI = new MenuBoxBorderUI(this, [toolBoxBG2, toolBoxBG], [resizeButtonWaitPrograssBar], MENU_BOX_BORDER_SEED);
+			menuBoxBorderUI = new MenuBoxBorderUI(this, [toolBoxBG2, toolBoxBG], [resizeButtonWaitPrograssBar], MENU_BOX_BORDER_SEED, MENU_BOX_BORDER_EROSION_SCALE);
 			resizeButtonWaitPrograssBarWidth = this.width / constScale;
 		}
 	}
