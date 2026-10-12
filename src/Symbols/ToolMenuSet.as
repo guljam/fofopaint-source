@@ -50,10 +50,10 @@
 
         private var checkedLayerONFlag:Boolean = false;
         private var toolSelectIconSourceVisual:Sprite = null; // 선택 툴 아이콘용으로 한 번만 만든 임베드 심볼 인스턴스; 여기서 버튼을 하나씩 꺼내 씀
-        private const toolSelectViewEntryByButtonName:Object = {}; // 버튼 이름 -> {viewSprite, backgroundCircle, iconButton, circleX, circleY, circleRadius}
+        private const toolSelectViewEntryByButtonName:Object = {}; // 버튼 이름 -> {viewSprite, backgroundCircle, iconButton, circleX, circleY, circleRadius, appliedColorIndex}
 
         // 마우스 옆에 잠깐 띄우는 선택 툴 아이콘: 배경 원 + 임베드 심볼에서 꺼낸 같은 이름의 버튼(벡터 그대로). 원 중심이 (0,0)
-        // Animate로 그린 Shape는 graphics.copyFrom으로 복제되지 않아서 심볼 인스턴스에서 버튼을 직접 꺼내 보관하고, 테마 색만 표시할 때마다 다시 입힘
+        // Animate로 그린 Shape는 graphics.copyFrom으로 복제되지 않아서 심볼 인스턴스에서 버튼을 직접 꺼내 보관하고, 테마 색은 테마가 바뀌었을 때만 다시 입힘
         public function getToolSelectViewSprite(toolButton:SimpleButton):Sprite
         {
             if (!toolSelectViewEntryByButtonName.hasOwnProperty(toolButton.name))
@@ -62,6 +62,18 @@
             }
 
             const entry:Object = toolSelectViewEntryByButtonName[toolButton.name];
+
+            if (entry.appliedColorIndex !== UITheme.getUIColorIndex())
+            {
+                paintToolSelectViewEntryWithTheme(entry);
+            }
+
+            return entry.viewSprite;
+        }
+
+        // 선택 툴 아이콘 엔트리의 배경 원과 아이콘에 현재 테마 색을 입히고, 입힌 테마 번호를 기록함
+        private function paintToolSelectViewEntryWithTheme(entry:Object):void
+        {
             const backgroundCircle:Shape = entry.backgroundCircle;
 
             backgroundCircle.graphics.clear();
@@ -69,8 +81,7 @@
             backgroundCircle.graphics.drawCircle(entry.circleX, entry.circleY, entry.circleRadius);
             backgroundCircle.graphics.endFill();
             UITheme.applyToolBoxButtonUpBGColor(entry.iconButton.upState);
-
-            return entry.viewSprite;
+            entry.appliedColorIndex = UITheme.getUIColorIndex();
         }
 
         private function makeToolSelectViewEntry(toolButton:SimpleButton):void
@@ -94,7 +105,7 @@
             iconButton.scaleX = 1.0; // 예전 draw는 버튼 자신의 축소 변환을 무시하고 심볼 원래 크기로 그렸으므로 같게 맞춤
             iconButton.scaleY = 1.0;
             iconButton.x = 5;
-            iconButton.y = 5;
+            iconButton.y = 4;
             iconBox.addChild(backgroundCircle);
             iconBox.addChild(iconButton);
             iconBox.x = -iconBoxWidth / 2;
@@ -107,7 +118,8 @@
                     iconButton: iconButton,
                     circleX: iconBoxWidth / 2,
                     circleY: iconBoxHeight / 2,
-                    circleRadius: toolButton.width / scale / 2 + extend / 2
+                    circleRadius: toolButton.width / scale / 2 + extend / 2,
+                    appliedColorIndex: -1 // 아직 색을 입히지 않음
                 };
         }
 
