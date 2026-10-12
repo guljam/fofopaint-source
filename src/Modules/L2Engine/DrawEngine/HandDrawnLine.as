@@ -11,20 +11,24 @@ package Modules.L2Engine.DrawEngine
         private static const SAMPLE_SPACING:Number = 2.0;
 
         // 노이즈 강도 설정
-        private static const BASE_WOBBLE_AMPLITUDE:Number = 0.25;  // 큰 완만한 구불거림
-        private static const FINE_WOBBLE_AMPLITUDE:Number = 0.2; // 세밀한 잔떨림
-        private static const TANGENT_WOBBLE_RATIO:Number = 0.25;  // 진행 방향 흔들림 비율
+        private static const BASE_WOBBLE_AMPLITUDE:Number = 0.2;  // 큰 완만한 구불거림
+        private static const FINE_WOBBLE_AMPLITUDE:Number = 0.1; // 세밀한 잔떨림
+        private static const TANGENT_WOBBLE_RATIO:Number = 0.2;  // 진행 방향 흔들림 비율
 
         // 두께(필압) 노이즈 변동 폭 (기본 두께의 범위 내 변화)
         private static const THICKNESS_WOBBLE_RATIO:Number = 0.27;
 
         // 해진 사각형 마스크(drawWornRectFill)용 설정. 선 그리기(draw, drawRect)와 별개라서 힌트/메시지 상자에는 영향이 없음
-        private static const WORN_MAX_EROSION:Number = 1.4; // 가장자리가 안쪽으로 깎이는 최대 두께(px)
-        private static const WORN_CORNER_RADIUS:Number = 1.75; // 모서리가 둥글게 깎이는 반경(px)
+        private static const WORN_MAX_EROSION:Number = 1.0; // 가장자리가 안쪽으로 깎이는 최대 두께(px)
+        private static const WORN_CORNER_RADIUS:Number = 1.0; // 모서리가 둥글게 깎이는 반경(px)
         private static const WORN_BASE_WEIGHT:Number = 0.21; // 큰 완만한 깎임 비중
-        private static const WORN_FINE_WEIGHT:Number = 0.175; // 세밀한 깎임 비중
+        private static const WORN_FINE_WEIGHT:Number = 0.075; // 세밀한 깎임 비중
 
-        // drawWornRectFill이 같은 seed에서 같은 모양을 내도록 쓰는 난수 상태
+        private static const WORN_BASE_SPACING:Number = 14.0; // 큰 굴곡 제어점 간격(px)
+        private static const WORN_FINE_SPACING:Number = 16.0; // 잔떨림 제어점 간격(px)
+        private static const WORN_SAMPLE_SPACING:Number = 1.5; // 가장자리를 훑는 간격(px)
+
+        // drawRect가 randomSeed를 받았을 때 같은 모양을 내도록 쓰는 난수 상태
         private static var randomSeedState:uint = 0;
         private static var isRandomSeeded:Boolean = false;
 
@@ -42,6 +46,7 @@ package Modules.L2Engine.DrawEngine
             drawPath(graphics, startX, startY, endX, endY, thickness, color, alpha);
         }
 
+        // 손으로 그린 듯한 사각형 선. randomSeed가 0 이상이면 같은 seed와 같은 크기에서 늘 같은 모양이 나오고, -1이면 그릴 때마다 달라짐
         public static function drawRect(
             graphics:Graphics,
             thickness:Number, //선두깨
@@ -53,7 +58,8 @@ package Modules.L2Engine.DrawEngine
             height:Number,
             fillColor:* = null, // 채우기 색깔 null이면 채우지 않음
             fillAlpha:Number = 1.0, // 채우기 색깔 알파
-            cornerRadius:Number = 0.01 //사각형 모서리 둥글기
+            cornerRadius:Number = 0.01, //사각형 모서리 둥글기
+            randomSeed:int = -1 // 0 이상이면 이 seed로 모양을 고정, -1이면 그릴 때마다 무작위
         ):void
         {
             // width -= thickness;
@@ -81,6 +87,12 @@ package Modules.L2Engine.DrawEngine
                 graphics.endFill();
             }
 
+            if (randomSeed >= 0)
+            {
+                randomSeedState = randomSeed;
+                isRandomSeeded = true;
+            }
+
             // 2. 면 채우기 위에 손그림 스타일의 외곽선을 덧칠함
             const points:Array = [
                 {x: minX + r, y: minY},
@@ -105,10 +117,13 @@ package Modules.L2Engine.DrawEngine
                 var pNext:Object = points[(i + 2) % points.length];
                 drawPath(graphics, pEnd.x, pEnd.y, pNext.x, pNext.y, thickness, color, alpha);
             }
+
+            isRandomSeeded = false;
         }
 
         // 마스크용: 사각형 가장자리를 안쪽으로만 불규칙하게 깎아서 손으로 그린 듯 해진 모양으로 채움.
-        // 바깥으로는 나가지 않아서 원래 사각형 범위 안에 머물고, 같은 seed는 항상 같은 모양이 나옴
+        // 바깥으로는 나가지 않아서 원래 사각형 범위 안에 머물고, 같은 seed는 항상 같은 모양이 나옴.
+        // 깎임 값을 변의 절대 위치(위/아래 변은 x, 왼쪽/오른쪽 변은 y)로 정해서, 너비나 높이가 바뀌어도 겹치는 부분의 모양은 그대로임
         public static function drawWornRectFill(
             graphics:Graphics,
             width:Number,
@@ -116,16 +131,13 @@ package Modules.L2Engine.DrawEngine
             seed:uint
         ):void
         {
-            randomSeedState = seed;
-            isRandomSeeded = true;
-
             const outlinePointList:Vector.<Number> = new Vector.<Number>();
 
             // 시계 방향 네 변: 위(왼→오), 오른쪽(위→아래), 아래(오→왼), 왼쪽(아래→위). 각 변은 안쪽 방향(inward)으로 깎임
-            appendWornEdgePoints(outlinePointList, 0, 0, 1, 0, 0, 1, width);
-            appendWornEdgePoints(outlinePointList, width, 0, 0, 1, -1, 0, height);
-            appendWornEdgePoints(outlinePointList, width, height, -1, 0, 0, -1, width);
-            appendWornEdgePoints(outlinePointList, 0, height, 0, -1, 1, 0, height);
+            appendWornEdgePoints(outlinePointList, seed, 0, false, 0, 0, 1, 0, 0, 1, width);
+            appendWornEdgePoints(outlinePointList, seed, 1, false, width, 0, 0, 1, -1, 0, height);
+            appendWornEdgePoints(outlinePointList, seed, 2, true, width, height, -1, 0, 0, -1, width);
+            appendWornEdgePoints(outlinePointList, seed, 3, true, 0, height, 0, -1, 1, 0, height);
 
             graphics.beginFill(0);
             graphics.moveTo(outlinePointList[0], outlinePointList[1]);
@@ -136,13 +148,15 @@ package Modules.L2Engine.DrawEngine
             }
 
             graphics.endFill();
-
-            isRandomSeeded = false;
         }
 
-        // 사각형 한 변을 1.5px 간격으로 훑으면서 안쪽(inwardX, inwardY 방향)으로 깎인 점을 outlinePointList에 이어 붙임
+        // 사각형 한 변을 1.5px 간격으로 훑으면서 안쪽(inwardX, inwardY 방향)으로 깎인 점을 outlinePointList에 이어 붙임.
+        // isEdgeReversed는 변을 훑는 방향이 좌표 축과 반대(아래 변, 왼쪽 변)일 때 true. 깎임 값은 축 좌표 기준이라 변 길이가 달라져도 같은 자리는 같은 값
         private static function appendWornEdgePoints(
             outlinePointList:Vector.<Number>,
+            seed:uint,
+            edgeId:int,
+            isEdgeReversed:Boolean,
             startX:Number,
             startY:Number,
             dirX:Number,
@@ -152,30 +166,30 @@ package Modules.L2Engine.DrawEngine
             edgeLength:Number
         ):void
         {
-            const baseCount:int = Math.max(2, Math.ceil(edgeLength / 14.0));
-            const fineCount:int = Math.max(2, Math.ceil(edgeLength / 3.0));
-            const baseValues:Vector.<Number> = createRandomArray(baseCount + 1);
-            const fineValues:Vector.<Number> = createRandomArray(fineCount + 1);
-            const sampleCount:int = Math.max(2, Math.ceil(edgeLength / 1.5));
+            // 훑는 점을 축 좌표 1.5px 격자에 맞춰서 변 길이가 달라져도 같은 자리의 점은 같은 위치에 찍힘. 반대 방향 변은 시작 모서리 점을 먼저 찍고 격자를 거꾸로 따라감
+            const gridCount:int = Math.max(1, Math.ceil(edgeLength / WORN_SAMPLE_SPACING));
+            const sampleCount:int = isEdgeReversed ? gridCount + 1 : Math.max(2, gridCount);
 
             for (var sample:int = 0; sample < sampleCount; sample++)
             {
-                const t:Number = sample / sampleCount;
+                var distanceFromEdgeStart:Number = sample * WORN_SAMPLE_SPACING;
 
-                const basePos:Number = t * baseCount;
-                const baseSeg:int = Math.min(baseCount - 1, int(basePos));
-                const finePos:Number = t * fineCount;
-                const fineSeg:int = Math.min(fineCount - 1, int(finePos));
+                if (isEdgeReversed)
+                {
+                    distanceFromEdgeStart = (sample === 0) ? 0 : edgeLength - (gridCount - sample) * WORN_SAMPLE_SPACING;
+                }
 
-                const baseN:Number = sampleCatmullRom(baseValues, baseCount, baseSeg, basePos - baseSeg);
-                const fineN:Number = sampleCatmullRom(fineValues, fineCount, fineSeg, finePos - fineSeg);
+                const axisPosition:Number = isEdgeReversed ? edgeLength - distanceFromEdgeStart : distanceFromEdgeStart;
+
+                const baseN:Number = sampleWornNoise(seed, edgeId, 0, axisPosition / WORN_BASE_SPACING);
+                const fineN:Number = sampleWornNoise(seed, edgeId, 1, axisPosition / WORN_FINE_SPACING);
 
                 // 0~1로 맞춘 뒤 제곱해서 대부분은 얕게 깎이고 가끔 깊게 파이게 함
                 const wear:Number = Math.max(0.0, Math.min(1.0, 0.5 + baseN * WORN_BASE_WEIGHT + fineN * WORN_FINE_WEIGHT));
                 var erosion:Number = WORN_MAX_EROSION * wear * wear;
 
                 // 모서리 가까이는 둥글게 깎음
-                const distanceFromEdgeEnd:Number = Math.min(t * edgeLength, (1.0 - t) * edgeLength);
+                const distanceFromEdgeEnd:Number = Math.min(distanceFromEdgeStart, edgeLength - distanceFromEdgeStart);
 
                 if (distanceFromEdgeEnd < WORN_CORNER_RADIUS)
                 {
@@ -184,13 +198,47 @@ package Modules.L2Engine.DrawEngine
                 }
 
                 outlinePointList.push(
-                    startX + dirX * edgeLength * t + inwardX * erosion,
-                    startY + dirY * edgeLength * t + inwardY * erosion
+                    startX + dirX * distanceFromEdgeStart + inwardX * erosion,
+                    startY + dirY * distanceFromEdgeStart + inwardY * erosion
                 );
             }
         }
 
-        // 난수 한 개(0~1). drawWornRectFill 중에는 seed에서 만든 같은 순서의 값, 그 외에는 Math.random
+        // 변 위치(제어점 단위 position)에서의 깎임 노이즈(-1~1). 제어점 값은 seed, 변 번호, 층(0 큰 굴곡, 1 잔떨림), 제어점 번호로만 정해져서 길이와 상관없음
+        private static function sampleWornNoise(seed:uint, edgeId:int, layer:int, position:Number):Number
+        {
+            const segment:int = Math.floor(position);
+            const localT:Number = position - segment;
+
+            return catmullRom(
+                wornControlValue(seed, edgeId, layer, segment - 1),
+                wornControlValue(seed, edgeId, layer, segment),
+                wornControlValue(seed, edgeId, layer, segment + 1),
+                wornControlValue(seed, edgeId, layer, segment + 2),
+                localT
+            );
+        }
+
+        // seed, 변 번호, 층, 제어점 번호에서 뽑은 고정 난수(-1~1)
+        private static function wornControlValue(seed:uint, edgeId:int, layer:int, controlIndex:int):Number
+        {
+            var hashState:Number = mixWornHash(seed + 1);
+            hashState = mixWornHash(hashState + edgeId * 977 + 1);
+            hashState = mixWornHash(hashState + layer * 131 + 7);
+            hashState = mixWornHash(hashState + controlIndex + 100000);
+            hashState = mixWornHash(hashState);
+            return (hashState / 4294967296) * 2.0 - 1.0;
+        }
+
+        // 해시 한 단계: LCG에 상위 비트를 섞음. 곱셈 결과가 2^53 안에 들어오도록 입력을 2^32 미만으로 맞춤
+        private static function mixWornHash(value:Number):Number
+        {
+            const input:uint = uint(value % 4294967296);
+            const scrambled:uint = input ^ (input >>> 15);
+            return (scrambled * 1664525 + 1013904223) % 4294967296;
+        }
+
+        // 난수 한 개(0~1). drawRect에 randomSeed가 있으면 seed에서 만든 같은 순서의 값, 그 외에는 Math.random
         private static function nextRandom():Number
         {
             if (!isRandomSeeded)

@@ -39,7 +39,14 @@ package Modules.L4UI.UIEngine
         public static var mouseHint:HintBoxSet = new HintBoxSet(true);
         public static var bottomHint:HintBoxSet = new HintBoxSet(false);
         public static const bottomBar:Sprite = new Sprite();
-        private static const hintHighlightBox:Shape = new Shape(); // 요소에 마우스 클릭하면 사각형으로 하이라이트 표시해줌
+        private static const bottomHintBorderUI:BottomHintBorderUI = new BottomHintBorderUI(bottomBar); // 하단 힌트 바 가장자리를 해진 모양으로 자르는 마스크
+        private static const hintHighlightBox:Sprite = new Sprite(); // 요소에 마우스 클릭하면 사각형으로 하이라이트 표시해줌. 크기별로 그려 둔 Shape 중 하나를 담음
+        private static const HIGHLIGHT_BOX_SEED:int = int(Math.random() * 2147483647); // 앱을 켤 때 한 번 정해져서 실행 중에는 같은 크기의 하이라이트가 항상 같은 모양임
+        private static const HIGHLIGHT_BOX_CACHE_LIMIT:int = 64; // 캔버스처럼 크기가 계속 바뀌는 대상 때문에 저장이 끝없이 늘지 않게 하는 한도
+        private static var highlightBoxShapeBySize:Object = {}; // "가로x세로" -> 그 크기로 한 번 그려 둔 Shape
+        private static var highlightBoxShapeCount:int = 0;
+        private static var highlightBoxCachedColor:uint = 0;
+        private static var highlightBoxShowingShape:Shape = null; // hintHighlightBox에 지금 들어 있는 Shape
         private static const lastBottomHintTargetRect:Rectangle = new Rectangle(); // bottomhint mosue move에서 자꾸 호출해주니까 저장해서 호출 덜하게 해줌
         private static const BOTTOM_HINT_SCROLL_TIMER:String = "bottomHintScrollTimer";
         private static var bottomHintScrollWaitFrames:int = 0;
@@ -50,6 +57,8 @@ package Modules.L4UI.UIEngine
         public static function initialize():void
         {
             bottomBar.name = "bottomBar";
+            hintHighlightBox.mouseEnabled = false;
+            hintHighlightBox.mouseChildren = false;
             bottomBar.addChild(bottomHint);
             bottomHint.x = 2;
             bottomHint.y = 3;
@@ -241,6 +250,7 @@ package Modules.L4UI.UIEngine
             }
         }
 
+        // target 위치에 크기별로 저장해 둔 손그림 하이라이트 상자를 보여줌
         public static function showHintHighlightBox(target:DisplayObject):void
         {
             const nt:int = getTimer();
@@ -266,14 +276,59 @@ package Modules.L4UI.UIEngine
                 rect.height -= 2 * scale;
             }
 
-            hintHighlightBox.graphics.clear();
-            // hintHighlightBox.graphics.lineStyle(2 * scale, UITheme.getHintHightlightColor(), 1.0);
             hintHighlightBox.x = rect.x;
             hintHighlightBox.y = rect.y;
-            // hintHighlightBox.graphics.drawRect(0, 0, rect.width, rect.height);
-            HandDrawnLine.drawRect(hintHighlightBox.graphics,2,UITheme.getHintHightlightColor(),1.0,0,0,rect.width,rect.height);
+            showHintHighlightShapeOfSize(rect.width, rect.height);
             updateHightLightBoxZOrderByTarget(target);
             hintHighlightBox.visible = true;
+        }
+
+        // boxWidth x boxHeight 크기로 한 번 그려 둔 하이라이트 Shape를 hintHighlightBox에 보여줌. 처음 보는 크기만 새로 그리고 같은 크기는 저장해 둔 것을 그대로 씀.
+        // 하이라이트 색이 바뀌었거나(테마 변경) 저장이 한도를 넘으면 저장을 비우고 다시 쌓음
+        private static function showHintHighlightShapeOfSize(boxWidth:Number, boxHeight:Number):void
+        {
+            const highlightColor:uint = UITheme.getHintHightlightColor();
+
+            if (highlightColor !== highlightBoxCachedColor || highlightBoxShapeCount >= HIGHLIGHT_BOX_CACHE_LIMIT)
+            {
+                clearHighlightBoxShapeCache();
+                highlightBoxCachedColor = highlightColor;
+            }
+
+            const sizeKey:String = boxWidth + "x" + boxHeight;
+            var sizeShape:Shape = highlightBoxShapeBySize[sizeKey] as Shape;
+
+            if (sizeShape === null)
+            {
+                sizeShape = new Shape();
+                HandDrawnLine.drawRect(sizeShape.graphics, 2, highlightColor, 1.0, 0, 0, boxWidth, boxHeight, null, 1.0, 0.01, HIGHLIGHT_BOX_SEED);
+                highlightBoxShapeBySize[sizeKey] = sizeShape;
+                highlightBoxShapeCount++;
+            }
+
+            if (highlightBoxShowingShape !== sizeShape)
+            {
+                if (highlightBoxShowingShape !== null)
+                {
+                    hintHighlightBox.removeChild(highlightBoxShowingShape);
+                }
+
+                hintHighlightBox.addChild(sizeShape);
+                highlightBoxShowingShape = sizeShape;
+            }
+        }
+
+        // 크기별로 저장해 둔 하이라이트 Shape를 모두 버림
+        private static function clearHighlightBoxShapeCache():void
+        {
+            if (highlightBoxShowingShape !== null)
+            {
+                hintHighlightBox.removeChild(highlightBoxShowingShape);
+                highlightBoxShowingShape = null;
+            }
+
+            highlightBoxShapeBySize = {};
+            highlightBoxShapeCount = 0;
         }
 
         private static function updateHightLightBoxZOrderByTarget(target:DisplayObject):void
@@ -300,9 +355,9 @@ package Modules.L4UI.UIEngine
             }
         }
 
+        // 하이라이트를 숨김. 그려 둔 Shape는 같은 크기가 다시 올 때 쓰려고 지우지 않음
         private static function hideHintHighlightBox():void
         {
-            hintHighlightBox.graphics.clear();
             hintHighlightBox.visible = false;
         }
 
@@ -495,6 +550,7 @@ package Modules.L4UI.UIEngine
             resetBottomHintScrolling();
         }
 
+        // 하단 힌트 바 위치와 배경을 다시 그리고, 가장자리 마스크도 바 크기에 맞춤
         public static function updateBottomBarLayoutAndColor():void
         {
             bottomBar.x = 0;
@@ -505,6 +561,7 @@ package Modules.L4UI.UIEngine
             bottomBar.graphics.beginFill(UITheme.getHintBGColor(), 0.75);
             bottomBar.graphics.drawRect(-3, 0, AppContext.stage.stageWidth + 6, BOTTOM_BAR_HEIGHT + 3);
             bottomBar.graphics.endFill();
+            bottomHintBorderUI.updateBottomBarBorderSize(AppContext.stage.stageWidth + 6, BOTTOM_BAR_HEIGHT + 3);
         }
 
         // 키 오래누름 관련 변수

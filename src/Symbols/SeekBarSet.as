@@ -11,6 +11,7 @@
 	import assets.VisualFieldCollector;
 	import Modules.L1Data.Utils;
 	import Modules.L1Data.UIEngine.UITheme;
+	import Modules.L4UI.SeekbarBorderUI;
 
 	// 층: L4 UI - 리플레이 재생 막대(시크바) 화면 묶음
 	public class SeekBarSet extends Sprite
@@ -31,6 +32,7 @@
 		private var isPrograssBarMaxWidth:Boolean = false;
 		private var playbackControls:Array = []; // 재생 중 멈춤 버튼 오른쪽에 놓는 컨트롤(줌 버튼, 배속 슬라이더). 표시 객체를 받기만 하고 어디서 가져왔는지는 모름
 		private const CONTROL_GAP:Number = 7; // 기존 버튼 간격과 같음
+		private var seekbarBorderUI:SeekbarBorderUI; // 트랙 막대 가장자리를 손으로 그린 듯 해진 모양으로 자르는 마스크 (생성자 끝에서 만듦)
 
 		// 컨트롤을 멈춤 버튼 오른쪽에 순서대로 놓고 트랙 시작 위치를 그만큼 옮김. 옮기고 되돌리는 책임은 호출한 쪽
 		public function attachPlaybackControls(list:Array):void
@@ -163,6 +165,7 @@
 			}
 		}
 
+		// 창 너비에 맞춰 트랙, 진행 막대, 배경 막대 너비를 정하고 트랙 가장자리 마스크도 새 너비로 맞춤
 		public function updatePos(stw:Number):void
 		{
 			var startX:Number = 0.0;
@@ -189,6 +192,7 @@
 			const maxWidth:Number = stw - (trackBar.x + 5) * scale;
 			const trackBarWidthSave:Number = trackBar.width;
 			trackBar.width = Math.floor(maxWidth / scale);
+			seekbarBorderUI.updateTrackBorderRect(trackBar.x, trackBar.y, trackBar.width, trackBar.height);
 			const scaleFactor:Number = trackBar.width / trackBarWidthSave;
 			replayBGBar.width = Math.floor(stw / scale) + 1;
 			prograssBar.x = startX;
@@ -386,6 +390,8 @@
 			deleteRangeBar.visible = false;
 
 			initializeTrackBarX();
+			seekbarBorderUI = new SeekbarBorderUI(this, trackBar, prograssBar, deleteRangeBar, replayWaitingRangeBar);
+			seekbarBorderUI.updateTrackBorderRect(trackBar.x, trackBar.y, trackBar.width, trackBar.height);
 			// cacheAsBitmap = true;
 		}
 	}
