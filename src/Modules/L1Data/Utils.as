@@ -198,9 +198,14 @@ package Modules.L1Data
         }
 
         // CIELAB 밝기 L* (0~100, sRGB D65). 무채색 커서와의 대비처럼 밝기만 필요할 때 사용
+        public static function getLuminance(rgb:uint):Number
+        {
+            return 0.2126 * LINEAR_TABLE[(rgb >>> 16) & 0xFF] + 0.7152 * LINEAR_TABLE[(rgb >>> 8) & 0xFF] + 0.0722 * LINEAR_TABLE[rgb & 0xFF];
+        }
+
         public static function getLightness(rgb:uint):Number
         {
-            const y:Number = 0.2126 * LINEAR_TABLE[(rgb >>> 16) & 0xFF] + 0.7152 * LINEAR_TABLE[(rgb >>> 8) & 0xFF] + 0.0722 * LINEAR_TABLE[rgb & 0xFF];
+            const y:Number = getLuminance(rgb);
             const f:Number = (y > 0.008856) ? Math.pow(y, 1 / 3) : 7.787 * y + 16 / 116;
             return 116 * f - 16;
         }

@@ -258,7 +258,7 @@ package Modules.L4UI.Tools
             DrawingFinish.run();
             removeEventsAndResetVar();
             PenSizePreviewCursor.updatePosAndVisibility(); // 라인툴 중 숨겼던 커서를 되돌린 뒤
-            PenSizePreviewCursor.checkColorNow(); // 확정된 라인이 레이어에 반영된 뒤 커서 색 확인
+            PenSizePreviewCursor.rescanOutlineColorsAfterStrokeApplied(); // 확정된 라인이 레이어에 반영된 뒤 커서 색 확인
         }
 
         private static function onKeyDownLineTool(e:KeyboardEvent):void

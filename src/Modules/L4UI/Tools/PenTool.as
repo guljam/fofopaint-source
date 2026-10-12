@@ -586,7 +586,7 @@ package Modules.L4UI.Tools
 			penPoints.length = 0;
 
 			DrawingFinish.run();
-			PenSizePreviewCursor.checkColorNow(); // 획이 레이어에 반영된 뒤 커서 색 확인
+			PenSizePreviewCursor.rescanOutlineColorsAfterStrokeApplied(); // 획이 레이어에 반영된 뒤 커서 색 확인
 		}
 
 		public static function start():void

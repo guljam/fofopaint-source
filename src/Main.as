@@ -186,7 +186,7 @@
                 }
             };
             ReplayDrawer.onReplayCanvasFitNeededFunc = ReplayController.fitReplayCanvasToViewport;
-            MouseState.onMouseLeftDownFunc = PenSizePreviewCursor.cancelPendingColorCheck;
+            MouseState.onMouseLeftDownFunc = PenSizePreviewCursor.stopOutlineColorScanTimer;
             DragInteraction.onDragEndedFunc = UIController.keepBoxInsideViewPort;
             UndoController.onMouseHintHideFunc = HintController.hideMouseHint;
             UndoController.onReplayStepNextFunc = ReplayController.moveToNextStep;
