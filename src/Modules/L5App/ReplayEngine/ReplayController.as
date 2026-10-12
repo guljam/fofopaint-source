@@ -2013,7 +2013,7 @@ package Modules.L5App.ReplayEngine
             UIController.seekBarBox.visible = true;
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             PenSizePreviewCursor.setVisible(false);
-            ToolPanel.selectedToolViewBitmap.visible = false;
+            ToolPanel.selectedToolViewSprite.visible = false;
             UIController.seekBarBox.pauseButton.visible = false;
             UIController.seekBarBox.y = Math.floor(UIController.topBar.BARSIZE * UITheme.getUIScale() - 4);
             lastReplayTimeBoxYPos = UIController.seekBarBox.y;

@@ -343,9 +343,9 @@ package Modules.L4UI
                 HintController.hideBottomHint();
             }
 
-            if (ToolPanel.selectedToolViewBitmap.visible)
+            if (ToolPanel.selectedToolViewSprite.visible)
             {
-                ToolPanel.selectedToolViewBitmap.visible = false;
+                ToolPanel.selectedToolViewSprite.visible = false;
             }
 
             sideBar.setTransparentBG();
@@ -586,7 +586,7 @@ package Modules.L4UI
 
             checkFOFOPosition();
 
-            if (ToolPanel.selectedToolViewBitmap.visible)
+            if (ToolPanel.selectedToolViewSprite.visible)
             {
                 ToolPanel.updateSelectedToolViewBoxPos();
             }

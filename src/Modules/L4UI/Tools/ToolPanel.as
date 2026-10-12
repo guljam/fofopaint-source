@@ -4,7 +4,6 @@ package Modules.L4UI.Tools
     import Symbols.ToolMenuSet;
     import Symbols.ToolMenuSet2;
     import Symbols.ToolOptionsSet;
-    import flash.display.Bitmap;
     import flash.display.BitmapData;
     import flash.display.DisplayObject;
     import flash.display.DisplayObjectContainer;
@@ -59,9 +58,36 @@ package Modules.L4UI.Tools
         public static const toolBox2:ToolMenuSet2 = new ToolMenuSet2();
         public static const toolOptionsBox:ToolOptionsSet = new ToolOptionsSet();
         public static var isToolBox2Showing:Boolean = false; // 툴박스가 오른쪽 클릭으로 켜졌을때 올려줌
-        public static var selectedToolViewBitmap:Bitmap = new Bitmap();
+        public static var selectedToolViewSprite:Sprite = makeSelectedToolViewSprite();
         public static var lastEraserPosButton:SimpleButton = null; // 지우개 툴이 이동한 버튼 저장; 복원용
         private static var isFillPenOptionsShown:Boolean = false; // 채우기 펜 선택으로 크기/모양 버튼을 흐리게 한 상태, 다른 도구를 고르면 되돌림
+
+        // 마우스 입력을 가로채지 않는 선택 툴 아이콘 컨테이너
+        private static function makeSelectedToolViewSprite():Sprite
+        {
+            const viewSprite:Sprite = new Sprite();
+
+            viewSprite.mouseEnabled = false;
+            viewSprite.mouseChildren = false;
+
+            return viewSprite;
+        }
+
+        // 선택 툴 아이콘으로 쓰이는 모든 툴의 벡터 아이콘을 기동 단계에서 미리 만들어 둠 (처음 쓸 때 지연 없게)
+        public static function initializeSelectedToolViewSprites():void
+        {
+            const toolIndexesWithSelectedToolView:Array = [
+                    ToolState.TOOL_PEN, ToolState.TOOL_FILLPEN, ToolState.TOOL_ERASER, ToolState.TOOL_EYEDROPPER,
+                    ToolState.TOOL_LASSO, ToolState.TOOL_MOVE, ToolState.TOOL_LINE, ToolState.TOOL_ZOOM,
+                    ToolState.TOOL_ROTATE, ToolState.TOOL_HAND, ToolState.TOOL_UNDO, ToolState.TOOL_REDO,
+                    ToolState.TOOL_MIRROR
+                ];
+
+            for each (var toolIndex:int in toolIndexesWithSelectedToolView)
+            {
+                toolBox.getToolSelectViewSprite(getToolButtonFromToolIndex(toolIndex));
+            }
+        }
 
         public static function addHintEventToolBox2():void
         {
@@ -79,12 +105,13 @@ package Modules.L4UI.Tools
             // 시선이 있는 마우스 포인트 위쪽에 가로 가운데 정렬로 표시. 포인트와는 UI 스케일만큼 띄움
             const badgeGapAboveMouse:Number = SELECTED_TOOL_BADGE_GAP_ABOVE_MOUSE * UITheme.getUIScale();
 
-            selectedToolViewBitmap.x = Math.round(AppContext.stage.mouseX - selectedToolViewBitmap.width / 2);
-            selectedToolViewBitmap.y = Math.round(AppContext.stage.mouseY - badgeGapAboveMouse - selectedToolViewBitmap.height);
+            // 스프라이트 원점이 배경 원 중심이라 높이의 절반만큼만 올림
+            selectedToolViewSprite.x = Math.round(AppContext.stage.mouseX);
+            selectedToolViewSprite.y = Math.round(AppContext.stage.mouseY - badgeGapAboveMouse - selectedToolViewSprite.height / 2);
         }
 
         // 그리는 영역 안이면서 참고 레이어 메뉴나 라소 메뉴 위가 아닐 때만 선택 툴 아이콘을 보여줌
-        private static function canShowSelectedToolViewBitmapAtMouse():Boolean
+        private static function canShowSelectedToolViewSpriteAtMouse():Boolean
         {
             const mx:Number = AppContext.stage.mouseX;
             const my:Number = AppContext.stage.mouseY;
@@ -95,16 +122,16 @@ package Modules.L4UI.Tools
         }
 
         // 마우스가 움직일 때 호출. 선택 툴 아이콘이 떠 있는 동안 커서를 따라가고, 그리는 중(왼쪽 버튼)에는 숨김
-        public static function followMouseWithSelectedToolViewBitmap():void
+        public static function followMouseWithSelectedToolViewSprite():void
         {
-            if (!selectedToolViewBitmap.visible)
+            if (!selectedToolViewSprite.visible)
             {
                 return;
             }
             // 상단 바나 툴 메뉴 위처럼 그리는 영역 밖으로 나가면 숨김
-            if (MouseState.isLeftDown || !canShowSelectedToolViewBitmapAtMouse())
+            if (MouseState.isLeftDown || !canShowSelectedToolViewSpriteAtMouse())
             {
-                selectedToolViewBitmap.visible = false;
+                selectedToolViewSprite.visible = false;
                 return;
             }
             updateSelectedToolViewBoxPos();
@@ -147,7 +174,7 @@ package Modules.L4UI.Tools
 
         public static function showNowToolIconToCursorTemp(toolIndex:int):void
         {
-            if (SidebarController.isQuickSidebarActive || !canShowSelectedToolViewBitmapAtMouse())
+            if (SidebarController.isQuickSidebarActive || !canShowSelectedToolViewSpriteAtMouse())
             {
                 return;
             }
@@ -159,11 +186,12 @@ package Modules.L4UI.Tools
                 return;
             }
 
-            selectedToolViewBitmap.bitmapData = toolBox.getToolSelectViewBmpd(toolIndex, toolButton);
-            selectedToolViewBitmap.scaleX = SELECTED_TOOL_BADGE_SCALE;
-            selectedToolViewBitmap.scaleY = SELECTED_TOOL_BADGE_SCALE;
+            selectedToolViewSprite.removeChildren();
+            selectedToolViewSprite.addChild(toolBox.getToolSelectViewSprite(toolButton));
+            selectedToolViewSprite.scaleX = SELECTED_TOOL_BADGE_SCALE * UITheme.getUIScale();
+            selectedToolViewSprite.scaleY = SELECTED_TOOL_BADGE_SCALE * UITheme.getUIScale();
             updateSelectedToolViewBoxPos();
-            Utils.showDisplayTargetAndFadeOut(selectedToolViewBitmap, 1.0, 1.0);
+            Utils.showDisplayTargetAndFadeOut(selectedToolViewSprite, 1.0, 1.0);
         }
 
         public static function onMouseOverToolBox2Hint(e:MouseEvent):void

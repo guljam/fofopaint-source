@@ -1,14 +1,12 @@
 ﻿package Symbols
 {
     import flash.display.Bitmap;
-    import flash.display.BitmapData;
     import flash.display.DisplayObject;
     import flash.display.DisplayObjectContainer;
     import flash.display.Shape;
     import flash.display.SimpleButton;
     import flash.display.Sprite;
     import flash.geom.ColorTransform;
-    import flash.geom.Matrix;
     import assets.VisualBuilder;
     import assets.VisualFieldCollector;
     import Modules.L1Data.UIEngine.UITheme;
@@ -51,46 +49,93 @@
         private var buttonArr:Array;
 
         private var checkedLayerONFlag:Boolean = false;
-        private const toolSelectViewBmpdCache:Object = {};
+        private var toolSelectIconSourceVisual:Sprite = null; // 선택 툴 아이콘용으로 한 번만 만든 임베드 심볼 인스턴스; 여기서 버튼을 하나씩 꺼내 씀
+        private const toolSelectViewEntryByButtonName:Object = {}; // 버튼 이름 -> {viewSprite, backgroundCircle, iconButton, circleX, circleY, circleRadius}
 
-        public function isToolSelectViewBmpdCached(key:String):Boolean
+        // 마우스 옆에 잠깐 띄우는 선택 툴 아이콘: 배경 원 + 임베드 심볼에서 꺼낸 같은 이름의 버튼(벡터 그대로). 원 중심이 (0,0)
+        // Animate로 그린 Shape는 graphics.copyFrom으로 복제되지 않아서 심볼 인스턴스에서 버튼을 직접 꺼내 보관하고, 테마 색만 표시할 때마다 다시 입힘
+        public function getToolSelectViewSprite(toolButton:SimpleButton):Sprite
         {
-            return toolSelectViewBmpdCache.hasOwnProperty(key);
-        }
-
-        public function getToolSelectViewBmpd(index:int, button:SimpleButton):BitmapData
-        {
-            const key:String = UITheme.getUIBGColor() + "_" + String(index);
-
-            if (!toolSelectViewBmpdCache.hasOwnProperty(key))
+            if (!toolSelectViewEntryByButtonName.hasOwnProperty(toolButton.name))
             {
-                makeCacheToolSelectViewBmpd(key, button);
+                makeToolSelectViewEntry(toolButton);
             }
 
-            return toolSelectViewBmpdCache[key];
+            const entry:Object = toolSelectViewEntryByButtonName[toolButton.name];
+            const backgroundCircle:Shape = entry.backgroundCircle;
+
+            backgroundCircle.graphics.clear();
+            backgroundCircle.graphics.beginFill(UITheme.getUIBGColor(), 0.7);
+            backgroundCircle.graphics.drawCircle(entry.circleX, entry.circleY, entry.circleRadius);
+            backgroundCircle.graphics.endFill();
+            UITheme.applyToolBoxButtonUpBGColor(entry.iconButton.upState);
+
+            return entry.viewSprite;
         }
 
-        private function makeCacheToolSelectViewBmpd(key:String, toolButton:SimpleButton):void
+        private function makeToolSelectViewEntry(toolButton:SimpleButton):void
         {
             const extend:Number = 20;
-            const bgcolor:uint = UITheme.getUIBGColor();
             const scale:Number = this.scaleX;
-            const bmpd:BitmapData = new BitmapData(toolButton.width / scale + extend, toolButton.height / scale + extend, true, 0);
-            const sprite:Sprite = new Sprite();
-            const mask:Shape = new Shape();
-            const mat:Matrix = new Matrix();
+            const iconBoxWidth:Number = toolButton.width / scale + extend;
+            const iconBoxHeight:Number = toolButton.height / scale + extend;
+            const iconBox:Sprite = new Sprite();
+            const backgroundCircle:Shape = new Shape();
+            const viewSprite:Sprite = new Sprite();
 
-            mat.translate(5, 5);
+            if (toolSelectIconSourceVisual === null)
+            {
+                toolSelectIconSourceVisual = new EmbeddedClass() as Sprite;
+            }
 
-            mask.graphics.clear();
-            mask.graphics.beginFill(bgcolor, 0.7);
-            mask.graphics.drawCircle(bmpd.width / 2, bmpd.height / 2, toolButton.width / scale / 2 + extend / 2);
-            mask.graphics.endFill();
+            const iconButton:SimpleButton = findButtonByNameIn(toolSelectIconSourceVisual, toolButton.name);
 
-            bmpd.draw(mask);
-            bmpd.draw(toolButton, mat);
+            iconButton.enabled = false;
+            iconButton.scaleX = 1.0; // 예전 draw는 버튼 자신의 축소 변환을 무시하고 심볼 원래 크기로 그렸으므로 같게 맞춤
+            iconButton.scaleY = 1.0;
+            iconButton.x = 5;
+            iconButton.y = 5;
+            iconBox.addChild(backgroundCircle);
+            iconBox.addChild(iconButton);
+            iconBox.x = -iconBoxWidth / 2;
+            iconBox.y = -iconBoxHeight / 2;
+            viewSprite.addChild(iconBox);
 
-            toolSelectViewBmpdCache[key] = bmpd;
+            toolSelectViewEntryByButtonName[toolButton.name] = {
+                    viewSprite: viewSprite,
+                    backgroundCircle: backgroundCircle,
+                    iconButton: iconButton,
+                    circleX: iconBoxWidth / 2,
+                    circleY: iconBoxHeight / 2,
+                    circleRadius: toolButton.width / scale / 2 + extend / 2
+                };
+        }
+
+        private function findButtonByNameIn(root:DisplayObjectContainer, buttonName:String):SimpleButton
+        {
+            const found:DisplayObject = root.getChildByName(buttonName);
+
+            if (found is SimpleButton)
+            {
+                return found as SimpleButton;
+            }
+
+            for (var i:int = 0; i < root.numChildren; i++)
+            {
+                const childContainer:DisplayObjectContainer = root.getChildAt(i) as DisplayObjectContainer;
+
+                if (childContainer !== null)
+                {
+                    const foundInChild:SimpleButton = findButtonByNameIn(childContainer, buttonName);
+
+                    if (foundInChild !== null)
+                    {
+                        return foundInChild;
+                    }
+                }
+            }
+
+            return null;
         }
 
         public function setFillPenModeOFF():void

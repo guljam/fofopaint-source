@@ -99,8 +99,8 @@ package Modules.L4UI.UIEngine
             topBar.updateTimerPos(AppContext.stage.stageWidth);
             topBar.replayFitToWindowButton.alpha = UITheme.OFFALPHA;
 
-            ToolPanel.selectedToolViewBitmap.name = "selectedToolViewBitmap";
-            ToolPanel.selectedToolViewBitmap.visible = false;
+            ToolPanel.selectedToolViewSprite.name = "selectedToolViewSprite";
+            ToolPanel.selectedToolViewSprite.visible = false;
 
             AppContext.stage.addChild(UIController.loadMenuBox);
             AppContext.stage.addChild(ReferenceLayerController.refLayerMenuBox);
@@ -114,7 +114,7 @@ package Modules.L4UI.UIEngine
             AppContext.stage.addChild(topBar);
             HintController.initialize();
             MessageBoxController.initialize();
-            AppContext.stage.addChild(ToolPanel.selectedToolViewBitmap);
+            AppContext.stage.addChild(ToolPanel.selectedToolViewSprite);
         }
 
         public static function updateTopbarIconsDrawMode():void
@@ -359,7 +359,7 @@ package Modules.L4UI.UIEngine
                 UIController.loadMenuBox.updateClickBlockerSize(AppContext.stage.stageWidth, AppContext.stage.stageHeight);
             }
 
-            if (ToolPanel.selectedToolViewBitmap.visible)
+            if (ToolPanel.selectedToolViewSprite.visible)
             {
                 ToolPanel.updateSelectedToolViewBoxPos();
             }

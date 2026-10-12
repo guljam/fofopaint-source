@@ -302,7 +302,7 @@ package Modules.L5App.InputManager
         private static function updatePenPreviewCursorAndSelectedToolBadge():void
         {
             isPenPreviewCursorUpdatePending = false;
-            ToolPanel.followMouseWithSelectedToolViewBitmap();
+            ToolPanel.followMouseWithSelectedToolViewSprite();
 
             if (ReplayState.isReplayModeON || CaptureController.isCaptureModeON)
             {

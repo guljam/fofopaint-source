@@ -515,7 +515,7 @@ package Modules.L4UI.CaptureEngine
 
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
             PenSizePreviewCursor.setVisible(false);
-            ToolPanel.selectedToolViewBitmap.visible = false;
+            ToolPanel.selectedToolViewSprite.visible = false;
             ReferenceLayerController.canvasRefLayer.visible = false;
 
             if (ReferenceLayerController.isRefLayerMenuON)

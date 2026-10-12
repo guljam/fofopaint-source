@@ -332,6 +332,7 @@
             HintController.bottomHint.visible = true;
             ToolController.selectPenTool();
             ToolPanel.addHintEventToolBox2();
+            ToolPanel.initializeSelectedToolViewSprites();
             ClipboardManager.checkCanUseClipBoardButton();
         }
         // function
