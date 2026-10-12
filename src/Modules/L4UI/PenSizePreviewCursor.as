@@ -193,12 +193,12 @@ package Modules.L4UI
             PenTool.penLastSizeAndShape[1] = _cursorShape;
             if (_cursorShape === false)
             {
-                _cursor.createCircle(_cursorSize, z);
+                _cursor.createCircleCursorShape(_cursorSize, z);
                 _cursor.rotation = 0;
             }
             else if (_cursorShape === true)
             {
-                _cursor.createRectangle(-_cursorSize / 2, -_cursorSize / 8, _cursorSize, _cursorSize / 4, z);
+                _cursor.createRectangleCursorShape(-_cursorSize / 2, -_cursorSize / 8, _cursorSize, _cursorSize / 4, z);
             }
             buildOutlineLocalPoints(_cursorSize * z, z);
         }
@@ -388,7 +388,7 @@ package Modules.L4UI
             cursorLocalToCanvasMatrix.copyFrom(_cursor.transform.concatenatedMatrix);
             cursorLocalToCanvasMatrix.concat(canvasPanelInverseMatrix);
 
-            const isCursorInverted:Boolean = _cursor.isInverted;
+            const isCursorInverted:Boolean = _cursor.isCursorColorInverted;
             const scanStartTime:int = getTimer();
             var scannedPointCountInThisFrame:int = 0;
             while (true)
@@ -431,7 +431,7 @@ package Modules.L4UI
                 const similarPointCount:int = isCursorInverted ? lightPointCount : darkPointCount;
                 if (similarPointCount >= INVERT_SIMILAR_OUTLINE_RATIO * maxInsideCanvasPointCount)
                 {
-                    _cursor.setInverted(!isCursorInverted);
+                    _cursor.setCursorColorInverted(!isCursorInverted);
                     isInvertSettled = true;
                     return true; // 타이머는 계속 돌지만, 커서가 다시 움직이기 전까지는 맨 앞에서 바로 돌아옴
                 }

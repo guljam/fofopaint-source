@@ -5,7 +5,7 @@ package Modules.L4UI {
 
     /**
      * 정수 픽셀 원 및 사각형/직사각형을 감싸는 외곽선 알고리즘 클래스
-     * setInverted()는 ColorTransform만 바꾸므로 지오메트리 계산이나 다시 그리기를 하지 않습니다.
+     * setCursorColorInverted()는 ColorTransform만 바꾸므로 지오메트리 계산이나 다시 그리기를 하지 않습니다.
      */
     // 층: L4 UI - 정수 픽셀 원·사각형 외곽선을 그리는 펜 커서 픽셀
     public class PenCursorPreviewPixel extends Sprite {
@@ -17,266 +17,270 @@ package Modules.L4UI {
         // 칸 표시값 (0: 빈 칸, 1: 본선, 2: 외곽선)
         private static const CELL_MAIN:uint = 1;
         private static const CELL_OUTLINE:uint = 2;
+        private static const CELL_OUTLINE_ALPHA:Number = 0.35;
 
         // RGB만 반전, 알파 유지
-        private static const INVERT_TRANSFORM:ColorTransform = new ColorTransform(-1, -1, -1, 1, 255, 255, 255, 0);
-        private static const NORMAL_TRANSFORM:ColorTransform = new ColorTransform();
+        private static const INVERTED_COLOR_TRANSFORM:ColorTransform = new ColorTransform(-1, -1, -1, 1, 255, 255, 255, 0);
+        private static const NORMAL_COLOR_TRANSFORM:ColorTransform = new ColorTransform();
 
-        // 모양을 계산할 때 쓰는 공용 칸 배열 (render마다 새로 만들지 않음)
-        private static var _grid:Vector.<uint> = new Vector.<uint>();
+        // 모양을 계산할 때 쓰는 공용 칸 배열 (그릴 때마다 새로 만들지 않음)
+        private static var cellMarkGrid:Vector.<uint> = new Vector.<uint>();
 
-        private var _currentType:String = SHAPE_CIRCLE;
-        private var _baseSize:Number = 10;
-        private var _currentZoom:Number = 1.0;
+        private var _currentShapeType:String = SHAPE_CIRCLE;
+        private var _currentShapeSize:Number = 10;
+        private var _currentCanvasZoom:Number = 1.0;
 
         // 사각형/직사각형 지오메트리 변수
-        private var _rectX:int = 0;
-        private var _rectY:int = 0;
-        private var _rectWidth:int = 10;
-        private var _rectHeight:int = 10;
+        private var _rectangleStartX:int = 0;
+        private var _rectangleStartY:int = 0;
+        private var _rectangleWidth:int = 10;
+        private var _rectangleHeight:int = 10;
 
         // 직전에 그린 모양 (같으면 다시 그리지 않음)
-        private var _drawnType:String = null;
-        private var _drawnA:int = 0;
-        private var _drawnB:int = 0;
-        private var _drawnC:int = 0;
-        private var _drawnD:int = 0;
+        private var _lastDrawnShapeType:String = null;
+        private var _lastDrawnCircleDiameter:int = 0;
+        private var _lastDrawnRectangleStartX:int = 0;
+        private var _lastDrawnRectangleStartY:int = 0;
+        private var _lastDrawnRectangleWidth:int = 0;
+        private var _lastDrawnRectangleHeight:int = 0;
 
         // 색상 반전 플래그 (false: 검은색 메인선 + 흰색 알파 외곽선 / true: 흰색 메인선 + 검은색 알파 외곽선)
-        private var _isInverted:Boolean = false;
+        private var _isCursorColorInverted:Boolean = false;
 
         public function PenCursorPreviewPixel() {
             this.mouseEnabled = false;
             this.mouseChildren = false;
         }
 
-        public function get isInverted():Boolean {
-            return _isInverted;
+        public function get isCursorColorInverted():Boolean {
+            return _isCursorColorInverted;
         }
 
         /**
          * 색상 반전 여부를 설정합니다.
-         * @param inverted true인 경우 흰색 메인선(1.0) + 검은색 외곽선(0.25)으로 보입니다.
+         * @param isInverted true인 경우 흰색 메인선(1.0) + 검은색 외곽선(CELL_OUTLINE_ALPHA)으로 보입니다.
          */
-        public function setInverted(inverted:Boolean):void {
-            if (_isInverted != inverted) {
-                _isInverted = inverted;
-                this.transform.colorTransform = inverted ? INVERT_TRANSFORM : NORMAL_TRANSFORM;
+        public function setCursorColorInverted(isInverted:Boolean):void {
+            if (_isCursorColorInverted != isInverted) {
+                _isCursorColorInverted = isInverted;
+                this.transform.colorTransform = isInverted ? INVERTED_COLOR_TRANSFORM : NORMAL_COLOR_TRANSFORM;
             }
         }
 
 
-        public function createCircle(diameter:Number, zoomScale:Number = 1.0):void {
-            _currentType = SHAPE_CIRCLE;
-            _baseSize = diameter;
-            _currentZoom = zoomScale;
-            render();
+        public function createCircleCursorShape(diameter:Number, canvasZoom:Number = 1.0):void {
+            _currentShapeType = SHAPE_CIRCLE;
+            _currentShapeSize = diameter;
+            _currentCanvasZoom = canvasZoom;
+            drawCurrentShapeIfChanged();
         }
 
-        public function createSquare(size:Number, zoomScale:Number = 1.0):void {
-            _currentType = SHAPE_SQUARE;
-            _baseSize = size;
-            _currentZoom = zoomScale;
+        public function createSquareCursorShape(sideLength:Number, canvasZoom:Number = 1.0):void {
+            _currentShapeType = SHAPE_SQUARE;
+            _currentShapeSize = sideLength;
+            _currentCanvasZoom = canvasZoom;
 
-            var pixelSize:int = Math.round(_baseSize * _currentZoom);
-            var half:int = Math.round(pixelSize * 0.5);
+            var sideLengthInPixels:int = Math.round(_currentShapeSize * _currentCanvasZoom);
+            var halfSideLengthInPixels:int = Math.round(sideLengthInPixels * 0.5);
 
-            _rectX = -half;
-            _rectY = -half;
-            _rectWidth = pixelSize;
-            _rectHeight = pixelSize;
+            _rectangleStartX = -halfSideLengthInPixels;
+            _rectangleStartY = -halfSideLengthInPixels;
+            _rectangleWidth = sideLengthInPixels;
+            _rectangleHeight = sideLengthInPixels;
 
-            render();
+            drawCurrentShapeIfChanged();
         }
 
         /**
-         * createRectangle 래퍼 메서드
+         * createRectangleCursorShape 래퍼 메서드
          * 크기는 줌을 곱한 뒤 반올림하고, 위치는 중심 기준으로 반올림합니다. (x와 w를 따로 반올림하면 회전 중심이 어긋남)
          */
-        public function createRectangle(startX:Number, startY:Number, width:Number, height:Number, zoomScale:Number = 1.0):void {
-            _currentType = SHAPE_RECTANGLE;
-            _currentZoom = zoomScale;
+        public function createRectangleCursorShape(startX:Number, startY:Number, width:Number, height:Number, canvasZoom:Number = 1.0):void {
+            _currentShapeType = SHAPE_RECTANGLE;
+            _currentCanvasZoom = canvasZoom;
 
-            var w:int = Math.round(width * _currentZoom);
-            var h:int = Math.round(height * _currentZoom);
-            var centerX:Number = (startX + width * 0.5) * _currentZoom;
-            var centerY:Number = (startY + height * 0.5) * _currentZoom;
+            var widthInPixels:int = Math.round(width * _currentCanvasZoom);
+            var heightInPixels:int = Math.round(height * _currentCanvasZoom);
+            var centerX:Number = (startX + width * 0.5) * _currentCanvasZoom;
+            var centerY:Number = (startY + height * 0.5) * _currentCanvasZoom;
 
-            _rectWidth = w;
-            _rectHeight = h;
-            _rectX = Math.round(centerX - w * 0.5);
-            _rectY = Math.round(centerY - h * 0.5);
+            _rectangleWidth = widthInPixels;
+            _rectangleHeight = heightInPixels;
+            _rectangleStartX = Math.round(centerX - widthInPixels * 0.5);
+            _rectangleStartY = Math.round(centerY - heightInPixels * 0.5);
 
-            render();
+            drawCurrentShapeIfChanged();
         }
 
-        public function updateZoom(zoomScale:Number):void {
-            _currentZoom = zoomScale;
-            render();
+        public function updateCursorShapeCanvasZoom(canvasZoom:Number):void {
+            _currentCanvasZoom = canvasZoom;
+            drawCurrentShapeIfChanged();
         }
 
-        private function render():void {
-            if (_currentType == SHAPE_CIRCLE) {
-                var pixelSize:int = Math.round(_baseSize * _currentZoom);
-                if (pixelSize < 2) pixelSize = 2;
-                if (_drawnType == SHAPE_CIRCLE && _drawnA == pixelSize) return;
+        private function drawCurrentShapeIfChanged():void {
+            if (_currentShapeType == SHAPE_CIRCLE) {
+                var circleDiameterInPixels:int = Math.round(_currentShapeSize * _currentCanvasZoom);
+                if (circleDiameterInPixels < 2) circleDiameterInPixels = 2;
+                if (_lastDrawnShapeType == SHAPE_CIRCLE && _lastDrawnCircleDiameter == circleDiameterInPixels) return;
 
-                _drawnType = SHAPE_CIRCLE;
-                _drawnA = pixelSize;
+                _lastDrawnShapeType = SHAPE_CIRCLE;
+                _lastDrawnCircleDiameter = circleDiameterInPixels;
                 this.graphics.clear();
-                renderNonOverlappingPixelCircle(pixelSize);
-            } else if (_currentType == SHAPE_SQUARE || _currentType == SHAPE_RECTANGLE) {
-                var width:int = (_rectWidth < 1) ? 1 : _rectWidth;
-                var height:int = (_rectHeight < 1) ? 1 : _rectHeight;
-                if (_drawnType == SHAPE_RECTANGLE && _drawnA == _rectX && _drawnB == _rectY && _drawnC == width && _drawnD == height) return;
+                drawNonOverlappingPixelCircle(circleDiameterInPixels);
+            } else if (_currentShapeType == SHAPE_SQUARE || _currentShapeType == SHAPE_RECTANGLE) {
+                var rectangleWidthInPixels:int = (_rectangleWidth < 1) ? 1 : _rectangleWidth;
+                var rectangleHeightInPixels:int = (_rectangleHeight < 1) ? 1 : _rectangleHeight;
+                if (_lastDrawnShapeType == SHAPE_RECTANGLE
+                        && _lastDrawnRectangleStartX == _rectangleStartX && _lastDrawnRectangleStartY == _rectangleStartY
+                        && _lastDrawnRectangleWidth == rectangleWidthInPixels && _lastDrawnRectangleHeight == rectangleHeightInPixels) return;
 
-                _drawnType = SHAPE_RECTANGLE;
-                _drawnA = _rectX;
-                _drawnB = _rectY;
-                _drawnC = width;
-                _drawnD = height;
+                _lastDrawnShapeType = SHAPE_RECTANGLE;
+                _lastDrawnRectangleStartX = _rectangleStartX;
+                _lastDrawnRectangleStartY = _rectangleStartY;
+                _lastDrawnRectangleWidth = rectangleWidthInPixels;
+                _lastDrawnRectangleHeight = rectangleHeightInPixels;
                 this.graphics.clear();
-                renderNonOverlappingPixelRectangle(_rectX, _rectY, width, height);
+                drawNonOverlappingPixelRectangle(_rectangleStartX, _rectangleStartY, rectangleWidthInPixels, rectangleHeightInPixels);
             }
         }
 
         /**
          * 칸 배열을 gridWidth x gridHeight 크기로 준비하고 0으로 비움
          */
-        private function prepareGrid(gridWidth:int, gridHeight:int):void {
-            var count:int = gridWidth * gridHeight;
-            if (_grid.length < count) _grid.length = count;
-            for (var i:int = 0; i < count; i++) {
-                _grid[i] = 0;
+        private function clearCellMarkGrid(gridWidth:int, gridHeight:int):void {
+            var cellCount:int = gridWidth * gridHeight;
+            if (cellMarkGrid.length < cellCount) cellMarkGrid.length = cellCount;
+            for (var cellIndex:int = 0; cellIndex < cellCount; cellIndex++) {
+                cellMarkGrid[cellIndex] = 0;
             }
         }
 
         /**
          * 지정한 정수 영역에 픽셀 사각형 및 외곽선을 드로잉 (바깥 1칸 여백을 둠)
          */
-        private function renderNonOverlappingPixelRectangle(startX:int, startY:int, width:int, height:int):void {
-            var gw:int = width + 2;
-            var gh:int = height + 2;
-            var ox:int = 1 - startX;
-            var oy:int = 1 - startY;
-            prepareGrid(gw, gh);
+        private function drawNonOverlappingPixelRectangle(startX:int, startY:int, width:int, height:int):void {
+            var gridWidth:int = width + 2;
+            var gridHeight:int = height + 2;
+            var gridOriginOffsetX:int = 1 - startX;
+            var gridOriginOffsetY:int = 1 - startY;
+            clearCellMarkGrid(gridWidth, gridHeight);
 
             // 1. 메인 선 사각형 1px 정수 좌표 추출
-            var lastRow:int = (height) * gw;
-            for (var x:int = 1; x <= width; x++) {
-                _grid[gw + x] = CELL_MAIN;                  // 상단
-                _grid[lastRow + x] = CELL_MAIN;             // 하단
+            var bottomRowStartIndex:int = (height) * gridWidth;
+            for (var columnIndex:int = 1; columnIndex <= width; columnIndex++) {
+                cellMarkGrid[gridWidth + columnIndex] = CELL_MAIN;                  // 상단
+                cellMarkGrid[bottomRowStartIndex + columnIndex] = CELL_MAIN;        // 하단
             }
-            for (var y:int = 1; y <= height; y++) {
-                _grid[y * gw + 1] = CELL_MAIN;              // 좌측
-                _grid[y * gw + width] = CELL_MAIN;          // 우측
+            for (var rowIndex:int = 1; rowIndex <= height; rowIndex++) {
+                cellMarkGrid[rowIndex * gridWidth + 1] = CELL_MAIN;                 // 좌측
+                cellMarkGrid[rowIndex * gridWidth + width] = CELL_MAIN;             // 우측
             }
 
             // 2. 4방향 이웃 중 빈 칸에만 외곽선 표시
-            markOutline(gw, gh);
+            markOutlineCellsAroundMainCells(gridWidth, gridHeight);
 
             // 3. 색마다 한 번씩 drawPath
-            drawPixels(gw, gh, ox, oy);
+            drawOutlineAndMainCells(gridWidth, gridHeight, gridOriginOffsetX, gridOriginOffsetY);
         }
 
         /**
          * 정수 픽셀 원형 알고리즘 및 외곽선 드로잉
          */
-        private function renderNonOverlappingPixelCircle(diameter:int):void {
+        private function drawNonOverlappingPixelCircle(diameter:int):void {
             var radius:int = Math.floor(diameter * 0.5);
-            var x:int = radius;
-            var y:int = 0;
-            var d:int = 1 - radius;
+            var offsetFromCenterX:int = radius;
+            var offsetFromCenterY:int = 0;
+            var decisionValue:int = 1 - radius;
 
-            var shift:int = (diameter % 2 == 0) ? -1 : 0;
+            var evenDiameterShift:int = (diameter % 2 == 0) ? -1 : 0;
 
             // 좌표 범위 [-radius, radius] + 외곽선 1칸
-            var gw:int = 2 * radius + 3;
-            var ox:int = radius + 1;
-            prepareGrid(gw, gw);
+            var gridWidth:int = 2 * radius + 3;
+            var gridOriginOffset:int = radius + 1;
+            clearCellMarkGrid(gridWidth, gridWidth);
 
             // 1. Bresenham 알고리즘 기반 메인 픽셀 좌표 추출
-            while (x >= y) {
-                collect4x(gw, ox, x, y, shift);
-                collect4x(gw, ox, y, x, shift);
+            while (offsetFromCenterX >= offsetFromCenterY) {
+                markMainCellsInFourQuadrants(gridWidth, gridOriginOffset, offsetFromCenterX, offsetFromCenterY, evenDiameterShift);
+                markMainCellsInFourQuadrants(gridWidth, gridOriginOffset, offsetFromCenterY, offsetFromCenterX, evenDiameterShift);
 
-                y++;
-                if (d < 0) {
-                    d += 2 * y + 1;
+                offsetFromCenterY++;
+                if (decisionValue < 0) {
+                    decisionValue += 2 * offsetFromCenterY + 1;
                 } else {
-                    x--;
-                    d += 2 * (y - x) + 1;
+                    offsetFromCenterX--;
+                    decisionValue += 2 * (offsetFromCenterY - offsetFromCenterX) + 1;
                 }
             }
 
             // 2. 4방향 이웃 검사로 빈 칸에만 외곽선 표시
-            markOutline(gw, gw);
+            markOutlineCellsAroundMainCells(gridWidth, gridWidth);
 
             // 3. 색마다 한 번씩 drawPath
-            drawPixels(gw, gw, ox, ox);
+            drawOutlineAndMainCells(gridWidth, gridWidth, gridOriginOffset, gridOriginOffset);
         }
 
-        private function collect4x(gw:int, o:int, px:int, py:int, shift:int):void {
-            _grid[(py + shift + o) * gw + (px + shift + o)] = CELL_MAIN;
-            _grid[(py + shift + o) * gw + (-px + o)] = CELL_MAIN;
-            _grid[(-py + o) * gw + (px + shift + o)] = CELL_MAIN;
-            _grid[(-py + o) * gw + (-px + o)] = CELL_MAIN;
+        private function markMainCellsInFourQuadrants(gridWidth:int, gridOriginOffset:int, offsetFromCenterX:int, offsetFromCenterY:int, evenDiameterShift:int):void {
+            cellMarkGrid[(offsetFromCenterY + evenDiameterShift + gridOriginOffset) * gridWidth + (offsetFromCenterX + evenDiameterShift + gridOriginOffset)] = CELL_MAIN;
+            cellMarkGrid[(offsetFromCenterY + evenDiameterShift + gridOriginOffset) * gridWidth + (-offsetFromCenterX + gridOriginOffset)] = CELL_MAIN;
+            cellMarkGrid[(-offsetFromCenterY + gridOriginOffset) * gridWidth + (offsetFromCenterX + evenDiameterShift + gridOriginOffset)] = CELL_MAIN;
+            cellMarkGrid[(-offsetFromCenterY + gridOriginOffset) * gridWidth + (-offsetFromCenterX + gridOriginOffset)] = CELL_MAIN;
         }
 
         /**
          * 본선 칸의 상하좌우 이웃 중 비어 있는 칸을 외곽선으로 표시
          * 배열 가장자리 한 줄은 항상 비어 있으므로 범위 검사가 필요 없음
          */
-        private function markOutline(gw:int, gh:int):void {
-            for (var y:int = 1; y < gh - 1; y++) {
-                for (var x:int = 1; x < gw - 1; x++) {
-                    var i:int = y * gw + x;
-                    if (_grid[i] != CELL_MAIN) continue;
-                    if (_grid[i - 1] == 0) _grid[i - 1] = CELL_OUTLINE;
-                    if (_grid[i + 1] == 0) _grid[i + 1] = CELL_OUTLINE;
-                    if (_grid[i - gw] == 0) _grid[i - gw] = CELL_OUTLINE;
-                    if (_grid[i + gw] == 0) _grid[i + gw] = CELL_OUTLINE;
+        private function markOutlineCellsAroundMainCells(gridWidth:int, gridHeight:int):void {
+            for (var rowIndex:int = 1; rowIndex < gridHeight - 1; rowIndex++) {
+                for (var columnIndex:int = 1; columnIndex < gridWidth - 1; columnIndex++) {
+                    var cellIndex:int = rowIndex * gridWidth + columnIndex;
+                    if (cellMarkGrid[cellIndex] != CELL_MAIN) continue;
+                    if (cellMarkGrid[cellIndex - 1] == 0) cellMarkGrid[cellIndex - 1] = CELL_OUTLINE;
+                    if (cellMarkGrid[cellIndex + 1] == 0) cellMarkGrid[cellIndex + 1] = CELL_OUTLINE;
+                    if (cellMarkGrid[cellIndex - gridWidth] == 0) cellMarkGrid[cellIndex - gridWidth] = CELL_OUTLINE;
+                    if (cellMarkGrid[cellIndex + gridWidth] == 0) cellMarkGrid[cellIndex + gridWidth] = CELL_OUTLINE;
                 }
             }
         }
 
         /**
-         * 기본 상태(검은 본선 1.0 + 흰 외곽선 0.25)로만 그림. 반전은 ColorTransform이 처리
+         * 기본 상태(검은 본선 1.0 + 흰 외곽선 CELL_OUTLINE_ALPHA)로만 그림. 반전은 ColorTransform이 처리
          */
-        private function drawPixels(gw:int, gh:int, ox:int, oy:int):void {
-            drawRuns(CELL_OUTLINE, 0xFFFFFF, 0.25, gw, gh, ox, oy);
-            drawRuns(CELL_MAIN, 0x000000, 1.0, gw, gh, ox, oy);
+        private function drawOutlineAndMainCells(gridWidth:int, gridHeight:int, gridOriginOffsetX:int, gridOriginOffsetY:int):void {
+            drawHorizontalCellRuns(CELL_OUTLINE, 0xFFFFFF, CELL_OUTLINE_ALPHA, gridWidth, gridHeight, gridOriginOffsetX, gridOriginOffsetY);
+            drawHorizontalCellRuns(CELL_MAIN, 0x000000, 1.0, gridWidth, gridHeight, gridOriginOffsetX, gridOriginOffsetY);
         }
 
         /**
          * 같은 표시값이 가로로 이어진 칸을 사각형 하나로 합쳐 drawPath 한 번으로 그림 (사각형끼리 겹치지 않음)
          */
-        private function drawRuns(mark:uint, color:uint, alpha:Number, gw:int, gh:int, ox:int, oy:int):void {
-            var commands:Vector.<int> = new Vector.<int>();
-            var coords:Vector.<Number> = new Vector.<Number>();
+        private function drawHorizontalCellRuns(cellMark:uint, fillColor:uint, fillAlpha:Number, gridWidth:int, gridHeight:int, gridOriginOffsetX:int, gridOriginOffsetY:int):void {
+            var pathCommands:Vector.<int> = new Vector.<int>();
+            var pathCoordinates:Vector.<Number> = new Vector.<Number>();
 
-            for (var y:int = 0; y < gh; y++) {
-                var row:int = y * gw;
-                var x:int = 0;
-                while (x < gw) {
-                    if (_grid[row + x] != mark) {
-                        x++;
+            for (var rowIndex:int = 0; rowIndex < gridHeight; rowIndex++) {
+                var rowStartIndex:int = rowIndex * gridWidth;
+                var columnIndex:int = 0;
+                while (columnIndex < gridWidth) {
+                    if (cellMarkGrid[rowStartIndex + columnIndex] != cellMark) {
+                        columnIndex++;
                         continue;
                     }
-                    var start:int = x;
-                    while (x < gw && _grid[row + x] == mark) x++;
+                    var runStartColumnIndex:int = columnIndex;
+                    while (columnIndex < gridWidth && cellMarkGrid[rowStartIndex + columnIndex] == cellMark) columnIndex++;
 
-                    var left:int = start - ox;
-                    var right:int = x - ox;
-                    var top:int = y - oy;
-                    commands.push(GraphicsPathCommand.MOVE_TO, GraphicsPathCommand.LINE_TO, GraphicsPathCommand.LINE_TO, GraphicsPathCommand.LINE_TO);
-                    coords.push(left, top, right, top, right, top + 1, left, top + 1);
+                    var runLeftX:int = runStartColumnIndex - gridOriginOffsetX;
+                    var runRightX:int = columnIndex - gridOriginOffsetX;
+                    var runTopY:int = rowIndex - gridOriginOffsetY;
+                    pathCommands.push(GraphicsPathCommand.MOVE_TO, GraphicsPathCommand.LINE_TO, GraphicsPathCommand.LINE_TO, GraphicsPathCommand.LINE_TO);
+                    pathCoordinates.push(runLeftX, runTopY, runRightX, runTopY, runRightX, runTopY + 1, runLeftX, runTopY + 1);
                 }
             }
 
-            if (commands.length == 0) return;
-            this.graphics.beginFill(color, alpha);
-            this.graphics.drawPath(commands, coords);
+            if (pathCommands.length == 0) return;
+            this.graphics.beginFill(fillColor, fillAlpha);
+            this.graphics.drawPath(pathCommands, pathCoordinates);
             this.graphics.endFill();
         }
     }
