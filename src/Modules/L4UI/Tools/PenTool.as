@@ -138,7 +138,7 @@ package Modules.L4UI.Tools
 
 		private static function onStabilizerTimer():Boolean
 		{
-			PenStabilizer.update(stabilizedPoints, getTimer());
+			PenStabilizer.appendStabilizedPointsForFrame(stabilizedPoints, getTimer());
 
 			if (stabilizedPoints.length > 0 || PenStabilizer.isPreviewChanged())
 			{
@@ -270,7 +270,7 @@ package Modules.L4UI.Tools
 			g.clear();
 
 			stabilizerPreviewPoints.length = 0;
-			PenStabilizer.getPreview(stabilizerPreviewPoints);
+			PenStabilizer.getPreviewPoints(stabilizerPreviewPoints);
 
 			const len:uint = stabilizerPreviewPoints.length;
 
@@ -311,8 +311,8 @@ package Modules.L4UI.Tools
 
 			// 마지막 move 이벤트 이후 움직인 곳까지 포함해서 커서 위치까지 이어줌
 			const upPos:Point = PenTool.getRefinedPoint(StrokeBuffer.canvasDrawLayerChild.mouseX, StrokeBuffer.canvasDrawLayerChild.mouseY);
-			PenStabilizer.addInput(upPos.x, upPos.y, getTimer());
-			PenStabilizer.finish(stabilizedPoints);
+			PenStabilizer.addStrokeInputPoint(upPos.x, upPos.y, getTimer());
+			PenStabilizer.finishStrokeAndAppendRemainingPoints(stabilizedPoints);
 			drawStabilizedPoints(true);
 		}
 
@@ -519,7 +519,7 @@ package Modules.L4UI.Tools
 				// 스무딩은 입력 경로가 촘촘할수록 곡선이 정확해지므로 skipMouseMovePos를 거치지 않고 전부 넣어줌
 				// 실제 그리기는 onStabilizerTimer에서 프레임마다 해줌
 				const filteredPos:Point = PenTool.getRefinedPoint(mx, my);
-				PenStabilizer.addInput(filteredPos.x, filteredPos.y, getTimer());
+				PenStabilizer.addStrokeInputPoint(filteredPos.x, filteredPos.y, getTimer());
 				return;
 			}
 
@@ -703,7 +703,7 @@ package Modules.L4UI.Tools
 
 			if (isStabilizerON)
 			{
-				PenStabilizer.reset(filteredPos.x, filteredPos.y, getTimer(), PenStabilizer.getWindowLength(PenSettings.penSmoothValue), PenStabilizer.getWindowTime(PenSettings.penSmoothValue));
+				PenStabilizer.resetStabilizerForNewStroke(filteredPos.x, filteredPos.y, getTimer(), PenStabilizer.getWindowLengthFromSmoothValue(PenSettings.penSmoothValue), PenStabilizer.getWindowTimeFromSmoothValue(PenSettings.penSmoothValue));
 				stabilizerLastDrawPos.copyFrom(filteredPos);
 				stabilizerDrawDist = Math.max(2, xSize / 5);
 				isSharpStabilizer = PenSettings.isSharpLineON;
