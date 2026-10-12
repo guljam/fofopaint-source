@@ -15,19 +15,19 @@ package Modules.L4UI.UIEngine
     import flash.geom.Rectangle;
     import flash.utils.getTimer;
 
-    // 좌하단에 쌓이는 상태(녹색)/오류(빨간색) 메시지 상자 관리. 최신 메시지가 맨 아래, 최대 6개, 정해진 시간이 지나면 사라짐
+    // 뷰포트 좌상단에 쌓이는 상태(녹색)/오류(빨간색) 메시지 상자 관리. 최신 메시지가 맨 위, 최대 6개, 정해진 시간이 지나면 사라짐
+    // 뷰포트 좌상단은 UIController.STAGE_TOP/LEFT_OFFSET 기준 (모드, 고정 사이드바 표시에 따라 바뀜, 퀵 사이드바는 반영 안 함)
     // 메시지 위 왼쪽 클릭: 그 메시지를 지움. 오른쪽·휠 클릭: 지우지 않고 가로채기만 함 (아래 캔버스·UI로 전달하지 않음)
     // 클릭 판정은 상자 + 상하좌우 MESSAGE_CLICK_MARGIN, 파란 하이라이트는 상자 자체만
-    // 층: L4 UI - 좌하단 메시지 상자 쌓기, 만료 타이머, 클릭 가로채기, 배치
+    // 층: L4 UI - 뷰포트 좌상단 메시지 상자 쌓기, 만료 타이머, 클릭 가로채기, 배치
     public final class MessageBoxController
     {
         public static const MAX_MESSAGE_COUNT:int = 6;
         public static const DEFAULT_MESSAGE_DURATION:Number = 5.0;
         private static const MESSAGE_CLICK_MARGIN:Number = 5; // 클릭 판정 영역: 상자 + 상하좌우 이만큼
-        private static const GAP_ABOVE_BOTTOM_BAR:Number = 5; // 하단 힌트 바와 맨 아래 메시지 사이
+        private static const GAP_FROM_VIEWPORT_EDGE:Number = 5; // 뷰포트 위·왼쪽 가장자리와 메시지 사이
         private static const GAP_BETWEEN_MESSAGES:Number = 2;
         private static const MAX_MESSAGE_LENGTH:int = 200; // 넘으면 잘라서 "..."을 붙임
-        private static const MESSAGE_LEFT_X:Number = 2; // 하단 힌트의 x와 같게
         private static const MESSAGE_EXPIRE_TIMER:String = "messageExpireTimer";
 
         private static const messageBoxContainer:Sprite = new Sprite();
@@ -36,7 +36,7 @@ package Modules.L4UI.UIEngine
         private static var messageHighlightDrawnHeight:Number = NaN;
         private static var messageHighlightDrawnColor:uint = 0;
         private static const messageBoxes:Vector.<MessageBox> = new Vector.<MessageBox>(); // 미리 만든 상자를 재사용, messageBoxes[i]가 messages[i]를 표시
-        private static const messages:Array = []; // {isError, text, repeatCount, expireTime}. 앞이 가장 오래된(맨 위) 것, 맨 뒤가 최신(맨 아래)
+        private static const messages:Array = []; // {isError, text, repeatCount, expireTime}. 앞이 가장 오래된(맨 아래) 것, 맨 뒤가 최신(맨 위)
         private static var isInitialized:Boolean = false;
 
         // 메시지 위에서 DOWN을 가로챈 버튼은 뒤따르는 UP/CLICK도 가로챔
@@ -94,7 +94,7 @@ package Modules.L4UI.UIEngine
             addMessage(true, text, duration);
         }
 
-        // 메시지 상자의 글자, 색, 위치를 지금 메시지 목록대로 다시 맞춤. 창 크기, UI 배율, 테마가 바뀔 때도 부름
+        // 메시지 상자의 글자, 색, 위치를 지금 메시지 목록대로 다시 맞춤. 창 크기, UI 배율, 테마, 뷰포트 가장자리(UIController.updateStageOffset)가 바뀔 때도 부름
         public static function updateMessageBoxes():void
         {
             if (!isInitialized)
@@ -103,9 +103,10 @@ package Modules.L4UI.UIEngine
             }
 
             const scale:Number = UITheme.getUIScale();
-            var bottom:Number = AppContext.stage.stageHeight - (HintController.BOTTOM_BAR_HEIGHT + GAP_ABOVE_BOTTOM_BAR) * scale;
+            const left:Number = UIController.STAGE_LEFT_OFFSET + GAP_FROM_VIEWPORT_EDGE * scale;
+            var top:Number = UIController.STAGE_TOP_OFFSET + GAP_FROM_VIEWPORT_EDGE * scale;
 
-            // 맨 아래(최신) 상자의 아랫변을 하단 바 위에 맞추고 위로 쌓음. 높이가 달라도 아랫변 기준
+            // 맨 위(최신) 상자의 윗변을 뷰포트 위쪽에 맞추고 아래로 쌓음. 높이가 달라도 윗변 기준
             for (var i:int = messageBoxes.length - 1; i >= 0; i--)
             {
                 const messageBox:MessageBox = messageBoxes[i];
@@ -125,9 +126,9 @@ package Modules.L4UI.UIEngine
                 messageBox.y = 0;
 
                 const bounds:Rectangle = messageBox.getBounds(messageBoxContainer); // 컨테이너는 (0,0), 배율 1이라 stage 좌표와 같음
-                messageBox.x = Math.round(MESSAGE_LEFT_X * scale - bounds.left);
-                messageBox.y = Math.round(bottom - bounds.bottom);
-                bottom = messageBox.y + bounds.top - GAP_BETWEEN_MESSAGES * scale;
+                messageBox.x = Math.round(left - bounds.left);
+                messageBox.y = Math.round(top - bounds.top);
+                top = messageBox.y + bounds.bottom + GAP_BETWEEN_MESSAGES * scale;
             }
 
             updateMessageHighlightBox(AppContext.stage.mouseX, AppContext.stage.mouseY);
@@ -138,7 +139,7 @@ package Modules.L4UI.UIEngine
             return messages.length;
         }
 
-        // 화면에 보이는 문장. index 0이 가장 오래된(맨 위) 메시지
+        // 화면에 보이는 문장. index 0이 가장 오래된(맨 아래) 메시지
         public static function getMessageText(index:int):String
         {
             return getMessageDisplayText(messages[index]);
@@ -191,7 +192,7 @@ package Modules.L4UI.UIEngine
             return message.repeatCount >= 2 ? cutText + " (" + message.repeatCount + ")" : cutText;
         }
 
-        // 같은 종류·같은 문장이 이미 보이면 횟수를 올려 맨 아래로 옮기고 시간을 다시 잼, 없으면 맨 아래에 추가
+        // 같은 종류·같은 문장이 이미 보이면 횟수를 올려 맨 위로 옮기고 시간을 다시 잼, 없으면 맨 위에 추가
         private static function addMessage(isError:Boolean, text:String, duration:Number):void
         {
             if (!isInitialized || text === null || text === "") // 초기화 전 전역 오류가 TypeError를 또 내지 않게
@@ -256,7 +257,7 @@ package Modules.L4UI.UIEngine
             return messages.length > 0;
         }
 
-        // 지운 즉시 다시 배치해서, 커서를 움직이지 않고 다시 클릭하면 내려온 다음 메시지가 지워지게 함
+        // 지운 즉시 다시 배치해서, 커서를 움직이지 않고 다시 클릭하면 올라온 다음 메시지가 지워지게 함
         private static function removeMessageAt(index:int):void
         {
             messages.splice(index, 1);
@@ -272,7 +273,7 @@ package Modules.L4UI.UIEngine
             return rect;
         }
 
-        // (x, y)에 있는 메시지 번호, 없으면 -1. 영역이 겹치는 곳은 아래쪽(최신) 메시지가 이김
+        // (x, y)에 있는 메시지 번호, 없으면 -1. 영역이 겹치는 곳은 위쪽(최신) 메시지가 이김
         private static function findMessageIndexAt(x:Number, y:Number, margin:Number):int
         {
             for (var i:int = messages.length - 1; i >= 0; i--)
@@ -283,6 +284,12 @@ package Modules.L4UI.UIEngine
                 }
             }
             return -1;
+        }
+
+        // (x, y)가 메시지 상자의 클릭 판정 영역 안인지. 리플레이 상단바 자동 표시가 메시지 위에서 일어나지 않게 할 때 씀
+        public static function isMessageBoxClickAreaAt(x:Number, y:Number):Boolean
+        {
+            return findMessageIndexAt(x, y, MESSAGE_CLICK_MARGIN) >= 0;
         }
 
         // 커서가 상자 위에 있으면 파란 테두리를 보여줌. 그리는 중·드래그 중(버튼을 누르고 있을 때)에는 띄우지 않음

@@ -250,6 +250,12 @@
 			this.scaleY = newScale;
 		}
 
+		// 배경 막대가 실제로 그려진 아래 끝 y (stage 기준). 배경 높이는 BARSIZE보다 크고 시크바 y도 상단바 표시에 따라 바뀌므로 그려진 위치를 직접 읽음
+		public function getBGBarBottomYOnStage():Number
+		{
+			return replayBGBar.getBounds(stage).bottom;
+		}
+
 		private function isPrograssBarMaxWidthReached():Boolean
 		{
 			return isPrograssBarMaxWidth;

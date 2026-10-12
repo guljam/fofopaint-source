@@ -12,7 +12,6 @@ package Modules.L4UI
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L1Data.Utils;
     import Modules.L4UI.CaptureEngine.CaptureController;
-    import Modules.L1Data.UIEngine.UITheme;
 
     // 캔버스 하나(드로우 또는 리플레이)의 화면 배치: 앵커 이동, 배율, 가운데 정렬, 화면 안으로 끌어오기
     // 드로우는 DrawViewport(CanvasView.viewport), 리플레이는 ReplayViewport(ReplayDrawer.viewport)가 모드별 값과 동작을 재정의함
@@ -179,18 +178,16 @@ package Modules.L4UI
                 anchorSprite.y -= top - bottomLimit;
         }
 
-        // 리플레이/캡처 모드에서 캔버스를 창 여백 안에 맞춤 (allowScaleAboveOne이면 1배보다 크게도 맞춤). 현재 보이는 캔버스의 viewport에 호출
+        // 리플레이/캡처 모드에서 캔버스를 맞춤 영역(UIController.getCanvasFitAreaRect) 안에 맞추고 그 중심에 둠 (allowScaleAboveOne이면 1배보다 크게도 맞춤). 현재 보이는 캔버스의 viewport에 호출
         public function fitToViewportMargin(allowScaleAboveOne:Boolean = false):void
         {
             if (!ReplayState.isReplayModeON && !CaptureController.isCaptureModeON)
             {
                 return;
             }
-            const uiScale:Number = UITheme.getUIScale();
-            const offsetX:Number = 44 + UIController.STAGE_LEFT_OFFSET + UIController.STAGE_RIGHT_OFFSET;
-            const offsetY:Number = (CaptureController.isCaptureModeON) ? (UIController.topBar.BARSIZE) * uiScale + 42 * uiScale : (UIController.topBar.BARSIZE) * uiScale + 42 * uiScale;
-            const availableStageWidth:int = AppContext.stage.stageWidth - offsetX;
-            const availableStageHeight:int = AppContext.stage.stageHeight - offsetY - UIController.STAGE_BOTTOM_OFFSET;
+            const fitArea:Rectangle = UIController.getCanvasFitAreaRect();
+            const availableStageWidth:int = fitArea.width;
+            const availableStageHeight:int = fitArea.height;
             var fitWidth:Number = canvasWidth;
             var fitHeight:Number = canvasHeight;
             if (ReplayState.isReplayModeON && allowScaleAboveOne)

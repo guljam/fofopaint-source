@@ -41,6 +41,7 @@ package Modules.L5App.ReplayEngine
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
+    import Modules.L4UI.UIEngine.MessageBoxController;
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
@@ -1789,6 +1790,8 @@ package Modules.L5App.ReplayEngine
             }
         }
 
+        // 재생 중 마우스가 숨겨지면 상단바를 숨기고, 숨겨진 상태에서 커서가 상단바+시크바 높이 안으로 오면 다시 보여줌
+        // STAGE_TOP_OFFSET은 상단바를 숨기면 줄어들므로 꺼내는 영역은 따로 계산함. 메시지 상자 위에서는 꺼내지 않음 (꺼내면 메시지가 아래로 밀려 커서 밑에서 빠져나감)
         public static function checkAutoHideTopbarOnPlayback():void
         {
             if(ReplayMouseAutoHide.isMouseHidden)
@@ -1797,13 +1800,17 @@ package Modules.L5App.ReplayEngine
             }
             else if(UIController.topBar.visible === false)
             {
-                if(AppContext.stage.mouseY <= UIController.STAGE_TOP_OFFSET)
+                const mx:Number = AppContext.stage.mouseX;
+                const my:Number = AppContext.stage.mouseY;
+                const topbarRevealAreaBottom:Number = (UIController.topBar.BARSIZE + UIController.seekBarBox.BARSIZE) * UITheme.getUIScale();
+                if(my <= topbarRevealAreaBottom && !MessageBoxController.isMessageBoxClickAreaAt(mx, my))
                 {
                     showTopbarOnPlayback();
                 }
             }
         }
 
+        // 상단바를 숨기고 시크바를 맨 위로 올림. 위쪽 여백(STAGE_TOP_OFFSET)과 메시지 위치도 다시 맞추고, 창 맞춤 중이면 캔버스도 다시 맞춤
         public static function hideTopbarOnPlayback():void
         {
             if (UIController.topBar.visible === true)
@@ -1811,11 +1818,14 @@ package Modules.L5App.ReplayEngine
                 UIController.seekBarBox.y = 0;
                 UIController.seekBarBox.hideReplayControlButton();
                 UIController.topBar.visible = false;
+                UIController.updateStageOffset();
+                refitReplayCanvasAfterTopbarToggle();
                 HintController.hideBottomHint();
                 HintController.hideMouseHint();
             }
         }
 
+        // 상단바를 다시 보이고 시크바를 원래 y로 내림. 위쪽 여백(STAGE_TOP_OFFSET)과 메시지 위치도 다시 맞추고, 창 맞춤 중이면 캔버스도 다시 맞춤
         public static function showTopbarOnPlayback():void
         {
             if (UIController.topBar.visible === false)
@@ -1823,8 +1833,20 @@ package Modules.L5App.ReplayEngine
                 UIController.topBar.visible = true;
                 UIController.seekBarBox.y = lastReplayTimeBoxYPos;
                 UIController.seekBarBox.showReplayControlButton();
+                UIController.updateStageOffset();
+                refitReplayCanvasAfterTopbarToggle();
                 HintController.hideBottomHint();
                 HintController.hideMouseHint();
+            }
+        }
+
+        // 상단바가 숨거나 나타나 위쪽 여백이 바뀌었을 때, 리플레이 캔버스가 창 맞춤 중이면 바뀐 여백에 다시 맞춤
+        // 리플레이 모드를 나갔거나 캡처 모드로 들어가며 상단바를 꺼낸 경우는 제외 (캡처는 자기 맞춤을 따로 함)
+        private static function refitReplayCanvasAfterTopbarToggle():void
+        {
+            if (ReplayState.isReplayModeON && !CaptureController.isCaptureModeON && ReplayState.isReplayCanvasFitToWindow)
+            {
+                fitReplayCanvasToViewport();
             }
         }
 
@@ -2228,7 +2250,6 @@ package Modules.L5App.ReplayEngine
             else
             {
                 setFitReplayCanvasToViewportON();
-                
             }
         }
 

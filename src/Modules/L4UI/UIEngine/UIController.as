@@ -66,8 +66,9 @@ package Modules.L4UI.UIEngine
 
         public static var STAGE_TOP_OFFSET:Number = 0, // 창 상하좌우 여백
             STAGE_LEFT_OFFSET:Number = 0,
-            STAGE_BOTTOM_OFFSET:Number = HintController.BOTTOM_BAR_HEIGHT,
+            STAGE_BOTTOM_OFFSET:Number = 0, // 하단 힌트 바는 잠깐 뜨는 요소라 포함하지 않음
             STAGE_RIGHT_OFFSET:Number = 0;
+        public static var CANVAS_FIT_MARGIN:Number = 21; // 리플레이·캡처 캔버스 맞춤 영역의 사방 여백 (UI 배율 곱하기 전). 테스트 후 조정용
 
         public static function initializeAppMenus():void
         {
@@ -132,6 +133,7 @@ package Modules.L4UI.UIEngine
             topBar.updateIconsByMode(2);
         }
 
+        // 상단바·시크바·고정 사이드바를 뺀 stage 기준 뷰포트 사각형. 퀵 사이드바 중에는 좌우를 빼지 않음
         public static function getViewportRect():Rectangle
         {
             const stw:int = AppContext.stage.stageWidth;
@@ -139,6 +141,7 @@ package Modules.L4UI.UIEngine
             const rect:Rectangle = new Rectangle(0, 0, stw, sth);
 
             rect.y += STAGE_TOP_OFFSET;
+            rect.height -= (STAGE_TOP_OFFSET + STAGE_BOTTOM_OFFSET);
 
             if (SidebarController.isQuickSidebarActive)
             {
@@ -147,8 +150,19 @@ package Modules.L4UI.UIEngine
 
             rect.x += STAGE_LEFT_OFFSET;
             rect.width -= (STAGE_LEFT_OFFSET + STAGE_RIGHT_OFFSET);
-            rect.height -= (STAGE_TOP_OFFSET + STAGE_TOP_OFFSET);
 
+            return rect;
+        }
+
+        // 리플레이·캡처 캔버스를 맞추고 가운데 둘 stage 영역. 사방에서 CANVAS_FIT_MARGIN×배율을 뺌
+        // 위쪽은 호출한 순간 보이는 막대 기준(STAGE_TOP_OFFSET). 리플레이 재생 중 상단바가 숨어 있으면 시크바 아래 끝만 뺌
+        // 사이드바는 두 모드 모두 빼지 않음
+        public static function getCanvasFitAreaRect():Rectangle
+        {
+            const margin:Number = CANVAS_FIT_MARGIN * UITheme.getUIScale();
+            const top:Number = STAGE_TOP_OFFSET;
+            const rect:Rectangle = new Rectangle(0, top, AppContext.stage.stageWidth, AppContext.stage.stageHeight - top - STAGE_BOTTOM_OFFSET);
+            rect.inflate(-margin, -margin);
             return rect;
         }
 
@@ -157,6 +171,11 @@ package Modules.L4UI.UIEngine
             return topBar.gridButtonWrapper.visible || ColorPickerController.numPadBox.visible || UIController.loadMenuBox.visible || AboutBoxController.aboutBox.visible;
         }
 
+        // 상단바·시크바·고정 사이드바가 차지하는 stage 가장자리 폭(STAGE_*_OFFSET)을 다시 계산하고, 뷰포트 좌상단에 붙는 메시지 상자도 다시 배치함
+        // 캡처·리플레이 모드에서는 사이드바를 빼지 않음
+        // 시크바는 BARSIZE보다 배경이 크게 그려지고 y도 상단바 표시에 따라 바뀌므로, 보이면 배경의 실제 아래 끝을 위쪽 여백으로 씀
+        // 왼쪽 사이드바는 배율이 곱해진 스크롤 바 오른쪽 끝(경계선 포함)을 왼쪽 여백으로 씀
+        // 리플레이 상단바 자동 숨김·표시(ReplayController.hide/showTopbarOnPlayback)에서도 부름
         public static function updateStageOffset():void
         {
             const scale:Number = UITheme.getUIScale();
@@ -168,20 +187,15 @@ package Modules.L4UI.UIEngine
 
             if (topBar.visible)
             {
-                STAGE_TOP_OFFSET += topBar.BARSIZE * scale;
+                STAGE_TOP_OFFSET = topBar.BARSIZE * scale;
             }
 
             if (UIController.seekBarBox.visible)
             {
-                STAGE_TOP_OFFSET += UIController.seekBarBox.BARSIZE * scale;
+                STAGE_TOP_OFFSET = Math.max(STAGE_TOP_OFFSET, UIController.seekBarBox.getBGBarBottomYOnStage());
             }
 
-            if (CaptureController.isCaptureModeON || ReplayState.isReplayModeON)
-            {
-                return;
-            }
-
-            if (SidebarController.sideBar.visible)
+            if (!CaptureController.isCaptureModeON && !ReplayState.isReplayModeON && SidebarController.sideBar.visible)
             {
                 if (SidebarController.isRightSidebar)
                 {
@@ -189,9 +203,13 @@ package Modules.L4UI.UIEngine
                 }
                 else
                 {
-                    STAGE_LEFT_OFFSET = Math.round(SidebarController.sideBar.getWidth()) + SidebarController.SCROLL_BAR_WIDTH;
+                    // 스크롤 바는 사이드바 자식이라 폭에도 배율이 곱해지고, 2px 경계선이 바깥으로 1px 더 나감
+                    // getBounds는 앱 시작 직후 스크롤 바가 아직 안 그려졌을 때 엉뚱한 값을 주므로 계산으로 구함
+                    STAGE_LEFT_OFFSET = Math.ceil((SidebarController.sideBar.WIDTH + SidebarController.SCROLL_BAR_WIDTH + 1) * SidebarController.sideBar.scaleX);
                 }
             }
+
+            MessageBoxController.updateMessageBoxes();
         }
 
         public static function applyUIScale():void
@@ -402,11 +420,12 @@ package Modules.L4UI.UIEngine
                 target.y = AppContext.stage.stageHeight - rect.height - STAGE_BOTTOM_OFFSET;
         }
 
+        // 모드("draw"/"replay"/"capture")별로 캔버스를 가운데 둘 stage 좌표. 리플레이·캡처는 캔버스 맞춤 영역(getCanvasFitAreaRect)의 중심
         public static function getStageCenterPos(mode:String):Point
         {
             const scale:Number = UITheme.getUIScale();
             const center:Point = new Point(0, 0);
-            var topBarOffset:Number = topBar.BARSIZE * scale;
+            const topBarOffset:Number = topBar.BARSIZE * scale;
 
             if (mode === "draw")
             {
@@ -415,14 +434,10 @@ package Modules.L4UI.UIEngine
                         : Math.floor(STAGE_LEFT_OFFSET + (AppContext.stage.stageWidth - STAGE_LEFT_OFFSET) / 2)
                         , Math.floor(topBarOffset + (AppContext.stage.stageHeight - topBarOffset) / 2));
             }
-            else if (mode === "replay")
+            else if (mode === "replay" || mode === "capture")
             {
-                topBarOffset = topBarOffset;
-                center.setTo(AppContext.stage.stageWidth / 2, Math.floor(topBarOffset + (AppContext.stage.stageHeight - topBarOffset) / 2));
-            }
-            else if (mode === "capture")
-            {
-                center.setTo(AppContext.stage.stageWidth / 2, Math.floor(topBarOffset + (AppContext.stage.stageHeight - topBarOffset) / 2));
+                const fitArea:Rectangle = getCanvasFitAreaRect();
+                center.setTo(AppContext.stage.stageWidth / 2, Math.floor(fitArea.y + fitArea.height / 2));
             }
             else
             {

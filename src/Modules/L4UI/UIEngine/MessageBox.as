@@ -6,7 +6,7 @@ package Modules.L4UI.UIEngine
     import flash.display.Sprite;
     import flash.text.TextField;
 
-    // 좌하단 메시지 상자 하나. 클릭·마우스 올림 판정은 MessageBoxController가 좌표로 함
+    // 뷰포트 좌상단 메시지 상자 하나. 클릭·마우스 올림 판정은 MessageBoxController가 좌표로 함
     // 층: L4 UI - 메시지 상자 하나 (배경 사각형 + 글자)
     public class MessageBox extends Sprite
     {
