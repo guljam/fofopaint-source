@@ -455,6 +455,7 @@ package Modules.L4UI
                 }
             }
 
+            ColorPickerController.colorPickerBox.updateMyPaletteBorderRowCount((type === 0 && isMyPaletteExpended) ? MYPALETTE_COUNT / MYPALETTE_COLUMNS : 2);
             ColorPickerController.colorPickerBox.updateMainColorPickerBoxPosition(ColorPickerController.isColorPickerBoxPositionSwapped);
         }
 

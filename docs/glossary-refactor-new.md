@@ -50,6 +50,15 @@
 | 층 변경 | `CanvasViewport`, `DrawViewport`, `ReplayViewport` L2 → L4 | 사이드바·상단 바·UI 여백에 따라 캔버스 위치를 계산하는 화면 배치 클래스라 UI 층으로 (사용자 승인) |
 | 층 변경 | `UndoHistory` L1 → L2 | 값을 읽는 L2 클래스(DrawCanvas, ReplayDrawer 등)가 많아 엔진 층으로 (사용자 승인) |
 
+### newui 브랜치에서 정한 이름과 결정 (2026-10-13)
+
+| 항목 | 결정 | 뜻 |
+|---|---|---|
+| 색 선택기 가장자리 클래스 | `ColorPickerSetBorderUI` (L4, `Modules.L4UI`) | `ColorPickerSet`의 각진 사각형 요소 8개(my palette, 색 히스토리, rgbInfoBG, currentColor, 투명색 버튼, hue 바, svBox, 스크래치패드)에 마스크를 달아 가장자리를 손으로 그린 듯 해진 모양으로 자름. 요소를 작게 하거나 선을 덧그리지 않고 잘라내므로 사이드바 배경(반투명 포함)이 그대로 비침. 마스크는 시작할 때 한 번, 크기가 바뀔 때(my palette 접힘/펼침, rgbInfoBG 너비 108/170)만 같은 seed로 다시 그림 |
+| 층 | L4 UI | 표시 객체(마스크)를 소유하고 `ColorPickerSet`(L4)이 만들어 쓰는 UI 위젯이라 `DrawrScratchPad`와 같은 층. 아래층의 `HandDrawnLine`(L2), `ColorHistory`(L1)만 부르고 위층은 참조하지 않음 |
+| 이름 | `~BorderUI` 접미사 | 가장자리(Border) 모양을 맡는 UI 보조 클래스. 객체는 `ColorPickerSet`이 `colorPickerSetBorderUI`로 하나만 가짐 |
+| 해진 사각형 함수 | `HandDrawnLine.drawWornRectFill(graphics, width, height, seed)` (L2) | 사각형 가장자리를 안쪽으로만 0~1.4px 깎아 채움(바깥으로 나가지 않음). 선 그리기(`draw`, `drawRect`)와 설정(`WORN_*` 상수)을 따로 두어 힌트/메시지 상자에는 영향이 없음 |
+
 ### 1단계 이후 새 L1 클래스의 위치
 `KeyState`, `AppDataPaths`, `ToolState`는 모두 `Modules.L1Data`(루트)에 있다.
 
@@ -160,6 +169,7 @@
 | AboutBoxController | L4 | Modules | Modules.L4UI |
 | CanvasGridOverlay | L4 | Modules | Modules.L4UI |
 | ColorPickerController | L4 | Modules | Modules.L4UI |
+| ColorPickerSetBorderUI | L4 | (신설) | Modules.L4UI |
 | DrawrScratchPad | L4 | (루트) | Modules.L4UI |
 | ImageViewWindow | L4 | Modules | Modules.L4UI |
 | LoadBoxController | L5 | (층 변경) | Modules.L5App |

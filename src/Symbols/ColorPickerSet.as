@@ -18,6 +18,7 @@
 	import Modules.L1Data.Utils;
 	import Modules.L4UI.DrawrScratchPad;
 	import Modules.L2Engine.DrawEngine.HandDrawnLine;
+	import Modules.L4UI.ColorPickerSetBorderUI;
 	import Modules.L1Data.UIEngine.UITheme;
 
 	// 층: L4 UI - 색 선택기 화면 묶음
@@ -79,6 +80,8 @@
 
 		public var scratchPad:DrawrScratchPad;
 
+		private var colorPickerSetBorderUI:ColorPickerSetBorderUI; //요소 가장자리를 손으로 그린 듯 해진 모양으로 자르는 마스크 (생성자 맨 끝에서 만듦)
+
 		private var lastRGBInfoText:String = "";
 
 		// public function setRGBInfoTextTypeToInput(flag:Boolean):void
@@ -130,12 +133,19 @@
 				var child:* = mainColorPickerBox.getChildAt(i);
 				if(child === scratchPad
 				|| child === rgbInfoBG
-				|| child === colorHistoryBox)
+				|| child === colorHistoryBox
+				|| colorPickerSetBorderUI.isBorderMaskObject(child))
 				{
 					continue;
 				}
 				child.visible = false;
 			}
+		}
+
+		// my palette 줄 수(접힘 2, 펼침 10)가 바뀌었음을 가장자리 마스크에 알림
+		public function updateMyPaletteBorderRowCount(rowCount:int):void
+		{
+			colorPickerSetBorderUI.updateMyPaletteBoxBorderRowCount(rowCount);
 		}
 
 		public function swapColorBoxPositions(flag:Boolean):void
@@ -300,6 +310,7 @@
 			if(rgbInfoText.text !== "")
 			{
 				const rgbInfoBGwidth:Number = (paletteType !== 0)?svBoxWidth:rgbInfoWidth;
+				colorPickerSetBorderUI.updateRGBInfoBGBorderWidth(rgbInfoBGwidth);
 				rgbInfoBG.graphics.clear();
 				rgbInfoBG.graphics.lineStyle(0,0,0);
 				rgbInfoBG.graphics.beginBitmapFill(transColorButtonBmpd);
@@ -322,6 +333,7 @@
 			const rgbInfoBGwidth:Number = (paletteType !== 0)?svBoxWidth:rgbInfoWidth;
 			const borderColor:uint = getRGBInfoBorderColor(color);
 
+			colorPickerSetBorderUI.updateRGBInfoBGBorderWidth(rgbInfoBGwidth);
 			rgbInfoBG.graphics.clear();
 			rgbInfoBG.graphics.beginFill(color);
 			rgbInfoBG.graphics.drawRect(0,0,rgbInfoBGwidth,rgbInfoHeight);
@@ -598,6 +610,8 @@
 
 			svCursor.mouseEnabled = false;
 			hueCursor.mouseEnabled = false;
+
+			colorPickerSetBorderUI = new ColorPickerSetBorderUI(this,mainColorPickerBox,rgbInfoHeight,rgbInfoWidth,hueHeight,currentColorBoxWidth);
 		}
 	}
 }
