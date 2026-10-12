@@ -231,7 +231,7 @@ package Modules.L2Engine.ReplayEngine
                 }
             }
 
-            TimingSmoother.spreadCommandTimes(times, rMemoryDataBuffer); // 같은 프레임에 몰린 펜 점의 시각을 나눠서 (끄려면 이 줄을 지우면 됨)
+            TimingSmoother.spreadSameTimeLineToBatchCommandTimes(times, rMemoryDataBuffer); // 같은 프레임에 몰린 펜 점의 시각을 나눠서 (끄려면 이 줄을 지우면 됨)
 
             for (i = 0;i < count;i++)
             {

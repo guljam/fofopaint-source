@@ -522,7 +522,7 @@ package Modules.L2Engine.ReplayEngine
                     anims[i] = memoryAnims[int(first + i - fileFrames)];
                 }
 
-                blobs.push(TimingSheet.encodeSegment(deltas, anims, count));
+                blobs.push(TimingSheet.encodeSegmentDeltasAndAnimsToBlob(deltas, anims, count));
             }
 
             // 뒤에 선택 항목으로 옛 프레임 수 L (버전은 그대로 2라 옛 앱은 무시하고 채워진 42ms로 재생)
@@ -630,7 +630,7 @@ package Modules.L2Engine.ReplayEngine
                     const count:int = int(Math.min(TimingSheet.SEGMENT_FRAMES, remaining));
                     const deltas:Vector.<uint> = new Vector.<uint>(count, true);
                     const anims:Vector.<uint> = new Vector.<uint>(count, true);
-                    TimingSheet.decodeSegment(blobs[s] as ByteArray, count, deltas, anims);
+                    TimingSheet.decodeSegmentBlobToDeltasAndAnims(blobs[s] as ByteArray, count, deltas, anims);
                     const firstOfSegment:Number = d[2] - remaining;
                     appendFrameRecords(deltas, anims);
                     remaining -= count;

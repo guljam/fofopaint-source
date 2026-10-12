@@ -12,51 +12,53 @@ package Modules.L1Data.ReplayEngine
         public static const ENABLED:Boolean = true;
         public static const MAX_GAP_MS:int = 100; // 직전 시각과 묶음 시각의 차이가 이보다 크면 쉬었다 시작한 것으로 보고 나누지 않음
 
-        // times: 명령별 getTimer 값(int, 줄어들지 않음). commands: 같은 순서의 명령 배열. times를 제자리에서 고침
-        public static function spreadCommandTimes(times:Array, commands:Array):void
+        // 같은 시각으로 기록된 연속 lineTo 묶음마다 직전 명령 시각부터 묶음 시각까지를 균등하게 나눠 commandTimes를 제자리에서 고침
+        // commandTimes: 명령별 getTimer 값(int, 줄어들지 않음). commandList: 같은 순서의 명령 배열
+        public static function spreadSameTimeLineToBatchCommandTimes(commandTimes:Array, commandList:Array):void
         {
             if (!ENABLED)
             {
                 return;
             }
 
-            const count:int = times.length;
-            var i:int = 1;
+            const count:int = commandTimes.length;
+            var commandIndex:int = 1;
 
-            while (i < count)
+            while (commandIndex < count)
             {
-                if (!isLineToCommand(commands[i]))
+                if (!isLineToCommand(commandList[commandIndex]))
                 {
-                    i++;
+                    commandIndex++;
                     continue;
                 }
 
-                // i에서 시작하는, 같은 시각을 가진 연속 lineTo 묶음의 끝 찾기
-                const batchTime:int = times[i];
-                var end:int = i;
+                // commandIndex에서 시작하는, 같은 시각을 가진 연속 lineTo 묶음의 끝 찾기
+                const batchTime:int = commandTimes[commandIndex];
+                var batchEndIndex:int = commandIndex;
 
-                while (end + 1 < count && isLineToCommand(commands[end + 1]) && times[end + 1] === batchTime)
+                while (batchEndIndex + 1 < count && isLineToCommand(commandList[batchEndIndex + 1]) && commandTimes[batchEndIndex + 1] === batchTime)
                 {
-                    end++;
+                    batchEndIndex++;
                 }
 
                 // 묶음 바로 앞 명령의 시각이 더 이르고 간격이 정상 범위일때만 나눔
-                const previousTime:int = times[i - 1];
-                const gap:int = (batchTime - previousTime) | 0;
-                const size:int = end - i + 1;
+                const previousCommandTime:int = commandTimes[commandIndex - 1];
+                const gapMs:int = (batchTime - previousCommandTime) | 0;
+                const batchSize:int = batchEndIndex - commandIndex + 1;
 
-                if (size > 1 && gap > 0 && gap <= MAX_GAP_MS)
+                if (batchSize > 1 && gapMs > 0 && gapMs <= MAX_GAP_MS)
                 {
-                    for (var j:int = 0; j < size; j++)
+                    for (var batchPointOffset:int = 0; batchPointOffset < batchSize; batchPointOffset++)
                     {
-                        times[i + j] = previousTime + Math.round(gap * (j + 1) / size);
+                        commandTimes[commandIndex + batchPointOffset] = previousCommandTime + Math.round(gapMs * (batchPointOffset + 1) / batchSize);
                     }
                 }
 
-                i = end + 1;
+                commandIndex = batchEndIndex + 1;
             }
         }
 
+        // command가 ["lineTo", ...] 형태의 lineTo 명령인지 확인
         private static function isLineToCommand(command:*):Boolean
         {
             return command is Array && command[0] === "lineTo";

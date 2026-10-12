@@ -11,18 +11,19 @@ package Modules.L1Data.ReplayEngine
     {
         public static const SEGMENT_FRAMES:int = 10000;
 
-        // 간격(deltas)과 연출 길이(anims)를 가변 길이 정수로 차례로 쓰고 zlib으로 압축한 구간 데이터를 만듬
+        // 한 구간의 간격 목록(deltaMsList)과 연출 길이 목록(animLengthList)을 가변 길이 정수로 차례로 쓰고 zlib으로 압축한 구간 blob을 만듬
         // 간격은 작은 값이 대부분이라 대부분 1바이트, 긴 공백만 2~5바이트이고, 연출 길이는 대부분 0이라 거의 공간을 안 씀
-        public static function encodeSegment(deltas:Vector.<uint>, anims:Vector.<uint>, count:int):ByteArray
+        public static function encodeSegmentDeltasAndAnimsToBlob(deltaMsList:Vector.<uint>, animLengthList:Vector.<uint>, segmentFrameCount:int):ByteArray
         {
             const output:ByteArray = new ByteArray();
-            writeVarLengthInts(output, deltas, count);
-            writeVarLengthInts(output, anims, count);
+            writeVarLengthIntsToByteArray(output, deltaMsList, segmentFrameCount);
+            writeVarLengthIntsToByteArray(output, animLengthList, segmentFrameCount);
             output.compress();
             return output;
         }
 
-        private static function writeVarLengthInts(output:ByteArray, values:Vector.<uint>, count:int):void
+        // values의 앞 count개를 가변 길이 정수(7비트씩, 이어지는 바이트는 최상위 비트 1)로 output 끝에 이어서 씀
+        private static function writeVarLengthIntsToByteArray(output:ByteArray, values:Vector.<uint>, count:int):void
         {
             for (var i:int = 0; i < count; i++)
             {
@@ -38,18 +39,18 @@ package Modules.L1Data.ReplayEngine
             }
         }
 
-        // encodeSegment의 반대. blob은 건드리지 않고, 결과는 count 길이의 deltas, anims에 채움
-        public static function decodeSegment(blob:ByteArray, count:int, deltas:Vector.<uint>, anims:Vector.<uint>):void
+        // encodeSegmentDeltasAndAnimsToBlob의 반대. segmentBlob은 건드리지 않고, 결과는 segmentFrameCount 길이의 deltaMsList, animLengthList에 채움
+        public static function decodeSegmentBlobToDeltasAndAnims(segmentBlob:ByteArray, segmentFrameCount:int, deltaMsList:Vector.<uint>, animLengthList:Vector.<uint>):void
         {
             const raw:ByteArray = new ByteArray();
-            raw.writeBytes(blob, 0, blob.length);
+            raw.writeBytes(segmentBlob, 0, segmentBlob.length);
             raw.uncompress();
             raw.position = 0;
 
             try
             {
-                readVarLengthInts(raw, deltas, count);
-                readVarLengthInts(raw, anims, count);
+                readVarLengthIntsFromByteArray(raw, deltaMsList, segmentFrameCount);
+                readVarLengthIntsFromByteArray(raw, animLengthList, segmentFrameCount);
 
                 if (raw.bytesAvailable > 0)
                 {
@@ -62,7 +63,8 @@ package Modules.L1Data.ReplayEngine
             }
         }
 
-        private static function readVarLengthInts(raw:ByteArray, values:Vector.<uint>, count:int):void
+        // raw의 현재 위치부터 가변 길이 정수 count개를 읽어 values[0..count-1]에 채움 (형식이 깨졌으면 Error)
+        private static function readVarLengthIntsFromByteArray(raw:ByteArray, values:Vector.<uint>, count:int):void
         {
             for (var i:int = 0; i < count; i++)
             {
