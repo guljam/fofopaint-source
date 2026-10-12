@@ -20,8 +20,6 @@ package Modules.L5App
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.AppDataPaths;
-    import Modules.L1Data.AppSettingsIniFile;
-    import Modules.L4UI.ToolMouseCursorController;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.DrawEngine.CanvasResizer;
     import Modules.L2Engine.ReplayEngine.ReplayState;
@@ -63,10 +61,6 @@ package Modules.L5App
         public static function onWindowActive(e:Event):void
         {
             ImeController.onWindowActivate();
-            if (AppSettingsIniFile.reloadSettingsIfIniFileChanged())
-            {
-                ToolMouseCursorController.registerToolMouseCursors(); // settings.ini의 왼손잡이 값이 바뀐 것을 재시작 없이 적용
-            }
             ClipboardManager.checkCanUseClipBoardButton();
 
             if (AboutBoxController.isAboutBoxOpened)

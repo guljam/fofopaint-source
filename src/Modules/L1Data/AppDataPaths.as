@@ -15,8 +15,6 @@ package Modules.L1Data
 
         public static var appStateFilePath:File;
 
-        public static var settingsFilePath:File; // 사용자가 직접 고치는 설정 (AppSettingsIniFile)
-
         public static var scratchPadDataFilePath:File;
 
         public static var undoDataFilePath:File;
@@ -54,7 +52,6 @@ package Modules.L1Data
         {
             dataFolderPath = File.applicationStorageDirectory.resolvePath("portable_"+appStateVersion);
             appStateFilePath = dataFolderPath.resolvePath("appstate" + appStateVersion);
-            settingsFilePath = dataFolderPath.resolvePath("settings.ini");
             scratchPadDataFilePath = dataFolderPath.resolvePath("scratchdata");
             undoDataFilePath = dataFolderPath.resolvePath("undodata");
             myPaletteDataFilePath = dataFolderPath.resolvePath("mypalettedata");

@@ -11,7 +11,6 @@ package Modules.L5App.InputManager
     import Modules.L5App.ReplayEngine.ReplayController;
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
-    import Modules.L4UI.ToolMouseCursorController;
     import Modules.L4UI.AboutBoxController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
@@ -272,7 +271,6 @@ package Modules.L5App.InputManager
         public static function onMouseMoveUpdatePenPreviewCursor(e:MouseEvent):void
         {
             ToolPanel.followMouseWithSelectedToolViewBitmap();
-            ToolMouseCursorController.updateToolMouseCursorByToolAndPointerArea();
 
             if (ReplayState.isReplayModeON || CaptureController.isCaptureModeON)
             {

@@ -38,8 +38,6 @@
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.AppDataPaths;
-    import Modules.L1Data.AppSettingsIniFile;
-    import Modules.L4UI.ToolMouseCursorController;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.UIEngine.MessageBoxController;
     import Modules.L4UI.PenSizePreviewCursor;
@@ -311,8 +309,6 @@
             CanvasResizer.initialize();
             DrawCanvas.initializeCaptureModeTransparentBG();
             BackgroundWorkerCoordinator.initializeWorker();
-            AppSettingsIniFile.loadSettingsFromIniFile();
-            ToolMouseCursorController.registerToolMouseCursors();
             AppStateManager.loadAppState();
             // 입력 이벤트는 loadappdstate보다느려야함
             addGlobalEvents();
