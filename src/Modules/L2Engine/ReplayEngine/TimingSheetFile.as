@@ -460,7 +460,7 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // 메모리 undo 묶음(앞 groupCount개)의 기록을 간격과 연출 길이로 바꿈. 첫 프레임은 파일에 마지막으로 쓴 프레임과 이어서 구함
-        // deltaMsList, anims는 비어있는 Vector를 받아서 채움
+        // deltaMsList, animLengthList는 비어있는 Vector를 받아서 채움
         public static function makeMemoryFrameRecords(memoryTimingElementGroups:Array, memoryGroupCount:int, deltaMsList:Vector.<uint>, animLengthList:Vector.<uint>):void
         {
             var previousTimerStamp:int = lastWrittenTimerStamp;
@@ -494,8 +494,8 @@ package Modules.L2Engine.ReplayEngine
         }
 
         // .fofo 파일 끝에 쓰는 ["rTimingSheet", 버전, 프레임 수, 구간 프레임 수, [구간별 압축 데이터]] 객체를 만듬
-        // 앞쪽 fileFrames개는 파일에서 읽고, 그 뒤는 메모리 undo 묶음(memoryStamps의 앞 memoryGroupCount개)의 기록에서 계산함
-        // 메모리 묶음 첫 프레임의 간격은 파일 마지막 프레임과 이어서 구하고, extraFrames는 끝에 간격 0으로 덧붙이는 프레임 수
+        // 앞쪽 fileFrameCount개는 파일에서 읽고, 그 뒤는 메모리 undo 묶음(memoryTimingElementGroups의 앞 memoryGroupCount개)의 기록에서 계산함
+        // 메모리 묶음 첫 프레임의 간격은 파일 마지막 프레임과 이어서 구하고, extraFrameCount는 끝에 간격 0으로 덧붙이는 프레임 수
         // 구간 하나씩만 풀어서 압축하니 전체를 한번에 메모리에 올리지 않음
         public static function makeSheetFileObject(fileFrameCount:Number, memoryTimingElementGroups:Array, memoryGroupCount:int, extraFrameCount:int):Array
         {
