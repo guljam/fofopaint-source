@@ -38,6 +38,8 @@ package Modules.L5App
     // 층: L5 앱 흐름 - 창 크기, 활성화, 닫기 처리와 창 제목 갱신
     public class AppWindowState
     {
+        private static const NATIVE_SAVE_EXIT_WAIT:int = 120;
+
         // 윈도우 비활성화된 시간 저장, 알탭 반복 시 save all data 과다 호출 방지
         public static var lastWindowDeactivateTime:int = 0;
                 // 앱종료할때 올려줌 창 최대화 되어있는 상태를 원래대로 하고 window resize이벤트에서 마지막에 종료 호출
@@ -123,8 +125,6 @@ package Modules.L5App
             ToolController.selectLastUsedTool();
             lastWindowDeactivateTime = getTimer();
         }
-
-        private static const NATIVE_SAVE_EXIT_WAIT:int = 120;
 
         public static function onWindowClosingEvent(e:Event):void
         {

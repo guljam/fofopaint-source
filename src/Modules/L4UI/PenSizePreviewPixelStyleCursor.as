@@ -8,7 +8,7 @@ package Modules.L4UI {
      * setCursorColorInverted()는 ColorTransform만 바꾸므로 지오메트리 계산이나 다시 그리기를 하지 않습니다.
      */
     // 층: L4 UI - 정수 픽셀 원·사각형 외곽선을 그리는 펜 커서 픽셀
-    public class PenCursorPreviewPixel extends Sprite {
+    public class PenSizePreviewPixelStyleCursor extends Sprite {
 
         public static const SHAPE_CIRCLE:String = "circle";
         public static const SHAPE_SQUARE:String = "square";
@@ -47,7 +47,7 @@ package Modules.L4UI {
         // 색상 반전 플래그 (false: 검은색 메인선 + 흰색 알파 외곽선 / true: 흰색 메인선 + 검은색 알파 외곽선)
         private var _isCursorColorInverted:Boolean = false;
 
-        public function PenCursorPreviewPixel() {
+        public function PenSizePreviewPixelStyleCursor() {
             this.mouseEnabled = false;
             this.mouseChildren = false;
         }

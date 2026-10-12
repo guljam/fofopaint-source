@@ -45,7 +45,7 @@ package Modules.L4UI
         private static const OUTLINE_SCAN_INTERVAL_SEC:Number = 0.3; // 테두리 검사(한 바퀴)를 시작하는 주기. 검정/흰색 경계에서 프레임마다 반전이 깜빡이는 것을 막음
         private static const CHECK_TIMER_NAME:String = "penCursorInvertTimer";
 
-        private static const _cursor:PenCursorPreviewPixel = new PenCursorPreviewPixel(); // 펜사이즈 미리 보기
+        private static const _cursor:PenSizePreviewPixelStyleCursor = new PenSizePreviewPixelStyleCursor(); // 펜사이즈 미리 보기
 
         private static const PEN_COLOR_PREVIEW_MIN_SCREEN_SIZE:Number = 2.0; // 고른 펜 색 미리보기의 화면상 최소 지름/변 길이
         private static const penColorPreviewShape:Shape = new Shape(); // 고른 펜 색(알파 포함)을 보여주는 채움. 반전이 색에 걸리지 않게 _cursor의 자식이 아니라 형제로 둠
@@ -166,7 +166,7 @@ package Modules.L4UI
             return _cursor.getBounds(CanvasView.canvasPanel);
         }
 
-        public static function getCursorShape():PenCursorPreviewPixel
+        public static function getCursorShape():PenSizePreviewPixelStyleCursor
         {
             return _cursor;
         }
