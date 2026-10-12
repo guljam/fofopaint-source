@@ -9,6 +9,7 @@
 	import assets.VisualBuilder;
 	import assets.VisualFieldCollector;
 	import Modules.L1Data.UIEngine.UITheme;
+	import Modules.L4UI.UIEngine.MenuBoxBorderUI;
 
 	// 층: L4 UI - 참조 레이어 메뉴 화면 묶음
 	public class RefLayerMenuSet extends Sprite
@@ -37,6 +38,8 @@
 
 		private var refLayerMenuInfoPos:Array = [0, 0]; // y ,height
 		private var constScale:Number = 1.0;
+		private var menuBoxBorderUI:MenuBoxBorderUI; //배경 조각의 겉 테두리를 해진 모양으로 자르는 마스크 (생성자 맨 끝에서 만듦)
+		private static const MENU_BOX_BORDER_SEED:uint = 403;
 
 		public function updateUIColor():void
 		{
@@ -99,6 +102,8 @@
 			return refInfoText.text;
 		}
 
+		// 힌트 글자를 바꿈. 여러 줄이면 글자와 이동 버튼 배경(refLayerMenuMoveButton)을 위로 올렸다가 한 줄이 되면 되돌리고, 바뀐 배경에 맞춰 가장자리 마스크를 갱신함.
+		// 이동 버튼은 위쪽 변이 EXTEND_PX 늘어나 있어서 그만큼 더 위가 기준 위치임
 		public function hint(str:String):void
 		{
 			refInfoText.text = str;
@@ -106,13 +111,15 @@
 			if (str.indexOf("\n") !== -1)
 			{
 				refInfoText.y = refLayerMenuInfoPos[0] - (refInfoText.height - refLayerMenuInfoPos[1]);
-				refLayerMenuMoveButton.y = Math.floor(refInfoText.y - 3);
+				refLayerMenuMoveButton.y = Math.floor(refInfoText.y - 3) - MenuBoxBorderUI.EXTEND_PX;
 			}
 			else if (refLayerMenuInfoPos[0] !== refInfoText.y)
 			{
 				refInfoText.y = refLayerMenuInfoPos[0];
-				refLayerMenuMoveButton.y = 0;
+				refLayerMenuMoveButton.y = -MenuBoxBorderUI.EXTEND_PX;
 			}
+
+			menuBoxBorderUI.updateMenuBoxBorderRect();
 		}
 
 		public function setScale(newScale:Number):void
@@ -160,6 +167,8 @@
 			refInfoText.autoSize = TextFieldAutoSize.LEFT;
 			refLayerMenuInfoPos[0] = refInfoText.y;
 			refLayerMenuInfoPos[1] = refInfoText.height;
+
+			menuBoxBorderUI = new MenuBoxBorderUI(this, [refLayerMenuMoveButton, refLayerMenuBGLeft, refLayerMenuBGRight], [], MENU_BOX_BORDER_SEED);
 		}
 	}
 }

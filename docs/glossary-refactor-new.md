@@ -61,6 +61,7 @@
 | 공통 마스크 클래스 | `WornBorderMask` (L4, `Modules.L4UI.UIEngine`) | `Shape`를 상속한 해진 가장자리 마스크 한 장. `updateMaskSize(너비, 높이)`가 같은 크기면 다시 그리지 않음. `~BorderUI` 클래스(색 선택기, 시크바, 하단 힌트)가 요소마다 한 장씩 가져다 씀 |
 | 시크바 가장자리 클래스 | `SeekbarBorderUI` (L4, `Modules.L4UI`) | `SeekBarSet`의 트랙, 진행, 삭제 범위, 쉬는 구간 막대에 트랙 크기의 같은 모양 마스크를 걸어 가장자리를 해지게 함. 막대는 20x20을 `width`로 늘려 쓰므로 마스크는 자식이 아니라 `SeekBarSet`에 형제로 둠. `updatePos`에서 트랙 크기를 넘겨 맞춤 |
 | 하단 힌트 가장자리 클래스 | `BottomHintBorderUI` (L4, `Modules.L4UI.UIEngine`) | `HintController.bottomBar`에 마스크를 걸어 하단 힌트 바 위쪽 경계를 해지게 함. `updateBottomBarLayoutAndColor`에서 바 크기를 넘겨 맞춤 |
+| 메뉴 상자 가장자리 클래스 | `MenuBoxBorderUI` (L4, `Modules.L4UI.UIEngine`) | 툴박스2, 올가미 메뉴, 참조 레이어 메뉴의 배경 조각(여러 개가 맞붙음) 바깥 변을 `EXTEND_PX`(2px) 늘리고 조각마다 같은 크기 `WornBorderMask`를 걸어 겉 테두리만 해지게 함. 힌트로 조각이 움직이면 `updateMenuBoxBorderRect`로 마스크를 맞춤. `ToolMenuSet2.hint`가 단일 줄 복귀 때 BG 높이를 60으로 고정하던 것은 저장해 둔 높이로 복원하도록 바꿈 |
 | 하이라이트 상자 모양 고정 | `HandDrawnLine.drawRect`의 `randomSeed` 인자, `HintController.HIGHLIGHT_BOX_SEED` | 앱을 켤 때 seed를 한 번 정해 같은 크기의 하이라이트가 늘 같은 모양이 됨(-1이면 예전처럼 그릴 때마다 무작위). 크기(가로x세로)별로 한 번 그린 `Shape`를 저장해 두었다가 같은 크기가 오면 그대로 보여주고, 하이라이트 색이 바뀌거나 64개를 넘으면 비움 |
 
 ### 1단계 이후 새 L1 클래스의 위치
@@ -189,6 +190,7 @@
 | CanvasNavigator | L4 | Modules.UIEngine | Modules.L4UI.UIEngine |
 | HintController | L4 | Modules.UIEngine | Modules.L4UI.UIEngine |
 | BottomHintBorderUI | L4 | (신설) | Modules.L4UI.UIEngine |
+| MenuBoxBorderUI | L4 | (신설) | Modules.L4UI.UIEngine |
 | WornBorderMask | L4 | (신설) | Modules.L4UI.UIEngine |
 | UIController | L4 | Modules.UIEngine | Modules.L4UI.UIEngine |
 | AboutWindowSet | L4 | Symbols | Symbols |

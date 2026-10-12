@@ -12,6 +12,7 @@
 	import assets.VisualFieldCollector;
 	import assets.VisualBuilder;
 	import Modules.L1Data.UIEngine.UITheme;
+	import Modules.L4UI.UIEngine.MenuBoxBorderUI;
 
 	// 층: L4 UI - 우클릭 툴 메뉴(toolBox2) 화면 묶음
 	public class ToolMenuSet2 extends Sprite
@@ -37,6 +38,8 @@
 		private var infoDataBackup:Array = [];
 		private var lastUsedToolPoint:Point = new Point(0, 0);
 		private var onMouseOverTarget:DisplayObject;
+		private var menuBoxBorderUI:MenuBoxBorderUI; //배경 조각의 겉 테두리를 해진 모양으로 자르는 마스크 (생성자 맨 끝에서 만듦)
+		private static const MENU_BOX_BORDER_SEED:uint = 401;
 
 		private const resizeButtonWaitPrograssBar:Shape = new Shape();
 		private const resizeButtonWaitPrograssBarDuration:Number = 0.9;
@@ -67,6 +70,7 @@
 			lastUsedToolPoint.setTo((btn.x + btn.width / 2) * constScale, (btn.y + btn.height / 2) * constScale);
 		}
 
+		// 힌트 글자를 바꿈. 여러 줄이면 배경 조각(toolBoxBG)을 위로 20px 늘렸다가 한 줄이 되면 원래 위치와 높이로 되돌리고, 바뀐 배경에 맞춰 가장자리 마스크를 갱신함
 		public function hint(str:String):void
 		{
 			if (str.indexOf("\n") !== -1)
@@ -89,11 +93,12 @@
 				toolInfoText.y = infoDataBackup[0];
 				toolInfoText.height = infoDataBackup[1];
 				toolBoxBG.y = infoDataBackup[2];
-				toolBoxBG.height = 60;
+				toolBoxBG.height = infoDataBackup[3];
 				infoDataBackup.length = 0;
 			}
 
 			toolInfoText.text = str;
+			menuBoxBorderUI.updateMenuBoxBorderRect();
 		}
 
 		public function setToolButtonsForCheckedLayerON():void
@@ -248,10 +253,14 @@
 
 			constScale = 34 / toolPen.width;
 			setScale(1.0);
-			resizeButtonWaitPrograssBarWidth = this.width / constScale;
 
-			resizeButtonWaitPrograssBar.y = 2;
+			// 배경 조각이 사방 EXTEND_PX 늘어나므로 진행 막대도 늘어난 위쪽 변과 폭에 맞춤 (막대 두께 4px의 가운데 선이 y=0)
+			resizeButtonWaitPrograssBar.x = -MenuBoxBorderUI.EXTEND_PX;
+			resizeButtonWaitPrograssBar.y = 0;
 			addChild(resizeButtonWaitPrograssBar);
+
+			menuBoxBorderUI = new MenuBoxBorderUI(this, [toolBoxBG2, toolBoxBG], [resizeButtonWaitPrograssBar], MENU_BOX_BORDER_SEED);
+			resizeButtonWaitPrograssBarWidth = this.width / constScale;
 		}
 	}
 

@@ -11,6 +11,7 @@
 	import assets.VisualFieldCollector;
 	import Modules.L1Data.Utils;
 	import Modules.L1Data.UIEngine.UITheme;
+	import Modules.L4UI.UIEngine.MenuBoxBorderUI;
 
 	// 층: L4 UI - 올가미 메뉴 화면 묶음
 	public class LassoMenuSet extends Sprite
@@ -35,6 +36,8 @@
 		private const constScale:Number = 0.875;
 
 		private var lassoInfoPos:Array = [0, 0];
+		private var menuBoxBorderUI:MenuBoxBorderUI; //배경 조각의 겉 테두리를 해진 모양으로 자르는 마스크 (생성자 맨 끝에서 만듦)
+		private static const MENU_BOX_BORDER_SEED:uint = 402;
 
 		public function updateUIColor():void
 		{
@@ -88,6 +91,8 @@
 			return lassoInfo.text;
 		}
 
+		// 힌트 글자를 바꿈. 여러 줄이면 글자와 이동 버튼 배경(lassoMenuMoveButton)을 위로 올렸다가 한 줄이 되면 되돌리고, 바뀐 배경에 맞춰 가장자리 마스크를 갱신함.
+		// 이동 버튼은 위쪽 변이 EXTEND_PX 늘어나 있어서 그만큼 더 위가 기준 위치임
 		public function hint(str:String):void
 		{
 			lassoInfo.text = str;
@@ -95,13 +100,15 @@
 			if (str && str.indexOf("\n") !== -1)
 			{
 				lassoInfo.y = lassoInfoPos[0] - (lassoInfo.height - lassoInfoPos[1]);
-				lassoMenuMoveButton.y = Math.floor(lassoInfo.y - 3);
+				lassoMenuMoveButton.y = Math.floor(lassoInfo.y - 3) - MenuBoxBorderUI.EXTEND_PX;
 			}
 			else if (lassoInfoPos[0] !== lassoInfo.y)
 			{
 				lassoInfo.y = lassoInfoPos[0];
-				lassoMenuMoveButton.y = 0;
+				lassoMenuMoveButton.y = -MenuBoxBorderUI.EXTEND_PX;
 			}
+
+			menuBoxBorderUI.updateMenuBoxBorderRect();
 
 			// lassoMenuMoveButton.height = lassoInfo.height+5;
 		}
@@ -145,6 +152,8 @@
 			lassoInfo.mouseEnabled = false;
 			lassoInfoPos[0] = lassoInfo.y;
 			lassoInfoPos[1] = lassoInfo.height;
+
+			menuBoxBorderUI = new MenuBoxBorderUI(this, [lassoMenuBG, lassoMenuMoveButton, lassoMenuBG2], [], MENU_BOX_BORDER_SEED);
 		}
 	}
 }
