@@ -76,7 +76,7 @@
 			this.scaleY = newScale;
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="FOFOCursor")]
+		[Embed(source="legacyUISet.swf",symbol="FOFOCursor")]
 		private static const EmbeddedClass:Class;
 
 		public function FOFOCursorSet()

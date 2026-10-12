@@ -204,7 +204,7 @@
 			mainBox.graphics.endFill();
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="LoadBoxSet")]
+		[Embed(source="legacyUISet.swf",symbol="LoadBoxSet")]
 		private static const EmbeddedClass:Class;
 
 		public function LoadBoxSet()

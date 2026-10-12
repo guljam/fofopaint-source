@@ -29,7 +29,7 @@
 			UITheme.applyUIFGColor(rotateCircle);
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="RotateCursorSet")]
+		[Embed(source="legacyUISet.swf",symbol="RotateCursorSet")]
 		private static const EmbeddedClass:Class;
 
 		public function RotateCursorSet()

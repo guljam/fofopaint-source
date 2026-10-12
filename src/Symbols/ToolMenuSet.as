@@ -380,7 +380,7 @@
             toolFillPenCancel.y = toolPen.y;
         }
 
-        [Embed(source="fofoPaint-animate-27.13.swf",symbol="ToolMenuSet")]
+        [Embed(source="legacyUISet.swf",symbol="ToolMenuSet")]
         private static const EmbeddedClass:Class;
 
         public function ToolMenuSet()

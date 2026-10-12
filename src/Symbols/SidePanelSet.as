@@ -46,7 +46,7 @@
 			UITheme.applyUIBGColor(sideBarBG);
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="SidePanelSet")]
+		[Embed(source="legacyUISet.swf",symbol="SidePanelSet")]
 		private static const EmbeddedClass:Class;
 
 		public function SidePanelSet()

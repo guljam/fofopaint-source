@@ -119,7 +119,7 @@
 			return this.visible;
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="HintBoxSet")]
+		[Embed(source="legacyUISet.swf",symbol="HintBoxSet")]
 		private static const EmbeddedClass:Class;
 
 		public function HintBoxSet(initBG:Boolean)

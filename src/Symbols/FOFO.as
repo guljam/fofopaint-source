@@ -59,7 +59,7 @@
             UITheme.applyUIFGColor(fofo);
         }
 
-        [Embed(source="fofoPaint-animate-27.13.swf",symbol="FOFO")]
+        [Embed(source="legacyUISet.swf",symbol="FOFO")]
         private static const EmbeddedClass:Class;
 
         public function FOFO()

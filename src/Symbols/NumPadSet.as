@@ -587,7 +587,7 @@
 			previewBox.visible = true;
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="NumPadSet")]
+		[Embed(source="legacyUISet.swf",symbol="NumPadSet")]
 		private static const EmbeddedClass:Class;
 
 		public function NumPadSet()

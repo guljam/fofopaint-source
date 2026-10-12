@@ -92,7 +92,7 @@
 			UITheme.applyUIFGColor(appInfoBorder);
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="CanvasInfoSet")]
+		[Embed(source="legacyUISet.swf",symbol="CanvasInfoSet")]
 		private static const EmbeddedClass:Class;
 
 		public function CanvasInfoSet()

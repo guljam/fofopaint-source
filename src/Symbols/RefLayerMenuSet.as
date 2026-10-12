@@ -131,7 +131,7 @@
 			this.scaleY = newScale * constScale;
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="RefLayerMenuSet")]
+		[Embed(source="legacyUISet.swf",symbol="RefLayerMenuSet")]
 		private static const EmbeddedClass:Class;
 
 		public function RefLayerMenuSet()

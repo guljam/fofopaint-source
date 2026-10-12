@@ -88,7 +88,7 @@
 			this.scaleY = newScale * constScale;
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="FillPenMenuSet")]
+		[Embed(source="legacyUISet.swf",symbol="FillPenMenuSet")]
 		private static const EmbeddedClass:Class;
 
 		public function FillPenMenuSet()

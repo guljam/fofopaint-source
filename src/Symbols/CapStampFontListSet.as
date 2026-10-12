@@ -282,7 +282,7 @@
 			}
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="CapStampFontListSet")]
+		[Embed(source="legacyUISet.swf",symbol="CapStampFontListSet")]
 		private static const EmbeddedClass:Class;
 
 		public function CapStampFontListSet()

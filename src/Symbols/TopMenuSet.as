@@ -630,7 +630,7 @@
 			}
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="TopMenuSet")]
+		[Embed(source="legacyUISet.swf",symbol="TopMenuSet")]
 		private static const EmbeddedClass:Class;
 
 		public function TopMenuSet()

@@ -223,7 +223,7 @@
 			this.addEventListener(Event.ENTER_FRAME, handleOnEnterFrameResizeButtonWaitPrograssBarAnimation);
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="ToolMenuSet2")]
+		[Embed(source="legacyUISet.swf",symbol="ToolMenuSet2")]
 		private static const EmbeddedClass:Class;
 
 		public function ToolMenuSet2()

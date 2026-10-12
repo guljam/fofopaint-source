@@ -65,7 +65,7 @@
 			memoryInfo.text = "Adobe AIR SDK " + str;
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="AboutWindowSet")]
+		[Embed(source="legacyUISet.swf",symbol="AboutWindowSet")]
 		private static const EmbeddedClass:Class;
 
 		public function AboutWindowSet()

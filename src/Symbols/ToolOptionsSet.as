@@ -598,7 +598,7 @@
 			penShapeAndSmoothingWarpper.y = layerButtonWrapper.y + layerButtonWrapper.height + 2;
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="ToolOptionsSet")]
+		[Embed(source="legacyUISet.swf",symbol="ToolOptionsSet")]
 		private static const EmbeddedClass:Class;
 
 		public function ToolOptionsSet()

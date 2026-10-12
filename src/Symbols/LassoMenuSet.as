@@ -122,7 +122,7 @@
 			this.scaleY = newScale * constScale;
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="LassoMenuSet")]
+		[Embed(source="legacyUISet.swf",symbol="LassoMenuSet")]
 		private static const EmbeddedClass:Class;
 
 		public function LassoMenuSet()

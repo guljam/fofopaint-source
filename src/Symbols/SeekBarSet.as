@@ -361,7 +361,7 @@
 			setChildIndex(replayWaitingRangeBar, 2); // 트랙 위, 진행 막대 아래
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="seekBarSet")]
+		[Embed(source="legacyUISet.swf",symbol="seekBarSet")]
 		private static const EmbeddedClass:Class;
 
 		public function SeekBarSet()

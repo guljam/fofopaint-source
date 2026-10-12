@@ -32,7 +32,7 @@
 			circleBox.rotation = r;
 		}
 
-		[Embed(source="fofoPaint-animate-27.13.swf",symbol="EyedropperLensSet")]
+		[Embed(source="legacyUISet.swf",symbol="EyedropperLensSet")]
 		private static const EmbeddedClass:Class;
 
 		public function EyedropperLensSet()
