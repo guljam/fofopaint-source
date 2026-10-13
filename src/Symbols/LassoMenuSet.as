@@ -40,7 +40,7 @@
 		private static const MENU_BOX_BORDER_SEED:uint = 402;
 		private static const MENU_BUTTON_OVER_BORDER_SEED:uint = 4020; //버튼 마우스 올림 배경 마스크 seed (버튼 번호를 더해 씀)
 		private static const MENU_BUTTON_OVER_EROSION_SCALE:Number = 1.3; //버튼 마우스 올림 배경 깎임 강도 배율 (1.0이 기본)
-		private static const MENU_BOX_BORDER_EROSION_SCALE:Number = 1.1; //이 상자 가장자리 깎임 강도 배율 (1.0이 기본)
+		private static const MENU_BOX_BORDER_EROSION_SCALE:Number = 1.3; //이 상자 가장자리 깎임 강도 배율 (1.0이 기본)
 
 		public function updateUIColor():void
 		{

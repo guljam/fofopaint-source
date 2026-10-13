@@ -10,6 +10,9 @@ package Modules.L4UI.UIEngine
     // 겉 테두리를 손으로 그린 듯 해진 모양으로 자르는 마스크(WornBorderMask)를 소유함.
     // 마스크는 깎기만 하므로 배경 조각의 바깥쪽 변을 EXTEND_PX만큼 먼저 늘려서, 깎인 뒤에도 원래 상자 크기에 가깝게 보이게 함.
     // 조각마다 같은 크기의 마스크를 하나씩 걸어서(마스크 하나는 객체 하나만 가릴 수 있음) 조각이 맞닿은 안쪽 이음매는 깎이지 않음
+
+    //todo 최적화 사항 좀 있는것같음, 그리고 lasso랑 reflayer 사각형은 늘려준만큼 다시 좌상단 튀어나온 부분을 옮겨줘야 keepBoxInsideViewPort에도 맞음
+    // keepBoxInsideViewPortLassoRefLayer지금은 임시 땜빵처리
     public class MenuBoxBorderUI
     {
         // 배경 조각의 바깥쪽 변을 늘리는 길이(px). 메뉴 안 좌표 기준이라 메뉴 배율만큼 같이 커짐
@@ -23,6 +26,11 @@ package Modules.L4UI.UIEngine
 
         // backgroundPieceList의 조각들은 바깥쪽 변을 EXTEND_PX 늘리고 마스크를 걸며, maskOnlyObjectList의 객체(진행 막대 등)는 크기는 그대로 두고 마스크만 걸어서
         // 같은 상자 테두리로 잘라냄. erosionScale은 상자별 깎임 강도 배율(1.0이 기본). 두 목록 모두 menuBox의 직계 자식이어야 하고, menuBox 생성자 맨 끝(조각들이 자리를 잡은 뒤)에서 불러야 함
+
+        // todo : getBackgroundPiecesLeft right top bottom에서  backgroundPieceList를 훑지말고 backgroundPieceList를 넘겨주기 전에 rect union으로 한번만 계산해주면 되는데 왜 업데이트 할때마다 계속해줌 병신같이
+        //심지어 union할필요도 없고 MenuBoxBorderUI호출하기 전에 한번만 계산해주고 그 고정된 상하좌우를 넘겨주면됨
+        // 생각해보니 동적으로 움직이니까 다시 계산해주어야 하는건 맞는것같은데 그냥 원래 lasso메뉴 ref메뉴 전체 width height를 구해주면 되지않나?
+        //힌트때문에 
         public function MenuBoxBorderUI(menuBox:Sprite, backgroundPieceList:Array, maskOnlyObjectList:Array, wornSeed:uint, erosionScale:Number = 1.0)
         {
             this.backgroundPieceList = backgroundPieceList;

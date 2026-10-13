@@ -1763,7 +1763,7 @@ package Modules.L5App.ReplayEngine
             {
                 Utils.setColorTransform(UIController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
                 rReplayRestartTimerCount = 0;
-                //todo updateReplayPrograssText로 replay finished 표시해주고 싶은데 메서드가 3개일을하고있어서 잘모르겠음 ai한테 물어봐야겠음
+                //todo updateReplayPrograssText로 replay finished 표시해주고 잘 모르겠음 ai한테 물어봐야겠음
                 updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
             }
         }

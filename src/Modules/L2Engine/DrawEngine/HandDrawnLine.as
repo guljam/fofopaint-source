@@ -25,7 +25,7 @@ package Modules.L2Engine.DrawEngine
         private static const WORN_FINE_WEIGHT:Number = 0.075; // 세밀한 깎임 비중
 
         private static const WORN_BASE_SPACING:Number = 14.0; // 큰 굴곡 제어점 간격(px)
-        private static const WORN_FINE_SPACING:Number = 16.0; // 잔떨림 제어점 간격(px)
+        private static const WORN_FINE_SPACING:Number = 12.0; // 잔떨림 제어점 간격(px)
         private static const WORN_SAMPLE_SPACING:Number = 1.5; // 가장자리를 훑는 간격(px)
 
         // drawRect가 randomSeed를 받았을 때 같은 모양을 내도록 쓰는 난수 상태

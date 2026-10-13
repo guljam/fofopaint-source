@@ -88,7 +88,8 @@
     [SWF(frameRate="24")]
     public class Main extends Sprite
     {
-        // todo: (중요) module 클래스는 정적 변수가 아니라 main에서 호출되어서 연결되어지는 클래스 인스턴스로 가는게맞는것같음
+        //todo 모듈식 구조를 어떻게 해야할지 그냥 이대로 하향식 흐름 클래스로 가는게 맞는지?
+        //todo 한획 긋고 세이브 한횟긋고 세이브, 즉 같은 파일 세이브가 빠른시간에 다발적으로 일어날때 중간에 취소 해줄수는 없는지 생각 png 인코딩도 마찬가지임
         public static var _instance:Main;
         public const APP_VERSION:String = "30.0.0";
         public const APP_STATE_VERSION:String = "30.0.0";

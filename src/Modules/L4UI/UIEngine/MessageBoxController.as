@@ -20,13 +20,14 @@ package Modules.L4UI.UIEngine
     // 메시지 위 왼쪽 클릭: 그 메시지를 지움. 오른쪽·휠 클릭: 지우지 않고 가로채기만 함 (아래 캔버스·UI로 전달하지 않음)
     // 클릭 판정은 상자 + 상하좌우 MESSAGE_CLICK_MARGIN, 파란 하이라이트는 상자 자체만
     // 층: L4 UI - 뷰포트 좌상단 메시지 상자 쌓기, 만료 타이머, 클릭 가로채기, 배치
+
     public final class MessageBoxController
     {
         public static const MAX_MESSAGE_COUNT:int = 6;
         public static const DEFAULT_MESSAGE_DURATION:Number = 5.0;
         private static const MESSAGE_CLICK_MARGIN:Number = 5; // 클릭 판정 영역: 상자 + 상하좌우 이만큼
         private static const GAP_FROM_VIEWPORT_EDGE:Number = 5; // 뷰포트 위·왼쪽 가장자리와 메시지 사이
-        private static const GAP_BETWEEN_MESSAGES:Number = 2;
+        private static const GAP_BETWEEN_MESSAGES:Number = 5;
         private static const MAX_MESSAGE_LENGTH:int = 200; // 넘으면 잘라서 "..."을 붙임
         private static const MESSAGE_EXPIRE_TIMER:String = "messageExpireTimer";
 

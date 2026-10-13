@@ -34,6 +34,7 @@ package Modules.L4UI
             bar.mask = borderMask;
         }
 
+        //todo 세로가 바뀔때도 업데이트 안해주어야하는데 미세 최적화 할만한 가치가 있는지 의문
         // 네 마스크를 트랙 위치와 크기에 맞춤. 크기가 같으면 다시 그리지 않으므로 진행 막대 너비가 프레임마다 바뀌어도 부담이 없음
         public function updateTrackBorderRect(trackX:Number, trackY:Number, trackWidth:Number, trackHeight:Number):void
         {

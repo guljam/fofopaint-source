@@ -410,8 +410,8 @@ package Modules.L4UI.UIEngine
         {
             if(target === ReferenceLayerController.refLayerMenuBox || target === LassoTool._lassoMenuBox)
             {
-                trace('enter');
-                keepBoxInsideViewPort(target,2,2);
+                const offset:Number = MenuBoxBorderUI.EXTEND_PX;
+                keepBoxInsideViewPort(target,offset,offset);
             }
             else
             {
