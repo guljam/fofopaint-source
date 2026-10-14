@@ -37,8 +37,8 @@ package Modules.L4UI.ReplayEngine
         private static const MIN_REGION_CANVAS_PX:Number = 200; // 활동 영역의 최소 가로/세로 (캔버스 px). 커서가 거의 안 움직일 때 상한까지 빨려 들어가지 않게 함
         private static const PIXEL_MAGNIFY_LIMIT:Number = 2; // 확대 상한 1: 캔버스 1px을 화면 몇 px까지 키울지 (UI 배율을 곱해서 고해상도 화면에서도 같은 크기로 보이게 함)
         private static const CONTEXT_ZOOM_LIMIT:Number = 2.4; // 확대 상한 2: 맞춤 배율의 몇 배까지 들어갈지. 줄이면 주변 맥락을 더 남김
-        private static const ZOOM_OUT_SMOOTH_MS:Number = 1000; // 줌아웃 스프링 시간 (조금 빠르게)
-        private static const ZOOM_IN_SMOOTH_MS:Number = 1000; // 줌인 스프링 시간 (느긋하게)
+        private static const ZOOM_OUT_SMOOTH_MS:Number = 3000; // 줌아웃 스프링 시간
+        private static const ZOOM_IN_SMOOTH_MS:Number = 2000; // 줌인 스프링 시간
         private static const START_OVERVIEW_MS:Number = 1500; // 처음부터 재생을 시작한 뒤 전체 보기를 유지하는 실제 시간
 
         // 활동 영역
