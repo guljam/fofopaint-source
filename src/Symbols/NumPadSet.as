@@ -65,8 +65,10 @@
 		private const okHSliderCusor:Shape = new Shape();
 
 		private const sliderOffset:Number = 5.0;
-		// C 슬라이더 맨 위 값. sRGB에서 가장 진한 색(마젠타)의 C가 약 0.3225라 조금 여유를 둠
-		private const okChromaSliderMaxValue:Number = 0.33;
+		// 최대 C를 찾을 때 탐색을 시작하는 C. sRGB에서 가장 진한 색(마젠타)의 C가 약 0.3225라 조금 여유를 둠
+		private const okMaxChromaSearchUpperBound:Number = 0.33;
+		// L이 0이나 1에 가까워 최대 C가 이보다 작으면 S(최대 C 대비 비율)가 의미 없으므로 0으로 봄
+		private const okMinimumMaxChromaForSaturation:Number = 0.001;
 		// 범위 안 판정에서 선형 RGB 계산 오차를 허용하는 폭
 		private const okGamutCheckTolerance:Number = 1e-7;
 		// 범위 밖 색을 채널별로 잘라도 되는 OKLab 거리 한계 (CSS Color 4의 JND 값)
@@ -77,7 +79,8 @@
 		private const okLinearRGBBuffer:Object = {r: 0, g: 0, b: 0};
 		private var okBaseHue:Number = 0;
 		private var okBaseColor:uint = 0;
-		private var okBaseColorLch:Object;
+		// 조절 중인 색 {L, S, H}. S는 그 L과 H에서 표시 가능한 최대 C 대비 비율(0~1)이라 L, H를 바꿔도 범위를 벗어나지 않음
+		private var okBaseColorLsh:Object;
 		private var okPickedColor:uint = 0;
 
 		private const previewBox:Sprite = new Sprite();
@@ -125,6 +128,8 @@
 			okCSliderCursor.graphics.lineTo(width, 0);
 			okCWrapper.addChild(okCBitmap);
 			okCWrapper.addChild(okCSliderCursor);
+			// 가운데 슬라이더는 C 값이 아니라 최대 C 대비 비율(S)을 조절함
+			oklabCText.text = "S";
 			oklabCText.x = okCWrapper.x + (width - oklabCText.width) / 2 - 1;
 			oklabCText.y = okCWrapper.y - 14;
 
@@ -229,12 +234,12 @@
 			}
 		}
 
-		private function initOkLchSliderPos(lch:Object):void
+		private function initOkLchSliderPos(lsh:Object):void
 		{
 			const height:Number = okLBitmap.bitmapData.height;
-			const lpos:Number = height - lch.L * height;
-			const cpos:Number = height - (lch.C / okChromaSliderMaxValue) * height;
-			const hpos:Number = height - (lch.H / 360.0) * height;
+			const lpos:Number = height - lsh.L * height;
+			const cpos:Number = height - lsh.S * height;
+			const hpos:Number = height - (lsh.H / 360.0) * height;
 
 			okLSliderCursor.y = lpos + sliderOffset;
 			okCSliderCursor.y = cpos + sliderOffset;
@@ -244,13 +249,13 @@
 		public function updateOkBaseColor(color:uint):void
 		{
 			okBaseColor = color;
-			okBaseColorLch = hexToOklch(color);
+			okBaseColorLsh = hexToOklsh(color);
 			if (isBaseColorNearGray())
 			{
-				okBaseColorLch.H = okBaseHue;
+				okBaseColorLsh.H = okBaseHue;
 			}
 
-			initOkLchSliderPos(okBaseColorLch);
+			initOkLchSliderPos(okBaseColorLsh);
 
 			updateOKGradient(true, true, true);
 		}
@@ -347,26 +352,10 @@
 			return (v < min) ? min : (v > max) ? max : v;
 		}
 
-		private function cubeRoot(x:Number, tol:Number = 1e-12, maxIter:int = 20):Number
+		// 세제곱근. Math.pow는 음수에 NaN을 주므로 부호를 따로 처리함
+		private function cubeRoot(x:Number):Number
 		{
-			if (x == 0)
-				return 0;
-			var sign:int = (x < 0) ? -1 : 1;
-			if (x < 0)
-				x = -x;
-
-			var y:Number = Math.exp(Math.log(x) / 3); // 초기 추정값
-
-			for (var i:int = 0;i < maxIter;i++)
-			{
-				var next:Number = (2 * y + x / (y * y)) / 3;
-				if (Math.abs(next - y) < tol)
-				{
-					return sign * next;
-				}
-				y = next;
-			}
-			return sign * y;
+			return (x < 0) ? -Math.pow(-x, 1 / 3) : Math.pow(x, 1 / 3);
 		}
 
 		private function rgbToOklab(r:Number, g:Number, b:Number):Object
@@ -534,6 +523,28 @@
 			return oklabToOklch(ok.L, ok.a, ok.b);
 		}
 
+		// 주어진 L과 H에서 sRGB로 표시할 수 있는 가장 큰 C (잘라도 눈에 띄지 않는 JND 허용 포함)
+		private function findMaxChromaAtLightnessAndHue(L:Number, H:Number):Number
+		{
+			return findInGamutChromaKeepingLightnessAndHue(L, okMaxChromaSearchUpperBound, H);
+		}
+
+		// hex 색을 {L, S, H}로 바꿈. S는 그 L과 H에서의 최대 C 대비 비율(0~1)
+		private function hexToOklsh(color:uint):Object
+		{
+			const lch:Object = hexToOklch(color);
+			const maxChroma:Number = findMaxChromaAtLightnessAndHue(lch.L, lch.H);
+			const S:Number = (maxChroma < okMinimumMaxChromaForSaturation) ? 0.0 : Math.min(lch.C / maxChroma, 1.0);
+			return {L: lch.L, S: S, H: lch.H};
+		}
+
+		// {L, S, H}를 hex 색으로 바꿈. C = S × 최대 C라 항상 표시 가능한 범위 안에 있음
+		private function OklshToHex(lsh:Object):uint
+		{
+			const C:Number = lsh.S * findMaxChromaAtLightnessAndHue(lsh.L, lsh.H);
+			return OklchToHex({L: lsh.L, C: C, H: lsh.H});
+		}
+
 		private function onMouseUpOKLCH(e:MouseEvent):void
 		{
 			removeOKLCHMouseEvent();
@@ -542,7 +553,7 @@
 		private function onMouseMoveOKLCH(e:MouseEvent):void
 		{
 			onMouseMoveUpdateLCH();
-			const hexColor:uint = OklchToHex(okBaseColorLch);
+			const hexColor:uint = OklshToHex(okBaseColorLsh);
 			okPickedColor = hexColor;
 			updateColorPreviewBox(hexColor);
 
@@ -595,14 +606,14 @@
 				return;
 			}
 
-			const onMouseMoveFuncs:Array = [updateL, updateC, updateH];
+			const onMouseMoveFuncs:Array = [updateL, updateS, updateH];
 			clickedWrapperFlag = index;
 			onMouseMoveUpdateLCH = onMouseMoveFuncs[index];
 			onMouseUpFuncMain = onMouseUpFunc;
 			showColorPreviewBox();
 
 			onMouseMoveUpdateLCH();
-			const hexColor:uint = OklchToHex(okBaseColorLch);
+			const hexColor:uint = OklshToHex(okBaseColorLsh);
 			okPickedColor = hexColor;
 			updateColorPreviewBox(hexColor);
 			addOKLCHMouseEvent();
@@ -612,15 +623,16 @@
 		{
 			const ypos:Number = clamp(okLBitmap.mouseY, 0.0, okLBitmap.bitmapData.height - 1.0);
 			const value:Number = 1.0 - ypos / okLBitmap.bitmapData.height;
-			okBaseColorLch.L = value;
+			okBaseColorLsh.L = value;
 			okLSliderCursor.y = ypos + sliderOffset;
 		}
 
-		private function updateC():void
+		// 가운데 슬라이더 위치로 S(최대 C 대비 비율, 0~1)를 정함
+		private function updateS():void
 		{
 			const ypos:Number = clamp(okCBitmap.mouseY, 0.0, okCBitmap.bitmapData.height - 1.0);
-			var value:Number = (1.0 - ypos / okCBitmap.bitmapData.height) * okChromaSliderMaxValue;
-			okBaseColorLch.C = value;
+			const value:Number = 1.0 - ypos / okCBitmap.bitmapData.height;
+			okBaseColorLsh.S = value;
 			okCSliderCursor.y = ypos + sliderOffset;
 		}
 
@@ -628,7 +640,7 @@
 		{
 			const ypos:Number = clamp(okHBitmap.mouseY, 0.0, okHBitmap.bitmapData.height - 1.0);
 			const value:Number = 360.0 - 360.0 * (ypos / okHBitmap.bitmapData.height);
-			okBaseColorLch.H = value;
+			okBaseColorLsh.H = value;
 			okHSliderCusor.y = ypos + sliderOffset;
 		}
 
@@ -641,12 +653,19 @@
 			return maxChannel - minChannel <= 1;
 		}
 
+		// 조절 중인 색에서 L, S, H 중 하나(flag 0/1/2)만 value로 바꾼 hex 색
 		private function getAdjustedBaseColor(flag:int, value:Number):uint
 		{
-			const l:Object = {L: okBaseColorLch.L, C: okBaseColorLch.C, H: okBaseColorLch.H};
-			const props:Array = ["L", "C", "H"];
-			l[props[flag]] = value;
-			return OklchToHex(l);
+			const lsh:Object = {L: okBaseColorLsh.L, S: okBaseColorLsh.S, H: okBaseColorLsh.H};
+			const props:Array = ["L", "S", "H"];
+			lsh[props[flag]] = value;
+			return OklshToHex(lsh);
+		}
+
+		// 조절 중인 색에서 S만 바꾼 hex 색. L, H가 같으면 최대 C도 같으므로 미리 구한 maxChroma를 받음
+		private function getSaturationAdjustedBaseColor(saturation:Number, maxChroma:Number):uint
+		{
+			return OklchToHex({L: okBaseColorLsh.L, C: saturation * maxChroma, H: okBaseColorLsh.H});
 		}
 
 		private function updateOKGradient(lflag:Boolean, cflag:Boolean, hflag:Boolean):void
@@ -655,9 +674,12 @@
 			const configs:Array =
 				[
 					{flag: lflag, bmpd: okLBitmap.bitmapData, max: 1.0, step: 1.0 / height, idx: 0},
-					{flag: cflag, bmpd: okCBitmap.bitmapData, max: okChromaSliderMaxValue, step: okChromaSliderMaxValue / height, idx: 1},
+					{flag: cflag, bmpd: okCBitmap.bitmapData, max: 1.0, step: 1.0 / height, idx: 1},
 					{flag: hflag, bmpd: okHBitmap.bitmapData, max: 360.0, step: 360.0 / height, idx: 2}
 				];
+
+			// S 그라데이션은 L, H가 고정이라 최대 C를 한 번만 구함
+			const saturationGradientMaxChroma:Number = cflag ? findMaxChromaAtLightnessAndHue(okBaseColorLsh.L, okBaseColorLsh.H) : 0.0;
 
 			for each (var cfg:Object in configs)
 			{
@@ -666,7 +688,11 @@
 					cfg.bmpd.lock();
 					for (var i:int = height;i >= 0;i--)
 					{
-						cfg.bmpd.setPixel(0, i, getAdjustedBaseColor(cfg.idx, cfg.max - cfg.step * i));
+						var value:Number = cfg.max - cfg.step * i;
+						var color:uint = (cfg.idx == 1)
+							? getSaturationAdjustedBaseColor(value, saturationGradientMaxChroma)
+							: getAdjustedBaseColor(cfg.idx, value);
+						cfg.bmpd.setPixel(0, i, color);
 					}
 					cfg.bmpd.unlock();
 				}

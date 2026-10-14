@@ -448,9 +448,10 @@ alt="mypalette" />
 <li>OKLCH는 인간친화적인 색상 모델입니다 LCH는 밝기(Lightness)
 Chroma(채도) Hue(색조)의 약자이며, HSV시스템과 비슷하지만 색상을
 변경할때 자연스러운 색상으로 즉시 변경할수 있습니다</li>
-<li>해당 앱에 탑재된 OKLCH컬러 슬라이더는 기본적인 수치계산 기능만
-제공하며 수치에 따라서 과채도나 색상 왜곡이 발생할 수 있으나 정상적인
-동작입니다</li>
+<li>가운데 S 슬라이더는 채도(C)를 직접 정하지 않고, 현재 밝기와 색조에서
+화면에 표시할 수 있는 최대 채도 대비 비율을 정합니다. 그래서 밝기나
+색조를 바꿔도 색이 표시 범위를 벗어나 틀어지지 않으며, 슬라이더 전체를
+고르게 쓸 수 있습니다</li>
 </ul>
 <h1 id="상단-메뉴">상단 메뉴</h1>
 <h2 id="그리기-모드">그리기 모드</h2>
@@ -1070,9 +1071,10 @@ an OKLCH slider.</li>
 <li>OKLCH is a color model designed to align with human perception. LCH
 stands for Lightness, Chroma, and Hue, and it enables more natural color
 transitions compared to the HSV system.</li>
-<li>The OKLCH slider built into the app provides only basic numerical
-control. Depending on the values used, you may notice oversaturation or
-hue distortion — this is expected behavior.</li>
+<li>The middle S slider does not set Chroma (C) directly. It sets the
+ratio to the maximum chroma that can be displayed at the current
+lightness and hue, so changing lightness or hue never pushes the color
+out of the displayable range, and the whole slider stays usable.</li>
 </ul>
 <h1 id="top-menu">Top menu</h1>
 <h2 id="draw-mode-1">Draw mode</h2>
@@ -1711,7 +1713,7 @@ palette」ボタンを２秒間長くクリックするとパレットのすべ�
 <li>“RGB 0,0,0” 部分をクリックすると、テンキーが現れます。</li>
 <li>ClipBoardにコピーされたHEX値を適用するボタンとOKLCHスライダーがあります。</li>
 <li>OKLCHは人間の知覚に近いカラーモデルで、LCHはLightness（明るさ）、Chroma（彩度）、Hue（色相）の略です。色を変更する際、HSVシステムよりも自然な色変化が可能です。</li>
-<li>アプリに搭載されたOKLCHカラースライダーは、基本的な数値計算機能のみを備えており、数値によっては彩度が過剰になったり、色味に歪みが生じることがありますが、これは正常な動作です。</li>
+<li>中央のSスライダーは彩度（C）を直接決めるのではなく、現在の明るさと色相で画面に表示できる最大彩度に対する割合を決めます。そのため、明るさや色相を変えても色が表示範囲を超えて歪むことがなく、スライダー全体をむらなく使えます。</li>
 </ul>
 <h1 id="上段のメニュー">上段のメニュー</h1>
 <h2 id="お絵描きモード">お絵描きモード</h2>
