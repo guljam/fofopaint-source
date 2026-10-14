@@ -15,6 +15,8 @@ package Modules.L1Data
     {
         private static const MAGIC:String = "FRC2";
         private static const VERSION:uint = 1;
+        private static const SEGMENT_VERSION:uint = 2; // 조각마다 VERSION 1 블록, 저장은 네이티브만 (decodeSegmentedBlock)
+        private static const SEGMENT_ENTRY_BYTES:uint = 16;
         private static const STREAM_COUNT:int = 8;
         private static const MAX_SCALED:Number = 268435455; // 2^28 - 1, 예측값 차이가 int 범위를 넘지 않게 함
         private static const MAX_NAMES:int = 250;
@@ -347,7 +349,10 @@ package Modules.L1Data
             input.position = 0;
             if (!isEncoded(input) || input.readUTFBytes(4) != MAGIC)
                 throw new Error("Invalid replay codec header");
-            if (input.readUnsignedByte() != VERSION)
+            const version:uint = input.readUnsignedByte();
+            if (version == SEGMENT_VERSION)
+                return decodeSegmentedBlock(input);
+            if (version != VERSION)
                 throw new Error("Unknown replay codec version");
             const body:ByteArray = new ByteArray();
             input.readBytes(body);
@@ -535,6 +540,47 @@ package Modules.L1Data
                     throw new Error("Trailing replay codec bytes");
                 streams[s].clear();
             }
+            output.position = 0;
+            return output;
+        }
+
+        // 세그먼트 형식(VERSION 2) 블록을 조각마다 VERSION 1로 풀어서 이어 붙임 (네이티브를 못 쓸때의 대체 경로)
+        // 형식: "FRC2" 2, 조각 수, 조각 표 [원본 길이, 원본 crc32, 압축 길이, 압축 crc32], 조각들 (anesrc/fofonative/src/frc2.h)
+        // crc는 네이티브 decode만 확인하고 여기서는 길이만 확인함
+        private static function decodeSegmentedBlock(input:ByteArray):ByteArray
+        {
+            input.position = 5;
+            const segmentCount:uint = input.readUnsignedInt();
+            if (input.bytesAvailable < segmentCount * SEGMENT_ENTRY_BYTES)
+                throw new Error("Invalid replay segment table");
+            const rawLengths:Vector.<uint> = new Vector.<uint>(segmentCount, true);
+            const compressedLengths:Vector.<uint> = new Vector.<uint>(segmentCount, true);
+            for (var i:uint = 0; i < segmentCount; i++)
+            {
+                rawLengths[i] = input.readUnsignedInt();
+                input.readUnsignedInt(); // 원본 crc32
+                compressedLengths[i] = input.readUnsignedInt();
+                input.readUnsignedInt(); // 압축 crc32
+            }
+            const output:ByteArray = new ByteArray();
+            for (i = 0; i < segmentCount; i++)
+            {
+                if (input.bytesAvailable < compressedLengths[i])
+                    throw new Error("Invalid replay segment length");
+                const segmentBytes:ByteArray = new ByteArray();
+                input.readBytes(segmentBytes, 0, compressedLengths[i]);
+                if (segmentBytes.length < 5 || segmentBytes[4] != VERSION)
+                    throw new Error("Invalid replay segment");
+                const segmentRaw:ByteArray = decode(segmentBytes);
+                if (segmentRaw.length != rawLengths[i])
+                    throw new Error("Replay segment length mismatch");
+                output.writeBytes(segmentRaw);
+                segmentRaw.clear();
+                segmentBytes.clear();
+            }
+            if (input.bytesAvailable != 0)
+                throw new Error("Trailing replay segment bytes");
+            input.position = 0;
             output.position = 0;
             return output;
         }

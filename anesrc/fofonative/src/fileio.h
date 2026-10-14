@@ -25,6 +25,10 @@ IoResult moveNoReplace(const std::wstring& from, const std::wstring& to);
 IoResult canReplace(const std::wstring& finalPath);
 // 파일 앞에서 length 바이트를 읽음 (다른 곳에서 쓰는 중이어도 읽게 공유 모드로)
 IoResult readFilePrefix(const std::wstring& path, uint64_t length, Bytes& out);
+// 파일의 offset부터 length 바이트를 읽음 (readFilePrefix와 같은 공유 모드, 파일이 짧으면 ERROR_HANDLE_EOF)
+IoResult readFileRange(const std::wstring& path, uint64_t offset, uint64_t length, Bytes& out);
+// 파일 크기, 없거나 폴더면 false
+bool fileSizeOf(const std::wstring& path, uint64_t* size);
 void deleteQuietly(const std::wstring& path);
 
 // ---- 작업 완료 알림 ----

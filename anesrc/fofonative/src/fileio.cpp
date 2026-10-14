@@ -154,10 +154,25 @@ IoResult canReplace(const std::wstring& finalPath)
 
 IoResult readFilePrefix(const std::wstring& path, uint64_t length, Bytes& out)
 {
+    return readFileRange(path, 0, length, out);
+}
+
+IoResult readFileRange(const std::wstring& path, uint64_t offset, uint64_t length, Bytes& out)
+{
     HANDLE file = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 
     if (file == INVALID_HANDLE_VALUE)
         return { false, GetLastError() };
+
+    LARGE_INTEGER position;
+    position.QuadPart = (LONGLONG)offset;
+
+    if (offset > 0 && !SetFilePointerEx(file, position, NULL, FILE_BEGIN))
+    {
+        const DWORD error = GetLastError();
+        CloseHandle(file);
+        return { false, error };
+    }
 
     try
     {
@@ -195,6 +210,17 @@ IoResult readFilePrefix(const std::wstring& path, uint64_t length, Bytes& out)
 
     CloseHandle(file);
     return { true, 0 };
+}
+
+bool fileSizeOf(const std::wstring& path, uint64_t* size)
+{
+    WIN32_FILE_ATTRIBUTE_DATA data;
+
+    if (!GetFileAttributesExW(path.c_str(), GetFileExInfoStandard, &data) || (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+        return false;
+
+    *size = ((uint64_t)data.nFileSizeHigh << 32) | data.nFileSizeLow;
+    return true;
 }
 
 void deleteQuietly(const std::wstring& path)

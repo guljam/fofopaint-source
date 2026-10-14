@@ -3,6 +3,7 @@
 #include "common.h"
 #include "frc2.h"
 #include "amf3.h"
+#include "fileio.h"
 #include <math.h>
 #include <unordered_map>
 
@@ -15,6 +16,8 @@ extern "C"
 namespace
 {
     const uint8_t VERSION = 1;
+    const uint8_t SEGMENT_VERSION = 2; // 세그먼트 형식 (조각마다 VERSION 1 블록)
+    const uint32_t SEGMENT_MINIMUM_DICT_SIZE = 1u << 16; // 조각 본문은 보통 수십 KB라 64KB에서 시작
     const int STREAM_COUNT = 8;
     const double MAX_SCALED = 268435455; // 2^28 - 1
     const int MAX_NAMES = 250;
@@ -949,7 +952,18 @@ bool lzmaUncompressAlone(const uint8_t* input, size_t length, Bytes& out)
     return result == SZ_OK && destLength == size;
 }
 
+static int encodeFrc2WithLzmaThreads(const uint8_t* input, size_t length, Bytes& out, std::string& error, int lzmaThreads, uint32_t minimumDictSize);
+static void decodeSegmentedBlock(const uint8_t* input, size_t length, Bytes& out);
+static int encodeFrc2VerifiedWithLzmaThreads(const uint8_t* input, size_t length, Bytes& out, std::string& error, int lzmaThreads, uint32_t minimumDictSize);
+
 int frc2Encode(const uint8_t* input, size_t length, Bytes& out, std::string& error)
+{
+    return encodeFrc2WithLzmaThreads(input, length, out, error, 2, 1u << 20);
+}
+
+// FRC2 버전 1 인코드, lzmaThreads: LZMA 인코더 스레드 수 (조각을 여러 개 동시에 만들때는 1)
+// minimumDictSize: 사전 크기 시작값 (본문보다 작으면 2배씩 늘림), 한 덩어리는 1MB, 조각은 작게 해서 동시에 도는 인코더 메모리(사전의 약 11배)를 줄임
+static int encodeFrc2WithLzmaThreads(const uint8_t* input, size_t length, Bytes& out, std::string& error, int lzmaThreads, uint32_t minimumDictSize)
 {
     try
     {
@@ -963,12 +977,12 @@ int frc2Encode(const uint8_t* input, size_t length, Bytes& out, std::string& err
 #else
         const uint32_t maxDict = 4u << 20;
 #endif
-        uint32_t dict = 1 << 20;
+        uint32_t dict = minimumDictSize;
 
         while (dict < body.size() && dict < maxDict)
             dict <<= 1;
 
-        if (!lzmaCompressAlone(body.data(), body.size(), compressed, 7, dict, 2))
+        if (!lzmaCompressAlone(body.data(), body.size(), compressed, 7, dict, lzmaThreads))
             return FRC2_LZMA_FAILED;
 
         Bytes().swap(body);
@@ -1001,6 +1015,12 @@ int frc2Decode(const uint8_t* input, size_t length, Bytes& out, std::string& err
         if (length < 5 || memcmp(input, "FRC2", 4) != 0)
             throw Fail{ FRC2_CORRUPT, "Invalid replay codec header" };
 
+        if (input[4] == SEGMENT_VERSION)
+        {
+            decodeSegmentedBlock(input, length, out);
+            return FRC2_OK;
+        }
+
         if (input[4] != VERSION)
             throw Fail{ FRC2_CORRUPT, "Unknown replay codec version" };
 
@@ -1029,7 +1049,13 @@ int frc2Decode(const uint8_t* input, size_t length, Bytes& out, std::string& err
 
 int frc2EncodeVerified(const uint8_t* input, size_t length, Bytes& out, std::string& error)
 {
-    const int encoded = frc2Encode(input, length, out, error);
+    return encodeFrc2VerifiedWithLzmaThreads(input, length, out, error, 2, 1u << 20);
+}
+
+// FRC2 버전 1로 인코드하고 디코드 결과가 원본과 바이트 단위로 같을때만 FRC2_OK
+static int encodeFrc2VerifiedWithLzmaThreads(const uint8_t* input, size_t length, Bytes& out, std::string& error, int lzmaThreads, uint32_t minimumDictSize)
+{
+    const int encoded = encodeFrc2WithLzmaThreads(input, length, out, error, lzmaThreads, minimumDictSize);
 
     if (encoded != FRC2_OK)
         return encoded;
@@ -1051,6 +1077,326 @@ int frc2EncodeVerified(const uint8_t* input, size_t length, Bytes& out, std::str
     }
 
     return FRC2_OK;
+}
+
+// ---- 세그먼트 형식 (VERSION 2) ----
+
+namespace
+{
+    uint32_t readBigEndianU32(const uint8_t* p)
+    {
+        return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) | ((uint32_t)p[2] << 8) | p[3];
+    }
+
+    // 리플레이를 명령 뭉치 경계에서 조각으로 나눔: segmentEnds[i]는 i번 조각이 끝나는 바이트 위치 (빈 입력이면 조각 없음)
+    // 누적 프레임(뭉치 안 명령 수의 합)이 segmentFrames의 배수를 넘어서는 뭉치 바로 뒤에서 자름
+    void splitReplayIntoSegments(const uint8_t* input, size_t length, uint32_t segmentFrames, std::vector<size_t>& segmentEnds)
+    {
+        AmfReader reader(input, length);
+        AmfArena arena;
+        uint64_t frames = 0;
+
+        while (reader.remaining() > 0)
+        {
+            arena.clear();
+            uint32_t groupNode;
+
+            if (!reader.readValue(arena, &groupNode))
+                throw Fail{ FRC2_UNSUPPORTED, "unsupported or broken AMF3" };
+
+            if (arena.nodes[groupNode].type != AMF_ARRAY)
+                throw Fail{ FRC2_UNSUPPORTED, "Replay object is not an Array" };
+
+            const uint64_t framesBefore = frames;
+            frames += arena.nodes[groupNode].count;
+
+            if (frames / segmentFrames != framesBefore / segmentFrames)
+                segmentEnds.push_back(reader.pos());
+        }
+
+        if (length > 0 && (segmentEnds.empty() || segmentEnds.back() != length))
+            segmentEnds.push_back(length);
+    }
+
+    // 이전 .fofo의 조각 후보를 읽어서 압축 crc가 맞고 풀어본 결과가 지금 원본 조각과 같으면 true (압축 바이트를 compressedOut에)
+    bool loadReusableSegmentFromOldFofo(const std::wstring& oldFofoPath, const Frc2OldSegment& oldSegment, const uint8_t* raw, size_t rawLength, Bytes& compressedOut)
+    {
+        Bytes compressed;
+
+        if (!readFileRange(oldFofoPath, oldSegment.fileOffset, oldSegment.compressedLength, compressed).ok)
+            return false;
+
+        if (crc32OfBytes(compressed.data(), compressed.size()) != oldSegment.compressedCrc)
+            return false;
+
+        if (compressed.size() < 5 || memcmp(compressed.data(), "FRC2", 4) != 0 || compressed[4] != VERSION)
+            return false;
+
+        Bytes decoded;
+        std::string error;
+
+        if (frc2Decode(compressed.data(), compressed.size(), decoded, error) != FRC2_OK)
+            return false;
+
+        if (decoded.size() != rawLength || (rawLength > 0 && memcmp(decoded.data(), raw, rawLength) != 0))
+            return false;
+
+        compressedOut.swap(compressed);
+        return true;
+    }
+}
+
+int64_t frc2SegmentCountFromHead(const uint8_t* head, size_t length)
+{
+    if (length < FRC2_SEGMENT_HEAD_BYTES || memcmp(head, "FRC2", 4) != 0 || head[4] != SEGMENT_VERSION)
+        return -1;
+
+    return readBigEndianU32(head + 5);
+}
+
+bool frc2ReadSegmentTable(const uint8_t* table, uint32_t count, uint64_t blockFileOffset, uint64_t blockLength, std::vector<Frc2OldSegment>& out)
+{
+    uint64_t position = FRC2_SEGMENT_HEAD_BYTES + (uint64_t)count * FRC2_SEGMENT_ENTRY_BYTES;
+
+    if (position > blockLength)
+        return false;
+
+    out.clear();
+    out.reserve(count);
+
+    for (uint32_t i = 0; i < count; i++)
+    {
+        const uint8_t* entry = table + (size_t)i * FRC2_SEGMENT_ENTRY_BYTES;
+        Frc2OldSegment segment;
+        segment.rawLength = readBigEndianU32(entry);
+        segment.rawCrc = readBigEndianU32(entry + 4);
+        segment.compressedLength = readBigEndianU32(entry + 8);
+        segment.compressedCrc = readBigEndianU32(entry + 12);
+        segment.fileOffset = blockFileOffset + position;
+        position += segment.compressedLength;
+
+        if (position > blockLength)
+            return false;
+
+        out.push_back(segment);
+    }
+
+    return true;
+}
+
+// 세그먼트 블록을 풀어서 조각 원본들을 이어 붙임, 조각들은 풀에서 동시에 풂. 깨졌으면 Fail
+static void decodeSegmentedBlock(const uint8_t* input, size_t length, Bytes& out)
+{
+    const int64_t count = frc2SegmentCountFromHead(input, length);
+    std::vector<Frc2OldSegment> table;
+
+    if (count < 0 || !frc2ReadSegmentTable(input + FRC2_SEGMENT_HEAD_BYTES, (uint32_t)count, 0, length, table))
+        throw Fail{ FRC2_CORRUPT, "Invalid replay segment table" };
+
+    const uint64_t blockEnd = table.empty() ? FRC2_SEGMENT_HEAD_BYTES : table.back().fileOffset + table.back().compressedLength;
+
+    if (blockEnd != length)
+        throw Fail{ FRC2_CORRUPT, "Trailing replay segment bytes" };
+
+    std::vector<Bytes> parts(table.size());
+    volatile LONG failed = 0;
+    int failCode = FRC2_OK;
+    const char* failMessage = "";
+    auto work = [&](int index)
+    {
+        try
+        {
+            const Frc2OldSegment& segment = table[index];
+            const uint8_t* blob = input + segment.fileOffset;
+
+            if (crc32OfBytes(blob, segment.compressedLength) != segment.compressedCrc)
+                throw Fail{ FRC2_CORRUPT, "Replay segment crc mismatch" };
+
+            if (segment.compressedLength < 5 || blob[4] != VERSION)
+                throw Fail{ FRC2_CORRUPT, "Invalid replay segment" };
+
+            std::string error;
+            const int result = frc2Decode(blob, segment.compressedLength, parts[index], error);
+
+            if (result != FRC2_OK)
+                throw Fail{ result, "Replay segment decode failed" };
+
+            if (parts[index].size() != segment.rawLength || crc32OfBytes(parts[index].data(), parts[index].size()) != segment.rawCrc)
+                throw Fail{ FRC2_CORRUPT, "Replay segment content mismatch" };
+        }
+        catch (const Fail& fail)
+        {
+            if (InterlockedExchange(&failed, 1) == 0)
+            {
+                failCode = fail.code;
+                failMessage = fail.message;
+            }
+        }
+        catch (...)
+        {
+            if (InterlockedExchange(&failed, 1) == 0)
+            {
+                failCode = FRC2_OUT_OF_MEMORY;
+                failMessage = "out of memory";
+            }
+        }
+    };
+
+    if (!table.empty())
+        pool::parallelFor((int)table.size(), PRIORITY_SAVE, work);
+
+    if (failed)
+        throw Fail{ failCode, failMessage };
+
+    size_t total = 0;
+
+    for (size_t i = 0; i < parts.size(); i++)
+        total += parts[i].size();
+
+    out.clear();
+    out.reserve(total);
+
+    for (size_t i = 0; i < parts.size(); i++)
+    {
+        out.insert(out.end(), parts[i].begin(), parts[i].end());
+        Bytes().swap(parts[i]);
+    }
+}
+
+int frc2EncodeSegmentedVerified(const uint8_t* input, size_t length, uint32_t segmentFrames, const Frc2ReuseSource* reuse, TaskPriority priority,
+    Pieces& out, Frc2SegmentStats& stats, std::string& error)
+{
+    stats = Frc2SegmentStats();
+
+    try
+    {
+        if (segmentFrames == 0)
+            throw Fail{ FRC2_UNSUPPORTED, "segmentFrames is 0" };
+
+        std::vector<size_t> segmentEnds;
+        splitReplayIntoSegments(input, length, segmentFrames, segmentEnds);
+        const int count = (int)segmentEnds.size();
+
+        if (count > 0 && segmentEnds.back() - (count > 1 ? segmentEnds[count - 2] : 0) > 0xFFFFFFFFu)
+            throw Fail{ FRC2_UNSUPPORTED, "Replay segment too large" };
+
+        // 이전 조각을 (원본 길이, 원본 crc)로 찾음
+        std::unordered_multimap<uint64_t, size_t> oldSegmentIndexByKey;
+
+        if (reuse != NULL)
+        {
+            for (size_t i = 0; i < reuse->segments.size(); i++)
+                oldSegmentIndexByKey.emplace(((uint64_t)reuse->segments[i].rawLength << 32) | reuse->segments[i].rawCrc, i);
+        }
+
+        std::vector<Bytes> blobs(count);
+        std::vector<uint32_t> rawCrcs(count);
+        std::vector<uint32_t> rawLengths(count);
+        volatile LONG failed = 0;
+        int failCode = FRC2_OK;
+        const char* failMessage = "";
+        volatile LONG reusedCount = 0;
+        volatile LONG rejectedCount = 0;
+        volatile LONG64 reusedRawBytes = 0;
+        auto work = [&](int index)
+        {
+            try
+            {
+                const size_t start = (index == 0) ? 0 : segmentEnds[index - 1];
+                const uint8_t* raw = input + start;
+                const size_t rawLength = segmentEnds[index] - start;
+
+                if (rawLength > 0xFFFFFFFFu)
+                    throw Fail{ FRC2_UNSUPPORTED, "Replay segment too large" };
+
+                rawLengths[index] = (uint32_t)rawLength;
+                rawCrcs[index] = crc32OfBytes(raw, rawLength);
+                const auto candidates = oldSegmentIndexByKey.equal_range(((uint64_t)rawLength << 32) | rawCrcs[index]);
+
+                for (auto it = candidates.first; it != candidates.second; ++it)
+                {
+                    if (loadReusableSegmentFromOldFofo(reuse->path, reuse->segments[it->second], raw, rawLength, blobs[index]))
+                    {
+                        InterlockedIncrement(&reusedCount);
+                        InterlockedAdd64(&reusedRawBytes, (LONG64)rawLength);
+                        return;
+                    }
+
+                    InterlockedIncrement(&rejectedCount);
+                }
+
+                std::string segmentError;
+                const int result = encodeFrc2VerifiedWithLzmaThreads(raw, rawLength, blobs[index], segmentError, 1, SEGMENT_MINIMUM_DICT_SIZE);
+
+                if (result != FRC2_OK)
+                    throw Fail{ result, "Replay segment encode failed" };
+            }
+            catch (const Fail& fail)
+            {
+                if (InterlockedExchange(&failed, 1) == 0)
+                {
+                    failCode = fail.code;
+                    failMessage = fail.message;
+                }
+            }
+            catch (...)
+            {
+                if (InterlockedExchange(&failed, 1) == 0)
+                {
+                    failCode = FRC2_OUT_OF_MEMORY;
+                    failMessage = "out of memory";
+                }
+            }
+        };
+
+        if (count > 0)
+            pool::parallelFor(count, priority, work);
+
+        if (failed)
+            throw Fail{ failCode, failMessage };
+
+        Bytes head;
+        head.reserve(FRC2_SEGMENT_HEAD_BYTES + (size_t)count * FRC2_SEGMENT_ENTRY_BYTES);
+        head.push_back('F');
+        head.push_back('R');
+        head.push_back('C');
+        head.push_back('2');
+        head.push_back(SEGMENT_VERSION);
+        writeU32(head, (uint32_t)count);
+
+        for (int i = 0; i < count; i++)
+        {
+            writeU32(head, rawLengths[i]);
+            writeU32(head, rawCrcs[i]);
+            writeU32(head, (uint32_t)blobs[i].size());
+            writeU32(head, crc32OfBytes(blobs[i].data(), blobs[i].size()));
+        }
+
+        out.clear();
+        out.parts.reserve(1 + count);
+        out.parts.push_back(std::move(head));
+
+        for (int i = 0; i < count; i++)
+            out.parts.push_back(std::move(blobs[i]));
+
+        stats.segmentCount = (uint32_t)count;
+        stats.reusedCount = (uint32_t)reusedCount;
+        stats.rejectedCount = (uint32_t)rejectedCount;
+        stats.reusedRawBytes = (uint64_t)reusedRawBytes;
+        return FRC2_OK;
+    }
+    catch (const Fail& fail)
+    {
+        error = fail.message;
+        out.clear();
+        return fail.code;
+    }
+    catch (const std::bad_alloc&)
+    {
+        error = "out of memory";
+        out.clear();
+        return FRC2_OUT_OF_MEMORY;
+    }
 }
 
 // ---- FRE 함수 ----
@@ -1139,10 +1485,38 @@ static FREObject LzmaCompressFre(FREContext ctx, void* functionData, uint32_t ar
     return newInt(setByteArray(argv[1], out.data(), out.size()) ? RESULT_OK : RESULT_BYTES_ACQUIRE_FAILED);
 }
 
+// frc2EncodeSegmented(input:ByteArray, output:ByteArray, segmentFrames:int):int  (테스트용, 재사용 없이 모든 조각을 새로 만듦)
+static FREObject Frc2EncodeSegmentedFre(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
+{
+    int32_t segmentFrames = 0;
+
+    if (argc < 3 || !getInt(argv[2], &segmentFrames) || segmentFrames <= 0)
+        return newInt(RESULT_BAD_ARGUMENT);
+
+    FREByteArray input;
+
+    if (FREAcquireByteArray(argv[0], &input) != FRE_OK)
+        return newInt(RESULT_BYTES_ACQUIRE_FAILED);
+
+    Bytes copy(input.bytes, input.bytes + input.length);
+    FREReleaseByteArray(argv[0]);
+    Pieces out;
+    Frc2SegmentStats stats;
+    std::string error;
+    const int result = frc2EncodeSegmentedVerified(copy.data(), copy.size(), (uint32_t)segmentFrames, NULL, PRIORITY_SAVE, out, stats, error);
+
+    if (result != FRC2_OK)
+        return newInt(result);
+
+    const Bytes joined = out.join();
+    return newInt(setByteArray(argv[1], joined.data(), joined.size()) ? RESULT_OK : RESULT_BYTES_ACQUIRE_FAILED);
+}
+
 static const NamedFunction gCodecFunctions[] = {
     { "frc2Encode", &Frc2EncodeFre },
     { "frc2Decode", &Frc2DecodeFre },
     { "lzmaCompress", &LzmaCompressFre },
+    { "frc2EncodeSegmented", &Frc2EncodeSegmentedFre },
 };
 
 const NamedFunction* codecFunctions(uint32_t* count)

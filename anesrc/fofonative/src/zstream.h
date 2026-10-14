@@ -41,3 +41,10 @@ bool zlibUncompress(const uint8_t* data, size_t length, Bytes& out, size_t expec
 bool inflateRawInto(const uint8_t* data, size_t length, uint8_t* out, size_t outLength);
 // 한 덩어리 압축 (raw deflate, 독립 블록)
 bool deflateRawSingle(const uint8_t* data, size_t length, int level, Bytes& out);
+
+// crc32 (zlib과 같은 값), 저장 재사용 판단용
+uint32_t crc32OfBytes(const uint8_t* data, size_t length);
+// 조각들을 순서대로 이은 내용의 crc32
+uint32_t crc32OfPieces(const Pieces& pieces);
+// 큰 버퍼를 조각으로 나눠 풀에서 동시에 계산하고 crc32_combine으로 합침 (결과는 crc32OfBytes와 같음)
+uint32_t crc32OfBytesParallel(const uint8_t* data, size_t length, TaskPriority priority);

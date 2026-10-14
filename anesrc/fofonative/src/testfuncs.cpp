@@ -6,6 +6,7 @@
 #include "png.h"
 #include "fileio.h"
 #include <stdio.h>
+#include <psapi.h>
 
 // info():String  "포인터비트,논리코어,풀스레드,메모리상한MB,최고사용MB"
 static FREObject Info(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
@@ -201,7 +202,92 @@ static FREObject HoldRead(FREContext ctx, void* functionData, uint32_t argc, FRE
     return newInt(0);
 }
 
+// ---- 저장 중 프로세스 메모리 측정 (테스트용) ----
+// 별도 스레드가 intervalMs마다 PrivateUsage(커밋)와 WorkingSet을 읽어 최대값을 기록함 (AS3 프레임 간격보다 촘촘하게)
+namespace
+{
+    volatile LONG gMemorySamplerRunning = 0;
+    HANDLE gMemorySamplerThread = NULL;
+    DWORD gMemorySamplerIntervalMs = 2;
+    uint64_t gMemorySamplerStartPrivate = 0;
+    uint64_t gMemorySamplerMaxPrivate = 0;
+    uint64_t gMemorySamplerStartWorkingSet = 0;
+    uint64_t gMemorySamplerMaxWorkingSet = 0;
+
+    // 지금 프로세스의 PrivateUsage, WorkingSetSize
+    void readProcessMemory(uint64_t* privateBytes, uint64_t* workingSetBytes)
+    {
+        PROCESS_MEMORY_COUNTERS_EX counters;
+        counters.cb = sizeof(counters);
+
+        if (K32GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&counters, sizeof(counters)))
+        {
+            *privateBytes = counters.PrivateUsage;
+            *workingSetBytes = counters.WorkingSetSize;
+        }
+    }
+
+    DWORD WINAPI runMemorySampler(LPVOID)
+    {
+        while (gMemorySamplerRunning)
+        {
+            uint64_t privateBytes = 0;
+            uint64_t workingSetBytes = 0;
+            readProcessMemory(&privateBytes, &workingSetBytes);
+
+            if (privateBytes > gMemorySamplerMaxPrivate)
+                gMemorySamplerMaxPrivate = privateBytes;
+
+            if (workingSetBytes > gMemorySamplerMaxWorkingSet)
+                gMemorySamplerMaxWorkingSet = workingSetBytes;
+
+            Sleep(gMemorySamplerIntervalMs);
+        }
+
+        return 0;
+    }
+}
+
+// memorySamplerStart(intervalMs:int):int  측정 시작 (이미 돌고 있으면 RESULT_BUSY)
+static FREObject MemorySamplerStart(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
+{
+    int32_t intervalMs = 2;
+
+    if (argc >= 1 && !getInt(argv[0], &intervalMs))
+        return newInt(RESULT_BAD_ARGUMENT);
+
+    if (gMemorySamplerThread != NULL)
+        return newInt(RESULT_BUSY);
+
+    gMemorySamplerIntervalMs = (DWORD)(intervalMs > 0 ? intervalMs : 1);
+    readProcessMemory(&gMemorySamplerStartPrivate, &gMemorySamplerStartWorkingSet);
+    gMemorySamplerMaxPrivate = gMemorySamplerStartPrivate;
+    gMemorySamplerMaxWorkingSet = gMemorySamplerStartWorkingSet;
+    gMemorySamplerRunning = 1;
+    gMemorySamplerThread = CreateThread(NULL, 0, runMemorySampler, NULL, 0, NULL);
+    return newInt(gMemorySamplerThread != NULL ? RESULT_OK : RESULT_INTERNAL_ERROR);
+}
+
+// memorySamplerStop():String  "시작Private,최대Private,시작WorkingSet,최대WorkingSet" (바이트)
+static FREObject MemorySamplerStop(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
+{
+    if (gMemorySamplerThread != NULL)
+    {
+        gMemorySamplerRunning = 0;
+        WaitForSingleObject(gMemorySamplerThread, INFINITE);
+        CloseHandle(gMemorySamplerThread);
+        gMemorySamplerThread = NULL;
+    }
+
+    char text[128];
+    sprintf(text, "%llu,%llu,%llu,%llu", (unsigned long long)gMemorySamplerStartPrivate, (unsigned long long)gMemorySamplerMaxPrivate,
+        (unsigned long long)gMemorySamplerStartWorkingSet, (unsigned long long)gMemorySamplerMaxWorkingSet);
+    return newString(text);
+}
+
 static const NamedFunction gTestFunctions[] = {
+    { "memorySamplerStart", &MemorySamplerStart },
+    { "memorySamplerStop", &MemorySamplerStop },
     { "probeRead", &ProbeRead },
     { "holdRead", &HoldRead },
     { "fillRandomInternal", &FillRandomInternal },

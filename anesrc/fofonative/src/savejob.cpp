@@ -2,7 +2,8 @@
 // saveStart 한 번의 동기 호출에서 BitmapData 내부 버퍼, repdata 앞부분, 바이트들을 복사하고 바로 돌아옴
 // repdata를 스레드에서 읽지 않는 이유: AIR FileStream의 UPDATE/WRITE는 공유 없이 열어서(실측 #3013) 딥 언두 자르기(applyDeepUndo, 저장 잠금 밖)와 겹치면
 // AIR 쪽이 예외를 내고, 먼저 잘리면 호출 시점 내용이 아니게 됨
-// 스레드에서 PNG 인코드, 이미지 5개 straight 변환 + zlib, FRC2 인코드(검증)를 동시에 하고
+// 스레드에서 PNG 인코드, 이미지 5개 straight 변환 + zlib, FRC2 세그먼트 인코드(검증)를 동시에 하고
+// 이전 .fofo(reuseFofoPath)에 원본이 같은 리플레이 조각, 첫 이미지, 참고 이미지가 있으면 그 압축 바이트를 다시 씀 (frc2.h 세그먼트 형식 설명)
 // .fofo를 ReplayFileCache.writeReplayFile과 같은 구조로 씀. 결과는 StatusEvent("save", 작업 번호) -> takeJobResult
 //
 // 쓰기 실패 처리 (지시서 D5, D6)
@@ -16,6 +17,7 @@
 #include "png.h"
 #include "frc2.h"
 #include "fileio.h"
+#include "amf3.h"
 #include <string>
 #include <math.h>
 
@@ -192,12 +194,13 @@ namespace
         }
     }
 
-    // [name, image..., meta...] 배열을 pieces 끝에 붙임 (이미지 조각은 옮겨 넣어서 복사하지 않음)
-    bool appendImageArray(Pieces& out, const char* name, std::vector<Pieces*> images, const std::vector<Simple>& meta)
+    // [name, image..., meta..., (reuseTag)] 배열을 pieces 끝에 붙임 (이미지 조각은 옮겨 넣어서 복사하지 않음)
+    // reuseTag가 비어있지 않으면 배열 끝에 문자열로 붙임 (읽는 쪽은 번호로 앞 원소만 읽으므로 끝에 붙은 원소는 무시함)
+    bool appendImageArray(Pieces& out, const char* name, std::vector<Pieces*> images, const std::vector<Simple>& meta, const std::string& reuseTag)
     {
         Bytes head;
         head.push_back(0x09);
-        putU29(head, (uint32_t)((1 + images.size() + meta.size()) << 1) | 1);
+        putU29(head, (uint32_t)((1 + images.size() + meta.size() + (reuseTag.empty() ? 0 : 1)) << 1) | 1);
         head.push_back(0x01); // 연관 부분 없음
         head.push_back(0x06);
         const uint32_t nameLength = (uint32_t)strlen(name);
@@ -225,8 +228,216 @@ namespace
         for (size_t i = 0; i < meta.size(); i++)
             putSimple(head, meta[i]);
 
+        if (!reuseTag.empty())
+        {
+            head.push_back(0x06);
+            putU29(head, ((uint32_t)reuseTag.size() << 1) | 1);
+            head.insert(head.end(), reuseTag.begin(), reuseTag.end());
+        }
+
         out.parts.push_back(std::move(head));
         return true;
+    }
+
+    // ---- 다시 저장할때 이전 .fofo의 압축 결과 재사용 ----
+    // 첫 이미지(1, 2)와 참고 이미지 배열 끝에 "reuse1:원본길이:원본crc:압축crc[:원본길이:원본crc:압축crc]" 문자열을 붙여 둠 (이미지마다 3개)
+    // 다음 저장때 straight 바이트의 길이와 crc가 같고 이전 압축 바이트의 crc가 맞으면 다시 압축하지 않고 그 바이트를 씀
+    const char* const IMAGE_REUSE_TAG_PREFIX = "reuse1:";
+
+    // 이미지 하나의 재사용 판단 값
+    struct ImageReuseKey
+    {
+        uint32_t rawLength = 0;
+        uint32_t rawCrc = 0;
+        uint32_t compressedCrc = 0;
+    };
+
+    // 이전 .fofo에서 다시 쓸 수 있는 압축 이미지 하나 (OldFofoForReuse::tail 안을 가리킴)
+    struct ReusableOldImage
+    {
+        bool valid = false;
+        const uint8_t* compressed = NULL;
+        uint32_t compressedLength = 0;
+        ImageReuseKey key;
+    };
+
+    // 재사용 판단에 쓰는 이전 .fofo 정보: 리플레이 조각 표, 첫 이미지/참고 이미지의 압축 바이트
+    struct OldFofoForReuse
+    {
+        Frc2ReuseSource replay;
+        Bytes tail; // 리플레이 블록 뒤 전부 (미러, 이미지 배열들, 타이밍 시트)
+        ReusableOldImage images[5]; // SaveJob::images와 같은 번호, 0/1 첫 이미지와 4 참고 이미지만 채움
+        double readMs = 0;
+    };
+
+    std::string makeImageReuseTag(const std::vector<const ImageReuseKey*>& keys)
+    {
+        std::string tag = IMAGE_REUSE_TAG_PREFIX;
+
+        for (size_t i = 0; i < keys.size(); i++)
+        {
+            char numbers[48];
+            sprintf_s(numbers, "%s%lu:%lu:%lu", (i == 0) ? "" : ":", (unsigned long)keys[i]->rawLength, (unsigned long)keys[i]->rawCrc, (unsigned long)keys[i]->compressedCrc);
+            tag += numbers;
+        }
+
+        return tag;
+    }
+
+    // "reuse1:..." 문자열을 숫자 목록으로, 형식이 아니면 빈 목록
+    std::vector<uint32_t> parseImageReuseTag(const uint8_t* text, uint32_t length)
+    {
+        std::vector<uint32_t> values;
+        const size_t prefixLength = strlen(IMAGE_REUSE_TAG_PREFIX);
+
+        if (length <= prefixLength || memcmp(text, IMAGE_REUSE_TAG_PREFIX, prefixLength) != 0)
+            return values;
+
+        uint64_t value = 0;
+        bool hasDigit = false;
+
+        for (uint32_t i = (uint32_t)prefixLength; i <= length; i++)
+        {
+            if (i == length || text[i] == ':')
+            {
+                if (!hasDigit || value > 0xFFFFFFFFu)
+                    return std::vector<uint32_t>();
+
+                values.push_back((uint32_t)value);
+                value = 0;
+                hasDigit = false;
+            }
+            else if (text[i] >= '0' && text[i] <= '9' && value <= 0xFFFFFFFFu)
+            {
+                value = value * 10 + (text[i] - '0');
+                hasDigit = true;
+            }
+            else
+            {
+                return std::vector<uint32_t>();
+            }
+        }
+
+        return values;
+    }
+
+    // 이전 .fofo 뒷부분(old.tail)에서 rFirstImage, refimage 배열을 찾아 재사용 문자열이 있는 이미지를 old.images에 채움
+    // 읽지 못하는 객체(지원하지 않는 AMF3 형식)를 만나면 거기서 멈춤 (이미지 배열은 타이밍 시트보다 앞에 있음)
+    void findReusableImagesInOldTail(OldFofoForReuse& old)
+    {
+        AmfReader reader(old.tail.data(), old.tail.size());
+        AmfArena arena;
+
+        while (reader.remaining() > 0)
+        {
+            arena.clear();
+            uint32_t arrayNode;
+
+            if (!reader.readValue(arena, &arrayNode))
+                return;
+
+            const AmfNode array = arena.nodes[arrayNode];
+
+            if (array.type != AMF_ARRAY || array.count < 2)
+                continue;
+
+            auto child = [&](uint32_t index) -> const AmfNode& { return arena.nodes[arena.children[array.first + index]]; };
+            const AmfNode& name = child(0);
+            int firstSlot;
+
+            if (name.type == AMF_STRING && name.count == 11 && memcmp(name.bytes, "rFirstImage", 11) == 0)
+                firstSlot = 0;
+            else if (name.type == AMF_STRING && name.count == 8 && memcmp(name.bytes, "refimage", 8) == 0)
+                firstSlot = 4;
+            else
+                continue;
+
+            const AmfNode& last = child(array.count - 1);
+
+            if (last.type != AMF_STRING)
+                continue;
+
+            const std::vector<uint32_t> values = parseImageReuseTag(last.bytes, last.count);
+            int imageNumber = 0;
+
+            for (uint32_t i = 1; i < array.count; i++)
+            {
+                const AmfNode& element = child(i);
+
+                if (element.type != AMF_BYTEARRAY)
+                    continue;
+
+                const size_t valueIndex = (size_t)imageNumber * 3;
+                const int slot = firstSlot + imageNumber;
+                imageNumber++;
+
+                if (valueIndex + 3 > values.size() || slot > 4 || (firstSlot == 4 && imageNumber > 1))
+                    break;
+
+                ReusableOldImage& image = old.images[slot];
+                image.valid = true;
+                image.compressed = element.bytes;
+                image.compressedLength = element.count;
+                image.key.rawLength = values[valueIndex];
+                image.key.rawCrc = values[valueIndex + 1];
+                image.key.compressedCrc = values[valueIndex + 2];
+            }
+        }
+    }
+
+    // 이전 .fofo(V2FOFOPAINT/FOFOPAINT 헤더)에서 리플레이 조각 표와 뒷부분을 읽음. 파일이 없거나 형식이 아니면 비워둠 (그러면 모두 새로 압축)
+    // 리플레이 조각의 압축 바이트는 여기서 읽지 않고, 원본이 같은 조각만 인코드 중에 그 위치에서 읽음
+    void readOldFofoForReuse(const std::wstring& path, OldFofoForReuse& old)
+    {
+        const double start = nowMs();
+        uint64_t fileSize = 0;
+
+        if (path.empty() || !fileSizeOf(path, &fileSize))
+            return;
+
+        Bytes head;
+        const uint64_t headLength = 11 + 4 + FRC2_SEGMENT_HEAD_BYTES;
+
+        if (!readFileRange(path, 0, (fileSize < headLength) ? fileSize : headLength, head).ok)
+            return;
+
+        size_t headerLength = 0;
+
+        if (head.size() >= 11 && memcmp(head.data(), "V2FOFOPAINT", 11) == 0)
+            headerLength = 11;
+        else if (head.size() >= 9 && memcmp(head.data(), "FOFOPAINT", 9) == 0)
+            headerLength = 9;
+        else
+            return;
+
+        if (head.size() < headerLength + 4)
+            return;
+
+        const uint8_t* lengthBytes = head.data() + headerLength;
+        const uint64_t blockLength = ((uint32_t)lengthBytes[0] << 24) | ((uint32_t)lengthBytes[1] << 16) | ((uint32_t)lengthBytes[2] << 8) | lengthBytes[3];
+        const uint64_t blockStart = headerLength + 4;
+        const uint64_t tailStart = blockStart + blockLength;
+
+        if (tailStart > fileSize)
+            return;
+
+        const int64_t segmentCount = (head.size() > blockStart) ? frc2SegmentCountFromHead(head.data() + blockStart, (size_t)(head.size() - blockStart)) : -1;
+
+        if (segmentCount >= 0 && FRC2_SEGMENT_HEAD_BYTES + (uint64_t)segmentCount * FRC2_SEGMENT_ENTRY_BYTES <= blockLength)
+        {
+            Bytes table;
+
+            if (readFileRange(path, blockStart + FRC2_SEGMENT_HEAD_BYTES, (uint64_t)segmentCount * FRC2_SEGMENT_ENTRY_BYTES, table).ok
+                && frc2ReadSegmentTable(table.data(), (uint32_t)segmentCount, blockStart, blockLength, old.replay.segments))
+                old.replay.path = path;
+            else
+                old.replay.segments.clear();
+        }
+
+        if (tailStart < fileSize && readFileRange(path, tailStart, fileSize - tailStart, old.tail).ok)
+            findReusableImagesInOldTail(old);
+
+        old.readMs = nowMs() - start;
     }
 
     // 결과 문자열: 줄마다 한 필드
@@ -275,6 +486,8 @@ namespace
         int pngLevel = 6;
         int imageLevel = 6;
         bool forceZlibReplay = false;
+        bool isLegacyWholeSave = false; // 세그먼트 이전 방식 (리플레이 한 덩어리 FRC2, 이미지 재사용 없음), 비교 테스트용
+        std::wstring reuseFofoPath; // 압축 결과를 다시 쓸 이전 .fofo (없으면 빈 문자열)
         uint64_t budgetBytes = 0;
 
         ~SaveJob() override
@@ -290,9 +503,18 @@ namespace
             Pieces compressed[5];
             Pieces replayBlock;
             bool isFrc2 = false;
+            const char* codecName = "zlib";
+            Frc2SegmentStats segmentStats;
+            double replayMs = 0;
+            ImageReuseKey imageReuseKeys[5];
+            volatile LONG reusedImageCount = 0;
             volatile LONG failed = 0;
             const char* volatile failMessage = "";
             const int partCount = hasReference ? 7 : 6;
+            OldFofoForReuse old;
+
+            if (!isLegacyWholeSave)
+                readOldFofoForReuse(reuseFofoPath, old);
 
             auto part = [&](int index)
             {
@@ -307,31 +529,73 @@ namespace
                     }
                     else if (index == 1)
                     {
-                        Bytes encoded;
+                        const double replayStart = nowMs();
                         std::string error;
 
-                        // 리플레이 명령은 FRC2(LZMA)로, 지원하지 않는 형식이거나 검증이 다르면 기존 zlib (V1 헤더)
-                        if (!forceZlibReplay && frc2EncodeVerified(replay.data(), replay.size(), encoded, error) == FRC2_OK)
+                        // 리플레이 명령은 FRC2 세그먼트 형식으로 (이전 .fofo에 같은 조각이 있으면 그대로 씀)
+                        // 지원하지 않는 형식이거나 검증이 다르면 기존 zlib (V1 헤더)
+                        if (!forceZlibReplay && !isLegacyWholeSave)
                         {
-                            replayBlock.parts.push_back(std::move(encoded));
-                            isFrc2 = true;
+                            Pieces segmented;
+
+                            if (frc2EncodeSegmentedVerified(replay.data(), replay.size(), FRC2_SEGMENT_FRAMES, old.replay.segments.empty() ? NULL : &old.replay,
+                                PRIORITY_SAVE, segmented, segmentStats, error) == FRC2_OK)
+                            {
+                                replayBlock = std::move(segmented);
+                                isFrc2 = true;
+                                codecName = "frc2seg";
+                            }
                         }
-                        else if (!zlibCompressParallel(replay.data(), replay.size(), imageLevel, PRIORITY_SAVE, replayBlock))
+                        else if (!forceZlibReplay)
                         {
-                            throw "replay zlib failed";
+                            Bytes encoded;
+
+                            if (frc2EncodeVerified(replay.data(), replay.size(), encoded, error) == FRC2_OK)
+                            {
+                                replayBlock.parts.push_back(std::move(encoded));
+                                isFrc2 = true;
+                                codecName = "frc2";
+                            }
                         }
 
+                        if (!isFrc2 && !zlibCompressParallel(replay.data(), replay.size(), imageLevel, PRIORITY_SAVE, replayBlock))
+                            throw "replay zlib failed";
+
                         Bytes().swap(replay);
+                        replayMs = nowMs() - replayStart;
                     }
                     else
                     {
-                        PixelImage& image = images[index - 2];
+                        const int slot = index - 2;
+                        PixelImage& image = images[slot];
                         Bytes straight(image.byteSize());
                         imageToStraight(image, straight.data(), PRIORITY_SAVE);
                         releaseImage(image);
+                        // 첫 이미지와 참고 이미지만 재사용 (현재 이미지는 거의 매번 바뀜)
+                        const bool isReuseTracked = !isLegacyWholeSave && (slot == 0 || slot == 1 || slot == 4);
 
-                        if (!zlibCompressParallel(straight.data(), straight.size(), imageLevel, PRIORITY_SAVE, compressed[index - 2]))
+                        if (isReuseTracked)
+                        {
+                            ImageReuseKey& key = imageReuseKeys[slot];
+                            key.rawLength = (uint32_t)straight.size();
+                            key.rawCrc = crc32OfBytesParallel(straight.data(), straight.size(), PRIORITY_SAVE);
+                            const ReusableOldImage& oldImage = old.images[slot];
+
+                            if (oldImage.valid && oldImage.key.rawLength == key.rawLength && oldImage.key.rawCrc == key.rawCrc
+                                && crc32OfBytes(oldImage.compressed, oldImage.compressedLength) == oldImage.key.compressedCrc)
+                            {
+                                compressed[slot].parts.push_back(Bytes(oldImage.compressed, oldImage.compressed + oldImage.compressedLength));
+                                key.compressedCrc = oldImage.key.compressedCrc;
+                                InterlockedIncrement(&reusedImageCount);
+                                return;
+                            }
+                        }
+
+                        if (!zlibCompressParallel(straight.data(), straight.size(), imageLevel, PRIORITY_SAVE, compressed[slot]))
                             throw "image zlib failed";
+
+                        if (isReuseTracked)
+                            imageReuseKeys[slot].compressedCrc = crc32OfPieces(compressed[slot]);
                     }
                 }
                 catch (const char* message)
@@ -381,9 +645,12 @@ namespace
                 if (!mirrorBytes.empty())
                     fofo.parts.push_back(std::move(mirrorBytes));
 
-                if (!appendImageArray(fofo, "rFirstImage", { &compressed[0], &compressed[1] }, firstMeta)
-                    || !appendImageArray(fofo, "rFinalImage", { &compressed[2], &compressed[3] }, finalMeta)
-                    || (hasReference && !appendImageArray(fofo, "refimage", { &compressed[4] }, referenceMeta)))
+                const std::string firstImageReuseTag = isLegacyWholeSave ? std::string() : makeImageReuseTag({ &imageReuseKeys[0], &imageReuseKeys[1] });
+                const std::string referenceImageReuseTag = isLegacyWholeSave ? std::string() : makeImageReuseTag({ &imageReuseKeys[4] });
+
+                if (!appendImageArray(fofo, "rFirstImage", { &compressed[0], &compressed[1] }, firstMeta, firstImageReuseTag)
+                    || !appendImageArray(fofo, "rFinalImage", { &compressed[2], &compressed[3] }, finalMeta, std::string())
+                    || (hasReference && !appendImageArray(fofo, "refimage", { &compressed[4] }, referenceMeta, referenceImageReuseTag)))
                     throw "image too large";
 
                 if (!timingBytes.empty())
@@ -401,7 +668,12 @@ namespace
             }
 
             const uint64_t fofoSize = fofo.size();
-            const char* codec = isFrc2 ? "frc2" : "zlib";
+            const char* codec = codecName;
+            // 저장 결과 message 끝에 붙이는 재사용 집계 (key=value, 테스트와 로그용)
+            char reuseStats[256];
+            sprintf_s(reuseStats, "replayMs=%.1f segments=%lu reusedSegments=%lu rejectedSegments=%lu reusedRawBytes=%llu reusedImages=%ld oldReadMs=%.1f",
+                replayMs, (unsigned long)segmentStats.segmentCount, (unsigned long)segmentStats.reusedCount, (unsigned long)segmentStats.rejectedCount,
+                (unsigned long long)segmentStats.reusedRawBytes, (long)reusedImageCount, old.readMs);
 
             // 임시 파일 쓰기: 여기서 실패하면 이름을 바꿔도 소용없음 -> 최종 실패
             std::wstring pngTemp;
@@ -491,7 +763,7 @@ namespace
 
             if (!needRename)
             {
-                jobs::finish(id, "save", makeResult("ok", pngPath, fofoPath, fofoSize, "", 0, codec, encoded - start, nowMs() - encoded, ""));
+                jobs::finish(id, "save", makeResult("ok", pngPath, fofoPath, fofoSize, "", 0, codec, encoded - start, nowMs() - encoded, reuseStats));
                 return;
             }
 
@@ -539,8 +811,8 @@ namespace
 
                 deleteQuietly(pngTemp);
                 deleteQuietly(fofoTemp);
-                char message[96];
-                sprintf_s(message, "%s error %lu", replaceStage, (unsigned long)replaceError);
+                char message[384];
+                sprintf_s(message, "%s error %lu %s", replaceStage, (unsigned long)replaceError, reuseStats);
                 jobs::finish(id, "save", makeResult("renamed", newPng, newFofo, fofoSize, replaceStage, replaceError, codec, encoded - start, nowMs() - encoded, message));
                 return;
             }
@@ -609,11 +881,12 @@ namespace
 }
 
 // saveStart(id, pngPath, fofoPath, composite, first1, first2, current1, current2, reference|null,
-//           repdataPath, repdataLength, memoryGroups, mirrorBytes, timingBytes, firstMeta, finalMeta, referenceMeta|null, options):int
-// options: 1 = repdata를 FRC2 대신 zlib으로 (테스트용)
+//           repdataPath, repdataLength, memoryGroups, mirrorBytes, timingBytes, firstMeta, finalMeta, referenceMeta|null, options, reuseFofoPath):int
+// options: 1 = repdata를 FRC2 대신 zlib으로 (테스트용), 2 = 세그먼트 이전 방식(리플레이 한 덩어리 FRC2, 이미지 재사용 없음, 비교 테스트용)
+// reuseFofoPath: 압축 결과를 다시 쓸 이전 .fofo 경로, 없으면 빈 문자열
 static FREObject SaveStart(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
 {
-    if (argc < 18)
+    if (argc < 19)
         return newInt(RESULT_BAD_ARGUMENT);
 
     if (!gHasSaveTable || !gHasPngTable)
@@ -621,12 +894,12 @@ static FREObject SaveStart(FREContext ctx, void* functionData, uint32_t argc, FR
 
     SaveJob* job = new SaveJob();
     InterlockedIncrement(&gActiveSaves);
-    std::string png, fofo, repdata;
+    std::string png, fofo, repdata, reuseFofo;
     double repdataLength = 0;
     int32_t options = 0;
 
     if (!getInt(argv[0], &job->id) || !getUtf8(argv[1], png) || !getUtf8(argv[2], fofo) || !getUtf8(argv[9], repdata)
-        || !getDouble(argv[10], &repdataLength) || repdataLength < 0 || !getInt(argv[17], &options)
+        || !getDouble(argv[10], &repdataLength) || repdataLength < 0 || !getInt(argv[17], &options) || !getUtf8(argv[18], reuseFofo)
         || !readSimpleArray(argv[14], job->firstMeta) || !readSimpleArray(argv[15], job->finalMeta) || !readSimpleArray(argv[16], job->referenceMeta)
         || !copyByteArray(argv[12], job->mirrorBytes) || !copyByteArray(argv[13], job->timingBytes))
     {
@@ -637,6 +910,8 @@ static FREObject SaveStart(FREContext ctx, void* functionData, uint32_t argc, FR
     job->pngPath = widePath(png);
     job->fofoPath = widePath(fofo);
     job->forceZlibReplay = (options & 1) != 0;
+    job->isLegacyWholeSave = (options & 2) != 0;
+    job->reuseFofoPath = reuseFofo.empty() ? std::wstring() : widePath(reuseFofo);
 
     // repdata 앞부분 + 메모리 뭉치 (호출 시점 내용)
     if (repdataLength > 0)

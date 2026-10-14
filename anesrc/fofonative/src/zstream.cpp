@@ -259,3 +259,46 @@ bool deflateRawSingle(const uint8_t* data, size_t length, int level, Bytes& out)
 {
     return deflateChunk(data, length, 0, length, true, level, out);
 }
+
+uint32_t crc32OfBytes(const uint8_t* data, size_t length)
+{
+    return (uint32_t)crc32_z(0, data, length);
+}
+
+uint32_t crc32OfPieces(const Pieces& pieces)
+{
+    uLong crc = 0;
+
+    for (size_t i = 0; i < pieces.parts.size(); i++)
+        crc = crc32_z(crc, pieces.parts[i].data(), pieces.parts[i].size());
+
+    return (uint32_t)crc;
+}
+
+uint32_t crc32OfBytesParallel(const uint8_t* data, size_t length, TaskPriority priority)
+{
+    const size_t CHUNK = 4 * 1024 * 1024;
+
+    if (length <= CHUNK)
+        return crc32OfBytes(data, length);
+
+    const int count = (int)((length + CHUNK - 1) / CHUNK);
+    std::vector<uint32_t> chunkCrcs(count);
+    auto work = [&](int index)
+    {
+        const size_t start = (size_t)index * CHUNK;
+        const size_t end = (start + CHUNK < length) ? start + CHUNK : length;
+        chunkCrcs[index] = crc32OfBytes(data + start, end - start);
+    };
+    pool::parallelFor(count, priority, work);
+    uLong crc = chunkCrcs[0];
+
+    for (int i = 1; i < count; i++)
+    {
+        const size_t start = (size_t)i * CHUNK;
+        const size_t end = (start + CHUNK < length) ? start + CHUNK : length;
+        crc = crc32_combine(crc, chunkCrcs[i], (z_off_t)(end - start));
+    }
+
+    return (uint32_t)crc;
+}

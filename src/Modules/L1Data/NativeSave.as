@@ -20,6 +20,9 @@ package Modules.L1Data
         private static const onSaveDoneByJobId:Object = {}; // 작업 번호 -> function(result:Object):void
         private static var pendingSaveCount:int = 0;
 
+        // 마지막으로 끝난 저장 작업의 결과 (onSaveStatusEvent의 result, 로그와 테스트에서 재사용 집계를 볼때 씀)
+        public static var lastSaveJobResult:Object = null;
+
         // 테스트에서 기존 worker 저장 경로를 시험할때 true
         public static var isDisabled:Boolean = false;
 
@@ -38,10 +41,11 @@ package Modules.L1Data
         // .png와 .fofo 저장 시작, 시작하지 못하면 false (호출한 쪽이 기존 worker 경로로 저장)
         // compositeBitmapData: PNG로 쓸 합성 이미지, referenceBitmapData/referenceImageMetaArray: 참고 레이어가 없으면 null
         // repdataReadByteLength: repdata 파일 앞에서 읽을 바이트 수, memoryGroupsBytes: 그 뒤에 붙일 메모리 뭉치(writeObject)
+        // reuseFofoPath: 압축 결과를 다시 쓸 이전 .fofo (원본이 같은 리플레이 조각, 첫 이미지, 참고 이미지는 다시 압축하지 않음), 없으면 빈 문자열
         public static function startReplayFileAndPngSave(pngPath:String, fofoPath:String, compositeBitmapData:BitmapData,
                 firstLayer1BitmapData:BitmapData, firstLayer2BitmapData:BitmapData, currentLayer1BitmapData:BitmapData, currentLayer2BitmapData:BitmapData, referenceBitmapData:BitmapData,
                 repdataPath:String, repdataReadByteLength:Number, memoryGroupsBytes:ByteArray, mirrorBytes:ByteArray, timingSheetBytes:ByteArray,
-                firstImageMetaArray:Array, finalImageMetaArray:Array, referenceImageMetaArray:Array, nativeSaveOptions:int, onSaveDone:Function):Boolean
+                firstImageMetaArray:Array, finalImageMetaArray:Array, referenceImageMetaArray:Array, nativeSaveOptions:int, reuseFofoPath:String, onSaveDone:Function):Boolean
         {
             if (!isAvailable)
             {
@@ -50,7 +54,7 @@ package Modules.L1Data
 
             const saveJobId:int = NativeCore.nextNativeJobId();
             const nativeResultCode:int = NativeCore.callNativeFunctionForResultCode("saveStart", saveJobId, pngPath, fofoPath, compositeBitmapData, firstLayer1BitmapData, firstLayer2BitmapData, currentLayer1BitmapData, currentLayer2BitmapData, referenceBitmapData,
-                    repdataPath, repdataReadByteLength, memoryGroupsBytes, mirrorBytes, timingSheetBytes, firstImageMetaArray, finalImageMetaArray, referenceImageMetaArray, nativeSaveOptions);
+                    repdataPath, repdataReadByteLength, memoryGroupsBytes, mirrorBytes, timingSheetBytes, firstImageMetaArray, finalImageMetaArray, referenceImageMetaArray, nativeSaveOptions, reuseFofoPath);
 
             if (nativeResultCode !== NativeCore.OK)
             {
@@ -127,6 +131,7 @@ package Modules.L1Data
                     writeMs: Number(saveResultFields[8]),
                     message: saveResultFields.slice(9).join("\n")
                 };
+            lastSaveJobResult = result;
             onSaveDone(result);
         }
     }

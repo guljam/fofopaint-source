@@ -98,6 +98,8 @@ package Modules.L5App
                 return;
             }
 
+            segmentReuseFofoPath = oldFile.nativePath; // 불러온 파일의 압축 조각/이미지를 다음 저장에서 다시 씀
+
             const fs:FileStream = new FileStream();
             var imgStartByte:uint = 0;
             var imgW:uint = 0;
@@ -958,8 +960,12 @@ package Modules.L5App
                 }, [lastPath]);
         }
 
-        // 테스트에서 저장 옵션을 바꿀때 씀 (1 = 리플레이 블록을 FRC2 대신 zlib)
+        // 테스트에서 저장 옵션을 바꿀때 씀 (1 = 리플레이 블록을 FRC2 대신 zlib, 2 = 세그먼트 이전 방식: 리플레이 한 덩어리 FRC2, 이미지 재사용 없음)
         public static var nativeSaveOptions:int = 0;
+
+        // 마지막으로 불러오거나 저장한 .fofo 경로, 다음 네이티브 저장이 이 파일의 압축 조각/이미지를 다시 씀 (내용이 같을때만, 다르면 새로 압축)
+        // 다른 이름으로 저장해도 이전 파일에서 가져올 수 있게 저장 경로와 따로 둠
+        public static var segmentReuseFofoPath:String = "";
 
         // 네이티브 저장: 지금 상태(비트맵 6개, repdata 길이, 메모리 뭉치, 메타)를 한 번에 넘기고 바로 돌아옴
         // 저장 결과는 onNativeSaveDone, 끝날때까지 isSaveInProgress를 유지해서 repdata 자르기/초기화를 막음
@@ -1056,7 +1062,7 @@ package Modules.L5App
             const started:Boolean = NativeSave.startReplayFileAndPngSave(pngPath, ReplayFileCache.getReplayFileNameFromPath(pngPath), composite,
                     first1, first2, current1, current2, reference,
                     AppDataPaths.replayDataFilePath.nativePath, repdataLength, memoryGroups, mirrorBytes, timingBytes,
-                    firstMeta, finalMeta, referenceMeta, nativeSaveOptions, onNativeSaveDone);
+                    firstMeta, finalMeta, referenceMeta, nativeSaveOptions, getSegmentReuseFofoPathForSave(), onNativeSaveDone);
             trace("Native save start: memory groups " + (memoryTime - saveStartTime) + "ms, timing sheet " + (sheetTime - memoryTime)
                 + "ms, composite " + (compositeTime - sheetTime) + "ms, native call " + (getTimer() - compositeTime) + "ms");
             composite.dispose();
@@ -1066,6 +1072,27 @@ package Modules.L5App
             return started;
         }
 
+        // 이번 저장에서 압축 결과를 다시 쓸 이전 .fofo: 마지막으로 불러오거나 저장한 파일, 없으면 덮어쓸 대상 파일, 둘 다 없으면 빈 문자열
+        // 경로가 절대 경로가 아니면(File 생성자가 ArgumentError) 없는 것으로 봄
+        private static function getSegmentReuseFofoPathForSave():String
+        {
+            try
+            {
+                if (segmentReuseFofoPath !== "" && new File(segmentReuseFofoPath).exists)
+                {
+                    return segmentReuseFofoPath;
+                }
+
+                const targetFofoFile:File = new File(ReplayFileCache.getReplayFileNameFromPath(lastSaveFilePath));
+                return targetFofoFile.exists ? targetFofoFile.nativePath : "";
+            }
+            catch (error:Error)
+            {
+            }
+
+            return "";
+        }
+
         private static function onNativeSaveDone(result:Object):void
         {
             trace("Native save " + result.status + " codec=" + result.codec + " encode=" + result.encodeMs + "ms write=" + result.writeMs + "ms " + result.message);
@@ -1073,9 +1100,11 @@ package Modules.L5App
             switch (result.status)
             {
                 case NativeSave.STATUS_OK:
+                    segmentReuseFofoPath = result.fofoPath;
                     finishSave(result.fofoSize, false);
                     break;
                 case NativeSave.STATUS_RENAMED:
+                    segmentReuseFofoPath = result.fofoPath;
                     // 원래 파일을 다른 프로그램이 잡고 있거나 읽기 전용이라 이름_new 쌍으로 저장함, 이후 저장도 새 이름으로
                     lastSaveFilePath = result.pngPath;
                     lastSaveFileName = getFileNameFromPath(lastSaveFilePath);
