@@ -7,6 +7,7 @@ package Modules.L4UI.DrawEngine
     import Modules.L4UI.CanvasGridOverlay;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.PenSizePreviewCursor;
+    import Modules.L4UI.ReferenceLayerController;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L4UI.CanvasViewport;
@@ -54,10 +55,11 @@ package Modules.L4UI.DrawEngine
             return CanvasView.canvasZoomMultiplier;
         }
 
-        // 배율을 CanvasView에 저장하고, 캡처 모드가 아니면 펜 크기 미리보기를, 올가미 중이면 올가미 윤곽선을 새 배율에 맞춤
+        // 배율을 CanvasView에 저장하고, 캡처 모드가 아니면 펜 크기 미리보기를, 올가미 중이면 올가미 윤곽선을, 메모리 트레이닝 원 크기를 새 배율에 맞춤
         override protected function storeZoomMultiplier(newZoomMultiplier:Number):void
         {
             CanvasView.canvasZoomMultiplier = newZoomMultiplier;
+            ReferenceLayerController.updateMemoryTrainingMaskScaleByZoom(newZoomMultiplier); // 원이 떠 있는 채로 줌해도 같은 프레임에 화면상 크기를 유지함
             if (!CaptureController.isCaptureModeON)
             {
                 PenSizePreviewCursor.updateZoom(newZoomMultiplier);

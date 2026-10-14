@@ -387,14 +387,7 @@ package Modules.L4UI
             FOFOTimer.remove(MEMORY_TRAINING_MASK_DELAY_TIMER);
             isMemoryTrainingMaskActive = true;
 
-            // 줌이 바뀌었을 때만 스케일을 갱신함 (블러도 스케일을 따라가므로 다시 그리지 않음)
-            const zoom:Number = Math.abs(CanvasView.canvasAnchorPoint.scaleY);
-            if (zoom !== memoryTrainingMaskZoom && zoom > 0)
-            {
-                memoryTrainingMaskZoom = zoom;
-                memoryTrainingMask.scaleX = memoryTrainingMask.scaleY = 1 / zoom;
-            }
-
+            updateMemoryTrainingMaskScaleByZoom(Math.abs(CanvasView.canvasAnchorPoint.scaleY));
             updateMemoryTrainingMaskPos(); // 나타나기 전에 위치를 먼저 맞춰 이전 위치에서 번쩍이지 않게 함
             memoryTrainingMask.visible = true;
             FOFOTimer.addByName(MEMORY_TRAINING_MASK_FOLLOW_TIMER, 0.0, true, updateMemoryTrainingMaskPos); // 프레임당 한 번만 따라감
@@ -468,6 +461,21 @@ package Modules.L4UI
             }
 
             canvasRefHolder.blendMode = BlendMode.NORMAL;
+        }
+
+        // 캔버스 줌이 바뀌었을 때만 원 스케일을 1/zoom으로 다시 맞춰 화면상 크기와 블러를 일정하게 유지함 (블러도 스케일을 따라가므로 다시 그리지 않음)
+        // 원을 띄울 때와 DrawViewport가 배율을 바꿀 때 호출함. 원이 남아 있는 동안 줌을 당기면 옛 스케일 때문에 원과 블러가 줌 배율만큼 커져 렌더가 크게 느려짐
+        public static function updateMemoryTrainingMaskScaleByZoom(zoom:Number):void
+        {
+            if (memoryTrainingMask === null)
+            {
+                return;
+            }
+            if (zoom !== memoryTrainingMaskZoom && zoom > 0)
+            {
+                memoryTrainingMaskZoom = zoom;
+                memoryTrainingMask.scaleX = memoryTrainingMask.scaleY = 1 / zoom;
+            }
         }
 
         private static function updateMemoryTrainingMaskPos():Boolean
