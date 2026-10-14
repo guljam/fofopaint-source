@@ -1,6 +1,6 @@
 package
 {
-    import Modules.ReplayDataCodec;
+    import Modules.L1Data.ReplayDataCodec;
     import flash.desktop.NativeApplication;
     import flash.display.Sprite;
     import flash.events.InvokeEvent;
