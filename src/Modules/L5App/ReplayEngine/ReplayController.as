@@ -1725,7 +1725,6 @@ package Modules.L5App.ReplayEngine
             FOFOTimer.remove("replayRestartTimer");
             updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
             Utils.setColorTransform(UIController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
-            ReplayDrawer.viewport.setCanvasScale(ReplayState.rLastCanvasZoomMultiplier);
         }
 
         public static function startReplayRestartTimer():void
@@ -1932,6 +1931,11 @@ package Modules.L5App.ReplayEngine
                 fitReplayCanvasToViewport();
             }
 
+            if (ReplayState.rNowFrame === 0)
+            {
+                ReplayDrawer.cursorFollow.holdOverviewAfterReplayStart(); // 처음부터 재생하면 잠시 전체를 보여준 뒤 집중 영역으로 들어감
+            }
+
             ReplayFileCache.clearRFrameTempCache();
             ReplayClock.startClockAtFrame(ReplayState.rNowFrame, ReplayState.getReplayClockSpeed());
             ReplayMouseAutoHide.startMouseHideTimer();
@@ -2127,7 +2131,6 @@ package Modules.L5App.ReplayEngine
         public static function resetZoomReplayMode():void
         {
             const center:Point = UIController.getStageCenterPos("replay");
-            ReplayState.rLastCanvasZoomMultiplier = 1.0;
             ReplayState.rCanvasZoomIndex = CanvasView.canvasZoomMultiplierList.indexOf(1.0);
             ReplayDrawer.viewport.moveAnchorPoint(center.x, center.y);
             ReplayDrawer.viewport.setCanvasScale(1.0);
@@ -2172,7 +2175,7 @@ package Modules.L5App.ReplayEngine
         private static function syncDrawCanvasWithReplayCanvas():void
         {
             CanvasView.canvasZoomMultiplier = ReplayState.rCanvasZoomMultiplier;
-            CanvasView.canvasZoomIndex = ReplayState.rCanvasZoomIndex;
+            CanvasView.canvasZoomIndex = CanvasView.getNearZoomIndex(ReplayState.rCanvasZoomMultiplier); // 리플레이 자동 줌 배율은 단계 값이 아니라서 가까운 단계로 맞춤
             CanvasView.canvasAnchorPoint.x = Math.floor(ReplayDrawer.rCanvasAnchorPoint.x); // 뭔가 크기가 살짝 달라져서 소숫점 버림 해줌
             CanvasView.canvasAnchorPoint.y = Math.floor(ReplayDrawer.rCanvasAnchorPoint.y);
             CanvasView.canvasAnchorPoint.scaleX = ReplayDrawer.rCanvasAnchorPoint.scaleX;
@@ -2241,11 +2244,13 @@ package Modules.L5App.ReplayEngine
             UIController.stageBG.addChild(rCanvasCompleteAnchorPoint);
         }
 
+        // 창 맞춤을 켜고 끔. 끌 때는 지금 화면(맞춤 배율)에서 리플레이 카메라가 이어받음
         public static function toggleFitToCanvasReplayMode():void
         {
             if (ReplayState.isReplayCanvasFitToWindow)
             {
-                resetZoomReplayMode();
+                setFitReplayCanvasToViewportOFF();
+                ReplayDrawer.cursorFollow.moveCameraToCursorNow();
             }
             else
             {
@@ -2343,13 +2348,13 @@ package Modules.L5App.ReplayEngine
             fitReplayCanvasToViewport();
         }
 
+        // 리플레이 캔버스를 창에 맞춤. 배율은 연속값 그대로 둠 (단계 값으로 바꾸면 화면 배율과 rCanvasZoomMultiplier가 어긋나 맞춤을 끈 뒤 카메라 계산이 틀어짐)
         public static function fitReplayCanvasToViewport():void
         {
             FOFOTimer.addByName("rFitZoomedDelayTimer", 0.15, false, function ():void
                 {
                     CanvasViewport.getCurrentVisibleViewport().fitToViewportMargin(true);
                     ReplayState.rCanvasZoomIndex = CanvasView.getNearZoomIndex(ReplayState.rCanvasZoomMultiplier);
-                    ReplayState.rCanvasZoomMultiplier = CanvasView.canvasZoomMultiplierList[ReplayState.rCanvasZoomIndex];
                 });
         }
 
@@ -2393,7 +2398,7 @@ package Modules.L5App.ReplayEngine
 
         private static function replayCompleteEffect():void
         {
-            CanvasViewport.getCurrentVisibleViewport().fitToViewportMargin(ReplayState.isReplayCanvasFitToWindow);
+            CanvasViewport.getCurrentVisibleViewport().fitToViewportMargin(true); // 창 맞춤을 꺼도 카메라의 최소 배율이 맞춤 배율이라 끝날 때도 100%를 넘겨 맞춤
             CanvasView.applyCanvasFlashEffect(ReplayDrawer.rCanvasPanel, 0, 0, ReplayState.RCANVAS_WIDTH, ReplayState.RCANVAS_HEIGHT, function ():Boolean
                 {
                     return !ReplayState.isReplayModeON;

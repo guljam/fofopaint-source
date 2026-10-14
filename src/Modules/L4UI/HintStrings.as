@@ -82,8 +82,6 @@
                 "cutPrevDataButton": "Trim all before current frame",
                 "superUndoButton": "Trim all after current frame",
                 "replaySpeedSliderWrapper": "Playback speed [up / down, f / v, h / n]",
-                "replayZoomOutButton": "Zoom out [s / k] _ " + STRING_RIGHT_CLICK_TO_RESET,
-                "replayZoomInButton": "Zoom in [w / i] _ " + STRING_RIGHT_CLICK_TO_RESET,
                 "replayFitToWindowButton": "Toggle fit to viewport",
                 "replayRotateButton": "Rotate _ " + STRING_RIGHT_CLICK_TO_RESET,
                 "replayRepeatButton": "Toggle loop playback",

@@ -7,14 +7,12 @@ package Modules.L4UI.Tools
     import flash.events.MouseEvent;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L1Data.KeyState;
-    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.PenSizePreviewCursor;
-    import Modules.L4UI.CanvasViewport;
+    import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L1Data.MouseState;
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.ReferenceLayerController;
-    import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L4UI.UIEngine.CanvasNavigator;
     import Modules.L1Data.InputPriority;
 
@@ -23,8 +21,6 @@ package Modules.L4UI.Tools
     {
 
         private static const old:Point = new Point(0, 0);
-
-        private static var isReplayMode:Boolean;
 
         private static var xAnc:Sprite;
 
@@ -45,41 +41,27 @@ package Modules.L4UI.Tools
             AppContext.stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
 
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
-            CanvasViewport.getViewportByReplayMode(isReplayMode).keepCanvasInStage();
+            CanvasView.viewport.keepCanvasInStage();
+            ReferenceLayerController.setRefLayerAndGridVisible(true);
 
-            if (!isReplayMode)
+            if (LassoTool.isStarted)
             {
-                ReferenceLayerController.setRefLayerAndGridVisible(true);
-
-                if (LassoTool.isStarted)
+                if (LassoTool.isLassoMenuHiddenTemp === true)
                 {
-                    if (LassoTool.isLassoMenuHiddenTemp === true)
-                    {
-                        LassoTool.showLassoMenuBox();
-                    }
-                } // tool box에서 클릭해서 핸드툴 들어갈때 필요함
-                else if (!KeyState.isLastKey(KeyState.KEY.space))
-                {
-                    ToolController.selectLastUsedTool();
+                    LassoTool.showLassoMenuBox();
                 }
-
-                ToolPanel.toolBox.setCursorVisible(true);
-                CanvasNavigator.updateCursor();
-            }
-            else
+            } // tool box에서 클릭해서 핸드툴 들어갈때 필요함
+            else if (!KeyState.isLastKey(KeyState.KEY.space))
             {
-                ReplayDrawer.cursorFollow.resyncCameraWithAnchor();
+                ToolController.selectLastUsedTool();
             }
+
+            ToolPanel.toolBox.setCursorVisible(true);
+            CanvasNavigator.updateCursor();
         }
 
         private static function onMouseMoveHandTool(e:MouseEvent):void
         {
-            if (isReplayMode && ReplayState.isReplayRestartTimerON)
-            {
-                finishHandTool();
-                return;
-            }
-
             xAnc.x += (AppContext.stage.mouseX - old.x);
             xAnc.y += (AppContext.stage.mouseY - old.y);
 
@@ -88,38 +70,23 @@ package Modules.L4UI.Tools
 
         public static function startInDrawMode():void
         {
-            _start(false, false);
+            _start(false);
         }
 
         public static function startInDrawModeWithWheelClick():void
         {
-            _start(false, true);
+            _start(true);
         }
 
-        public static function startInReplayMode():void
+        // 드로우 모드에서만 씀 (리플레이 모드는 카메라가 화면을 정하므로 손 툴이 없음)
+        private static function _start(fromWheelClick:Boolean):void
         {
-            _start(true, false);
-        }
-
-        public static function startInReplayModeWithWheelClick():void
-        {
-            _start(true, true);
-        }
-
-        private static function _start(fromReplayMode:Boolean, fromWheelClick:Boolean):void
-        {
-            isReplayMode = fromReplayMode;
-
-            xAnc = CanvasViewport.getViewportByReplayMode(isReplayMode).canvasAnchorPoint;
+            xAnc = CanvasView.viewport.canvasAnchorPoint;
 
             old.setTo(AppContext.stage.mouseX, AppContext.stage.mouseY);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
-            
-            if (!fromReplayMode)
-            {
-                ToolPanel.toolBox.setCursorVisible(false);
-                ReferenceLayerController.setRefLayerAndGridVisible(false);
-            }
+            ToolPanel.toolBox.setCursorVisible(false);
+            ReferenceLayerController.setRefLayerAndGridVisible(false);
 
             if (fromWheelClick)
             {

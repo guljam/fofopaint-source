@@ -77,7 +77,6 @@
     import Modules.L5App.LoadBoxController;
     import Modules.L5App.ClipboardManager;
     import Modules.L4UI.ReplayEngine.ReplayMouseAutoHide;
-    import Modules.L4UI.ReplayEngine.ReplayViewport;
     import Symbols.AboutWindowSet;
     import Modules.L1Data.AppStateVars;
     import Modules.L4UI.UIEngine.CanvasNavigator;
@@ -249,7 +248,6 @@
             UIController.onReplayCanvasCenteredFunc = ReplayController.setReplayCompleteCanvasCenter;
             UIController.onClipboardButtonCheckedFunc = ClipboardManager.checkCanUseClipBoardButton;
             RotateTool.onReplayCanvasFitNeededFunc = ReplayController.fitReplayCanvasToViewport;
-            ReplayViewport.onReplayFitOffFunc = ReplayController.setFitReplayCanvasToViewportOFF;
             ReplayMouseAutoHide.onReplayTopbarHiddenFunc = ReplayController.hideTopbarOnPlayback;
             AboutBoxController.onLocalManualOpenedFunc = FileManager.openLocalManual;
             AboutBoxController.onButtonPressedFunc = InputManager.handleMouseClickStage;

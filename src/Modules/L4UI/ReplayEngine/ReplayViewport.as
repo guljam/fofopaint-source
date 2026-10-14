@@ -3,11 +3,7 @@ package Modules.L4UI.ReplayEngine
 
     import flash.display.Bitmap;
     import flash.display.Sprite;
-    import flash.geom.Point;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
-    import Modules.L4UI.UIEngine.UIController;
-    import Modules.L4UI.UIEngine.HintController;
-    import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L4UI.CanvasViewport;
     import Modules.L2Engine.ReplayEngine.ReplayState;
 
@@ -15,9 +11,6 @@ package Modules.L4UI.ReplayEngine
     // 층: L4 UI - 리플레이 모드 캔버스의 화면 배치 (ReplayDrawer.viewport)
     public class ReplayViewport extends CanvasViewport
     {
-        // 리플레이 캔버스 화면 맞춤을 꺼야 한다는 보고
-        public static var onReplayFitOffFunc:Function;
-
         override public function get canvasAnchorPoint():Sprite
         {
             return ReplayDrawer.rCanvasAnchorPoint;
@@ -60,59 +53,6 @@ package Modules.L4UI.ReplayEngine
             {
                 ReplayDrawer.blurReplayCanvasByValue(ReplayState.rAirBrushSize);
             }
-        }
-
-        // 줌 키/버튼의 다음 단계: 지금 화면에 보이는 배율 기준으로 가장 가까운 다음 단계 (자동 줌 뒤에는 배율이 단계 값이 아니라서 저장된 단계 인덱스를 쓰면 크게 튐)
-        // 지금 배율이 정확히 단계 값이면 그 다음 단계 (상대 오차 1e-6 미만은 같은 값으로 봄). 그 방향에 더 간 단계가 없으면 -1 (배율을 바꾸지 않음)
-        private function nextZoomIndexFromVisible(zoomIn:Boolean):int
-        {
-            const zoomMultiplierList:Array = CanvasView.canvasZoomMultiplierList;
-            const visibleZoomMultiplier:Number = ReplayState.rCanvasZoomMultiplier;
-            var i:int;
-
-            if (zoomIn)
-            {
-                for (i = 0;i < zoomMultiplierList.length;i++)
-                {
-                    if (zoomMultiplierList[i] > visibleZoomMultiplier * (1 + 1e-6))
-                    {
-                        return i;
-                    }
-                }
-
-                return -1;
-            }
-
-            for (i = zoomMultiplierList.length - 1;i >= 0;i--)
-            {
-                if (zoomMultiplierList[i] < visibleZoomMultiplier * (1 - 1e-6))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        override public function zoomByOneStep(zoomIn:Boolean):void
-        {
-            const newZoomIndex:int = nextZoomIndexFromVisible(zoomIn);
-
-            if (newZoomIndex < 0)
-            {
-                HintController.showMouseHintTemp(String(Math.floor(ReplayState.rCanvasZoomMultiplier * 100)) + "%"); // 더 갈 단계가 없으면 지금 배율 그대로 (줌아웃 키로 화면이 커지지 않게)
-                return;
-            }
-
-            const newZoom:Number = CanvasView.canvasZoomMultiplierList[newZoomIndex];
-            const stageCenterPos:Point = UIController.getStageCenterPos("replay");
-            ReplayState.rLastCanvasZoomMultiplier = newZoom;
-            if (onReplayFitOffFunc != null) onReplayFitOffFunc();
-            ReplayState.rCanvasZoomIndex = newZoomIndex;
-            moveAnchorPoint(stageCenterPos.x, stageCenterPos.y);
-            setCanvasScale(newZoom);
-            ReplayDrawer.cursorFollow.resyncCameraWithAnchor();
-            HintController.showMouseHintTemp(String(Math.floor(newZoom * 100)) + "%");
         }
     }
 }

@@ -13,7 +13,6 @@ package Modules.L5App.InputManager
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L4UI.HintStrings;
     import Modules.L1Data.MouseState;
-    import Modules.L4UI.Tools.HandTool;
     import Modules.L4UI.Tools.RotateTool;
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L4UI.ActivityWorkTimer;
@@ -58,16 +57,6 @@ package Modules.L5App.InputManager
                 case "drawModeButton":
                     {
                         ReplayController.exitReplayMode();
-                    }
-                    break;
-                case "replayZoomInButton":
-                    {
-                        ReplayDrawer.viewport.zoomByOneStep(true);
-                    }
-                    break;
-                case "replayZoomOutButton":
-                    {
-                        ReplayDrawer.viewport.zoomByOneStep(false);
                     }
                     break;
                 case "replayFitToWindowButton":
@@ -176,7 +165,7 @@ package Modules.L5App.InputManager
                             ReplayController.handleReplayStopButton();
                         }
                         break;
-                    // 재생 중 배속/줌 조절 (shift/ctrl 조합은 제외). 줌 키는 반복 없이 키를 떼기 전에는 다시 들어오지 않음
+                    // 재생 중 배속 조절 (shift/ctrl 조합은 제외)
                     case KeyState.KEY.up:
                     case KeyState.KEY.f:
                     case KeyState.KEY.h:
@@ -196,26 +185,6 @@ package Modules.L5App.InputManager
                             {
                                 KeyState.updateLastKey();
                                 ReplayController.startAdjustPlayBackSpeedByShortcut(false);
-                            }
-                        }
-                        break;
-                    case KeyState.KEY.w:
-                    case KeyState.KEY.i:
-                        {
-                            if (!KeyState.isPressingShift() && !KeyState.isPressingControl())
-                            {
-                                KeyState.updateLastKey();
-                                ReplayDrawer.viewport.zoomByOneStep(true);
-                            }
-                        }
-                        break;
-                    case KeyState.KEY.s:
-                    case KeyState.KEY.k:
-                        {
-                            if (!KeyState.isPressingShift() && !KeyState.isPressingControl())
-                            {
-                                KeyState.updateLastKey();
-                                ReplayDrawer.viewport.zoomByOneStep(false);
                             }
                         }
                         break;
@@ -295,18 +264,6 @@ package Modules.L5App.InputManager
                         }
                     }
                     break;
-                case KeyState.KEY.w:
-                case KeyState.KEY.i:
-                    {
-                        ReplayDrawer.viewport.zoomByOneStep(true); // 반복 없음: 위에서 updateLastKey를 불러 키를 떼기 전에는 다시 들어오지 않음
-                    }
-                    break;
-                case KeyState.KEY.s:
-                case KeyState.KEY.k:
-                    {
-                        ReplayDrawer.viewport.zoomByOneStep(false);
-                    }
-                    break;
                 case KeyState.KEY.backspace:
                 case KeyState.KEY.esc:
                 case KeyState.KEY.f1:
@@ -356,12 +313,6 @@ package Modules.L5App.InputManager
                         ReplayDrawer.cursorFollow.resyncCameraWithAnchor();
                     }
                     break;
-                case "replayZoomInButton":
-                case "replayZoomOutButton":
-                {
-                    ReplayController.resetZoomReplayMode();
-                    break;
-                }
                 case "rCanvasDrawLayer":
                 case "stageBG":
                     {
@@ -409,12 +360,7 @@ package Modules.L5App.InputManager
 
                 if(!ReplayState.isReplayRestartTimerON)
                 {   
-                    if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "stageBG")
-                    {
-                        HandTool.startInReplayMode();
-                        return;
-                    }
-                    else if(targetName === "replayFitToWindowButton")
+                    if(targetName === "replayFitToWindowButton")
                     {
                         InputManager.handleMouseClickStage(targetName, onClickReplayButton);
                     }
@@ -534,8 +480,6 @@ package Modules.L5App.InputManager
                 case "drawModeButton":
                 case "playButton":
                 case "pauseButton":
-                case "replayZoomInButton":
-                case "replayZoomOutButton":
                 case "replayFitToWindowButton":
                     {
                         if (KeyState.isKeyPressed())

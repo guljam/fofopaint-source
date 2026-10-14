@@ -13,7 +13,6 @@ package Modules.L4UI.ReplayEngine
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L2Engine.ReplayEngine.ReplayDrawCommands;
     import Modules.L2Engine.ReplayEngine.ReplayState;
-    import Modules.L1Data.MouseState;
     import Modules.L1Data.Utils;
     import Modules.L2Engine.UndoHistory;
     import Modules.L1Data.UIEngine.UITheme;
@@ -31,30 +30,31 @@ package Modules.L4UI.ReplayEngine
         private static const MAX_DT_MS:Number = 100; // 한 틱 dt 상한 (멈췄다 재개할 때 튀지 않게)
         private static const SETTLED_DIST:Number = 0.5; // 목표와 이 거리 미만이면 도착한 것으로 봄
 
-        // 자동 줌 (2단계)
-        private static const AUTO_FIT_SPEED_IN:Number = 8; // 이 배속 이상이면 줌아웃
-        private static const AUTO_FIT_SPEED_OUT:Number = 5; // 이 배속 미만이어야 복원 후보 (들어가는 값보다 낮게 둬서 경계에서 흔들리지 않게 함)
-        private static const RETURN_DWELL_MS:Number = 2500; // 복원 조건이 이만큼 이어져야 복원
-        private static const ZOOM_OUT_TAU_MS:Number = 200; // 줌아웃 감쇠 시간 (빠르게)
-        private static const ZOOM_IN_TAU_MS:Number = 600; // 복원 감쇠 시간 (느리게)
-        private static const RETURN_ZOOM_RATIO:Number = 1.0; // 복원 배율 = 사용자 줌 * 이 값
+        // 자동 줌. 배율은 캔버스 전체가 보이는 맞춤 배율(최소)과 확대 상한(최대) 사이에서만 움직임 (조정용 값은 여기 모음)
         private static const FIT_MARGIN:Number = 20; // 맞춤 배율에서 화면 가장자리에 남기는 여백 px
-        private static const BIG_ANIM_RATIO:Number = 0.9; // 연출 영역이 사용자 줌에서 화면의 이 비율보다 크면 줌아웃
+        private static const FOCUS_FRAMING_RATIO:Number = 0.65; // 확대할 때 집중 영역이 화면에서 차지하게 할 비율. 키우면 더 많이 확대함
+        private static const FOCUS_KEEP_RATIO:Number = 0.9; // 집중 영역이 지금 배율에서 화면의 이 비율을 넘으면 줌아웃. FOCUS_FRAMING_RATIO보다 커야 경계에서 들락날락하지 않음
+        private static const PIXEL_MAGNIFY_LIMIT:Number = 1.5; // 확대 상한 1: 캔버스 1px을 화면 몇 px까지 키울지 (UI 배율을 곱해서 고해상도 화면에서도 같은 크기로 보이게 함)
+        private static const CONTEXT_ZOOM_LIMIT:Number = 3; // 확대 상한 2: 맞춤 배율의 몇 배까지 들어갈지. 줄이면 주변 맥락을 더 남김
+        private static const ZOOM_IN_DWELL_MS:Number = 1500; // 더 큰 배율로 들어가도 되는 상태가 이만큼 이어져야 확대
+        private static const ZOOM_OUT_TAU_MS:Number = 200; // 줌아웃 감쇠 시간 (빠르게)
+        private static const ZOOM_IN_TAU_MS:Number = 600; // 줌인 감쇠 시간 (느리게)
         private static const ZOOM_SETTLED_LOG:Number = 0.002; // 로그 배율 차이가 이 값 미만이면 도착
 
-        // 미리 읽은 커서 경로로 영역을 추적 (3단계)
+        // 전체 보기(맞춤 배율로 강제) 계기
+        private static const OVERVIEW_SPEED_IN:Number = 8; // D: 이 배속 이상이면 전체 보기
+        private static const OVERVIEW_SPEED_OUT:Number = 5; // D: 이 배속 미만이어야 전체 보기를 풂 (들어가는 값보다 낮게 둬서 경계에서 흔들리지 않게 함)
+        private static const CANVAS_WIDE_OVERVIEW_MS:Number = 2000; // B: 캔버스 전체에 영향을 주는 명령(지우기, 크기 변경, 대칭 등) 뒤 전체 보기를 유지하는 실제 시간
+        private static const START_OVERVIEW_MS:Number = 1500; // C: 처음부터 재생을 시작한 뒤 전체 보기를 유지하는 실제 시간
+        private static const JUMP_DISTANCE_RATIO:Number = 0.5; // A: 먼 영역과 가까운 영역의 중심 거리가 지금 화면 짧은 변의 이 비율 이상이고 겹치지 않으면 다른 영역으로 넘어가는 것으로 봄
+
+        // 미리 읽은 커서 경로로 영역을 추적
+        private static const REGION_LOOKAHEAD_REAL_MS:Number = 500; // 집중 영역을 계산하는 미리 보기 시간 (실제 시간). 이 뒤부터 ReplayCommandWindow.LOOKAHEAD_REAL_MS까지는 A 판정에만 씀
         private static const EXCURSION_IGNORE_MS:Number = 800; // 데드존 밖으로 나가 있던 시간이 이보다 짧으면 따라가지 않음 (실제 시간)
         private static const REGION_LOW:Number = 0.1; // 시간 가중 10~90% 구간을 영역으로 봄
         private static const REGION_HIGH:Number = 0.9;
         private static const MAX_PATH_SAMPLES:int = 600; // 계산에 쓰는 경로 점 수 상한
         private static const EXCURSION_GAP_MS:Number = 150; // 데드존 밖 구간 사이에 안으로 들어와 있던 실제 시간이 이보다 짧으면 같은 바깥 이동으로 이음 (경계를 스치는 점 하나로 구간이 갈라졌다 합쳐지며 영역이 튀는 것을 막음)
-
-        private static const USER_OVERRIDE_MS:Number = 3000; // 수동 줌(휠, 키, 버튼) 뒤 이 시간 동안은 자동 줌아웃을 시작하지 않음. 위치 추적과 안전 구역은 계속 동작
-
-        private static const REGION_CALM_RATIO:Number = 1.15; // 줌인(복원)은 영역이 이 비율만큼 여유 있게 더 큰 배율에 들어갈 때만 후보가 됨 (줌아웃 기준과 같은 값이면 경계에서 들락날락함)
-
-        private static const AUTO_ZOOM_FOLLOWING_USER:int = 0; // 사용자 줌
-        private static const AUTO_ZOOM_HELD:int = 1; // 줌아웃해서 heldZoomMultiplier 배율을 유지하는 중 (그 배율로 가는 중도 포함)
 
         // 감쇠 중인 앵커 위치와 목표 (전역 좌표, 소수 유지. 앵커에 넣을 때만 반올림)
         private var anchorPosX:Number = 0;
@@ -67,7 +67,8 @@ package Modules.L4UI.ReplayEngine
         private var isUpcomingRegionReady:Boolean = false;
         private var upcomingRegionMissReasonCode:String = "";
         private const upcomingRegionRect:Rectangle = new Rectangle(); // 캔버스 좌표, 시간 가중 10~90% 영역
-        private var upcomingRegionFitZoom:Number = NaN; // 영역이 화면에 들어가는 배율
+        private var isUpcomingJumpDetected:Boolean = false; // A: 가까운 영역 뒤에 멀리 떨어진 영역으로 넘어감
+        private const upcomingJumpUnionRect:Rectangle = new Rectangle(); // A일 때 가까운 영역과 먼 영역을 합친 사각형 (캔버스 좌표)
         private var isShortExcursionIgnored:Boolean = false; // 지금 커서가 무시하는 짧은 바깥 이동 안에 있음
         private var cursorOutsideDeadZoneSinceMs:int = -1; // 커서가 데드존 밖으로 나간 시각 (getTimer), 안이면 -1
         private const upcomingCursorPath:Vector.<Number> = new Vector.<Number>();
@@ -76,15 +77,17 @@ package Modules.L4UI.ReplayEngine
         private const regionSampleY:Vector.<Number> = new Vector.<Number>();
         private const regionSampleWeightMs:Vector.<Number> = new Vector.<Number>(); // 샘플의 가중치(그 위치에 머문 녹화 시간)
         private const regionSampleOutsideDeadZone:Vector.<Boolean> = new Vector.<Boolean>(); // 샘플이 데드존 밖인지
+        private const jumpSampleX:Vector.<Number> = new Vector.<Number>(); // A 판정용 먼 구간(REGION_LOOKAHEAD_REAL_MS 뒤) 샘플
+        private const jumpSampleY:Vector.<Number> = new Vector.<Number>();
+        private const jumpSampleWeightMs:Vector.<Number> = new Vector.<Number>();
 
-        // 자동 줌 상태. userZoomMultiplier은 사용자가 정한 배율이고 외부가 배율을 바꿨을 때만 갱신됨 (자동 줌은 rCanvasZoomIndex 등 사용자 줌 값을 건드리지 않음)
-        private var autoZoomState:int = AUTO_ZOOM_FOLLOWING_USER;
-        private var userZoomMultiplier:Number = NaN;
-        private var appliedZoomMultiplier:Number = NaN; // 카메라가 마지막으로 적용한 배율. 실제 배율과 다르면 외부가 바꾼 것
+        // 자동 줌 상태 (사용자 줌은 없음. 외부가 배율을 바꾸면 그 값에서 이어서 움직임)
+        private var appliedZoomMultiplier:Number = NaN; // 카메라가 마지막으로 적용한 배율. 실제 배율과 다르면 외부(창 맞춤, 캡처 복귀 등)가 바꾼 것
         private var isZoomMovingToHeldZoom:Boolean = false; // 배율이 heldZoomMultiplier을 향해 움직이는 중
-        private var heldZoomMultiplier:Number = NaN; // 줌아웃 뒤 유지하려는 배율. 줌아웃은 바로 낮추고, 올리는 것(줌인)은 확인 시간을 거쳐서만 올림
-        private var zoomInCandidateSinceMs:int = -1; // 더 큰 배율이어도 영역이 들어가는 상태가 이어지기 시작한 시각, 아니면 -1
-        private var lastManualZoomTimeMs:int = -1000000; // 마지막 수동 줌(카메라가 적용하지 않은 배율 변화를 감지한) 시각
+        private var heldZoomMultiplier:Number = NaN; // 유지하려는 배율. 줌아웃은 바로 낮추고, 올리는 것(줌인)은 확인 시간을 거쳐서만 올림
+        private var zoomInCandidateSinceMs:int = -1; // 더 큰 배율로 들어가도 되는 상태가 이어지기 시작한 시각, 아니면 -1
+        private var isSpeedOverviewOn:Boolean = false; // D: 배속 때문에 전체 보기 중 (OVERVIEW_SPEED_IN/OUT 사이에서는 직전 상태 유지)
+        private var startOverviewUntilMs:int = -1000000; // C: 이 시각(getTimer)까지 전체 보기
 
         // 화면에서 캔버스를 보여주는 영역. 위쪽은 상단바(+시크바가 겹치는 띠) 아래, 시크바는 위쪽에 붙어 있어 아래쪽은 스테이지 끝까지
         private function getCanvasViewRect():Rectangle
@@ -97,7 +100,13 @@ package Modules.L4UI.ReplayEngine
         // 카메라가 앵커를 건드리면 안 되는 상태
         private function isCameraBlocked():Boolean
         {
-            return ReplayState.isReplayCanvasFitToWindow || MouseState.isLeftDown || UndoHistory.isDeepUndoEnabled;
+            return ReplayState.isReplayCanvasFitToWindow || UndoHistory.isDeepUndoEnabled;
+        }
+
+        // C: 처음부터 재생을 시작할 때 부름. START_OVERVIEW_MS 동안 전체 보기를 유지한 뒤 집중 영역으로 들어감
+        public function holdOverviewAfterReplayStart():void
+        {
+            startOverviewUntilMs = getTimer() + START_OVERVIEW_MS;
         }
 
         // 외부가 화면을 바꿨을 때 부름. 카메라 내부 값을 실제 앵커로 다시 맞추고 진행 중인 이동을 멈춤
@@ -105,8 +114,8 @@ package Modules.L4UI.ReplayEngine
         {
             loadCameraFromAnchor();
 
-            // 재생 중 수동 줌 직후 커서가 화면 밖이면 다음 그리기 틱을 기다리지 않고 바로 안전 구역으로 끌어옴 (무시 구간이면 3-3 규칙대로 안 끌어옴)
-            if (syncUserZoomIfChangedExternally() && ReplayState.isReplayStarted && !isShortExcursionIgnored && !isCameraBlocked())
+            // 재생 중 외부가 배율을 바꾼 직후 커서가 화면 밖이면 다음 그리기 틱을 기다리지 않고 바로 안전 구역으로 끌어옴 (무시 구간이면 3-3 규칙대로 안 끌어옴)
+            if (syncZoomIfChangedExternally() && ReplayState.isReplayStarted && !isShortExcursionIgnored && !isCameraBlocked())
             {
                 keepCursorInSafeZone();
             }
@@ -308,12 +317,14 @@ package Modules.L4UI.ReplayEngine
 
         // ---- 미리 읽은 경로로 영역 추적 (3단계) ----
 
-        // 앞으로 LOOKAHEAD_REAL_MS * 배속 동안의 커서 경로에서 시간 가중 10~90% 영역을 구함
+        // 앞으로 REGION_LOOKAHEAD_REAL_MS * 배속 동안의 커서 경로에서 시간 가중 10~90% 영역을 구함
         // 데드존 밖으로 나가는 구간이 EXCURSION_IGNORE_MS보다 짧으면 그 구간은 계산에서 빼고, 지금 커서가 그 안에 있으면 안전 구역 즉시 이동도 하지 않음
+        // 그 뒤 ReplayCommandWindow.LOOKAHEAD_REAL_MS * 배속까지의 경로는 다른 영역으로 넘어가는지(A) 판정에만 씀
         // 읽어 둔 경로가 없거나 부족하면 isUpcomingRegionReady=false (커서 한 점 기준으로 되돌아감)
         private function computeUpcomingCursorRegion():void
         {
             isUpcomingRegionReady = false;
+            isUpcomingJumpDetected = false;
             upcomingRegionMissReasonCode = "unaligned";
             isShortExcursionIgnored = false;
             const commandWindow:ReplayCommandWindow = ReplayDrawer.commandWindow;
@@ -352,40 +363,69 @@ package Modules.L4UI.ReplayEngine
             }
 
             const speed:Number = Math.max(1, ReplayState.rReplaySpeedMultipler);
-            const lookaheadSpanMs:Number = ReplayCommandWindow.LOOKAHEAD_REAL_MS * speed;
+            const lookaheadSpanMs:Number = REGION_LOOKAHEAD_REAL_MS * speed;
+            const jumpLookaheadSpanMs:Number = ReplayCommandWindow.LOOKAHEAD_REAL_MS * speed;
             const startRecordedMs:Number = ReplayClock.getRecordedTimeOfFrame(nowFrame);
             upcomingCursorPath.length = 0;
             commandWindow.collectCursorPath(nowFrame, nowFrame + ReplayCommandWindow.LOOKAHEAD_MAX_FRAMES, upcomingCursorPath);
 
             // 프레임/묶음 상한 때문에 목표 시간(span)만큼 못 봤으면 영역이 실제보다 작게 나오므로 믿지 않음 (데이터가 끝나서 못 본 경우는 믿음)
-            if (!commandWindow.coveredToDataEnd && ReplayClock.getRecordedTimeOfFrame(Math.min(commandWindow.coveredEndFrame, ReplayState.TOTAL_FRAME)) - startRecordedMs < lookaheadSpanMs)
+            const coveredRecordedMs:Number = ReplayClock.getRecordedTimeOfFrame(Math.min(commandWindow.coveredEndFrame, ReplayState.TOTAL_FRAME)) - startRecordedMs;
+
+            if (!commandWindow.coveredToDataEnd && coveredRecordedMs < lookaheadSpanMs)
             {
                 upcomingRegionMissReasonCode = "coverage";
                 return;
             }
 
-            // 샘플: 지금 커서 + 앞으로 커서가 바뀌는 지점 (span 안만)
+            // 먼 구간도 끝까지 봤을 때만 A를 판정함 (덜 본 먼 구간은 실제보다 가까워 보여서 믿지 않음)
+            const isJumpSpanCovered:Boolean = commandWindow.coveredToDataEnd || coveredRecordedMs >= jumpLookaheadSpanMs;
+
+            // 샘플: 지금 커서 + 앞으로 커서가 바뀌는 지점. 가까운 구간(span 안)은 영역용, 그 뒤 먼 구간은 A 판정용
             regionSampleRecordedMs.length = 0;
             regionSampleX.length = 0;
             regionSampleY.length = 0;
             regionSampleWeightMs.length = 0;
+            jumpSampleX.length = 0;
+            jumpSampleY.length = 0;
+            jumpSampleWeightMs.length = 0;
             regionSampleRecordedMs.push(startRecordedMs);
             regionSampleX.push(cursor.x);
             regionSampleY.push(cursor.y);
             var sampleStride:int = Math.max(1, int(upcomingCursorPath.length / 3 / MAX_PATH_SAMPLES));
+            var lastJumpSampleRecordedMs:Number = NaN;
 
             for (var i:int = 0;i < upcomingCursorPath.length;i += 3 * sampleStride)
             {
                 const t:Number = ReplayClock.getRecordedTimeOfFrame(upcomingCursorPath[i]);
 
-                if (t - startRecordedMs > lookaheadSpanMs)
+                if (t - startRecordedMs > jumpLookaheadSpanMs)
                 {
                     break;
+                }
+
+                if (t - startRecordedMs > lookaheadSpanMs)
+                {
+                    // 먼 구간 가중치 = 다음 점까지 머문 녹화 시간 (마지막 점은 아래에서 span 끝까지 채움)
+                    if (jumpSampleX.length > 0)
+                    {
+                        jumpSampleWeightMs.push(Math.max(0, t - lastJumpSampleRecordedMs));
+                    }
+
+                    jumpSampleX.push(upcomingCursorPath[i + 1]);
+                    jumpSampleY.push(upcomingCursorPath[i + 2]);
+                    lastJumpSampleRecordedMs = t;
+                    continue;
                 }
 
                 regionSampleRecordedMs.push(Math.max(t, regionSampleRecordedMs[regionSampleRecordedMs.length - 1]));
                 regionSampleX.push(upcomingCursorPath[i + 1]);
                 regionSampleY.push(upcomingCursorPath[i + 2]);
+            }
+
+            if (jumpSampleX.length > 0)
+            {
+                jumpSampleWeightMs.push(Math.max(1, startRecordedMs + jumpLookaheadSpanMs - lastJumpSampleRecordedMs));
             }
 
             const sampleCount:int = regionSampleRecordedMs.length;
@@ -501,11 +541,38 @@ package Modules.L4UI.ReplayEngine
                 upcomingRegionRect.setTo(regionLeft, regionTop, Math.max(upcomingRegionRect.right, cursor.x) - regionLeft, Math.max(upcomingRegionRect.bottom, cursor.y) - regionTop);
             }
 
-            const boxW:Number = upcomingRegionRect.width * Math.abs(cos) + upcomingRegionRect.height * Math.abs(sin);
-            const boxH:Number = upcomingRegionRect.width * Math.abs(sin) + upcomingRegionRect.height * Math.abs(cos);
-            upcomingRegionFitZoom = Math.min(boxW > 0 ? (view.width - FIT_MARGIN * 2) / boxW : Number.MAX_VALUE, boxH > 0 ? (view.height - FIT_MARGIN * 2) / boxH : Number.MAX_VALUE);
             isUpcomingRegionReady = true;
             upcomingRegionMissReasonCode = "";
+
+            if (isJumpSpanCovered && jumpSampleX.length >= 2)
+            {
+                detectUpcomingJump(view, zoomMultiplier);
+            }
+        }
+
+        // A: 먼 구간의 영역(시간 가중 10~90%)이 가까운 영역과 겹치지 않고 중심이 지금 화면 짧은 변의 JUMP_DISTANCE_RATIO 이상 떨어져 있으면 다른 영역으로 넘어가는 것으로 봄
+        // 넘어가면 두 영역을 합친 사각형을 upcomingJumpUnionRect에 넣음 (줌아웃해서 둘 다 보여 줌)
+        private function detectUpcomingJump(view:Rectangle, zoomMultiplier:Number):void
+        {
+            const farLeft:Number = getWeightedPercentile(jumpSampleX, jumpSampleWeightMs, REGION_LOW);
+            const farRight:Number = getWeightedPercentile(jumpSampleX, jumpSampleWeightMs, REGION_HIGH);
+            const farTop:Number = getWeightedPercentile(jumpSampleY, jumpSampleWeightMs, REGION_LOW);
+            const farBottom:Number = getWeightedPercentile(jumpSampleY, jumpSampleWeightMs, REGION_HIGH);
+            const farRect:Rectangle = new Rectangle(farLeft, farTop, farRight - farLeft, farBottom - farTop);
+            const isOverlapping:Boolean = farRect.left <= upcomingRegionRect.right && farRect.right >= upcomingRegionRect.left && farRect.top <= upcomingRegionRect.bottom && farRect.bottom >= upcomingRegionRect.top;
+            const centerDistX:Number = (farRect.left + farRect.right - upcomingRegionRect.left - upcomingRegionRect.right) / 2;
+            const centerDistY:Number = (farRect.top + farRect.bottom - upcomingRegionRect.top - upcomingRegionRect.bottom) / 2;
+            const jumpDistanceCanvasPx:Number = Math.min(view.width, view.height) * JUMP_DISTANCE_RATIO / zoomMultiplier;
+
+            if (isOverlapping || centerDistX * centerDistX + centerDistY * centerDistY < jumpDistanceCanvasPx * jumpDistanceCanvasPx)
+            {
+                return;
+            }
+
+            isUpcomingJumpDetected = true;
+            const unionLeft:Number = Math.min(upcomingRegionRect.left, farRect.left);
+            const unionTop:Number = Math.min(upcomingRegionRect.top, farRect.top);
+            upcomingJumpUnionRect.setTo(unionLeft, unionTop, Math.max(upcomingRegionRect.right, farRect.right) - unionLeft, Math.max(upcomingRegionRect.bottom, farRect.bottom) - unionTop);
         }
 
         // 값(values)을 가중치(weights)로 센 분위수 q (0~1)
@@ -543,25 +610,17 @@ package Modules.L4UI.ReplayEngine
 
         // ---- 자동 줌 ----
 
-        // 카메라가 적용하지 않은 배율 변화(사용자 줌, 창 맞춤, 재생 끝 복원 등)면 그 값을 사용자 줌으로 받아들이고 자동 줌을 풀음
+        // 카메라가 적용하지 않은 배율 변화(창 맞춤, 캡처 복귀 등)면 그 값을 유지 배율로 받아들이고 진행 중인 전환을 멈춤 (다음 틱부터 그 값에서 이어서 움직임)
         // 반환: 외부 배율 변화를 감지했는지 (처음 값 읽기는 제외)
-        private function syncUserZoomIfChangedExternally():Boolean
+        private function syncZoomIfChangedExternally():Boolean
         {
             const actualZoomMultiplier:Number = ReplayState.rCanvasZoomMultiplier;
 
             if (isNaN(appliedZoomMultiplier) || Math.abs(actualZoomMultiplier - appliedZoomMultiplier) > 1e-9)
             {
                 const isFirstRead:Boolean = isNaN(appliedZoomMultiplier);
-
-                if (!isFirstRead)
-                {
-                    lastManualZoomTimeMs = getTimer();
-                }
-
                 appliedZoomMultiplier = actualZoomMultiplier;
-                userZoomMultiplier = actualZoomMultiplier;
-                autoZoomState = AUTO_ZOOM_FOLLOWING_USER;
-                heldZoomMultiplier = NaN;
+                heldZoomMultiplier = actualZoomMultiplier;
                 isZoomMovingToHeldZoom = false;
                 zoomInCandidateSinceMs = -1;
                 return !isFirstRead;
@@ -570,7 +629,7 @@ package Modules.L4UI.ReplayEngine
             return false;
         }
 
-        // 지금 회전과 창 크기에서 캔버스 전체가 화면에 들어가는 배율 (연속값, 순수 계산)
+        // 지금 회전과 창 크기에서 캔버스 전체가 화면에 들어가는 배율 (연속값, 순수 계산). 자동 줌의 최소 배율
         private function getFitWholeCanvasZoom(view:Rectangle):Number
         {
             const rad:Number = ReplayDrawer.rCanvasAnchorPoint.rotation * Math.PI / 180;
@@ -583,44 +642,39 @@ package Modules.L4UI.ReplayEngine
             return Math.min((view.width - FIT_MARGIN * 2) / boxW, (view.height - FIT_MARGIN * 2) / boxH);
         }
 
-        // 연출 영역이 사용자 줌에서 화면의 BIG_ANIM_RATIO보다 큰지
-        private function isAnimAreaBiggerThanView(view:Rectangle):Boolean
+        // 자동 줌의 최대 배율: 픽셀 확대 한계(UI 배율 반영)와 맞춤 배율의 CONTEXT_ZOOM_LIMIT배 중 작은 값. 맞춤 배율이 이미 더 크면 맞춤 배율 (확대하지 않음)
+        private function getMaxFocusZoom(fitZoom:Number):Number
         {
-            const area:Rectangle = ReplayDrawer.anim.animFocusRect;
+            return Math.max(fitZoom, Math.min(PIXEL_MAGNIFY_LIMIT * UITheme.getUIScale(), fitZoom * CONTEXT_ZOOM_LIMIT));
+        }
 
-            if (area === null)
-            {
-                return false;
-            }
-
+        // 캔버스 좌표 사각형이 지금 회전에서 화면(view)에 꽉 차는 배율. 크기가 0이면 Number.MAX_VALUE (최대 배율로 잘림)
+        private function getRegionFillZoom(region:Rectangle, view:Rectangle):Number
+        {
             const rad:Number = ReplayDrawer.rCanvasAnchorPoint.rotation * Math.PI / 180;
             const cos:Number = Math.abs(Math.cos(rad));
             const sin:Number = Math.abs(Math.sin(rad));
-            const w:Number = (area.width * cos + area.height * sin) * userZoomMultiplier;
-            const h:Number = (area.width * sin + area.height * cos) * userZoomMultiplier;
-            return w > view.width * BIG_ANIM_RATIO || h > view.height * BIG_ANIM_RATIO;
+            const boxW:Number = region.width * cos + region.height * sin;
+            const boxH:Number = region.width * sin + region.height * cos;
+            return Math.min(boxW > 0 ? view.width / boxW : Number.MAX_VALUE, boxH > 0 ? view.height / boxH : Number.MAX_VALUE);
         }
 
         // 상태를 정하고(재생 중일 때만) 배율을 유지 배율(heldZoomMultiplier)로 감쇠시킴. instant면 전환을 바로 끝냄
-        // 줌아웃은 필요한 만큼 바로 낮추고, 줌인(올림)은 "더 큰 배율이어도 영역이 여유 있게 들어간다"가 RETURN_DWELL_MS 동안 이어지고 줌아웃 전환이 끝난 뒤일 때만 올림
+        // 유지 배율은 항상 맞춤 배율(최소)~getMaxFocusZoom(최대) 안으로 자름 (창 크기나 회전이 바뀌면 범위도 바뀜)
         private function updateCameraZoom(playing:Boolean, instant:Boolean, dt:Number = 0):void
         {
-            syncUserZoomIfChangedExternally();
+            syncZoomIfChangedExternally();
             const view:Rectangle = getCanvasViewRect();
-            const fitZoom:Number = Math.min(getFitWholeCanvasZoom(view), userZoomMultiplier);
-            const returnZoomCap:Number = userZoomMultiplier * RETURN_ZOOM_RATIO;
+            const fitZoom:Number = getFitWholeCanvasZoom(view);
+            const maxZoom:Number = getMaxFocusZoom(fitZoom);
+            heldZoomMultiplier = Math.max(fitZoom, Math.min(heldZoomMultiplier, maxZoom));
 
             if (playing)
             {
-                decideHeldZoom(view, fitZoom, returnZoomCap);
+                decideHeldZoom(view, fitZoom, maxZoom);
             }
 
-            if (autoZoomState === AUTO_ZOOM_FOLLOWING_USER)
-            {
-                return;
-            }
-
-            const target:Number = Math.max(fitZoom, Math.min(heldZoomMultiplier, returnZoomCap)); // 창 크기가 바뀌어 맞춤 배율이 달라져도 범위 안으로
+            const target:Number = heldZoomMultiplier;
             const logDiff:Number = Math.log(target) - Math.log(appliedZoomMultiplier);
 
             if (instant || Math.abs(logDiff) < ZOOM_SETTLED_LOG)
@@ -628,13 +682,6 @@ package Modules.L4UI.ReplayEngine
                 const wasMoving:Boolean = isZoomMovingToHeldZoom;
                 setZoomKeepingFocus(target);
                 isZoomMovingToHeldZoom = false;
-
-                if (target >= returnZoomCap)
-                {
-                    autoZoomState = AUTO_ZOOM_FOLLOWING_USER; // 사용자 줌까지 돌아옴
-                    heldZoomMultiplier = NaN;
-                    zoomInCandidateSinceMs = -1;
-                }
 
                 if (wasMoving)
                 {
@@ -649,52 +696,50 @@ package Modules.L4UI.ReplayEngine
             setZoomKeepingFocus(Math.exp(Math.log(appliedZoomMultiplier) + logDiff * (1 - Math.exp(-dt / zoomTauMs))));
         }
 
-        // 지금 상황에서 유지하려는 배율(heldZoomMultiplier)을 정함
-        // 줌아웃 목표(바로 따라감): 큰 연출이면 맞춤 배율, 영역이 있으면 영역이 들어가는 배율, 없으면(배속 규칙) 배속이 높을 때만 맞춤 배율
-        // 줌인 후보(확인 시간 필요): 영역이 REGION_CALM_RATIO만큼 여유 있게 들어가는 더 큰 배율 (배속 규칙에서는 배속이 낮을 때 사용자 줌)
-        private function decideHeldZoom(view:Rectangle, fitZoom:Number, returnZoomCap:Number):void
+        // 지금 전체 보기(맞춤 배율)를 강제하는 계기가 있는지. B(캔버스 전체 명령 직후), C(처음 시작 직후), D(고배속)
+        // D는 OVERVIEW_SPEED_IN 이상에서 켜지고 OVERVIEW_SPEED_OUT 미만에서 꺼짐
+        private function isOverviewForcedNow():Boolean
         {
-            // 방금 사용자가 정한 배율을 존중: 수동 줌 뒤 USER_OVERRIDE_MS 동안은 자동 줌아웃을 시작하지 않음 (큰 연출의 강제 맞춤 포함)
-            if (autoZoomState === AUTO_ZOOM_FOLLOWING_USER && getTimer() - lastManualZoomTimeMs < USER_OVERRIDE_MS)
+            const speed:Number = ReplayState.rReplaySpeedMultipler;
+
+            if (speed >= OVERVIEW_SPEED_IN)
             {
-                return;
+                isSpeedOverviewOn = true;
+            }
+            else if (speed < OVERVIEW_SPEED_OUT)
+            {
+                isSpeedOverviewOn = false;
             }
 
-            const speed:Number = ReplayState.rReplaySpeedMultipler;
-            const isFitForcedByAnim:Boolean = isAnimAreaBiggerThanView(view); // 영역과 상관없이 화면 전체를 보여 줌
-            var isZoomOutNeeded:Boolean;
+            const now:int = getTimer();
+            return isSpeedOverviewOn || now < startOverviewUntilMs || now - ReplayState.lastCanvasWideCommandTimeMs < CANVAS_WIDE_OVERVIEW_MS;
+        }
+
+        // 지금 상황에서 유지하려는 배율(heldZoomMultiplier)을 정함
+        // 줌아웃 목표(바로 따라감): 전체 보기 계기가 있으면 맞춤 배율, 아니면 영역(연출 영역 > A면 합친 영역 > 집중 영역)이 화면의 FOCUS_KEEP_RATIO에 들어가는 배율
+        // 줌인 후보(ZOOM_IN_DWELL_MS 확인 필요): 영역이 화면의 FOCUS_FRAMING_RATIO를 차지하는 배율. 영역 정보가 없으면 지금 배율 유지
+        private function decideHeldZoom(view:Rectangle, fitZoom:Number, maxZoom:Number):void
+        {
+            const animArea:Rectangle = ReplayDrawer.anim.animFocusRect;
             var zoomOutTarget:Number;
             var zoomInCandidate:Number;
 
-            if (isFitForcedByAnim)
+            if (isOverviewForcedNow())
             {
-                isZoomOutNeeded = true;
                 zoomOutTarget = fitZoom;
                 zoomInCandidate = fitZoom;
             }
-            else if (isUpcomingRegionReady)
+            else if (animArea !== null || isUpcomingRegionReady)
             {
-                isZoomOutNeeded = upcomingRegionFitZoom < returnZoomCap;
-                zoomOutTarget = Math.max(fitZoom, Math.min(upcomingRegionFitZoom, returnZoomCap));
-                zoomInCandidate = Math.max(fitZoom, Math.min(upcomingRegionFitZoom / REGION_CALM_RATIO, returnZoomCap));
+                const region:Rectangle = (animArea !== null) ? animArea : (isUpcomingJumpDetected ? upcomingJumpUnionRect : upcomingRegionRect);
+                const regionFillZoom:Number = getRegionFillZoom(region, view);
+                zoomOutTarget = Math.max(fitZoom, Math.min(regionFillZoom * FOCUS_KEEP_RATIO, maxZoom));
+                zoomInCandidate = isUpcomingJumpDetected ? zoomOutTarget : Math.max(fitZoom, Math.min(regionFillZoom * FOCUS_FRAMING_RATIO, maxZoom)); // 넘어가는 중에는 합친 영역보다 더 들어가지 않음
             }
             else
             {
-                isZoomOutNeeded = speed >= AUTO_FIT_SPEED_IN;
-                zoomOutTarget = fitZoom;
-                zoomInCandidate = (speed < AUTO_FIT_SPEED_OUT) ? returnZoomCap : fitZoom;
-            }
-
-            if (autoZoomState === AUTO_ZOOM_FOLLOWING_USER)
-            {
-                if (isZoomOutNeeded)
-                {
-                    autoZoomState = AUTO_ZOOM_HELD;
-                    heldZoomMultiplier = zoomOutTarget;
-                    zoomInCandidateSinceMs = -1;
-                }
-
-                return;
+                zoomOutTarget = heldZoomMultiplier;
+                zoomInCandidate = heldZoomMultiplier;
             }
 
             if (zoomOutTarget < heldZoomMultiplier)
@@ -719,7 +764,7 @@ package Modules.L4UI.ReplayEngine
             {
                 zoomInCandidateSinceMs = now;
             }
-            else if (now - zoomInCandidateSinceMs >= RETURN_DWELL_MS)
+            else if (now - zoomInCandidateSinceMs >= ZOOM_IN_DWELL_MS)
             {
                 heldZoomMultiplier = zoomInCandidate; // 그 시점의 값으로 올림
                 zoomInCandidateSinceMs = -1;
@@ -727,7 +772,7 @@ package Modules.L4UI.ReplayEngine
         }
 
         // 초점(연출 영역 중심 또는 커서)의 화면 위치가 변하지 않게 배율을 바꾸고 앵커를 보정함
-        // 매 프레임 배율이 바뀌는 중이라 에어브러시 블러와 정보 상자 갱신은 하지 않음 (finishZoomTransition에서 한 번만)
+        // 정보 상자 갱신은 하지 않음 (finishZoomTransition에서 한 번만). 예전 형식 에어브러시 블러는 화면 픽셀 기준이라 배율이 바뀔 때마다 다시 넣음 (필터 값만 바꾸는 것이라 가벼움)
         private function setZoomKeepingFocus(newZoomMultiplier:Number):void
         {
             if (newZoomMultiplier === appliedZoomMultiplier)
@@ -744,6 +789,12 @@ package Modules.L4UI.ReplayEngine
             ReplayDrawer.rCanvasAnchorPoint.scaleX = newZoomMultiplier;
             ReplayDrawer.rCanvasAnchorPoint.scaleY = newZoomMultiplier;
             ReplayDrawer.updateReplayCursorScale(newZoomMultiplier);
+
+            if (ReplayState.rAirBrushSize > 0)
+            {
+                ReplayDrawer.blurReplayCanvasByValue(ReplayState.rAirBrushSize);
+            }
+
             const after:Point = canvasToScreen(focusCanvasX, focusCanvasY);
             anchorPosX = ReplayDrawer.rCanvasAnchorPoint.x + before.x - after.x;
             anchorPosY = ReplayDrawer.rCanvasAnchorPoint.y + before.y - after.y;
@@ -763,11 +814,6 @@ package Modules.L4UI.ReplayEngine
         // 전환이 끝났을 때 한 번만 하는 갱신
         private function finishZoomTransition():void
         {
-            if (ReplayState.rAirBrushSize > 0)
-            {
-                ReplayDrawer.blurReplayCanvasByValue(ReplayState.rAirBrushSize);
-            }
-
             UIController.canvasInfoBox.setZoom(appliedZoomMultiplier);
         }
 

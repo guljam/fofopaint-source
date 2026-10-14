@@ -513,8 +513,6 @@
 					cutPrevDataButton,
 					superUndoButton,
 					repNewFileButton,
-					replayZoomInButton,
-					replayZoomOutButton,
 					replayFitToWindowButton,
 					replayRepeatButton,
 
@@ -654,6 +652,10 @@
 			repNewFileButton.visible = false;
 			drawModeButton.visible = false;
 
+			// 리플레이 줌 버튼은 쓰지 않음 (리플레이 카메라가 배율을 정함). 심볼에는 남아 있어서 떼어 냄
+			removeChild(replayZoomInButton);
+			removeChild(replayZoomOutButton);
+
 			captureButton.useHandCursor = false;
 			repCaptureButton.useHandCursor = false;
 			capRotate.useHandCursor = false;
@@ -688,8 +690,6 @@
 			updateButton.useHandCursor = false;
 			newWindowButton.useHandCursor = false;
 			newWindowCloseButton.useHandCursor = false;
-			replayZoomInButton.useHandCursor = false;
-			replayZoomOutButton.useHandCursor = false;
 			replayFitToWindowButton.useHandCursor = false;
 			replayRotateButton.useHandCursor = false;
 			replayRepeatButton.useHandCursor = false;
@@ -706,12 +706,12 @@
 					[saveButton, repNewFileButton, capClipBoard],
 					[loadButton, cutPrevDataButton, capRotate],
 					[clipBoardButton, superUndoButton, capFlip],
-					[newFileButton, replayZoomInButton, capTrans],
-					[gridButton, replayZoomOutButton, capLayer1VisibleButton],
-					[sideBarPositionButton, replayRotateButton, capLayer2VisibleButton],
-					[sideBarOFFButton, replayFitToWindowButton, capStamp],
-					[topBarColorButton, replayRepeatButton, capStampFont],
-					[dpiButton, replaySpeedSliderWrapper, captureInputWarpper],
+					[newFileButton, replayRotateButton, capTrans],
+					[gridButton, replayFitToWindowButton, capLayer1VisibleButton],
+					[sideBarPositionButton, replayRepeatButton, capLayer2VisibleButton],
+					[sideBarOFFButton, replaySpeedSliderWrapper, capStamp],
+					[topBarColorButton, null, capStampFont],
+					[dpiButton, null, captureInputWarpper],
 					[newWindowButton, newWindowCloseButton],
 					[aboutButton],
 					[updateButton]
@@ -744,8 +744,6 @@
 					cutPrevDataButton,
 					superUndoButton,
 					repCaptureButton,
-					replayZoomInButton,
-					replayZoomOutButton,
 					replayFitToWindowButton,
 					replayRotateButton,
 					replaySpeedSliderWrapper,

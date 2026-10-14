@@ -12,7 +12,6 @@ package Modules.L5App.InputManager
     import Modules.L4UI.SidebarController;
     import Modules.L4UI.Tools.ToolPanel;
     import Modules.L4UI.AboutBoxController;
-    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.UIEngine.MessageBoxController;
@@ -174,12 +173,7 @@ package Modules.L5App.InputManager
                         }
                         if (UIController.isCursorInDrawArea())
                         {
-                            if (ReplayState.isReplayModeON)
-                            {
-                                // 리플레이 모드: 휠 위 = 줌인, 아래 = 줌아웃 (화면 중심 기준, 힌트는 zoomStep이 띄움)
-                                ReplayDrawer.viewport.zoomByOneStep(e.delta > 0);
-                            }
-                            if (!ReplayState.isReplayModeON)
+                            if (!ReplayState.isReplayModeON) // 리플레이 모드는 카메라가 배율을 정하므로 휠 줌이 없음
                             {
                                 CanvasView.viewport.zoomByOneStep(e.delta > 0);
                                 HintController.showMouseHintTemp(Math.floor(CanvasView.canvasZoomMultiplier * 100) + "%");
@@ -214,11 +208,7 @@ package Modules.L5App.InputManager
                 LassoTool.isLassoMenuHiddenTemp = true;
             }
 
-            if (ReplayState.isReplayModeON)
-            {
-                HandTool.startInReplayModeWithWheelClick();
-            }
-            else
+            if (!ReplayState.isReplayModeON) // 리플레이 모드는 카메라가 화면을 정하므로 손 툴이 없음
             {
                 HandTool.startInDrawModeWithWheelClick();
             }

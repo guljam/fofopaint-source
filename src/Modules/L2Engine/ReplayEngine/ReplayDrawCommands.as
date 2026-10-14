@@ -9,6 +9,7 @@ package Modules.L2Engine.ReplayEngine
     import flash.display.JointStyle;
     import flash.geom.Matrix;
     import flash.filters.BlurFilter;
+    import flash.utils.getTimer;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
     import Modules.L2Engine.LassoSelectionBoxes;
@@ -78,9 +79,20 @@ package Modules.L2Engine.ReplayEngine
             setRCursorPos(rCursorPos.x + x, rCursorPos.y + y);
         }
 
+        // 캔버스 전체에 영향을 주는 명령(대칭, 배경색, 지우기, 레이어 바꾸기/합치기)이 커서를 캔버스 중심으로 옮김. 그 시각도 남겨서 리플레이 카메라가 잠시 전체 보기를 하게 함
         public static function setRCursorPosToCenter():void
         {
             setRCursorPos(ReplayState.RCANVAS_WIDTH / 2, ReplayState.RCANVAS_HEIGHT / 2);
+            recordCanvasWideCommandTime();
+        }
+
+        // 재생 중이면 캔버스 전체에 영향을 주는 명령을 실행한 시각을 남김 (탐색으로 한꺼번에 그릴 때는 남기지 않음)
+        private static function recordCanvasWideCommandTime():void
+        {
+            if (ReplayState.isReplayStarted)
+            {
+                ReplayState.lastCanvasWideCommandTimeMs = getTimer();
+            }
         }
 
         public static function setRCursorPos(x:Number, y:Number):void
@@ -1134,6 +1146,7 @@ package Modules.L2Engine.ReplayEngine
             if (!ReplayState.isGeneratingCacheImages())
             {
                 setRCursorPos(width / 2, height / 2);
+                recordCanvasWideCommandTime();
             }
         }
 
