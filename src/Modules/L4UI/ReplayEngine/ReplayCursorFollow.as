@@ -119,10 +119,17 @@ package Modules.L4UI.ReplayEngine
             }
         }
 
+        // 고배속 전체 보기 중인지: 자동 건너뛰기 배속(REPLAY_AUTO_SKIP_PLAY_SPEED)을 넘겨 재생 중이면 캔버스 전체(맞춤 배율)로 고정함
+        private function isHighSpeedOverviewOn():Boolean
+        {
+            return ReplayState.isReplayStarted && ReplayState.rReplaySpeedMultipler > ReplayState.REPLAY_AUTO_SKIP_PLAY_SPEED;
+        }
+
         // 목표를 계산하고 스프링 없이 바로 그 위치와 배율로 옮김 (탐색, 창 맞춤 해제). 지나간 커서 기록은 버림 (탐색 전 위치가 영역에 남지 않게)
+        // 고배속 전체 보기 중이면 옮기지 않음 (자동 건너뛰기마다 탐색 경로로 들어와도 전체 보기로 가는 스프링 전환을 끊지 않게)
         public function moveCameraToCursorNow():void
         {
-            if (!ReplayState.isReplayModeON || isCameraBlocked())
+            if (!ReplayState.isReplayModeON || isCameraBlocked() || isHighSpeedOverviewOn())
             {
                 return;
             }
@@ -222,17 +229,19 @@ package Modules.L4UI.ReplayEngine
             var shiftY:Number = limitShiftByCanvasEdge(wantShiftY, view.top, view.bottom, canvas.top, canvas.bottom);
 
             // 커서가 안전 구역 밖으로 나가면 그 축은 가장자리에 오는 위치까지 바로 옮김 (캔버스 경계 규칙이 우선)
+            // 고배속 전체 보기로 가는 중에는 건너뛰기로 커서가 멀리 뛰어도 따라가지 않음 (전환이 뚝 끊기지 않게)
+            const isCursorSafetyOn:Boolean = !isHighSpeedOverviewOn();
             const cursor:Point = ReplayDrawCommands.getRCursorPos();
             const cursorScreen:Point = ReplayDrawer.rCanvasLayer1Bitmap.localToGlobal(cursor);
             const cursorX:Number = cursorScreen.x + shiftX;
             const cursorY:Number = cursorScreen.y + shiftY;
 
-            if (cursorX < view.left + SAFETY_PADDING || cursorX > view.right - SAFETY_PADDING)
+            if (isCursorSafetyOn && (cursorX < view.left + SAFETY_PADDING || cursorX > view.right - SAFETY_PADDING))
             {
                 shiftX = limitShiftByCanvasEdge(shiftX + ((cursorX < view.left + SAFETY_PADDING) ? view.left + SAFETY_PADDING - cursorX : view.right - SAFETY_PADDING - cursorX), view.left, view.right, canvas.left, canvas.right);
             }
 
-            if (cursorY < view.top + SAFETY_PADDING || cursorY > view.bottom - SAFETY_PADDING)
+            if (isCursorSafetyOn && (cursorY < view.top + SAFETY_PADDING || cursorY > view.bottom - SAFETY_PADDING))
             {
                 shiftY = limitShiftByCanvasEdge(shiftY + ((cursorY < view.top + SAFETY_PADDING) ? view.top + SAFETY_PADDING - cursorY : view.bottom - SAFETY_PADDING - cursorY), view.top, view.bottom, canvas.top, canvas.bottom);
             }
@@ -326,7 +335,7 @@ package Modules.L4UI.ReplayEngine
         }
 
         // 이번 틱의 목표 중심과 목표 배율을 정함
-        // 처음 재생 직후는 전체 보기. 그 외에는 활동 영역(지나간 커서 + 지금 커서 + 앞으로의 커서, 실제 시간 가중 10~90%)의 중심과, 그 영역이 화면의 FRAMING_RATIO를 차지하는 배율
+        // 처음 재생 직후와 고배속(자동 건너뛰기 배속 초과)은 전체 보기. 그 외에는 활동 영역(지나간 커서 + 지금 커서 + 앞으로의 커서, 실제 시간 가중 10~90%)의 중심과, 그 영역이 화면의 FRAMING_RATIO를 차지하는 배율
         // 미리 읽기가 상한(프레임/묶음 수)에 걸려 앞을 다 못 봤으면 본 비율만큼만 확대함 (덜 본 영역은 실제보다 작아서 잘못 확대하지 않게)
         // 앞을 읽을 수 없는 상태(탐색 직후 등)면 목표를 지금 상태로 둠 (움직이지 않음)
         private function computeCameraTarget(nowMs:int):void
@@ -337,7 +346,7 @@ package Modules.L4UI.ReplayEngine
             targetCenterY = cameraCenterY;
             targetLogZoom = cameraLogZoom;
 
-            if (nowMs < startOverviewUntilMs)
+            if (nowMs < startOverviewUntilMs || isHighSpeedOverviewOn())
             {
                 targetCenterX = ReplayState.RCANVAS_WIDTH / 2;
                 targetCenterY = ReplayState.RCANVAS_HEIGHT / 2;

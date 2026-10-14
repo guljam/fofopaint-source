@@ -1193,6 +1193,7 @@ package Modules.L5App.ReplayEngine
                     {
                         ReplayDrawer.cursorFollow.updateCameraAfterDraw();
                     }
+                    ReplayDrawer.keepReplayCanvasSmoothingOn(); // 그린 명령(올가미, 레이어 바꾸기 등)이 bitmapData를 바꿨을 수 있음
                     return true;
                 });
         }
@@ -2072,6 +2073,7 @@ package Modules.L5App.ReplayEngine
             UIController.seekBarBox.updatePos(AppContext.stage.stageWidth);
             ReplayDrawer.cursorFollow.resyncCameraWithAnchor();
             ReplayDrawer.updateReplayCursorScale(ReplayState.rCanvasZoomMultiplier);
+            ReplayDrawer.keepReplayCanvasSmoothingOn();
 
             if (ReferenceLayerController.isRefLayerMenuON === true)
             {

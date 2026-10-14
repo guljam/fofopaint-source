@@ -353,7 +353,27 @@ package Modules.L2Engine.ReplayEngine
                 cursorFollow.moveCameraToCursorNow();
             }
 
+            keepReplayCanvasSmoothingOn(); // 탐색 중 캐시 이미지로 bitmapData가 바뀌었을 수 있음
             return shouldStop;
+        }
+
+        // 리플레이 모드에서 리플레이 캔버스 비트맵(레이어 1, 2, 그리기 레이어)의 smoothing을 켜 둠 (자동 줌 배율이 정수가 아니라서 계단현상이 보이지 않게)
+        // bitmapData를 바꾸는 곳이 많아서 각 자리 대신 그리기 틱, 탐색, 리플레이 모드 진입 뒤마다 부름. 이미 켜져 있으면 건드리지 않음 (같은 값을 넣어도 다시 그리는 것을 피하려고)
+        public static function keepReplayCanvasSmoothingOn():void
+        {
+            if (!ReplayState.isReplayModeON)
+            {
+                return;
+            }
+
+            if (!rCanvasLayer1Bitmap.smoothing)
+                rCanvasLayer1Bitmap.smoothing = true;
+
+            if (!rCanvasLayer2Bitmap.smoothing)
+                rCanvasLayer2Bitmap.smoothing = true;
+
+            if (!rCanvasDrawLayerBitmap.smoothing)
+                rCanvasDrawLayerBitmap.smoothing = true;
         }
 
         public static function updateReplayCursorScale(zoom:Number):void
