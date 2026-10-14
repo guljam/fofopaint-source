@@ -1019,18 +1019,13 @@ package Modules.L5App
 
             const memoryTime:int = getTimer();
             // 타이밍 시트: 파일에 쓰는 프레임과 같은 범위 (saveFOFOFile과 같음)
-            const sheet:Array = TimingSheetFile.makeSheetFileObject(
-                    UndoHistory.isDeepUndoEnabled ? ReplayState.rNowFrame : ReplayState.getRFileDataTotalFrame(),
-                    ReplayState.rMemoryDataTimingSheet,
-                    UndoHistory.isDeepUndoEnabled ? 0 : UndoHistory.undoDataIndex + 1,
-                    ReplayState.lastMirrorReadyFlag ? 1 : 0);
-            const timingBytes:ByteArray = new ByteArray();
-
-            if (sheet !== null)
-            {
-                timingBytes.writeObject(sheet);
-            }
-
+            // 메모리 부분만 여기서 만들고, 시트/점 시각 파일 부분은 네이티브가 지금 길이까지 읽어서 TimingSheetFile.makeSheetFileObject와 같은 객체를 만듬
+            const timingFileFrameCount:Number = UndoHistory.isDeepUndoEnabled ? ReplayState.rNowFrame : ReplayState.getRFileDataTotalFrame();
+            const timingMemoryGroupCount:int = UndoHistory.isDeepUndoEnabled ? 0 : UndoHistory.undoDataIndex + 1;
+            const timingMemoryRecords:ByteArray = TimingSheetFile.makeMemoryFrameRecordBytesForNativeSave(ReplayState.rMemoryDataTimingSheet, timingMemoryGroupCount, ReplayState.lastMirrorReadyFlag ? 1 : 0);
+            const timingMemoryPointRecords:ByteArray = TimingSheetFile.makeMemoryPointRecordBytesForNativeSave(timingFileFrameCount, ReplayState.rMemoryDataTimingSheet, timingMemoryGroupCount);
+            const timingSheetFile:File = AppDataPaths.replayTimingSheetFilePath;
+            const timingPointsFile:File = AppDataPaths.replayTimingPointsFilePath;
             const sheetTime:int = getTimer();
             FileManager.updateReplaySaveMetaData();
             const mirrorBytes:ByteArray = new ByteArray();
@@ -1061,14 +1056,17 @@ package Modules.L5App
             const pngPath:String = lastSaveFilePath;
             const started:Boolean = NativeSave.startReplayFileAndPngSave(pngPath, ReplayFileCache.getReplayFileNameFromPath(pngPath), composite,
                     first1, first2, current1, current2, reference,
-                    AppDataPaths.replayDataFilePath.nativePath, repdataLength, memoryGroups, mirrorBytes, timingBytes,
+                    AppDataPaths.replayDataFilePath.nativePath, repdataLength, memoryGroups, mirrorBytes,
+                    timingSheetFile.nativePath, timingSheetFile.exists ? timingSheetFile.size : 0, timingPointsFile.nativePath, timingPointsFile.exists ? timingPointsFile.size : 0,
+                    timingFileFrameCount, timingMemoryRecords, timingMemoryPointRecords, Math.min(TimingSheetFile.legacyFrames, timingFileFrameCount),
                     firstMeta, finalMeta, referenceMeta, nativeSaveOptions, getSegmentReuseFofoPathForSave(), onNativeSaveDone);
             trace("Native save start: memory groups " + (memoryTime - saveStartTime) + "ms, timing sheet " + (sheetTime - memoryTime)
                 + "ms, composite " + (compositeTime - sheetTime) + "ms, native call " + (getTimer() - compositeTime) + "ms");
             composite.dispose();
             memoryGroups.clear();
             mirrorBytes.clear();
-            timingBytes.clear();
+            timingMemoryRecords.clear();
+            timingMemoryPointRecords.clear();
             return started;
         }
 

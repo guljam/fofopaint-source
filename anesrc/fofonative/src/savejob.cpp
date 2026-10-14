@@ -466,6 +466,189 @@ namespace
         return path + suffix + extension;
     }
 
+    // ---- 타이밍 시트 객체 (TimingSheetFile.makeSheetFileObject와 같은 내용) ----
+    const uint32_t TIMING_SHEET_SEGMENT_FRAMES = 10000; // TimingSheet.SEGMENT_FRAMES
+    const uint32_t TIMING_RECORD_BYTES = 8; // 프레임 하나 = [간격, 연출 길이] uint 둘 (빅 엔디언)
+
+    // saveStart 때 읽어 둔 타이밍 시트 재료
+    struct TimingSheetSource
+    {
+        double fileFrameCount = 0; // 파일 부분 프레임 수 (시트 파일에 모자라면 그 프레임은 0)
+        Bytes sheetFileRecords; // 시트 파일 앞 min(파일 프레임 수, fileFrameCount)개 레코드
+        Bytes pointsFile; // 점 시각 파일 (저장 시작 때 길이까지)
+        Bytes memoryRecords; // 메모리 부분 [간격, 연출 길이] 쌍 (끝의 덧붙인 0 프레임 포함)
+        Bytes memoryPointRecords; // 메모리 부분 점 시각 레코드 (프레임 번호는 fileFrameCount부터)
+        double legacyFrameCount = 0; // 객체 끝의 옛 프레임 수
+    };
+
+    uint32_t readBigEndianU32At(const uint8_t* p)
+    {
+        return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) | ((uint32_t)p[2] << 8) | (uint32_t)p[3];
+    }
+
+    // 가변 길이 정수 (7비트씩, 이어지는 바이트는 최상위 비트 1), TimingSheet.writeVarLengthIntsToByteArray와 같음
+    void putVarLengthUint(Bytes& out, uint32_t value)
+    {
+        while (value >= 128)
+        {
+            out.push_back((uint8_t)((value & 127) | 128));
+            value >>= 7;
+        }
+
+        out.push_back((uint8_t)value);
+    }
+
+    // 프레임 하나의 [간격, 연출 길이]: 파일 부분은 시트 파일 레코드(없으면 0), 그 뒤는 메모리 부분
+    void readTimingFrameRecord(const TimingSheetSource& source, uint64_t frame, uint32_t& delta, uint32_t& anim)
+    {
+        const uint64_t fileFrames = (uint64_t)source.fileFrameCount;
+        const uint8_t* record = NULL;
+
+        if (frame < fileFrames)
+        {
+            if ((frame + 1) * TIMING_RECORD_BYTES <= source.sheetFileRecords.size())
+                record = source.sheetFileRecords.data() + frame * TIMING_RECORD_BYTES;
+        }
+        else
+        {
+            record = source.memoryRecords.data() + (frame - fileFrames) * TIMING_RECORD_BYTES;
+        }
+
+        delta = record ? readBigEndianU32At(record) : 0;
+        anim = record ? readBigEndianU32At(record + 4) : 0;
+    }
+
+    // 점 시각 파일에서 프레임 번호 < fileFrameCount인 레코드만 옮기고 메모리 부분을 이어 붙임 (TimingSheetFile.makePointTimesBlob과 같은 규칙, 잘린 레코드에서 멈춤)
+    void collectTimingPointRecords(const TimingSheetSource& source, Bytes& out)
+    {
+        const uint8_t* data = source.pointsFile.data();
+        const uint64_t length = source.pointsFile.size();
+        uint64_t position = 0;
+
+        while (length - position >= 8)
+        {
+            const uint32_t frame = readBigEndianU32At(data + position);
+            const uint64_t valueBytes = (uint64_t)readBigEndianU32At(data + position + 4) * 4;
+
+            if (length - position - 8 < valueBytes)
+                break;
+
+            if ((double)frame < source.fileFrameCount)
+                out.insert(out.end(), data + position, data + position + 8 + valueBytes);
+
+            position += 8 + valueBytes;
+        }
+
+        out.insert(out.end(), source.memoryPointRecords.begin(), source.memoryPointRecords.end());
+    }
+
+    void putByteArrayHead(Bytes& out, uint64_t length)
+    {
+        if (length >= (1u << 28))
+            throw "timing sheet too large"; // AMF3 ByteArray 길이 한계
+
+        out.push_back(0x0C);
+        putU29(out, ((uint32_t)length << 1) | 1);
+    }
+
+    // ["rTimingSheet", 2, 전체 프레임 수, 10000, [구간별 zlib blob], 점 시각 zlib blob|null, 옛 프레임 수] AMF3 바이트를 out 끝에 붙임
+    // 구간 blob은 구간마다 간격들 다음 연출 길이들을 가변 길이 정수로 쓰고 zlib 압축 (구간은 풀에서 동시에)
+    void appendTimingSheetObject(const TimingSheetSource& source, int level, Pieces& out)
+    {
+        const uint64_t totalFrames = (uint64_t)source.fileFrameCount + source.memoryRecords.size() / TIMING_RECORD_BYTES;
+        const int segmentCount = (int)((totalFrames + TIMING_SHEET_SEGMENT_FRAMES - 1) / TIMING_SHEET_SEGMENT_FRAMES);
+        std::vector<Pieces> blobs(segmentCount);
+        Pieces pointsBlob;
+        volatile LONG failed = 0;
+
+        auto encodeSegment = [&](int index)
+        {
+            try
+            {
+                if (index == segmentCount)
+                {
+                    Bytes points;
+                    collectTimingPointRecords(source, points);
+
+                    if (!points.empty() && !zlibCompressParallel(points.data(), points.size(), level, PRIORITY_SAVE, pointsBlob))
+                        InterlockedExchange(&failed, 1);
+
+                    return;
+                }
+
+                const uint64_t first = (uint64_t)index * TIMING_SHEET_SEGMENT_FRAMES;
+                const uint32_t count = (uint32_t)((totalFrames - first < TIMING_SHEET_SEGMENT_FRAMES) ? totalFrames - first : TIMING_SHEET_SEGMENT_FRAMES);
+                std::vector<uint32_t> anims(count);
+                Bytes raw;
+                raw.reserve((size_t)count * 2 + 64);
+
+                for (uint32_t i = 0; i < count; i++)
+                {
+                    uint32_t delta;
+                    readTimingFrameRecord(source, first + i, delta, anims[i]);
+                    putVarLengthUint(raw, delta);
+                }
+
+                for (uint32_t i = 0; i < count; i++)
+                    putVarLengthUint(raw, anims[i]);
+
+                if (!zlibCompressParallel(raw.data(), raw.size(), level, PRIORITY_SAVE, blobs[index]))
+                    InterlockedExchange(&failed, 1);
+            }
+            catch (...)
+            {
+                InterlockedExchange(&failed, 1);
+            }
+        };
+
+        pool::parallelFor(segmentCount + 1, PRIORITY_SAVE, encodeSegment);
+
+        if (failed)
+            throw "timing sheet encode failed";
+
+        static const char NAME[] = "rTimingSheet";
+        Bytes head;
+        head.push_back(0x09);
+        putU29(head, (7 << 1) | 1);
+        head.push_back(0x01);
+        head.push_back(0x06);
+        putU29(head, ((uint32_t)(sizeof(NAME) - 1) << 1) | 1);
+        head.insert(head.end(), NAME, NAME + sizeof(NAME) - 1);
+        putSimple(head, Simple{ 0, 2, false });
+        putSimple(head, Simple{ 0, (double)totalFrames, false });
+        putSimple(head, Simple{ 0, (double)TIMING_SHEET_SEGMENT_FRAMES, false });
+        head.push_back(0x09);
+        putU29(head, ((uint32_t)segmentCount << 1) | 1);
+        head.push_back(0x01);
+
+        for (int i = 0; i < segmentCount; i++)
+        {
+            putByteArrayHead(head, blobs[i].size());
+            out.parts.push_back(std::move(head));
+            head = Bytes();
+
+            for (size_t k = 0; k < blobs[i].parts.size(); k++)
+                out.parts.push_back(std::move(blobs[i].parts[k]));
+        }
+
+        if (pointsBlob.parts.empty())
+        {
+            head.push_back(0x01);
+        }
+        else
+        {
+            putByteArrayHead(head, pointsBlob.size());
+            out.parts.push_back(std::move(head));
+            head = Bytes();
+
+            for (size_t k = 0; k < pointsBlob.parts.size(); k++)
+                out.parts.push_back(std::move(pointsBlob.parts[k]));
+        }
+
+        putSimple(head, Simple{ 0, source.legacyFrameCount, false });
+        out.parts.push_back(std::move(head));
+    }
+
     volatile LONG gActiveSaves = 0;
 
     class SaveJob : public Task
@@ -479,7 +662,7 @@ namespace
         PixelImage images[5]; // 첫 이미지 1, 2, 현재 1, 2, 참고
         bool hasReference = false;
         Bytes mirrorBytes;
-        Bytes timingBytes;
+        TimingSheetSource timingSheet;
         std::vector<Simple> firstMeta;
         std::vector<Simple> finalMeta;
         std::vector<Simple> referenceMeta;
@@ -506,11 +689,14 @@ namespace
             const char* codecName = "zlib";
             Frc2SegmentStats segmentStats;
             double replayMs = 0;
+            double timingSheetMs = 0;
+            Pieces timingSheetObject;
             ImageReuseKey imageReuseKeys[5];
             volatile LONG reusedImageCount = 0;
             volatile LONG failed = 0;
             const char* volatile failMessage = "";
-            const int partCount = hasReference ? 7 : 6;
+            const int partCount = (hasReference ? 7 : 6) + 1;
+            const int timingSheetPartIndex = partCount - 1; // 마지막 작업 = 타이밍 시트 객체
             OldFofoForReuse old;
 
             if (!isLegacyWholeSave)
@@ -520,7 +706,14 @@ namespace
             {
                 try
                 {
-                    if (index == 0)
+                    if (index == timingSheetPartIndex)
+                    {
+                        const double timingStart = nowMs();
+                        appendTimingSheetObject(timingSheet, imageLevel, timingSheetObject);
+                        timingSheet = TimingSheetSource();
+                        timingSheetMs = nowMs() - timingStart;
+                    }
+                    else if (index == 0)
                     {
                         if (!encodePng(composite, pngLevel, PRIORITY_SAVE, png))
                             throw "png encode failed";
@@ -653,8 +846,8 @@ namespace
                     || (hasReference && !appendImageArray(fofo, "refimage", { &compressed[4] }, referenceMeta, referenceImageReuseTag)))
                     throw "image too large";
 
-                if (!timingBytes.empty())
-                    fofo.parts.push_back(std::move(timingBytes));
+                for (size_t i = 0; i < timingSheetObject.parts.size(); i++)
+                    fofo.parts.push_back(std::move(timingSheetObject.parts[i]));
             }
             catch (const char* message)
             {
@@ -671,9 +864,9 @@ namespace
             const char* codec = codecName;
             // 저장 결과 message 끝에 붙이는 재사용 집계 (key=value, 테스트와 로그용)
             char reuseStats[256];
-            sprintf_s(reuseStats, "replayMs=%.1f segments=%lu reusedSegments=%lu rejectedSegments=%lu reusedRawBytes=%llu reusedImages=%ld oldReadMs=%.1f",
+            sprintf_s(reuseStats, "replayMs=%.1f segments=%lu reusedSegments=%lu rejectedSegments=%lu reusedRawBytes=%llu reusedImages=%ld oldReadMs=%.1f timingSheetMs=%.1f",
                 replayMs, (unsigned long)segmentStats.segmentCount, (unsigned long)segmentStats.reusedCount, (unsigned long)segmentStats.rejectedCount,
-                (unsigned long long)segmentStats.reusedRawBytes, (long)reusedImageCount, old.readMs);
+                (unsigned long long)segmentStats.reusedRawBytes, (long)reusedImageCount, old.readMs, timingSheetMs);
 
             // 임시 파일 쓰기: 여기서 실패하면 이름을 바꿔도 소용없음 -> 최종 실패
             std::wstring pngTemp;
@@ -881,12 +1074,14 @@ namespace
 }
 
 // saveStart(id, pngPath, fofoPath, composite, first1, first2, current1, current2, reference|null,
-//           repdataPath, repdataLength, memoryGroups, mirrorBytes, timingBytes, firstMeta, finalMeta, referenceMeta|null, options, reuseFofoPath):int
+//           repdataPath, repdataLength, memoryGroups, mirrorBytes, firstMeta, finalMeta, referenceMeta|null, options, reuseFofoPath,
+//           timingSheetPath, timingSheetLength, timingPointsPath, timingPointsLength, timingFileFrameCount, timingMemoryRecords, timingMemoryPointRecords, timingLegacyFrameCount):int
 // options: 1 = repdata를 FRC2 대신 zlib으로 (테스트용), 2 = 세그먼트 이전 방식(리플레이 한 덩어리 FRC2, 이미지 재사용 없음, 비교 테스트용)
 // reuseFofoPath: 압축 결과를 다시 쓸 이전 .fofo 경로, 없으면 빈 문자열
+// timing*: 타이밍 시트 재료. 시트/점 시각 파일은 repdata처럼 여기서 호출 시점 길이까지 읽어 둠 (AIR가 공유 없이 열어 쓰는 파일이라 스레드에서 읽지 않음)
 static FREObject SaveStart(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
 {
-    if (argc < 19)
+    if (argc < 26)
         return newInt(RESULT_BAD_ARGUMENT);
 
     if (!gHasSaveTable || !gHasPngTable)
@@ -894,17 +1089,35 @@ static FREObject SaveStart(FREContext ctx, void* functionData, uint32_t argc, FR
 
     SaveJob* job = new SaveJob();
     InterlockedIncrement(&gActiveSaves);
-    std::string png, fofo, repdata, reuseFofo;
-    double repdataLength = 0;
+    std::string png, fofo, repdata, reuseFofo, timingSheetPath, timingPointsPath;
+    double repdataLength = 0, timingSheetLength = 0, timingPointsLength = 0;
     int32_t options = 0;
+    TimingSheetSource& timing = job->timingSheet;
 
     if (!getInt(argv[0], &job->id) || !getUtf8(argv[1], png) || !getUtf8(argv[2], fofo) || !getUtf8(argv[9], repdata)
-        || !getDouble(argv[10], &repdataLength) || repdataLength < 0 || !getInt(argv[17], &options) || !getUtf8(argv[18], reuseFofo)
-        || !readSimpleArray(argv[14], job->firstMeta) || !readSimpleArray(argv[15], job->finalMeta) || !readSimpleArray(argv[16], job->referenceMeta)
-        || !copyByteArray(argv[12], job->mirrorBytes) || !copyByteArray(argv[13], job->timingBytes))
+        || !getDouble(argv[10], &repdataLength) || repdataLength < 0 || !getInt(argv[16], &options) || !getUtf8(argv[17], reuseFofo)
+        || !readSimpleArray(argv[13], job->firstMeta) || !readSimpleArray(argv[14], job->finalMeta) || !readSimpleArray(argv[15], job->referenceMeta)
+        || !copyByteArray(argv[12], job->mirrorBytes)
+        || !getUtf8(argv[18], timingSheetPath) || !getDouble(argv[19], &timingSheetLength) || timingSheetLength < 0
+        || !getUtf8(argv[20], timingPointsPath) || !getDouble(argv[21], &timingPointsLength) || timingPointsLength < 0
+        || !getDouble(argv[22], &timing.fileFrameCount) || timing.fileFrameCount < 0
+        || !copyByteArray(argv[23], timing.memoryRecords) || timing.memoryRecords.size() % TIMING_RECORD_BYTES != 0
+        || !copyByteArray(argv[24], timing.memoryPointRecords) || !getDouble(argv[25], &timing.legacyFrameCount))
     {
         delete job;
         return newInt(RESULT_BAD_ARGUMENT);
+    }
+
+    // 타이밍 시트 파일 앞 min(파일 프레임 수, 시트 레코드 수)개, 점 시각 파일 전체 (호출 시점 길이)
+    timing.fileFrameCount = floor(timing.fileFrameCount);
+    const double sheetFrames = floor(timingSheetLength / TIMING_RECORD_BYTES);
+    const uint64_t sheetReadBytes = (uint64_t)((sheetFrames < timing.fileFrameCount) ? sheetFrames : timing.fileFrameCount) * TIMING_RECORD_BYTES;
+
+    if ((sheetReadBytes > 0 && !readFilePrefix(widePath(timingSheetPath), sheetReadBytes, timing.sheetFileRecords).ok)
+        || (timingPointsLength > 0 && !readFilePrefix(widePath(timingPointsPath), (uint64_t)timingPointsLength, timing.pointsFile).ok))
+    {
+        delete job;
+        return newInt(RESULT_IO_ERROR);
     }
 
     job->pngPath = widePath(png);
@@ -963,7 +1176,7 @@ static FREObject SaveStart(FREContext ctx, void* functionData, uint32_t argc, FR
     }
 
     // 저장은 사용자가 기다리는 작업이라 상한을 넘어도 받음 (대신 캐시 작업이 기다림)
-    job->budgetBytes = estimate(job->composite) + (uint64_t)job->replay.size() * 2;
+    job->budgetBytes = estimate(job->composite) + (uint64_t)job->replay.size() * 2 + timing.sheetFileRecords.size() + timing.pointsFile.size() * 2;
 
     for (int i = 0; i < 5; i++)
         job->budgetBytes += estimate(job->images[i]);

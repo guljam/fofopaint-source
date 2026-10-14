@@ -580,7 +580,21 @@ package Modules.L2Engine.ReplayEngine
                 fs.close();
             }
 
-            var position:Number = fileFrameCount;
+            writeMemoryPointRecords(pointTimesBytes, fileFrameCount, memoryTimingElementGroups, memoryGroupCount);
+
+            if (pointTimesBytes.length === 0)
+            {
+                return null;
+            }
+
+            pointTimesBytes.compress();
+            return pointTimesBytes;
+        }
+
+        // 메모리 undo 묶음(앞 memoryGroupCount개)의 점별 시각을 [프레임 번호, 개수, 값...] 레코드로 output 끝에 씀, 프레임 번호는 firstFrame부터
+        private static function writeMemoryPointRecords(output:ByteArray, firstFrame:Number, memoryTimingElementGroups:Array, memoryGroupCount:int):void
+        {
+            var position:Number = firstFrame;
 
             for (var g:int = 0; g < memoryGroupCount; g++)
             {
@@ -592,26 +606,50 @@ package Modules.L2Engine.ReplayEngine
 
                     if (points !== null)
                     {
-                        pointTimesBytes.writeUnsignedInt(uint(position));
-                        pointTimesBytes.writeUnsignedInt(uint(points.length));
+                        output.writeUnsignedInt(uint(position));
+                        output.writeUnsignedInt(uint(points.length));
 
                         for (var k:int = 0; k < points.length; k++)
                         {
-                            pointTimesBytes.writeUnsignedInt(uint(points[k]));
+                            output.writeUnsignedInt(uint(points[k]));
                         }
                     }
 
                     position++;
                 }
             }
+        }
 
-            if (pointTimesBytes.length === 0)
+        // 네이티브 저장에 넘길 메모리 부분의 간격과 연출 길이: 시트 파일과 같은 [간격, 연출 길이] uint 쌍(빅 엔디언), 끝에 extraFrameCount개는 0 쌍
+        // 파일 부분은 네이티브가 시트 파일에서 직접 읽고, 둘을 이어 makeSheetFileObject와 같은 객체를 만듬
+        public static function makeMemoryFrameRecordBytesForNativeSave(memoryTimingElementGroups:Array, memoryGroupCount:int, extraFrameCount:int):ByteArray
+        {
+            const memoryDeltas:Vector.<uint> = new Vector.<uint>();
+            const memoryAnims:Vector.<uint> = new Vector.<uint>();
+            makeMemoryFrameRecords(memoryTimingElementGroups, memoryGroupCount, memoryDeltas, memoryAnims);
+            const output:ByteArray = new ByteArray();
+
+            for (var i:int = 0; i < memoryDeltas.length; i++)
             {
-                return null;
+                output.writeUnsignedInt(memoryDeltas[i]);
+                output.writeUnsignedInt(memoryAnims[i]);
             }
 
-            pointTimesBytes.compress();
-            return pointTimesBytes;
+            for (i = 0; i < extraFrameCount; i++)
+            {
+                output.writeUnsignedInt(0);
+                output.writeUnsignedInt(0);
+            }
+
+            return output;
+        }
+
+        // 네이티브 저장에 넘길 메모리 부분의 점별 시각 레코드 (프레임 번호는 fileFrameCount부터, 점 시각 파일과 같은 형식)
+        public static function makeMemoryPointRecordBytesForNativeSave(fileFrameCount:Number, memoryTimingElementGroups:Array, memoryGroupCount:int):ByteArray
+        {
+            const output:ByteArray = new ByteArray();
+            writeMemoryPointRecords(output, fileFrameCount, memoryTimingElementGroups, memoryGroupCount);
+            return output;
         }
 
         // makeSheetFileObject로 만든 객체를 읽어서 파일 내용으로 되돌림. 모양이 틀리거나 풀 수 없으면 비워두고 false
