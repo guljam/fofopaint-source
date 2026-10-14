@@ -35,11 +35,29 @@ if ($patched -notmatch "ADOBE_AIR_SDK_VERSION:String = `"$([regex]::Escape($lega
 if ($patched -notmatch "APP_VERSION:String = `"$([regex]::Escape($legacyVersion))`"" -or $patched -notmatch "APP_STATE_VERSION:String = `"$([regex]::Escape($legacyStateVersion))`"") { Write-Host 'Main.as version patch failed'; exit 1 }
 [IO.File]::WriteAllText("$PSScriptRoot\$legacySrc\Main.as", $patched, (New-Object System.Text.UTF8Encoding($true)))
 
+# 메인과 worker SWF는 서로 의존이 없어서 스레드 작업으로 동시에 컴파일함, 출력은 끝난 뒤 작업별로 모아서 보여줌
 Write-Host "Compiling release SWFs (SDK $legacySdk) to $release ..."
-& "$legacySdk\bin\amxmlc.bat" "-source-path+=$PSScriptRoot\src" "-library-path+=$PSScriptRoot\extension\libwebp.swc" @options "-output=$PSScriptRoot\$release\fofoPaint.swf" "$PSScriptRoot\$legacySrc\Main.as"
-if ($LASTEXITCODE -ne 0) { Write-Host 'main SWF compile failed'; exit $LASTEXITCODE }
-& "$legacySdk\bin\amxmlc.bat" "-source-path+=$PSScriptRoot\src" @options "-output=$PSScriptRoot\$release\worker.swf" "$PSScriptRoot\src\worker\BackgroundImageProcessor.as"
-if ($LASTEXITCODE -ne 0) { Write-Host 'worker SWF compile failed'; exit $LASTEXITCODE }
+$legacyCompileJobs = @(
+    (Start-ThreadJob -Name 'main SWF' -ScriptBlock {
+        $root = $using:PSScriptRoot
+        $options = $using:options
+        $lines = & "$using:legacySdk\bin\amxmlc.bat" "-source-path+=$root\src" "-library-path+=$root\extension\libwebp.swc" @options "-output=$root\$using:release\fofoPaint.swf" "$root\$using:legacySrc\Main.as" 2>&1
+        @{ lines = $lines; exitCode = $LASTEXITCODE }
+    }),
+    (Start-ThreadJob -Name 'worker SWF' -ScriptBlock {
+        $root = $using:PSScriptRoot
+        $options = $using:options
+        $lines = & "$using:legacySdk\bin\amxmlc.bat" "-source-path+=$root\src" @options "-output=$root\$using:release\worker.swf" "$root\src\worker\BackgroundImageProcessor.as" 2>&1
+        @{ lines = $lines; exitCode = $LASTEXITCODE }
+    })
+)
+$compileFailedCode = 0
+foreach ($legacyCompileJob in $legacyCompileJobs) {
+    $compileResult = Receive-Job -Job $legacyCompileJob -Wait -AutoRemoveJob
+    foreach ($line in $compileResult.lines) { Write-Host "$line" }
+    if ($compileResult.exitCode -ne 0) { Write-Host "$($legacyCompileJob.Name) compile failed"; $compileFailedCode = $compileResult.exitCode }
+}
+if ($compileFailedCode -ne 0) { exit $compileFailedCode }
 
 $xml = [IO.File]::ReadAllText("$PSScriptRoot\fofoPaint-app.xml")
 $xml = $xml -replace 'http://ns\.adobe\.com/air/application/51\.4', 'http://ns.adobe.com/air/application/51.3'
