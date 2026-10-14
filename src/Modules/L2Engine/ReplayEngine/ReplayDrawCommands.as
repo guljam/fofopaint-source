@@ -1144,7 +1144,7 @@ package Modules.L2Engine.ReplayEngine
                 const blurSize:Number = PenSettings.getBlurSize(ReplayState.rAirBrushSize2, 1.0);
                 ReplayDrawer.rCanvasDrawShape.filters = [new BlurFilter(blurSize, blurSize, 3)];
                 ReplayDrawer.rCanvasDrawLayerBitmapData.draw(ReplayDrawer.rCanvasDrawShape);
-                StrokeBuffer.canvasDrawLayerChild.filters = [];
+                ReplayDrawer.rCanvasDrawShape.filters = [];
             }
             else
             {
