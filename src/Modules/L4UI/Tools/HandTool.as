@@ -10,6 +10,9 @@ package Modules.L4UI.Tools
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L2Engine.DrawEngine.CanvasView;
+    import Modules.L2Engine.ReplayEngine.ReplayDrawer;
+    import Modules.L2Engine.ReplayEngine.ReplayState;
+    import Modules.L4UI.CanvasViewport;
     import Modules.L1Data.MouseState;
     import Modules.L4UI.Tools.LassoTool;
     import Modules.L4UI.ReferenceLayerController;
@@ -21,6 +24,8 @@ package Modules.L4UI.Tools
     {
 
         private static const old:Point = new Point(0, 0);
+
+        private static var isReplayMode:Boolean;
 
         private static var xAnc:Sprite;
 
@@ -41,6 +46,13 @@ package Modules.L4UI.Tools
             AppContext.stage.removeEventListener(MouseEvent.MIDDLE_MOUSE_UP, onMouseUpHandTool);
 
             PenSizePreviewCursor.setCursorInVisibleFlag(false);
+
+            if (isReplayMode)
+            {
+                finishHandToolInReplayMode();
+                return;
+            }
+
             CanvasView.viewport.keepCanvasInStage();
             ReferenceLayerController.setRefLayerAndGridVisible(true);
 
@@ -60,8 +72,29 @@ package Modules.L4UI.Tools
             CanvasNavigator.updateCursor();
         }
 
+        // 리플레이 모드에서 손 도구를 놓았을 때: 창 맞춤 상태면 바로 뷰포트 중앙으로 맞추고, 아니면 캔버스를 화면 안에 두고 카메라가 바로 이어받게 함
+        private static function finishHandToolInReplayMode():void
+        {
+            if (ReplayState.isReplayCanvasFitToWindow)
+            {
+                ReplayDrawer.viewport.fitToViewportMargin(true);
+            }
+            else
+            {
+                ReplayDrawer.viewport.keepCanvasInStage();
+            }
+
+            ReplayDrawer.cursorFollow.resumeCameraAfterHandToolDrag();
+        }
+
         private static function onMouseMoveHandTool(e:MouseEvent):void
         {
+            if (isReplayMode && ReplayState.isReplayRestartTimerON)
+            {
+                finishHandTool();
+                return;
+            }
+
             xAnc.x += (AppContext.stage.mouseX - old.x);
             xAnc.y += (AppContext.stage.mouseY - old.y);
 
@@ -70,23 +103,43 @@ package Modules.L4UI.Tools
 
         public static function startInDrawMode():void
         {
-            _start(false);
+            _start(false, false);
         }
 
         public static function startInDrawModeWithWheelClick():void
         {
-            _start(true);
+            _start(false, true);
         }
 
-        // 드로우 모드에서만 씀 (리플레이 모드는 카메라가 화면을 정하므로 손 툴이 없음)
-        private static function _start(fromWheelClick:Boolean):void
+        // 리플레이 모드: 재생 중에도 쓸 수 있고, 끄는 동안 리플레이 카메라는 멈춤
+        public static function startInReplayMode():void
         {
-            xAnc = CanvasView.viewport.canvasAnchorPoint;
+            _start(true, false);
+        }
+
+        public static function startInReplayModeWithWheelClick():void
+        {
+            _start(true, true);
+        }
+
+        private static function _start(fromReplayMode:Boolean, fromWheelClick:Boolean):void
+        {
+            isReplayMode = fromReplayMode;
+
+            xAnc = CanvasViewport.getViewportByReplayMode(isReplayMode).canvasAnchorPoint;
 
             old.setTo(AppContext.stage.mouseX, AppContext.stage.mouseY);
             PenSizePreviewCursor.setCursorInVisibleFlag(true);
-            ToolPanel.toolBox.setCursorVisible(false);
-            ReferenceLayerController.setRefLayerAndGridVisible(false);
+
+            if (isReplayMode)
+            {
+                ReplayDrawer.cursorFollow.pauseCameraForHandToolDrag();
+            }
+            else
+            {
+                ToolPanel.toolBox.setCursorVisible(false);
+                ReferenceLayerController.setRefLayerAndGridVisible(false);
+            }
 
             if (fromWheelClick)
             {

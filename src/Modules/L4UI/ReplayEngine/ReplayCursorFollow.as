@@ -77,6 +77,7 @@ package Modules.L4UI.ReplayEngine
         private var appliedAnchorY:Number = NaN;
         private var lastCameraStepTimeMs:int = 0;
         private var startOverviewUntilMs:int = -1000000; // 이 시각(getTimer)까지 전체 보기
+        private var isHandDragOn:Boolean = false; // 손 도구로 캔버스를 끄는 중 (카메라가 완전히 멈춤)
         private var reportedZoomPercent:int = -1; // 정보 상자에 마지막으로 보낸 배율(%)
 
         // 이번 틱의 목표 (computeCameraTarget이 채움)
@@ -105,10 +106,23 @@ package Modules.L4UI.ReplayEngine
             return new Rectangle(0, top, stage.stageWidth, stage.stageHeight - top);
         }
 
-        // 카메라가 앵커를 건드리면 안 되는 상태
+        // 카메라가 앵커를 건드리면 안 되는 상태 (창 맞춤, 깊은 되돌리기, 손 도구로 끄는 중)
         private function isCameraBlocked():Boolean
         {
-            return ReplayState.isReplayCanvasFitToWindow || UndoHistory.isDeepUndoEnabled;
+            return ReplayState.isReplayCanvasFitToWindow || UndoHistory.isDeepUndoEnabled || isHandDragOn;
+        }
+
+        // 손 도구가 캔버스를 끌기 시작할 때 부름. 놓을 때까지 카메라가 앵커를 건드리지 않음
+        public function pauseCameraForHandToolDrag():void
+        {
+            isHandDragOn = true;
+        }
+
+        // 손 도구를 놓았을 때(마우스 뗌, 포커스 아웃 포함) 부름. 기다리지 않고 다음 틱부터 옮겨진 화면에서 부드럽게 이어받음
+        public function resumeCameraAfterHandToolDrag():void
+        {
+            isHandDragOn = false;
+            isCameraStateLoaded = false; // 다음 틱에 옮겨진 화면에서 상태를 다시 읽음
         }
 
         // 처음부터 재생을 시작할 때 부름. START_OVERVIEW_MS 동안 전체 보기를 유지한 뒤 활동 영역으로 들어감

@@ -13,6 +13,7 @@ package Modules.L5App.InputManager
     import Modules.L2Engine.ReplayEngine.ReplayState;
     import Modules.L4UI.HintStrings;
     import Modules.L1Data.MouseState;
+    import Modules.L4UI.Tools.HandTool;
     import Modules.L4UI.Tools.RotateTool;
     import Modules.L4UI.CaptureEngine.CaptureController;
     import Modules.L4UI.ActivityWorkTimer;
@@ -360,7 +361,12 @@ package Modules.L5App.InputManager
 
                 if(!ReplayState.isReplayRestartTimerON)
                 {   
-                    if(targetName === "replayFitToWindowButton")
+                    if (targetName === "rCanvasPanel" || targetName === "rCanvasDrawLayer" || targetName === "stageBG")
+                    {
+                        HandTool.startInReplayMode();
+                        return;
+                    }
+                    else if(targetName === "replayFitToWindowButton")
                     {
                         InputManager.handleMouseClickStage(targetName, onClickReplayButton);
                     }

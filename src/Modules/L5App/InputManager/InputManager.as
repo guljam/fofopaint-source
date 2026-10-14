@@ -208,7 +208,11 @@ package Modules.L5App.InputManager
                 LassoTool.isLassoMenuHiddenTemp = true;
             }
 
-            if (!ReplayState.isReplayModeON) // 리플레이 모드는 카메라가 화면을 정하므로 손 툴이 없음
+            if (ReplayState.isReplayModeON)
+            {
+                HandTool.startInReplayModeWithWheelClick();
+            }
+            else
             {
                 HandTool.startInDrawModeWithWheelClick();
             }
