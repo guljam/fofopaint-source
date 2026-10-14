@@ -42,8 +42,8 @@ package Modules.L4UI.ReplayEngine
         private static const ZOOM_SETTLED_LOG:Number = 0.002; // 로그 배율 차이가 이 값 미만이면 도착
 
         // 전체 보기(맞춤 배율로 강제) 계기
-        private static const OVERVIEW_SPEED_IN:Number = 8; // D: 이 배속 이상이면 전체 보기
-        private static const OVERVIEW_SPEED_OUT:Number = 5; // D: 이 배속 미만이어야 전체 보기를 풂 (들어가는 값보다 낮게 둬서 경계에서 흔들리지 않게 함)
+        private static const OVERVIEW_SPEED_IN:Number = 60; // D: 이 배속 이상이면 전체 보기
+        private static const OVERVIEW_SPEED_OUT:Number = 40; // D: 이 배속 미만이어야 전체 보기를 풂 (들어가는 값보다 낮게 둬서 경계에서 흔들리지 않게 함)
         private static const CANVAS_WIDE_OVERVIEW_MS:Number = 2000; // B: 캔버스 전체에 영향을 주는 명령(지우기, 크기 변경, 대칭 등) 뒤 전체 보기를 유지하는 실제 시간
         private static const START_OVERVIEW_MS:Number = 1500; // C: 처음부터 재생을 시작한 뒤 전체 보기를 유지하는 실제 시간
         private static const JUMP_DISTANCE_RATIO:Number = 0.5; // A: 먼 영역과 가까운 영역의 중심 거리가 지금 화면 짧은 변의 이 비율 이상이고 겹치지 않으면 다른 영역으로 넘어가는 것으로 봄
