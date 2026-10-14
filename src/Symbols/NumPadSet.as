@@ -65,6 +65,16 @@
 		private const okHSliderCusor:Shape = new Shape();
 
 		private const sliderOffset:Number = 5.0;
+		// C 슬라이더 맨 위 값. sRGB에서 가장 진한 색(마젠타)의 C가 약 0.3225라 조금 여유를 둠
+		private const okChromaSliderMaxValue:Number = 0.33;
+		// 범위 안 판정에서 선형 RGB 계산 오차를 허용하는 폭
+		private const okGamutCheckTolerance:Number = 1e-7;
+		// 범위 밖 색을 채널별로 잘라도 되는 OKLab 거리 한계 (CSS Color 4의 JND 값)
+		private const okGamutMappingJND:Number = 0.02;
+		// C 이분 탐색을 멈추는 폭 (CSS Color 4 값)
+		private const okGamutMappingChromaEpsilon:Number = 0.0001;
+		// 계산 중 선형 RGB 결과를 담아 두는 재사용 객체 (픽셀마다 객체를 만들지 않으려고)
+		private const okLinearRGBBuffer:Object = {r: 0, g: 0, b: 0};
 		private var okBaseHue:Number = 0;
 		private var okBaseColor:uint = 0;
 		private var okBaseColorLch:Object;
@@ -223,7 +233,7 @@
 		{
 			const height:Number = okLBitmap.bitmapData.height;
 			const lpos:Number = height - lch.L * height;
-			const cpos:Number = height - lch.C * height;
+			const cpos:Number = height - (lch.C / okChromaSliderMaxValue) * height;
 			const hpos:Number = height - (lch.H / 360.0) * height;
 
 			okLSliderCursor.y = lpos + sliderOffset;
@@ -235,7 +245,7 @@
 		{
 			okBaseColor = color;
 			okBaseColorLch = hexToOklch(color);
-			if (isBaseColorGray())
+			if (isBaseColorNearGray())
 			{
 				okBaseColorLch.H = okBaseHue;
 			}
@@ -361,10 +371,12 @@
 
 		private function rgbToOklab(r:Number, g:Number, b:Number):Object
 		{
-			r = gammaToLinear(r / 255);
-			g = gammaToLinear(g / 255);
-			b = gammaToLinear(b / 255);
+			return linearSRGBToOklab(gammaToLinear(r / 255), gammaToLinear(g / 255), gammaToLinear(b / 255));
+		}
 
+		// 선형 sRGB(0~1)를 OKLab으로 바꿈
+		private function linearSRGBToOklab(r:Number, g:Number, b:Number):Object
+		{
 			var l:Number = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
 			var m:Number = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
 			var s:Number = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
@@ -380,7 +392,8 @@
 				};
 		}
 
-		private function oklabToSRGB(L:Number, a:Number, b:Number):Object
+		// OKLab 값을 자르지 않은 선형 sRGB(0~1 밖일 수 있음)로 바꿔 outLinearRGB에 채움
+		private function oklabToLinearSRGB(L:Number, a:Number, b:Number, outLinearRGB:Object):void
 		{
 			var l:Number = L + a * 0.3963377774 + b * 0.2158037573;
 			var m:Number = L - a * 0.1055613458 - b * 0.0638541728;
@@ -390,15 +403,103 @@
 			m = m * m * m;
 			s = s * s * s;
 
-			var r:Number = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
-			var g:Number = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
-			var bb:Number = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+			outLinearRGB.r = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
+			outLinearRGB.g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
+			outLinearRGB.b = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+		}
 
-			r = Math.round(clamp(255 * linearToGamma(r), 0, 255));
-			g = Math.round(clamp(255 * linearToGamma(g), 0, 255));
-			bb = Math.round(clamp(255 * linearToGamma(bb), 0, 255));
+		// OKLab 값을 0~255 sRGB로 바꿈. 범위 밖 값은 채널별로 잘리므로 크게 벗어난 값은 먼저 C를 줄여서 넘겨야 색이 틀어지지 않음
+		private function oklabToSRGB(L:Number, a:Number, b:Number):Object
+		{
+			oklabToLinearSRGB(L, a, b, okLinearRGBBuffer);
+
+			const r:Number = Math.round(clamp(255 * linearToGamma(okLinearRGBBuffer.r), 0, 255));
+			const g:Number = Math.round(clamp(255 * linearToGamma(okLinearRGBBuffer.g), 0, 255));
+			const bb:Number = Math.round(clamp(255 * linearToGamma(okLinearRGBBuffer.b), 0, 255));
 
 			return {r: r, g: g, b: bb};
+		}
+
+		// 주어진 L, C, H가 sRGB로 표시 가능한 범위 안인지 확인 (hueCos, hueSin은 H의 cos/sin)
+		private function isOklchInsideSRGBGamut(L:Number, C:Number, hueCos:Number, hueSin:Number):Boolean
+		{
+			oklabToLinearSRGB(L, C * hueCos, C * hueSin, okLinearRGBBuffer);
+			const minValue:Number = -okGamutCheckTolerance;
+			const maxValue:Number = 1.0 + okGamutCheckTolerance;
+
+			return okLinearRGBBuffer.r >= minValue && okLinearRGBBuffer.r <= maxValue
+				&& okLinearRGBBuffer.g >= minValue && okLinearRGBBuffer.g <= maxValue
+				&& okLinearRGBBuffer.b >= minValue && okLinearRGBBuffer.b <= maxValue;
+		}
+
+		// 주어진 L, C, H를 채널별로 잘랐을 때 원래 값과 OKLab에서 얼마나 떨어지는지(deltaEOK) 계산
+		private function measureOklchClippingDistance(L:Number, C:Number, hueCos:Number, hueSin:Number):Number
+		{
+			const a:Number = C * hueCos;
+			const b:Number = C * hueSin;
+			oklabToLinearSRGB(L, a, b, okLinearRGBBuffer);
+			const clipped:Object = linearSRGBToOklab(
+					clamp(okLinearRGBBuffer.r, 0, 1),
+					clamp(okLinearRGBBuffer.g, 0, 1),
+					clamp(okLinearRGBBuffer.b, 0, 1));
+			const dL:Number = clipped.L - L;
+			const da:Number = clipped.a - a;
+			const db:Number = clipped.b - b;
+			return Math.sqrt(dL * dL + da * da + db * db);
+		}
+
+		// L과 H는 그대로 두고 C를 줄여 sRGB로 표시할 C를 찾음 (CSS Color 4 gamut mapping 방식)
+		// 잘라도 눈에 띄지 않는 차이(JND 미만)면 그 C를 그대로 돌려주고, 이후 oklabToSRGB의 채널별 자르기가 마무리함
+		// 파랑처럼 C를 줄이는 선이 범위 밖으로 잠깐 나갔다 꼭짓점에서 다시 들어오는 경우도 이 허용 덕분에 C가 크게 깎이지 않음
+		private function findInGamutChromaKeepingLightnessAndHue(L:Number, C:Number, H:Number):Number
+		{
+			if (L <= 0.0 || L >= 1.0)
+			{
+				return 0.0;
+			}
+
+			const hueRadian:Number = H * Math.PI / 180;
+			const hueCos:Number = Math.cos(hueRadian);
+			const hueSin:Number = Math.sin(hueRadian);
+
+			if (isOklchInsideSRGBGamut(L, C, hueCos, hueSin))
+			{
+				return C;
+			}
+			if (measureOklchClippingDistance(L, C, hueCos, hueSin) < okGamutMappingJND)
+			{
+				return C;
+			}
+
+			var minChroma:Number = 0.0;
+			var maxChroma:Number = C;
+			var isMinChromaInsideGamut:Boolean = true;
+
+			while (maxChroma - minChroma > okGamutMappingChromaEpsilon)
+			{
+				var chroma:Number = (minChroma + maxChroma) / 2;
+				if (isMinChromaInsideGamut && isOklchInsideSRGBGamut(L, chroma, hueCos, hueSin))
+				{
+					minChroma = chroma;
+					continue;
+				}
+
+				var clippingDistance:Number = measureOklchClippingDistance(L, chroma, hueCos, hueSin);
+				if (clippingDistance < okGamutMappingJND)
+				{
+					if (okGamutMappingJND - clippingDistance < okGamutMappingChromaEpsilon)
+					{
+						return chroma;
+					}
+					isMinChromaInsideGamut = false;
+					minChroma = chroma;
+				}
+				else
+				{
+					maxChroma = chroma;
+				}
+			}
+			return minChroma;
 		}
 
 		private function oklchToOklab(L:Number, C:Number, H:Number):Object
@@ -416,9 +517,11 @@
 			return {L: L, C: C, H: H};
 		}
 
+		// OKLCH 값을 hex 색으로 바꿈. 범위 밖이면 L과 H를 지키고 C를 줄여서 표시 가능한 색으로 만듦
 		private function OklchToHex(oklch:Object):uint
 		{
-			const ok:Object = oklchToOklab(oklch.L, oklch.C, oklch.H);
+			const inGamutChroma:Number = findInGamutChromaKeepingLightnessAndHue(oklch.L, oklch.C, oklch.H);
+			const ok:Object = oklchToOklab(oklch.L, inGamutChroma, oklch.H);
 			const c:Object = oklabToSRGB(ok.L, ok.a, ok.b);
 			return rgbToHex(c);
 		}
@@ -516,7 +619,7 @@
 		private function updateC():void
 		{
 			const ypos:Number = clamp(okCBitmap.mouseY, 0.0, okCBitmap.bitmapData.height - 1.0);
-			var value:Number = (1.0 - ypos / okCBitmap.bitmapData.height) / 2;
+			var value:Number = (1.0 - ypos / okCBitmap.bitmapData.height) * okChromaSliderMaxValue;
 			okBaseColorLch.C = value;
 			okCSliderCursor.y = ypos + sliderOffset;
 		}
@@ -529,9 +632,13 @@
 			okHSliderCusor.y = ypos + sliderOffset;
 		}
 
-		private function isBaseColorGray():Boolean
+		// 기준 색이 회색이거나, 채널 차이가 1 이하라 hex 반올림 때문에 H가 의미 없는 회색에 가까운 색인지 확인
+		private function isBaseColorNearGray():Boolean
 		{
-			return okBaseColor % 0x010101 == 0;
+			const rgb:Object = hexToRGB(okBaseColor);
+			const maxChannel:int = Math.max(rgb.r, rgb.g, rgb.b);
+			const minChannel:int = Math.min(rgb.r, rgb.g, rgb.b);
+			return maxChannel - minChannel <= 1;
 		}
 
 		private function getAdjustedBaseColor(flag:int, value:Number):uint
@@ -548,7 +655,7 @@
 			const configs:Array =
 				[
 					{flag: lflag, bmpd: okLBitmap.bitmapData, max: 1.0, step: 1.0 / height, idx: 0},
-					{flag: cflag, bmpd: okCBitmap.bitmapData, max: 0.5, step: 0.5 / height, idx: 1},
+					{flag: cflag, bmpd: okCBitmap.bitmapData, max: okChromaSliderMaxValue, step: okChromaSliderMaxValue / height, idx: 1},
 					{flag: hflag, bmpd: okHBitmap.bitmapData, max: 360.0, step: 360.0 / height, idx: 2}
 				];
 
