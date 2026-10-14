@@ -1,4 +1,4 @@
-﻿# worker.swf 빌드 (F5 preLaunchTask "Compile Worker SWF")
+﻿# worker.swf 빌드 (F5 preLaunchTask "FOFO PAINT swf build and debug"가 build-all-for-debug.ps1로 다른 빌드와 동시에 부름, 태스크 "Compile Worker SWF")
 # 다시 빌드할지는 파일 수정 시각이 아니라 내용으로 정함: 입력 소스 + SDK 경로 + 옵션의 SHA-256을 worker.swf.srchash(저장소에 추적)와 비교
 # 수정 시각으로 정하면 브랜치를 바꿀 때 git이 바뀐 소스의 시각을 새로 찍어서 다시 빌드하는데,
 # amxmlc는 같은 소스로도 매번 다른 바이트를 만들어서(실측) worker.swf가 늘 수정됨으로 뜸

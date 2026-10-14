@@ -42,12 +42,16 @@
         },
         {
             "label": "FOFO PAINT swf build and debug",
-            "dependsOn": [
-                "Compile Worker SWF",
-                "Build nativecore ANE",
-                "Compile Main SWF"
+            "type": "shell",
+            "command": "pwsh",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/build-all-for-debug.ps1"
             ],
-            "dependsOrder": "sequence"
+            "problemMatcher": []
         },
         {
             "label": "Make and Install AIR Package",

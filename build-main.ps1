@@ -1,4 +1,4 @@
-﻿# fofoPaint.swf 빌드 (F5 preLaunchTask "FOFO PAINT swf build and debug" 안의 "Compile Main SWF")
+﻿# fofoPaint.swf 빌드 (F5 preLaunchTask "FOFO PAINT swf build and debug"가 build-all-for-debug.ps1로 다른 빌드와 동시에 부름, 태스크 "Compile Main SWF")
 # 컴파일 매개변수는 asconfig.json의 compilerOptions를 읽어서 amxmlc 인자로 바꿔 씀
 # 다시 빌드할지는 수정 시각이 아니라 내용으로 정함: src 전체 + asconfig.json + 앱 설명 파일 + library-path swc + SDK 경로의 SHA-256을 fofoPaint.swf.srchash와 비교
 # -Force: 소스가 그대로여도 다시 빌드
