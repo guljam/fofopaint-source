@@ -1878,8 +1878,7 @@ package Modules.L5App.ReplayEngine
 
             ReplayDrawer.rFileStream.close();
             ReplayState.isReplayStarted = false;
-            updateDeleteReplayDataButtonsState();
-            ReplayDrawer.cursorFollow.moveCameraToCursorNow(); // 남은 이동을 애니메이션하지 않고 최종 위치와 배율로 바로 마무리
+            updateDeleteReplayDataButtonsState(); // 카메라는 멈춘 자리에 그대로 둠 (재생 중 이미 커서를 화면 안에 두고 있음)
         }
 
         public static function handleReplayStartButton():void

@@ -35,7 +35,6 @@ package Modules.L2Engine.ReplayEngine
         public static var rAirBrushSize2:int = 0; // 새로운거
         public static var rMirrorON:Boolean = false; // 대칭 켜지면 올려줌
         public static var rCanvasZoomMultiplier:Number = 1.0; // 리플레이 줌
-        public static var lastCanvasWideCommandTimeMs:int = -1000000; // 재생 중 캔버스 전체에 영향을 주는 명령(지우기, 크기 변경, 대칭 등)을 실행한 시각 (getTimer). 리플레이 카메라가 잠시 전체 보기를 함
         public static var rCanvasZoomIndex:int = 4;
         public static var isReplayCanvasFitToWindow:Boolean = false; // 리플레이에서 오른쪽 클릭해서 창 크기에 맞췄을때 올려줌 startreplay될때 줌 1.0으로 리셋 못시키게함
         public static var rReplayImageCacheState:int = REPLAY_IMAGE_CAHCHE_COMPLETE;

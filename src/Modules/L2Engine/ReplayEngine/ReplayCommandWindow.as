@@ -14,7 +14,7 @@ package Modules.L2Engine.ReplayEngine
     // 층: L2 엔진 - 재생 경로에서 repdata를 읽는 유일한 곳
     public class ReplayCommandWindow
     {
-        public static const LOOKAHEAD_REAL_MS:Number = 1500; // 실제 시간으로 이만큼 앞까지 미리 읽음 (녹화 시간으로는 * 배속). 카메라는 앞 500ms로 집중 영역을, 그 뒤로 다른 영역으로 넘어가는지를 봄
+        public static const LOOKAHEAD_REAL_MS:Number = 1000; // 실제 시간으로 이만큼 앞까지 미리 읽음 (녹화 시간으로는 * 배속). 카메라는 이 구간의 커서 경로를 활동 영역에 넣음
         public static const LOOKAHEAD_MAX_FRAMES:Number = 2000; // 미리 읽는 프레임 수 상한
         public static const MAX_QUEUED_COMMAND_GROUPS:int = 64; // 미리 읽어 둘 묶음 수 상한
         public static const REFILL_READ_BUDGET_MS:int = 4; // 한 번 채울 때 읽기에 쓰는 시간 (묶음 하나는 끝까지 읽음)
