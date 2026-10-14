@@ -47,7 +47,7 @@ package Modules.L4UI.UIEngine
         private static var highlightBoxShapeCount:int = 0;
         private static var highlightBoxCachedColor:uint = 0;
         private static var highlightBoxShowingShape:Shape = null; // hintHighlightBox에 지금 들어 있는 Shape
-        private static const variableSizeHighlightShape:Shape = new Shape(); // 창 크기·확대에 따라 크기가 계속 바뀌는 대상(사이드바 스크롤 바, 시크바 트랙, 캡처 모드 캔버스)이 같이 쓰는 하이라이트 Shape. 크기별로 저장하지 않고 크기나 색이 바뀔 때만 다시 그림
+        private static const variableSizeHighlightShape:Shape = new Shape(); // 창 크기·확대에 따라 크기가 계속 바뀌는 대상(사이드바 스크롤 바, 시크바 트랙, 캡처 모드 캔버스)이 같이 쓰는 하이라이트 Shape. 크기별로 저장하지 않고 UI 배율 100% 기준 크기나 색이 바뀔 때만 다시 그림
         private static var variableSizeHighlightDrawnWidth:Number = NaN;
         private static var variableSizeHighlightDrawnHeight:Number = NaN;
         private static var variableSizeHighlightDrawnColor:uint = 0;
@@ -254,7 +254,7 @@ package Modules.L4UI.UIEngine
             }
         }
 
-        // target 위치에 크기별로 저장해 둔 손그림 하이라이트 상자를 보여줌
+        // target 위치에 크기별로 저장해 둔 손그림 하이라이트 상자를 보여줌. 상자는 UI 배율 100% 기준으로 그려져 있어서 현재 UI 배율만큼 키워 선 두께도 배율을 따라감
         public static function showHintHighlightBox(target:DisplayObject):void
         {
             const nt:int = getTimer();
@@ -290,6 +290,8 @@ package Modules.L4UI.UIEngine
             {
                 showHintHighlightShapeOfSize(rect.width, rect.height);
             }
+            highlightBoxShowingShape.scaleX = scale;
+            highlightBoxShowingShape.scaleY = scale;
             updateHightLightBoxZOrderByTarget(target);
             hintHighlightBox.visible = true;
         }
@@ -302,25 +304,34 @@ package Modules.L4UI.UIEngine
                 || target === CanvasViewport.getCurrentVisibleViewport().layer1Bitmap;
         }
 
-        // 크기가 계속 바뀌는 대상들이 같이 쓰는 Shape 하나를 hintHighlightBox에 보여줌. 크기나 하이라이트 색이 지난번과 다를 때만 지우고 다시 그림
+        // 화면에 보이는 길이(현재 UI 배율이 곱해진 값)를 UI 배율 100% 기준 길이로 바꿈.
+        // 하이라이트 Shape는 이 길이로 두께 2로 그리고 표시할 때 UI 배율만큼 키움. 나눗셈 오차(39.99999 등)로 크기별 저장이 어긋나지 않게 소수 둘째 자리에서 반올림. MessageBoxController도 같이 씀
+        public static function getHighlightLengthAtScale100(scaledLength:Number):Number
+        {
+            return Math.round(scaledLength / UITheme.getUIScale() * 100) / 100;
+        }
+
+        // 크기가 계속 바뀌는 대상들이 같이 쓰는 Shape 하나를 hintHighlightBox에 보여줌. UI 배율 100% 기준 크기나 하이라이트 색이 지난번과 다를 때만 지우고 다시 그림
         private static function showVariableSizeHighlightShape(boxWidth:Number, boxHeight:Number):void
         {
             const highlightColor:uint = UITheme.getHintHightlightColor();
+            const widthAtScale100:Number = getHighlightLengthAtScale100(boxWidth);
+            const heightAtScale100:Number = getHighlightLengthAtScale100(boxHeight);
 
-            if (boxWidth !== variableSizeHighlightDrawnWidth || boxHeight !== variableSizeHighlightDrawnHeight || highlightColor !== variableSizeHighlightDrawnColor)
+            if (widthAtScale100 !== variableSizeHighlightDrawnWidth || heightAtScale100 !== variableSizeHighlightDrawnHeight || highlightColor !== variableSizeHighlightDrawnColor)
             {
                 variableSizeHighlightShape.graphics.clear();
-                HandDrawnLine.drawRect(variableSizeHighlightShape.graphics, 2, highlightColor, 1.0, 0, 0, boxWidth, boxHeight, null, 1.0, 0.01, HIGHLIGHT_BOX_SEED);
-                variableSizeHighlightDrawnWidth = boxWidth;
-                variableSizeHighlightDrawnHeight = boxHeight;
+                HandDrawnLine.drawRect(variableSizeHighlightShape.graphics, 2, highlightColor, 1.0, 0, 0, widthAtScale100, heightAtScale100, null, 1.0, 0.01, HIGHLIGHT_BOX_SEED);
+                variableSizeHighlightDrawnWidth = widthAtScale100;
+                variableSizeHighlightDrawnHeight = heightAtScale100;
                 variableSizeHighlightDrawnColor = highlightColor;
             }
 
             setHintHighlightBoxShowingShape(variableSizeHighlightShape);
         }
 
-        // boxWidth x boxHeight 크기로 한 번 그려 둔 하이라이트 Shape를 hintHighlightBox에 보여줌. 처음 보는 크기만 새로 그리고 같은 크기는 저장해 둔 것을 그대로 씀.
-        // 하이라이트 색이 바뀌었거나(테마 변경) 저장이 한도를 넘으면 저장을 비우고 다시 쌓음
+        // boxWidth x boxHeight 크기의 하이라이트 Shape를 hintHighlightBox에 보여줌. UI 배율 100% 기준 크기로 한 번 그려 두고 같은 크기는 저장해 둔 것을 그대로 씀.
+        // 저장 키가 배율 100% 기준이라 UI 배율을 바꿨다 되돌려도 다시 그리지 않음. 하이라이트 색이 바뀌었거나(테마 변경) 저장이 한도를 넘으면 저장을 비우고 다시 쌓음
         private static function showHintHighlightShapeOfSize(boxWidth:Number, boxHeight:Number):void
         {
             const highlightColor:uint = UITheme.getHintHightlightColor();
@@ -331,13 +342,15 @@ package Modules.L4UI.UIEngine
                 highlightBoxCachedColor = highlightColor;
             }
 
-            const sizeKey:String = boxWidth + "x" + boxHeight;
+            const widthAtScale100:Number = getHighlightLengthAtScale100(boxWidth);
+            const heightAtScale100:Number = getHighlightLengthAtScale100(boxHeight);
+            const sizeKey:String = widthAtScale100 + "x" + heightAtScale100;
             var sizeShape:Shape = highlightBoxShapeBySize[sizeKey] as Shape;
 
             if (sizeShape === null)
             {
                 sizeShape = new Shape();
-                HandDrawnLine.drawRect(sizeShape.graphics, 2, highlightColor, 1.0, 0, 0, boxWidth, boxHeight, null, 1.0, 0.01, HIGHLIGHT_BOX_SEED);
+                HandDrawnLine.drawRect(sizeShape.graphics, 2, highlightColor, 1.0, 0, 0, widthAtScale100, heightAtScale100, null, 1.0, 0.01, HIGHLIGHT_BOX_SEED);
                 highlightBoxShapeBySize[sizeKey] = sizeShape;
                 highlightBoxShapeCount++;
             }

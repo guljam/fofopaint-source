@@ -33,7 +33,7 @@ package Modules.L4UI.UIEngine
 
         private static const messageBoxContainer:Sprite = new Sprite();
         private static const messageHighlightBox:Shape = new Shape(); // HintController의 hintHighlightBox와 따로 씀
-        private static var messageHighlightDrawnWidth:Number = NaN; // messageHighlightBox에 마지막으로 그린 크기와 색. 같으면 다시 그리지 않고 위치만 옮김
+        private static var messageHighlightDrawnWidth:Number = NaN; // messageHighlightBox에 마지막으로 그린 크기(UI 배율 100% 기준)와 색. 같으면 다시 그리지 않고 위치와 배율만 바꿈
         private static var messageHighlightDrawnHeight:Number = NaN;
         private static var messageHighlightDrawnColor:uint = 0;
         private static const messageBoxes:Vector.<MessageBox> = new Vector.<MessageBox>(); // 미리 만든 상자를 재사용, messageBoxes[i]가 messages[i]를 표시
@@ -294,7 +294,7 @@ package Modules.L4UI.UIEngine
         }
 
         // 커서가 상자 위에 있으면 파란 테두리를 보여줌. 그리는 중·드래그 중(버튼을 누르고 있을 때)에는 띄우지 않음
-        // 상자 크기는 글자에 따라 바뀌므로 크기별로 저장하지 않고, 크기나 색이 지난번과 다를 때만 지우고 다시 그림 (모양은 HintController와 같은 seed로 고정)
+        // 상자 크기는 글자에 따라 바뀌므로 크기별로 저장하지 않고, UI 배율 100% 기준 크기나 색이 지난번과 다를 때만 지우고 다시 그림. 표시할 때 UI 배율만큼 키워 선 두께가 배율을 따라감 (모양은 HintController와 같은 seed로 고정)
         private static function updateMessageHighlightBox(x:Number, y:Number):void
         {
             const index:int = (MouseState.isLeftDown || MouseState.isRightDown) ? -1 : findMessageIndexAt(x, y, 0);
@@ -306,17 +306,21 @@ package Modules.L4UI.UIEngine
 
             const rect:Rectangle = getMessageBoxRect(index, 0);
             const highlightColor:uint = UITheme.getHintHightlightColor();
-            if (rect.width !== messageHighlightDrawnWidth || rect.height !== messageHighlightDrawnHeight || highlightColor !== messageHighlightDrawnColor)
+            const widthAtScale100:Number = HintController.getHighlightLengthAtScale100(rect.width);
+            const heightAtScale100:Number = HintController.getHighlightLengthAtScale100(rect.height);
+            if (widthAtScale100 !== messageHighlightDrawnWidth || heightAtScale100 !== messageHighlightDrawnHeight || highlightColor !== messageHighlightDrawnColor)
             {
                 messageHighlightBox.graphics.clear();
-                HandDrawnLine.drawRect(messageHighlightBox.graphics, 2, highlightColor, 1.0, 0, 0, rect.width, rect.height, null, 1.0, 0.01, HintController.HIGHLIGHT_BOX_SEED);
-                messageHighlightDrawnWidth = rect.width;
-                messageHighlightDrawnHeight = rect.height;
+                HandDrawnLine.drawRect(messageHighlightBox.graphics, 2, highlightColor, 1.0, 0, 0, widthAtScale100, heightAtScale100, null, 1.0, 0.01, HintController.HIGHLIGHT_BOX_SEED);
+                messageHighlightDrawnWidth = widthAtScale100;
+                messageHighlightDrawnHeight = heightAtScale100;
                 messageHighlightDrawnColor = highlightColor;
             }
 
             messageHighlightBox.x = rect.x;
             messageHighlightBox.y = rect.y;
+            messageHighlightBox.scaleX = UITheme.getUIScale();
+            messageHighlightBox.scaleY = UITheme.getUIScale();
             messageHighlightBox.visible = true;
         }
 
