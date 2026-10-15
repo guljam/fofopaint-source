@@ -85,9 +85,27 @@ package Modules.L4UI.Tools
         {
             LassoSelectionBoxes.lassoDraw.visible = !flag;
             LassoSelectionBoxes.lassoDrawCloseLine.visible = !flag;
-            LassoSelectionBoxes.lassoLayer1Bitmap.smoothing = !flag;
-            LassoSelectionBoxes.lassoLayer2Bitmap.smoothing = !flag;
+            if (flag)
+            {
+                LassoSelectionBoxes.lassoLayer1Bitmap.smoothing = false;
+                LassoSelectionBoxes.lassoLayer2Bitmap.smoothing = false;
+            }
+            else
+            {
+                updateLassoBitmapSmoothingByTransform();
+            }
             _lassoMenuBox.visible = !flag;
+        }
+
+        // 화면에 보이는 올가미 이미지의 smoothing을 크기 조절·회전이 있을 때만 켬 (이동·좌우 반전만 했으면 픽셀이 그대로 옮겨지므로 끔)
+        // bitmapData를 새로 넣으면 smoothing이 false로 돌아가므로 선택·스왑 뒤에도 불러줌. 적용·리플레이는 그릴 때 따로 켬
+        private static function updateLassoBitmapSmoothingByTransform():void
+        {
+            const isLassoBoxScaledOrRotated:Boolean = Math.abs(LassoSelectionBoxes.lassoLayer1.scaleX) !== 1
+                    || Math.abs(LassoSelectionBoxes.lassoLayer1.scaleY) !== 1
+                    || LassoSelectionBoxes.lassoLayer1.rotation !== 0;
+            LassoSelectionBoxes.lassoLayer1Bitmap.smoothing = isLassoBoxScaledOrRotated;
+            LassoSelectionBoxes.lassoLayer2Bitmap.smoothing = isLassoBoxScaledOrRotated;
         }
 
         public static function redrawLassoOutline():void
@@ -302,6 +320,7 @@ package Modules.L4UI.Tools
             }
             isLassoLayerSwapButtonClicked = !isLassoLayerSwapButtonClicked;
             LassoSelectionBoxes.swapLassoImage();
+            updateLassoBitmapSmoothingByTransform();
             addLassoLayerMergeCommand(0);
             _lassoMenuBox.hint(HintStrings.getLassoMenuHintSwapLayer());
             ToolPanel.playLayerSwapEffect(_lassoMenuBox.lassoLayerSwap);
@@ -644,6 +663,7 @@ package Modules.L4UI.Tools
                 return;
             }
 
+            updateLassoBitmapSmoothingByTransform();
             drawLassoPreviewLine(true);
             // 라소 메뉴 마우스 커서에보이기
             lassoFirstData = [LassoSelectionBoxes.lassoLayer1.x, LassoSelectionBoxes.lassoLayer1.y, LassoSelectionBoxes.lassoLayer1.scaleX, LassoSelectionBoxes.lassoLayer1.scaleY, LassoSelectionBoxes.lassoLayer1.rotation];
