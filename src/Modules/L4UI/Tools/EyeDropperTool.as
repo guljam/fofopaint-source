@@ -317,8 +317,7 @@ package Modules.L4UI.Tools
 
         private static function canShowEyedropperLens():Boolean
         {
-            return UIController.isCursorInDrawArea() && DrawCanvas.canvasLayer1Bitmap.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY, true)
-                && !(ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY));
+            return UIController.isCursorInDrawArea() && DrawCanvas.canvasLayer1Bitmap.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY, true);
         }
 
         public static function start():void

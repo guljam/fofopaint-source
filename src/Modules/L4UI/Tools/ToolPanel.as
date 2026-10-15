@@ -112,15 +112,10 @@ package Modules.L4UI.Tools
             selectedToolViewSprite.y = Math.round(AppContext.stage.mouseY - badgeGapAboveMouse - selectedToolViewSprite.height / 2);
         }
 
-        // 그리는 영역 안이면서 참고 레이어 메뉴나 라소 메뉴 위가 아닐 때만 선택 툴 아이콘을 보여줌
+        // 그리는 영역 안일 때만 선택 툴 아이콘을 보여줌 (참고 레이어 메뉴·라소 메뉴 위는 isCursorInDrawArea가 제외함)
         private static function canShowSelectedToolViewSpriteAtMouse():Boolean
         {
-            const mx:Number = AppContext.stage.mouseX;
-            const my:Number = AppContext.stage.mouseY;
-
-            return !ReplayState.isReplayModeON && !CaptureController.isCaptureModeON && UIController.isCursorInDrawArea()
-                && !(ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mx, my))
-                && !(LassoTool._lassoMenuBox.visible && LassoTool._lassoMenuBox.hitTestPoint(mx, my));
+            return !ReplayState.isReplayModeON && !CaptureController.isCaptureModeON && UIController.isCursorInDrawArea();
         }
 
         // 마우스가 움직일 때 호출. 선택 툴 아이콘은 뜬 자리에 고정이고, 그리는 중(왼쪽 버튼)이거나 그리는 영역 밖이면 숨김

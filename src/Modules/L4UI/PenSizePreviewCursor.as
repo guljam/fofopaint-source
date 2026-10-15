@@ -238,7 +238,6 @@ package Modules.L4UI
                     || (ToolState.nowTool > ToolState.TOOL_LINE && ToolState.nowTool !== ToolState.TOOL_FILLPEN) // 1 2 3 4 펜 지우개 라인툴 라인-지우개툴
                     || !UIController.isCursorInDrawArea()
                     || CanvasResizer.isCanvasResizing()
-                    || (ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(mx, my))
                     || UIController.loadMenuBox.visible)
             {
                 _cursor.visible = false;
