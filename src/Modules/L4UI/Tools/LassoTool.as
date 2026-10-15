@@ -97,15 +97,46 @@ package Modules.L4UI.Tools
             _lassoMenuBox.visible = !flag;
         }
 
-        // 화면에 보이는 올가미 이미지의 smoothing을 크기 조절·회전이 있을 때만 켬 (이동·좌우 반전만 했으면 픽셀이 그대로 옮겨지므로 끔)
+        // 올가미 상자 변형이 픽셀을 그대로 옮기는지 (크기 1·좌우 반전·90° 배수 회전이면 섞이는 픽셀이 없음)
+        private static function isLassoBoxTransformPixelExact():Boolean
+        {
+            return Math.abs(LassoSelectionBoxes.lassoLayer1.scaleX) === 1
+                    && Math.abs(LassoSelectionBoxes.lassoLayer1.scaleY) === 1
+                    && LassoSelectionBoxes.lassoLayer1.rotation % 90 === 0;
+        }
+
+        // 화면에 보이는 올가미 이미지의 smoothing을 픽셀이 섞이는 변형(크기 조절, 90° 배수가 아닌 회전)일 때만 켬
         // bitmapData를 새로 넣으면 smoothing이 false로 돌아가므로 선택·스왑 뒤에도 불러줌. 적용·리플레이는 그릴 때 따로 켬
         private static function updateLassoBitmapSmoothingByTransform():void
         {
-            const isLassoBoxScaledOrRotated:Boolean = Math.abs(LassoSelectionBoxes.lassoLayer1.scaleX) !== 1
-                    || Math.abs(LassoSelectionBoxes.lassoLayer1.scaleY) !== 1
-                    || LassoSelectionBoxes.lassoLayer1.rotation !== 0;
-            LassoSelectionBoxes.lassoLayer1Bitmap.smoothing = isLassoBoxScaledOrRotated;
-            LassoSelectionBoxes.lassoLayer2Bitmap.smoothing = isLassoBoxScaledOrRotated;
+            const isLassoBitmapSmoothingNeeded:Boolean = !isLassoBoxTransformPixelExact();
+            LassoSelectionBoxes.lassoLayer1Bitmap.smoothing = isLassoBitmapSmoothingNeeded;
+            LassoSelectionBoxes.lassoLayer2Bitmap.smoothing = isLassoBitmapSmoothingNeeded;
+        }
+
+        // 픽셀을 그대로 옮기는 변형일 때 올가미 상자 중심을 회전 후 가로/세로 크기의 홀짝에 맞춤 (크기가 홀수인 쪽은 x.5, 짝수인 쪽은 정수)
+        // 폭과 높이의 홀짝이 다른 이미지를 90° 돌리면 가장자리가 반 픽셀에 놓여 적용 결과가 흐려지므로 중심을 반 픽셀 옮김 (0°로 돌아오면 원래 위치로 돌아옴)
+        // 옮긴 위치가 lasso2에 그대로 기록되므로 리플레이도 같은 결과가 됨
+        private static function alignLassoBoxCenterToPixelGrid():void
+        {
+            if (!isLassoBoxTransformPixelExact())
+            {
+                return;
+            }
+            var lassoBmpWidth:int = LassoSelectionBoxes.lassoLayer1Bitmap.width;
+            var lassoBmpHeight:int = LassoSelectionBoxes.lassoLayer1Bitmap.height;
+            if (!isCanvasLayer1InLassoBox)
+            {
+                lassoBmpWidth = LassoSelectionBoxes.lassoLayer2Bitmap.width;
+                lassoBmpHeight = LassoSelectionBoxes.lassoLayer2Bitmap.height;
+            }
+            const isQuarterTurn:Boolean = Math.abs(LassoSelectionBoxes.lassoLayer1.rotation) === 90;
+            const rotatedWidth:int = (isQuarterTurn) ? lassoBmpHeight : lassoBmpWidth;
+            const rotatedHeight:int = (isQuarterTurn) ? lassoBmpWidth : lassoBmpHeight;
+            LassoSelectionBoxes.lassoLayer1.x = Math.floor(LassoSelectionBoxes.lassoLayer1.x) + (rotatedWidth % 2) * 0.5;
+            LassoSelectionBoxes.lassoLayer1.y = Math.floor(LassoSelectionBoxes.lassoLayer1.y) + (rotatedHeight % 2) * 0.5;
+            LassoSelectionBoxes.lassoLayer2.x = LassoSelectionBoxes.lassoLayer1.x;
+            LassoSelectionBoxes.lassoLayer2.y = LassoSelectionBoxes.lassoLayer1.y;
         }
 
         public static function redrawLassoOutline():void
@@ -139,6 +170,8 @@ package Modules.L4UI.Tools
                 LassoSelectionBoxes.lassoLayer2.scaleX = LassoSelectionBoxes.lassoLayer1.scaleX;
                 LassoSelectionBoxes.lassoLayer2.scaleY = LassoSelectionBoxes.lassoLayer1.scaleY;
                 LassoTool.redrawLassoOutline();
+                alignLassoBoxCenterToPixelGrid();
+                updateLassoBitmapSmoothingByTransform();
             }
         }
         private static function resetLassoLayerRotation():void
@@ -147,6 +180,8 @@ package Modules.L4UI.Tools
             {
                 LassoSelectionBoxes.lassoLayer1.rotation = 0;
                 LassoSelectionBoxes.lassoLayer2.rotation = 0;
+                alignLassoBoxCenterToPixelGrid();
+                updateLassoBitmapSmoothingByTransform();
             }
         }
         public static function get isStarted():Boolean
@@ -355,6 +390,7 @@ package Modules.L4UI.Tools
                 const angle:Number = getAngle(false);
                 LassoSelectionBoxes.lassoLayer1.rotation = angle;
                 LassoSelectionBoxes.lassoLayer2.rotation = angle;
+                alignLassoBoxCenterToPixelGrid();
             }
             DragInteraction.start(onDragStart, onMouseMove, onMouseUp);
         }
@@ -1021,6 +1057,8 @@ package Modules.L4UI.Tools
                         // 캔버스가 회전한각도도 있어서 항상 세로축을 중심으로 대칭되게 regpoint각도를 보정값으로 넣어줌
                         LassoSelectionBoxes.lassoLayer1.rotation = -LassoSelectionBoxes.lassoLayer1.rotation - (CanvasView.canvasAnchorPoint.rotation * 2);
                         LassoSelectionBoxes.lassoLayer2.rotation = LassoSelectionBoxes.lassoLayer1.rotation;
+                        alignLassoBoxCenterToPixelGrid();
+                        updateLassoBitmapSmoothingByTransform();
                     }
                     break;
             }
