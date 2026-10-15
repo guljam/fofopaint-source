@@ -88,6 +88,29 @@ package Modules.L4UI
             return false;
         }
 
+        // stage 좌표가 보이는 사이드바 위인지 검사. 배경은 sideBar.y부터 stage 아래 끝까지 이어지고, 스크롤 바는 보일 때만 경계선(양쪽 1px)까지 포함
+        // 고정·임시 표시·퀵 사이드바 모두 sideBar.x와 스크롤 바의 실제 x로 계산하므로 위치가 바뀌어도 그대로 맞음
+        public static function isStagePointInSideBarArea(x:Number, y:Number):Boolean
+        {
+            if (sideBar.visible === false || y < sideBar.y)
+            {
+                return false;
+            }
+
+            var localLeft:Number = 0;
+            var localRight:Number = sideBar.WIDTH;
+
+            if (sideBarScrollBar.visible)
+            {
+                localLeft = Math.min(localLeft, sideBarScrollBar.x - 1);
+                localRight = Math.max(localRight, sideBarScrollBar.x + SCROLL_BAR_WIDTH + 1);
+            }
+
+            const scale:Number = sideBar.scaleX;
+
+            return x >= sideBar.x + localLeft * scale && x < sideBar.x + localRight * scale;
+        }
+
         private static function getSidebarConstHeight():Number
         {
             return (sideBarConstHeight + ((PaletteController.isMyPaletteExpended && PaletteController.myPalettePresetType === 0) ? PaletteController.myPaletteColorHeight * (PaletteController.MYPALETTE_COUNT / PaletteController.MYPALETTE_COLUMNS - 2) : 0));

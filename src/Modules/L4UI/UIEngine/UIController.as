@@ -732,12 +732,55 @@ package Modules.L4UI.UIEngine
         }
 
 
-        //커서가 드로우 영역에 있는지 검사
+        // 커서가 드로우 영역(메뉴에 가려지지 않은 캔버스와 stageBG)에 있는지 검사
         public static function isCursorInDrawArea():Boolean
         {
-            return !(UIController.topBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY)
-                    || (SidebarController.sideBar.visible && SidebarController.sideBar.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY))
-                    || (UIController.seekBarBox.visible && UIController.seekBarBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY)));
+            return isStagePointInDrawArea(AppContext.stage.mouseX, AppContext.stage.mouseY);
+        }
+
+        // stage 좌표가 드로우 영역인지 검사. 보이는 상단바·시크바, 사이드바(스크롤 바 포함), 떠 있는 메뉴 창 위면 false
+        // 커서 자리에 떠서 놓는 순간 고르는 상자(toolBox2, fillPenBox)와 커서·힌트·메시지류는 드로우 영역으로 봄 (호출부가 그 위를 드로우 영역으로 가정함)
+        // 비싼 순서로 뒤에 둠: 상단 막대 y 비교 → 사이드바 사각형 → 보이는 메뉴 창만 hitTestPoint
+        public static function isStagePointInDrawArea(x:Number, y:Number):Boolean
+        {
+            if (y < getTopBarsBottomYOnStage())
+            {
+                return false;
+            }
+
+            if (SidebarController.isStagePointInSideBarArea(x, y))
+            {
+                return false;
+            }
+
+            return !isStagePointOnPopupMenu(x, y);
+        }
+
+        // 보이는 상단바와 시크바의 아래 끝 y (stage 기준), 둘 다 숨어 있으면 0
+        // STAGE_TOP_OFFSET은 updateStageOffset을 부른 시점 값이라 (예: 리플레이에서 캡처로 갈 때 시크바를 숨긴 뒤 다시 계산하지 않음) 여기서는 매번 구함
+        private static function getTopBarsBottomYOnStage():Number
+        {
+            var bottomY:Number = (topBar.visible) ? topBar.BARSIZE * topBar.scaleY : 0;
+
+            if (seekBarBox.visible && seekBarBox.stage)
+            {
+                bottomY = Math.max(bottomY, seekBarBox.getBGBarBottomYOnStage());
+            }
+
+            return bottomY;
+        }
+
+        // stage 좌표가 보이는 메뉴 창(격자 설정, 참고 레이어 메뉴, 라소 메뉴, 불러오기, 정보 창, 숫자 패드, 캡처 도장 글꼴 목록) 위인지 검사
+        // 보통 다 숨어 있어서 visible 비교만 하고 끝남. 경계 박스는 숨은 자식까지 포함해 실제보다 커서 모양 검사(shapeFlag)를 씀
+        private static function isStagePointOnPopupMenu(x:Number, y:Number):Boolean
+        {
+            return (topBar.visible && topBar.gridButtonWrapper.visible && topBar.gridButtonWrapper.hitTestPoint(x, y, true))
+                    || (ReferenceLayerController.refLayerMenuBox.visible && ReferenceLayerController.refLayerMenuBox.hitTestPoint(x, y, true))
+                    || (LassoTool._lassoMenuBox.visible && LassoTool._lassoMenuBox.hitTestPoint(x, y, true))
+                    || (loadMenuBox.visible && loadMenuBox.hitTestPoint(x, y, true))
+                    || (AboutBoxController.aboutBox.visible && AboutBoxController.aboutBox.hitTestPoint(x, y, true))
+                    || (ColorPickerController.numPadBox.visible && ColorPickerController.numPadBox.hitTestPoint(x, y, true))
+                    || (CaptureStamp.captureStampFontListBox.visible && CaptureStamp.captureStampFontListBox.hitTestPoint(x, y, true));
         }
 
 
