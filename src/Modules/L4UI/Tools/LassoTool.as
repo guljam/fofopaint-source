@@ -1033,7 +1033,7 @@ package Modules.L4UI.Tools
                 return;
             }
             const targetName:String = target.name;
-            if (UIController.isCursorInDrawArea() && _lassoMenuBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false)
+            if (UIController.isCursorInDrawArea() && _lassoMenuBox.visible && _lassoMenuBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false)
             {
                 if (_isLassoMenuHiddenTemp)
                 {
@@ -1279,7 +1279,10 @@ package Modules.L4UI.Tools
             {
                 return;
             }
-            if (lassoMenuBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false || targetName === "lassoOK")
+
+            if (lassoMenuBox.hitTestPoint(AppContext.stage.mouseX, AppContext.stage.mouseY) === false 
+            || targetName === "lassoMenuMoveButton"
+            || targetName === "lassoOK")
             {
                 applyLassoImageToCanvas();
                 return;
