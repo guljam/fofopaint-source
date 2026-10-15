@@ -175,19 +175,7 @@ package Modules.L4UI.Tools
                 const lassoInfo:Array = applyLassoBoxImageToCanvas(true);
                 const point1:Vector.<Number> = lassoTransformData[0].concat();
                 const point2:Array = lassoTransformData[1].concat();
-                var l1:Boolean = true;
-                var l2:Boolean = true;
-                if (CanvasLayers.checkedLayer === 1 || (DrawCanvas.canvasLayer1Bitmap.visible && !DrawCanvas.canvasLayer2Bitmap.visible))
-                {
-                    l1 = true;
-                    l2 = false;
-                }
-                else if (CanvasLayers.checkedLayer === 2 || (!DrawCanvas.canvasLayer1Bitmap.visible && DrawCanvas.canvasLayer2Bitmap.visible))
-                {
-                    l1 = false;
-                    l2 = true;
-                }
-                ReplayState.rMemoryDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, l1, l2]);
+                ReplayState.rMemoryDataBuffer.push(["lassodel2", point1, point2, lassoInfo, isLassoImageCopied, isCanvasLayer1InLassoBox, isCanvasLayer2InLassoBox]);
                 UndoHistory.addNew();
                 disposeAllLayerBitmapData();
                 resetLassoBox();
@@ -396,9 +384,13 @@ package Modules.L4UI.Tools
             return false;
         }
 
+        // 올가미 이미지를 마우스로 끌어 옮김. 시작 위치에서 정수 픽셀만큼만 움직임
+        // 상자 중심을 정수로 반올림하면 폭이 홀수인 이미지는 왼쪽 끝이 반 픽셀에 놓이므로, 중심의 소수 부분(0 또는 0.5)은 그대로 둠
         private static function startLassoImageMove():void
         {
             var getMovedPos:Function = LassoTool.updateImagePosMouseDrag(LassoSelectionBoxes.lassoLayer1, CanvasView.canvasAnchorPoint.rotation);
+            const lassoBoxStartX:Number = LassoSelectionBoxes.lassoLayer1.x;
+            const lassoBoxStartY:Number = LassoSelectionBoxes.lassoLayer1.y;
             function onMouseUp():void
             {
                 getMovedPos = null;
@@ -406,9 +398,10 @@ package Modules.L4UI.Tools
             }
             function onMouseMove():void
             {
+                // getMovedPos는 (시작 위치 + 이동량)을 반올림해 주므로 시작 위치를 같은 식으로 반올림한 값과의 차이가 정수 이동량임 (마우스를 안 움직이면 0)
                 const pos:Point = getMovedPos();
-                LassoSelectionBoxes.lassoLayer1.x = Math.round(pos.x);
-                LassoSelectionBoxes.lassoLayer1.y = Math.round(pos.y);
+                LassoSelectionBoxes.lassoLayer1.x = lassoBoxStartX + (pos.x - Math.round(lassoBoxStartX));
+                LassoSelectionBoxes.lassoLayer1.y = lassoBoxStartY + (pos.y - Math.round(lassoBoxStartY));
                 LassoSelectionBoxes.lassoLayer2.x = LassoSelectionBoxes.lassoLayer1.x;
                 LassoSelectionBoxes.lassoLayer2.y = LassoSelectionBoxes.lassoLayer1.y;
             }
@@ -451,6 +444,9 @@ package Modules.L4UI.Tools
         private static const SELECTION_DRAG_OWNER:String = "lassoSelection";
         private static var isLassoSelecting:Boolean = false;
         private static var lassoStartStamp:int = 0; // 올가미를 시작한 getTimer 값, 적용할때 타이밍 시트에 연출 시간(시작~적용)으로 기록함
+        // 선택을 마칠 때 올가미 상자로 떠낸 캔버스 레이어 (적용·기록·리플레이가 모두 이 기준을 씀, 올가미 중에는 레이어 표시/체크가 바뀌지 않음)
+        private static var isCanvasLayer1InLassoBox:Boolean = false;
+        private static var isCanvasLayer2InLassoBox:Boolean = false;
 
         public static function startLassoSelection():void
         {
@@ -607,6 +603,14 @@ package Modules.L4UI.Tools
                 return;
             }
 
+            // 사각형을 픽셀 경계로 넓혀서 올가미 비트맵 크기가 정수로 딱 떨어지게 함
+            // 소수 사각형은 비트맵 크기만 정수로 잘려서 화면 위치와 적용 위치가 어긋나고 오른쪽·아래 끝 픽셀이 빠짐
+            // 리플레이는 기록된 사각형을 그대로 쓰므로 옛 리플레이(소수 사각형)는 예전과 똑같이 재생됨
+            rect[0] = Math.floor(rect[0]);
+            rect[1] = Math.floor(rect[1]);
+            rect[2] = Math.ceil(rect[2]);
+            rect[3] = Math.ceil(rect[3]);
+
             if (rect[0] < 0)
                 rect[0] = 0;
             if (rect[1] < 0)
@@ -631,6 +635,8 @@ package Modules.L4UI.Tools
                 checklayer1 = false;
                 checklayer2 = true;
             }
+            isCanvasLayer1InLassoBox = checklayer1;
+            isCanvasLayer2InLassoBox = checklayer2;
 
             if (LassoSelectionBoxes.moveSelectedAreaToLassoBox(false, rect, lassoSelectPoints, isLassoImageCopied, checklayer1, checklayer2) === false)
             {
@@ -666,15 +672,16 @@ package Modules.L4UI.Tools
             addInputEventsLassoTool();
         }
 
-        // zoom이나 rotate reg포인트 바뀔때마다
-        // 캔버스 판넬위치 따라 다니면서 크기 똑같이 해줌
+        // 올가미 상자 1/2의 이미지를 현재 위치·배율·회전 그대로 캔버스 레이어에 그림 (isTransferRefLayer이면 참조 레이어로 합침)
+        // 되돌리기용 백업 비트맵(lassoLayerNLastBitmapdata)도 dispose하므로 호출 후에는 restoreToLastBmpd로 되돌릴 수 없음
+        // 반환값은 리플레이 lasso2/lassodel2에 기록하는 변형 정보 [scaleX, scaleY, 폭*scaleX, 높이*scaleY, 라디안 각도, 상자 x, 상자 y]
         public static function applyLassoBoxImageToCanvas(isTransferRefLayer:Boolean):Array
         {
             const lassoBMPScaleX:Number = LassoSelectionBoxes.lassoLayer1.scaleX;
             const lassoBMPScaleY:Number = LassoSelectionBoxes.lassoLayer1.scaleY;
             var lassoBMPWidth:Number = LassoSelectionBoxes.lassoLayer1Bitmap.width * lassoBMPScaleX;
             var lassoBMPHeight:Number = LassoSelectionBoxes.lassoLayer1Bitmap.height * lassoBMPScaleY;
-            if (CanvasLayers.checkedLayer === 2 || DrawCanvas.canvasLayer1Bitmap.visible === false)
+            if (!isCanvasLayer1InLassoBox)
             {
                 lassoBMPWidth = LassoSelectionBoxes.lassoLayer2Bitmap.width * lassoBMPScaleX;
                 lassoBMPHeight = LassoSelectionBoxes.lassoLayer2Bitmap.height * lassoBMPScaleY;
@@ -691,21 +698,21 @@ package Modules.L4UI.Tools
             LassoSelectionBoxes.lassoLayer2Bitmap.smoothing = true;
             if (isTransferRefLayer === false)
             {
-                if (DrawCanvas.canvasLayer1Bitmap.visible)
+                if (isCanvasLayer1InLassoBox)
                     DrawCanvas.canvasLayer1BitmapData.draw(LassoSelectionBoxes.lassoLayer1Bitmap, posMatrix);
-                if (DrawCanvas.canvasLayer2Bitmap.visible)
+                if (isCanvasLayer2InLassoBox)
                     DrawCanvas.canvasLayer2BitmapData.draw(LassoSelectionBoxes.lassoLayer2Bitmap, posMatrix);
             }
             else
             {
                 var layer1Bmpd:BitmapData;
                 var layer2Bmpd:BitmapData;
-                if (DrawCanvas.canvasLayer1Bitmap.visible)
+                if (isCanvasLayer1InLassoBox)
                 {
                     layer1Bmpd = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
                     layer1Bmpd.draw(LassoSelectionBoxes.lassoLayer1Bitmap, posMatrix);
                 }
-                if (DrawCanvas.canvasLayer2Bitmap.visible)
+                if (isCanvasLayer2InLassoBox)
                 {
                     layer2Bmpd = new BitmapData(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, true, 0);
                     layer2Bmpd.draw(LassoSelectionBoxes.lassoLayer2Bitmap, posMatrix);
@@ -756,23 +763,11 @@ package Modules.L4UI.Tools
                     {
                         command = lassoLayerCommandData.concat();
                     }
-                    var checklayer1:Boolean = DrawCanvas.canvasLayer1Bitmap.visible;
-                    var checklayer2:Boolean = DrawCanvas.canvasLayer2Bitmap.visible;
-                    if (CanvasLayers.checkedLayer === 1)
-                    {
-                        checklayer1 = true;
-                        checklayer2 = false;
-                    }
-                    else if (CanvasLayers.checkedLayer === 2)
-                    {
-                        checklayer1 = false;
-                        checklayer2 = true;
-                    }
                     ReplayState.rMemoryDataBuffer.push(ReplayState.addToolRecordTimeToCommand(["lasso2", point1, point2
                                 , lassoInfo
                                 , isLassoImageCopied
-                                , checklayer1
-                                , checklayer2
+                                , isCanvasLayer1InLassoBox
+                                , isCanvasLayer2InLassoBox
                                 , command], lassoStartStamp));
                     UndoHistory.addNew();
                 }
