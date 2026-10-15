@@ -2451,7 +2451,7 @@ package Modules.L5App.ReplayEngine
                 return " (" + milisecStr + ")";
             }
 
-            return " (" + timeStr + ")";
+            return " (-" + timeStr + ")";
         }
     }
 }
