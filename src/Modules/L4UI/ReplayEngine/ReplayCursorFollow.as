@@ -31,7 +31,8 @@ package Modules.L4UI.ReplayEngine
         private static const CENTER_SMOOTH_MS:Number = 450; // 화면 중심이 다시 맞출 중심을 따라가는 스프링 시간. 클수록 느긋하게 따라감
         private static const PAN_DEADZONE_RATIO:Number = 0.65; // 화면 가운데 이 비율(가로, 세로 각각) 안에 커서가 있으면 이동하지 않음
         private static const RECENTER_DONE_PX:Number = 4; // 다시 맞추는 중 화면 중심이 목표와 이 화면 px 안이면 (또는 거의 안 움직이면) 이동을 멈춤
-        private static const SAFETY_PADDING:Number = 20; // 커서가 화면 가장자리에서 이보다 가까우면 스프링을 기다리지 않고 바로 옮김
+        private static const SAFETY_PADDING:Number = 20; // 커서가 화면 가장자리에서 이보다 가까우면 커서가 이 거리에 오는 위치로 옮김 (재생 중에는 SAFETY_SMOOTH_MS 스프링, 탐색 등은 바로)
+        private static const SAFETY_SMOOTH_MS:Number = 120; // 커서가 안전 구역을 벗어났을 때 화면 중심이 따라가는 스프링 시간. 한 틱에 확 튀지 않고 빠르게 따라감
         private static const EDGE_MARGIN:Number = 20; // 화면보다 큰 캔버스의 가장자리가 화면 안으로 들어올 수 있는 최대 px
         private static const MAX_DT_MS:Number = 100; // 한 틱 dt 상한 (멈췄다 재개할 때 튀지 않게)
 
@@ -179,7 +180,8 @@ package Modules.L4UI.ReplayEngine
             applyCameraStateToCanvas();
         }
 
-        // 지나간 커서 기록 → 목표(컷) 계산 → 중심 스프링과 배율 전환 → 화면 적용. updateCameraAfterDraw가 씀
+        // 지나간 커서 기록 → 목표(컷) 계산 → 커서 안전 구역 보정 → 중심 스프링과 배율 전환 → 화면 적용. updateCameraAfterDraw가 씀
+        // 커서가 안전 구역을 벗어난 틱은 목표를 커서 쪽으로 당기고 짧은 스프링(SAFETY_SMOOTH_MS)으로 따라가서, 커서가 한 프레임에 가장자리로 뛰어도 캔버스가 한 틱에 튀지 않음
         private function stepCameraTowardTarget():void
         {
             if (isCameraBlocked())
@@ -199,12 +201,13 @@ package Modules.L4UI.ReplayEngine
             lastCameraStepTimeMs = nowMs;
             recordPastCursor(nowMs);
             computeCameraTarget(nowMs, deltaMs, false);
+            const centerSmoothMs:Number = pullTargetCenterToKeepCursorSafe() ? SAFETY_SMOOTH_MS : CENTER_SMOOTH_MS;
             const previousCenterX:Number = cameraCenterX;
             const previousCenterY:Number = cameraCenterY;
-            cameraCenterX = getSpringStepValue(0, cameraCenterX, targetCenterX, CENTER_SMOOTH_MS, deltaMs);
-            cameraCenterY = getSpringStepValue(1, cameraCenterY, targetCenterY, CENTER_SMOOTH_MS, deltaMs);
+            cameraCenterX = getSpringStepValue(0, cameraCenterX, targetCenterX, centerSmoothMs, deltaMs);
+            cameraCenterY = getSpringStepValue(1, cameraCenterY, targetCenterY, centerSmoothMs, deltaMs);
             cameraLogZoom = getZoomTransitionStepValue(deltaMs);
-            applyCameraStateToCanvas();
+            applyCameraStateToCanvas(false);
             lastStepCenterMovedScreenPx = Math.sqrt((cameraCenterX - previousCenterX) * (cameraCenterX - previousCenterX) + (cameraCenterY - previousCenterY) * (cameraCenterY - previousCenterY)) * Math.exp(cameraLogZoom);
         }
 
@@ -268,9 +271,56 @@ package Modules.L4UI.ReplayEngine
             isCameraStateLoaded = true;
         }
 
+        // 목표 중심(targetCenterX/Y)에서 커서가 안전 구역(화면 가장자리에서 SAFETY_PADDING 안쪽) 밖에 놓이면 커서가 그 경계에 오도록 목표를 옮김 (회전 반영)
+        // 반환: 목표를 옮겼는지. 고배속 전체 보기로 가는 중에는 옮기지 않음 (건너뛰기로 커서가 멀리 뛰어도 전환이 끊기지 않게)
+        private function pullTargetCenterToKeepCursorSafe():Boolean
+        {
+            if (isHighSpeedOverviewOn())
+            {
+                return false;
+            }
+
+            const view:Rectangle = getCanvasViewRect();
+            const targetScreen:Point = ReplayDrawer.rCanvasLayer1Bitmap.localToGlobal(new Point(targetCenterX, targetCenterY));
+            const cursorScreen:Point = ReplayDrawer.rCanvasLayer1Bitmap.localToGlobal(ReplayDrawCommands.getRCursorPos());
+            const cursorAtTargetX:Number = cursorScreen.x - targetScreen.x + view.x + view.width / 2; // 목표 중심이 화면 가운데일 때 커서의 화면 위치
+            const cursorAtTargetY:Number = cursorScreen.y - targetScreen.y + view.y + view.height / 2;
+            var shiftX:Number = 0;
+            var shiftY:Number = 0;
+
+            if (cursorAtTargetX < view.left + SAFETY_PADDING)
+            {
+                shiftX = view.left + SAFETY_PADDING - cursorAtTargetX;
+            }
+            else if (cursorAtTargetX > view.right - SAFETY_PADDING)
+            {
+                shiftX = view.right - SAFETY_PADDING - cursorAtTargetX;
+            }
+
+            if (cursorAtTargetY < view.top + SAFETY_PADDING)
+            {
+                shiftY = view.top + SAFETY_PADDING - cursorAtTargetY;
+            }
+            else if (cursorAtTargetY > view.bottom - SAFETY_PADDING)
+            {
+                shiftY = view.bottom - SAFETY_PADDING - cursorAtTargetY;
+            }
+
+            if (shiftX === 0 && shiftY === 0)
+            {
+                return false;
+            }
+
+            const pulledTarget:Point = ReplayDrawer.rCanvasLayer1Bitmap.globalToLocal(new Point(targetScreen.x - shiftX, targetScreen.y - shiftY));
+            targetCenterX = pulledTarget.x;
+            targetCenterY = pulledTarget.y;
+            return true;
+        }
+
         // 카메라 상태를 화면에 적용: 배율을 범위 안으로 자르고, 중심을 화면 가운데에 둔 뒤 캔버스 경계와 커서 안전 구역 규칙으로 앵커를 보정
+        // isCursorSafetySnapOn이 false면 커서 안전 구역 규칙을 건너뜀 (재생 중 매 틱은 pullTargetCenterToKeepCursorSafe가 스프링으로 처리). 탐색·화면 다시 읽기 등은 기본값 true로 바로 맞춤
         // 보정 때문에 실제 중심이 상태와 달라지면 상태를 실제 중심으로 맞춤 (경계 밖으로 상태가 계속 밀려나 있다가 늦게 돌아오는 것을 막음)
-        private function applyCameraStateToCanvas():void
+        private function applyCameraStateToCanvas(isCursorSafetySnapOn:Boolean = true):void
         {
             const view:Rectangle = getCanvasViewRect();
             const fitZoom:Number = getFitWholeCanvasZoom();
@@ -293,7 +343,7 @@ package Modules.L4UI.ReplayEngine
 
             // 커서가 안전 구역 밖으로 나가면 그 축은 가장자리에 오는 위치까지 바로 옮김 (캔버스 경계 규칙이 우선)
             // 고배속 전체 보기로 가는 중에는 건너뛰기로 커서가 멀리 뛰어도 따라가지 않음 (전환이 뚝 끊기지 않게)
-            const isCursorSafetyOn:Boolean = !isHighSpeedOverviewOn();
+            const isCursorSafetyOn:Boolean = isCursorSafetySnapOn && !isHighSpeedOverviewOn();
             const cursor:Point = ReplayDrawCommands.getRCursorPos();
             const cursorScreen:Point = ReplayDrawer.rCanvasLayer1Bitmap.localToGlobal(cursor);
             const cursorX:Number = cursorScreen.x + shiftX;
