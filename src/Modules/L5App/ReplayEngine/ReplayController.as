@@ -88,7 +88,8 @@ package Modules.L5App.ReplayEngine
         private static var rCanvasCompleteAnchorPoint:Sprite = new Sprite(); // 리플레이에어 이미지가 재생되었을때 보여주는 객체 stage와 가로세로 중앙정렬
         private static var rCanvasCompleteBitmap:Bitmap = new Bitmap(new BitmapData(1, 1, false, 0), "auto", true);
         private static var updatePrograssBarStartTime:int = 0; // 리플레이 시작 시간저장 update prograss bar에서 프레임 오차 수정할때 참고하는 변수
-        private static var rReplayRestartTimerCount:uint = 0; // 리스타트 타이머
+        private static const REPLAY_RESTART_COUNTDOWN_SECONDS:int = 20; // 재시작 대기 중 시크바에 보여주는 카운트다운 첫 숫자 (1초 뒤 20부터 1까지 보여주고 그 1초 뒤 재시작해서 총 21초)
+        private static const REPLAY_RESTART_WAIT_MS:int = (REPLAY_RESTART_COUNTDOWN_SECONDS + 1) * 1000; // 재시작 대기 전체 시간. 카운트다운 막대가 이 시간 동안 꽉 찬 상태에서 0으로 줄어듦
         private static var isReplaySpeedDragging:Boolean = false; // 속도 슬라이더 드래그 중에는 s eekbar 텍스트에 속도 힌트를 보여줌
         private static var stopGeneratingCacheImageFunc:Function = null; // 캐시 이미지 만드는 중이면 멈추는 함수
         private static var frameOnEnterReplayMode:Number = -1; // 리플레이 켜줄때 rNowFrame이 변하니까 그전에 백업해주고 꺼줄때 이 프레임으로 되돌림
@@ -1724,14 +1725,31 @@ package Modules.L5App.ReplayEngine
             }
         }
 
+        // 재시작 대기 타이머를 멈추고 완료 상태(완료 막대 색, 완료 문구)로 되돌림
+        // 타이머가 돌고 있었으면 카운트다운으로 줄어든 진행 막대를 다시 꽉 채움 (재생 중 파일 드롭처럼 타이머 없이 불릴 때는 막대 너비를 건드리지 않음)
         public static function cancelReplayRestartTimer():void
         {
+            const wasReplayRestartTimerON:Boolean = ReplayState.isReplayRestartTimerON;
             hideCompleteImageToBGReplayMode();
             FOFOTimer.remove("replayRestartTimer");
             updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
             Utils.setColorTransform(UIController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
+
+            if (wasReplayRestartTimerON)
+            {
+                UIController.seekBarBox.setReplayPrograssBarMaxWidth();
+            }
         }
 
+        // 재시작 대기를 취소하고 바로 처음부터 재생함 (카운트다운이 끝났을 때, 대기 중 재생 버튼·Space·Enter·캔버스 우클릭)
+        public static function startReplayByCancelingRestartTimer():void
+        {
+            cancelReplayRestartTimer();
+            handleReplayStartButton();
+        }
+
+        // 재생이 끝나면 재생 버튼을 보여주고, 반복 재생이 켜져 있으면 재시작 대기 카운트다운을 시작함
+        // 카운트다운 동안 진행 막대는 재시작 색으로 꽉 찬 상태에서 남은 시간 비율만큼 오른쪽 끝이 왼쪽으로 줄어듦
         public static function startReplayRestartTimer():void
         {
             isRestartPending = false;
@@ -1740,34 +1758,40 @@ package Modules.L5App.ReplayEngine
             if (ReplayState.isReplayRepeatON)
             {
                 Utils.setColorTransform(UIController.seekBarBox.prograssBar, UITheme.getUIReplayRestartBarColor());
-                rReplayRestartTimerCount = 20;
                 // 끝나는 틱에서 자동 숨김 타이머가 재시작 타이머보다 먼저 돌면 "멈췄고 재시작도 없음"으로 보고 스스로 끝나므로, 재시작 대기 동안 다시 살림
                 if (!FOFOTimer.hasTimer("checkAutoHideTopbarOnPlaybackTimer"))
                 {
                     startCheckAutoHideTopbarOnPlaybackTimer();
                 }
 
-                FOFOTimer.addByName("replayRestartTimer", 1.0, true, function ():Boolean
+                const restartTimerStartTime:int = getTimer();
+                var shownRestartCount:int = -1; // 시크바에 마지막으로 보여준 카운트다운 숫자 (바뀔 때만 문구를 갱신)
+                FOFOTimer.addByName("replayRestartTimer", 0.0, true, function ():Boolean
                     {
-                        if (rReplayRestartTimerCount === 0)
+                        const elapsedMs:int = getTimer() - restartTimerStartTime;
+                        if (elapsedMs >= REPLAY_RESTART_WAIT_MS)
                         {
-                            cancelReplayRestartTimer();
-                            handleReplayStartButton();
+                            startReplayByCancelingRestartTimer();
                             return false;
                         }
 
-                        if (!isReplaySpeedDragging)
+                        // setReplayPrograssBarWidth는 꽉 찬 상태에서 줄어들면 막대 색을 바꾸므로 너비만 직접 줄임
+                        const prograssBar:Sprite = UIController.seekBarBox.prograssBar;
+                        prograssBar.x = UIController.seekBarBox.trackBar.x;
+                        prograssBar.width = UIController.seekBarBox.trackBar.width * (1 - elapsedMs / REPLAY_RESTART_WAIT_MS);
+
+                        const restartCount:int = REPLAY_RESTART_COUNTDOWN_SECONDS + 1 - int(elapsedMs / 1000);
+                        if (restartCount <= REPLAY_RESTART_COUNTDOWN_SECONDS && restartCount !== shownRestartCount && !isReplaySpeedDragging)
                         {
-                            UIController.seekBarBox.prograssInfo.text = HintStrings.getReplayRestartHintString(rReplayRestartTimerCount);
+                            UIController.seekBarBox.prograssInfo.text = HintStrings.getReplayRestartHintString(restartCount);
+                            shownRestartCount = restartCount;
                         }
-                        --rReplayRestartTimerCount;
                         return true;
                     });
             }
             else
             {
                 Utils.setColorTransform(UIController.seekBarBox.prograssBar, UITheme.getUIReplayEndBarColor());
-                rReplayRestartTimerCount = 0;
                 //todo updateReplayPrograssText로 replay finished 표시해주고 잘 모르겠음 ai한테 물어봐야겠음
                 updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
             }

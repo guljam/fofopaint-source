@@ -74,23 +74,18 @@ package Modules.L5App.InputManager
                     {
                         if (ReplayState.isReplayRestartTimerON)
                         {
-                            ReplayController.cancelReplayRestartTimer();
+                            ReplayController.startReplayByCancelingRestartTimer();
                         }
-                        
-                        ReplayController.handleReplayStartButton();
+                        else
+                        {
+                            ReplayController.handleReplayStartButton();
+                        }
                     }
                     break;
                 case "pauseButton":
                     {
                         FOFOTimer.remove("prograssBarUpdateTimer");
-                        if (ReplayState.isReplayRestartTimerON)
-                        {
-                            ReplayController.cancelReplayRestartTimer();
-                        }
-                        else
-                        {
-                            ReplayController.handleReplayStopButton();
-                        }
+                        ReplayController.handleReplayStopButton();
                     }
                     break;
             }
@@ -197,11 +192,16 @@ package Modules.L5App.InputManager
                 {
                     case KeyState.KEY.backspace:
                     case KeyState.KEY.esc:
+                        {
+                            KeyState.updateLastKey();
+                            ReplayController.cancelReplayRestartTimer();
+                        }
+                        break;
                     case KeyState.KEY.enter:
                     case KeyState.KEY.space:
                         {
                             KeyState.updateLastKey();
-                            ReplayController.cancelReplayRestartTimer();
+                            ReplayController.startReplayByCancelingRestartTimer();
                         }
                         break;
                 }
@@ -317,7 +317,7 @@ package Modules.L5App.InputManager
                     {
                         if (ReplayState.isReplayRestartTimerON)
                         {
-                            ReplayController.cancelReplayRestartTimer();
+                            ReplayController.startReplayByCancelingRestartTimer();
                         }
                         else if (!ReplayState.isReplayStarted)
                         {
