@@ -68,7 +68,7 @@ package Modules.L4UI.UIEngine
             STAGE_LEFT_OFFSET:Number = 0,
             STAGE_BOTTOM_OFFSET:Number = 0, // 하단 힌트 바는 잠깐 뜨는 요소라 포함하지 않음
             STAGE_RIGHT_OFFSET:Number = 0;
-        public static var CANVAS_FIT_MARGIN:Number = 21; // 리플레이·캡처 캔버스 맞춤 영역의 사방 여백 (UI 배율 곱하기 전). 테스트 후 조정용
+        public static var CANVAS_FIT_MARGIN:Number = 20; // 리플레이·캡처 캔버스 맞춤 영역의 사방 여백 (UI 배율 곱하기 전). 리플레이 카메라의 맞춤 배율도 이 값을 씀
 
         public static function initializeAppMenus():void
         {
@@ -164,6 +164,14 @@ package Modules.L4UI.UIEngine
             const rect:Rectangle = new Rectangle(0, top, AppContext.stage.stageWidth, AppContext.stage.stageHeight - top - STAGE_BOTTOM_OFFSET);
             rect.inflate(-margin, -margin);
             return rect;
+        }
+
+        // 화면 크기(회전 반영)가 boxWidth×boxHeight인 캔버스를 맞춤 영역(getCanvasFitAreaRect) 안에 꽉 차게 넣는 배율
+        // 창 맞춤(CanvasViewport.fitToViewportMargin)과 리플레이 카메라의 전체 보기(ReplayCursorFollow)가 같은 값을 쓰게 함께 씀
+        public static function getCanvasFitZoomInFitArea(boxWidth:Number, boxHeight:Number):Number
+        {
+            const fitArea:Rectangle = getCanvasFitAreaRect();
+            return Math.min(fitArea.width / boxWidth, fitArea.height / boxHeight);
         }
 
         public static function isPopUpWindowOpened():Boolean

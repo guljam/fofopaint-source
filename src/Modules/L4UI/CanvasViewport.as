@@ -185,9 +185,6 @@ package Modules.L4UI
             {
                 return;
             }
-            const fitArea:Rectangle = UIController.getCanvasFitAreaRect();
-            const availableStageWidth:int = fitArea.width;
-            const availableStageHeight:int = fitArea.height;
             var fitWidth:Number = canvasWidth;
             var fitHeight:Number = canvasHeight;
             if (ReplayState.isReplayModeON && allowScaleAboveOne)
@@ -207,9 +204,7 @@ package Modules.L4UI
                     fitHeight = savedFitWidth;
                 }
             }
-            const scaleW:Number = availableStageWidth / fitWidth;
-            const scaleH:Number = availableStageHeight / fitHeight;
-            var fitScale:Number = Math.min(scaleW, scaleH);
+            var fitScale:Number = UIController.getCanvasFitZoomInFitArea(fitWidth, fitHeight);
             if (!allowScaleAboveOne && fitScale > 1.0)
             {
                 fitScale = 1.0;
@@ -226,17 +221,29 @@ package Modules.L4UI
             {
                 setCanvasScale(fitScale);
                 centerCanvasInStage("capture");
+                alignCanvasBoundsCenterToFitArea();
             }
             else if (ReplayState.isReplayModeON)
             {
                 setCanvasScale(fitScale);
                 centerCanvasInStage("replay");
+                alignCanvasBoundsCenterToFitArea();
             }
             if (!allowScaleAboveOne || ReplayState.isReplayFinished)
             {
                 layer1Bitmap.smoothing = true;
                 layer2Bitmap.smoothing = true;
             }
+        }
+
+        // 캔버스(layer1)의 화면 경계 중심을 맞춤 영역(UIController.getCanvasFitAreaRect) 중심에 맞춰 앵커를 정수 px로 옮김
+        // centerCanvasInStage는 앵커와 캔버스 패널 위치를 정수로 내려서 홀수 크기 캔버스는 최대 1px 어긋나 맞춤 여백이 위아래(좌우)로 달라짐. 리플레이 카메라의 가운데 맞춤과 같은 결과가 되게 경계를 읽어 보정
+        private function alignCanvasBoundsCenterToFitArea():void
+        {
+            const fitArea:Rectangle = UIController.getCanvasFitAreaRect();
+            const canvasStageBounds:Rectangle = layer1Bitmap.getBounds(AppContext.stage);
+            canvasAnchorPoint.x = Math.round(canvasAnchorPoint.x + (fitArea.x + fitArea.width / 2) - (canvasStageBounds.x + canvasStageBounds.width / 2));
+            canvasAnchorPoint.y = Math.round(canvasAnchorPoint.y + (fitArea.y + fitArea.height / 2) - (canvasStageBounds.y + canvasStageBounds.height / 2));
         }
 
         // 캔버스 정 가운데로. centerMode("draw"/"replay"/"capture")는 화면 중심 좌표를 구하는 기준

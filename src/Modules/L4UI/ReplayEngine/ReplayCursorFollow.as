@@ -36,7 +36,6 @@ package Modules.L4UI.ReplayEngine
         private static const MAX_DT_MS:Number = 100; // 한 틱 dt 상한 (멈췄다 재개할 때 튀지 않게)
 
         // 줌. 배율은 맞춤 배율(최소)과 확대 상한(최대) 사이의 고정 단계만 씀
-        private static const FIT_MARGIN:Number = 20; // 맞춤 배율에서 화면 가장자리에 남기는 여백 px
         private static const SHOT_ZOOM_FACTORS:Vector.<Number> = Vector.<Number>([1, 1.6, 2.4]); // 컷 배율 단계 (맞춤 배율의 배수). 0단계가 전체 보기
         private static const FRAMING_RATIO:Number = 0.6; // 활동 영역이 화면에서 이 비율 이하로 들어가는 단계까지 확대함. 키우면 더 확대함
         private static const SHOT_KEEP_TOLERANCE:Number = 1.3; // 지금 단계 유지 여유. 활동 영역이 들어가는 배율의 이 배까지는 축소하지 않음 (단계 경계에서 왔다 갔다 하지 않게)
@@ -98,12 +97,14 @@ package Modules.L4UI.ReplayEngine
         private const regionSampleY:Vector.<Number> = new Vector.<Number>();
         private const regionSampleWeightMs:Vector.<Number> = new Vector.<Number>(); // 샘플의 가중치(그 위치에 머문 실제 시간)
 
-        // 화면에서 캔버스를 보여주는 영역. 위쪽은 상단바(+시크바가 겹치는 띠) 아래, 시크바는 위쪽에 붙어 있어 아래쪽은 스테이지 끝까지
+        // 화면에서 캔버스를 보여주는 영역. 위쪽은 지금 보이는 상단바·시크바의 아래 끝(STAGE_TOP_OFFSET), 아래쪽은 STAGE_BOTTOM_OFFSET을 뺀 끝
+        // 상단바가 숨거나 나타나면 updateStageOffset이 여백을 바꾸고, 다음 틱부터 이 영역과 맞춤 배율이 바로 따라감
+        // 중심이 UIController.getCanvasFitAreaRect의 중심과 같아 맞춤 배율에서 위아래 여백이 같음
         private function getCanvasViewRect():Rectangle
         {
-            const top:Number = UIController.topBar.BARSIZE * UITheme.getUIScale();
+            const top:Number = UIController.STAGE_TOP_OFFSET;
             const stage:Stage = AppContext.stage;
-            return new Rectangle(0, top, stage.stageWidth, stage.stageHeight - top);
+            return new Rectangle(0, top, stage.stageWidth, stage.stageHeight - top - UIController.STAGE_BOTTOM_OFFSET);
         }
 
         // 카메라가 앵커를 건드리면 안 되는 상태 (창 맞춤, 깊은 되돌리기, 손 도구로 끄는 중)
@@ -260,7 +261,7 @@ package Modules.L4UI.ReplayEngine
             shotCenterX = cameraCenterX;
             shotCenterY = cameraCenterY;
             isRecenteringOn = false;
-            changeShotZoomLevel(getNearestShotZoomLevel(cameraLogZoom, getFitWholeCanvasZoom(view)));
+            changeShotZoomLevel(getNearestShotZoomLevel(cameraLogZoom, getFitWholeCanvasZoom()));
             appliedZoomMultiplier = ReplayState.rCanvasZoomMultiplier;
             appliedAnchorX = ReplayDrawer.rCanvasAnchorPoint.x;
             appliedAnchorY = ReplayDrawer.rCanvasAnchorPoint.y;
@@ -272,7 +273,7 @@ package Modules.L4UI.ReplayEngine
         private function applyCameraStateToCanvas():void
         {
             const view:Rectangle = getCanvasViewRect();
-            const fitZoom:Number = getFitWholeCanvasZoom(view);
+            const fitZoom:Number = getFitWholeCanvasZoom();
             cameraLogZoom = Math.max(Math.log(fitZoom), Math.min(cameraLogZoom, Math.log(getMaxFocusZoom(fitZoom))));
             const zoomMultiplier:Number = Math.exp(cameraLogZoom);
 
@@ -404,7 +405,7 @@ package Modules.L4UI.ReplayEngine
         private function computeCameraTarget(nowMs:int, deltaMs:Number, isSnapOn:Boolean):void
         {
             const view:Rectangle = getCanvasViewRect();
-            const fitZoom:Number = getFitWholeCanvasZoom(view);
+            const fitZoom:Number = getFitWholeCanvasZoom();
             shotHeldMs += deltaMs;
 
             if (nowMs < startOverviewUntilMs || isHighSpeedOverviewOn())
@@ -645,8 +646,9 @@ package Modules.L4UI.ReplayEngine
             return values[order[n - 1]];
         }
 
-        // 지금 회전과 창 크기에서 캔버스 전체가 화면에 들어가는 배율 (연속값, 순수 계산). 자동 줌의 최소 배율
-        private function getFitWholeCanvasZoom(view:Rectangle):Number
+        // 지금 회전과 창 크기에서 캔버스 전체가 맞춤 영역(UIController.getCanvasFitAreaRect)에 들어가는 배율 (연속값, 순수 계산). 자동 줌의 최소 배율
+        // 창 맞춤(CanvasViewport.fitToViewportMargin)과 같은 함수로 구해 두 배율이 같음
+        private function getFitWholeCanvasZoom():Number
         {
             const rad:Number = ReplayDrawer.rCanvasAnchorPoint.rotation * Math.PI / 180;
             const cos:Number = Math.abs(Math.cos(rad));
@@ -655,7 +657,7 @@ package Modules.L4UI.ReplayEngine
             const h:Number = ReplayState.RCANVAS_HEIGHT;
             const boxW:Number = w * cos + h * sin;
             const boxH:Number = w * sin + h * cos;
-            return Math.min((view.width - FIT_MARGIN * 2) / boxW, (view.height - FIT_MARGIN * 2) / boxH);
+            return UIController.getCanvasFitZoomInFitArea(boxW, boxH);
         }
 
         // 자동 줌의 최대 배율: 픽셀 확대 한계(UI 배율 반영). 맞춤 배율이 이미 더 크면 맞춤 배율 (확대하지 않음)
