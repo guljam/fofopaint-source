@@ -44,7 +44,7 @@ package Modules.L4UI.ReplayEngine
 
             FOFOTimer.addByName(TIMER_NAME, 0.0, true, function ():Boolean
                 {
-                    if (!ReplayState.isReplayModeON)
+                    if (!ReplayState.isReplayModeON || !ReplayState.isReplayStarted)
                     {
                         showMouse();
                         return false;
@@ -60,7 +60,7 @@ package Modules.L4UI.ReplayEngine
             return pos.x !== AppContext.stage.mouseX || pos.y !== AppContext.stage.mouseY || MouseState.isLeftDown || MouseState.isRightDown;
         }
 
-        private static function saveLastMousePos():void
+        private static function updateLastMousePos():void
         {
             pos.setTo(AppContext.stage.mouseX, AppContext.stage.mouseY);
         }
@@ -92,7 +92,7 @@ package Modules.L4UI.ReplayEngine
                     {
                         Mouse.hide();
                         _isMouseHided = true;
-                        saveLastMousePos();
+                        updateLastMousePos();
                     }
                 }
                 else
@@ -105,7 +105,7 @@ package Modules.L4UI.ReplayEngine
                     count = 0;
                 }
 
-                saveLastMousePos();
+                updateLastMousePos();
             }
         }
     }

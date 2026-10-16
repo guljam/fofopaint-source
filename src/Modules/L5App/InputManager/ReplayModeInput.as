@@ -76,10 +76,8 @@ package Modules.L5App.InputManager
                         {
                             ReplayController.cancelReplayRestartTimer();
                         }
-                        else
-                        {
-                            ReplayController.handleReplayStartButton();
-                        }
+                        
+                        ReplayController.handleReplayStartButton();
                     }
                     break;
                 case "pauseButton":

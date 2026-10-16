@@ -1726,7 +1726,6 @@ package Modules.L5App.ReplayEngine
 
         public static function cancelReplayRestartTimer():void
         {
-            UIController.seekBarBox.setPlayButtonVisible(true);
             hideCompleteImageToBGReplayMode();
             FOFOTimer.remove("replayRestartTimer");
             updateReplayPrograssText(true, ReplayState.TOTAL_FRAME);
@@ -1736,6 +1735,7 @@ package Modules.L5App.ReplayEngine
         public static function startReplayRestartTimer():void
         {
             isRestartPending = false;
+            UIController.seekBarBox.setPlayButtonVisible(true);
 
             if (ReplayState.isReplayRepeatON)
             {
