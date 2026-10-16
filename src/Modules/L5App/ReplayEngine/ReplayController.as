@@ -37,6 +37,7 @@ package Modules.L5App.ReplayEngine
     import Modules.L2Engine.ReplayEngine.ReplayClock;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
+    import Modules.L2Engine.ReplayEngine.ReplaySegmentCache;
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.AppDataPaths;
@@ -213,6 +214,7 @@ package Modules.L5App.ReplayEngine
             {
                 // repfile 초기화
                 UndoHistory.updateUndoBaseImageFromReplayMode();
+                ReplaySegmentCache.clearSegmentCache(); // repdata보다 먼저 비움
                 fs.open(AppDataPaths.replayDataFilePath, FileMode.WRITE); // 파일 생성
                 fs.close();
                 ReplayDrawer.commandWindow.disposeQueuedCommandGroups();
@@ -258,11 +260,13 @@ package Modules.L5App.ReplayEngine
                 fs.close();
                 // 시간 간격도 같은 프레임만큼 앞을 잘라줌
                 TimingSheetFile.deleteSheetBeforeFrame(ReplayState.rNowFrame);
-                // ba에 넣어준걸 다시 써주기
+                // ba에 넣어준걸 다시 써주기 (앞이 잘려서 조각 경계가 모두 바뀌므로 조각 캐시는 먼저 비우고 다시 채움)
+                ReplaySegmentCache.clearSegmentCache();
                 fs.open(AppDataPaths.replayDataFilePath, FileMode.WRITE);
                 fs.position = 0;
                 fs.writeBytes(ba, 0, ba.length);
                 fs.close();
+                ReplaySegmentCache.requestSegmentCacheFill();
                 ReplayDrawer.commandWindow.disposeQueuedCommandGroups(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
                 ba.clear();
                 ba = null;
@@ -312,6 +316,7 @@ package Modules.L5App.ReplayEngine
             else if (ReplayState.rMemoryDataReadON === false)
             {
                 ReplayDrawCommands.setFirstRCursorPosCurrent();
+                ReplaySegmentCache.truncateSegmentCacheToByteLength(ReplayState.rFileLastBytePosition); // repdata보다 먼저 자름
                 const fs:FileStream = new FileStream();
                 fs.open(AppDataPaths.replayDataFilePath, FileMode.UPDATE);
                 fs.position = ReplayState.rFileLastBytePosition;

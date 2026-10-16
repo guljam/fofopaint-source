@@ -1089,12 +1089,15 @@ namespace
     }
 
     // 리플레이를 명령 뭉치 경계에서 조각으로 나눔: segmentEnds[i]는 i번 조각이 끝나는 바이트 위치 (빈 입력이면 조각 없음)
+    // segmentEndFrames[i]는 i번 조각 끝까지의 누적 프레임, inputStartFrames는 input 앞까지의 누적 프레임
     // 누적 프레임(뭉치 안 명령 수의 합)이 segmentFrames의 배수를 넘어서는 뭉치 바로 뒤에서 자름
-    void splitReplayIntoSegments(const uint8_t* input, size_t length, uint32_t segmentFrames, std::vector<size_t>& segmentEnds)
+    // isClosedSegmentOnly면 경계에서 끝나지 않은 마지막 부분은 조각으로 넣지 않음
+    void splitReplayIntoSegments(const uint8_t* input, size_t length, uint64_t inputStartFrames, uint32_t segmentFrames, bool isClosedSegmentOnly,
+        std::vector<size_t>& segmentEnds, std::vector<uint64_t>& segmentEndFrames)
     {
         AmfReader reader(input, length);
         AmfArena arena;
-        uint64_t frames = 0;
+        uint64_t frames = inputStartFrames;
 
         while (reader.remaining() > 0)
         {
@@ -1111,11 +1114,17 @@ namespace
             frames += arena.nodes[groupNode].count;
 
             if (frames / segmentFrames != framesBefore / segmentFrames)
+            {
                 segmentEnds.push_back(reader.pos());
+                segmentEndFrames.push_back(frames);
+            }
         }
 
-        if (length > 0 && (segmentEnds.empty() || segmentEnds.back() != length))
+        if (!isClosedSegmentOnly && length > 0 && (segmentEnds.empty() || segmentEnds.back() != length))
+        {
             segmentEnds.push_back(length);
+            segmentEndFrames.push_back(frames);
+        }
     }
 
     // 이전 .fofo의 조각 후보를 읽어서 압축 crc가 맞고 풀어본 결과가 지금 원본 조각과 같으면 true (압축 바이트를 compressedOut에)
@@ -1266,6 +1275,59 @@ static void decodeSegmentedBlock(const uint8_t* input, size_t length, Bytes& out
 int frc2EncodeSegmentedVerified(const uint8_t* input, size_t length, uint32_t segmentFrames, const Frc2ReuseSource* reuse, TaskPriority priority,
     Pieces& out, Frc2SegmentStats& stats, std::string& error)
 {
+    std::vector<Frc2EncodedSegment> segments;
+    const int result = frc2EncodeReplaySegments(input, length, 0, segmentFrames, false, reuse, priority, segments, stats, error);
+
+    if (result != FRC2_OK)
+    {
+        out.clear();
+        return result;
+    }
+
+    try
+    {
+        frc2AssembleSegmentedBlock(segments, out);
+        return FRC2_OK;
+    }
+    catch (const std::bad_alloc&)
+    {
+        error = "out of memory";
+        out.clear();
+        return FRC2_OUT_OF_MEMORY;
+    }
+}
+
+void frc2AssembleSegmentedBlock(std::vector<Frc2EncodedSegment>& segments, Pieces& out)
+{
+    const size_t count = segments.size();
+    Bytes head;
+    head.reserve(FRC2_SEGMENT_HEAD_BYTES + count * FRC2_SEGMENT_ENTRY_BYTES);
+    head.push_back('F');
+    head.push_back('R');
+    head.push_back('C');
+    head.push_back('2');
+    head.push_back(SEGMENT_VERSION);
+    writeU32(head, (uint32_t)count);
+
+    for (size_t i = 0; i < count; i++)
+    {
+        writeU32(head, segments[i].rawLength);
+        writeU32(head, segments[i].rawCrc);
+        writeU32(head, (uint32_t)segments[i].compressed.size());
+        writeU32(head, crc32OfBytes(segments[i].compressed.data(), segments[i].compressed.size()));
+    }
+
+    out.clear();
+    out.parts.reserve(1 + count);
+    out.parts.push_back(std::move(head));
+
+    for (size_t i = 0; i < count; i++)
+        out.parts.push_back(std::move(segments[i].compressed));
+}
+
+int frc2EncodeReplaySegments(const uint8_t* input, size_t length, uint64_t inputStartFrames, uint32_t segmentFrames, bool isClosedSegmentOnly,
+    const Frc2ReuseSource* reuse, TaskPriority priority, std::vector<Frc2EncodedSegment>& out, Frc2SegmentStats& stats, std::string& error)
+{
     stats = Frc2SegmentStats();
 
     try
@@ -1274,7 +1336,8 @@ int frc2EncodeSegmentedVerified(const uint8_t* input, size_t length, uint32_t se
             throw Fail{ FRC2_UNSUPPORTED, "segmentFrames is 0" };
 
         std::vector<size_t> segmentEnds;
-        splitReplayIntoSegments(input, length, segmentFrames, segmentEnds);
+        std::vector<uint64_t> segmentEndFrames;
+        splitReplayIntoSegments(input, length, inputStartFrames, segmentFrames, isClosedSegmentOnly, segmentEnds, segmentEndFrames);
         const int count = (int)segmentEnds.size();
 
         if (count > 0 && segmentEnds.back() - (count > 1 ? segmentEnds[count - 2] : 0) > 0xFFFFFFFFu)
@@ -1289,9 +1352,7 @@ int frc2EncodeSegmentedVerified(const uint8_t* input, size_t length, uint32_t se
                 oldSegmentIndexByKey.emplace(((uint64_t)reuse->segments[i].rawLength << 32) | reuse->segments[i].rawCrc, i);
         }
 
-        std::vector<Bytes> blobs(count);
-        std::vector<uint32_t> rawCrcs(count);
-        std::vector<uint32_t> rawLengths(count);
+        std::vector<Frc2EncodedSegment> segments(count);
         volatile LONG failed = 0;
         int failCode = FRC2_OK;
         const char* failMessage = "";
@@ -1309,13 +1370,15 @@ int frc2EncodeSegmentedVerified(const uint8_t* input, size_t length, uint32_t se
                 if (rawLength > 0xFFFFFFFFu)
                     throw Fail{ FRC2_UNSUPPORTED, "Replay segment too large" };
 
-                rawLengths[index] = (uint32_t)rawLength;
-                rawCrcs[index] = crc32OfBytes(raw, rawLength);
-                const auto candidates = oldSegmentIndexByKey.equal_range(((uint64_t)rawLength << 32) | rawCrcs[index]);
+                Frc2EncodedSegment& segment = segments[index];
+                segment.rawLength = (uint32_t)rawLength;
+                segment.rawCrc = crc32OfBytes(raw, rawLength);
+                segment.endFrames = segmentEndFrames[index];
+                const auto candidates = oldSegmentIndexByKey.equal_range(((uint64_t)rawLength << 32) | segment.rawCrc);
 
                 for (auto it = candidates.first; it != candidates.second; ++it)
                 {
-                    if (loadReusableSegmentFromOldFofo(reuse->path, reuse->segments[it->second], raw, rawLength, blobs[index]))
+                    if (loadReusableSegmentFromOldFofo(reuse->path, reuse->segments[it->second], raw, rawLength, segment.compressed))
                     {
                         InterlockedIncrement(&reusedCount);
                         InterlockedAdd64(&reusedRawBytes, (LONG64)rawLength);
@@ -1326,7 +1389,7 @@ int frc2EncodeSegmentedVerified(const uint8_t* input, size_t length, uint32_t se
                 }
 
                 std::string segmentError;
-                const int result = encodeFrc2VerifiedWithLzmaThreads(raw, rawLength, blobs[index], segmentError, 1, SEGMENT_MINIMUM_DICT_SIZE);
+                const int result = encodeFrc2VerifiedWithLzmaThreads(raw, rawLength, segment.compressed, segmentError, 1, SEGMENT_MINIMUM_DICT_SIZE);
 
                 if (result != FRC2_OK)
                     throw Fail{ result, "Replay segment encode failed" };
@@ -1355,30 +1418,7 @@ int frc2EncodeSegmentedVerified(const uint8_t* input, size_t length, uint32_t se
         if (failed)
             throw Fail{ failCode, failMessage };
 
-        Bytes head;
-        head.reserve(FRC2_SEGMENT_HEAD_BYTES + (size_t)count * FRC2_SEGMENT_ENTRY_BYTES);
-        head.push_back('F');
-        head.push_back('R');
-        head.push_back('C');
-        head.push_back('2');
-        head.push_back(SEGMENT_VERSION);
-        writeU32(head, (uint32_t)count);
-
-        for (int i = 0; i < count; i++)
-        {
-            writeU32(head, rawLengths[i]);
-            writeU32(head, rawCrcs[i]);
-            writeU32(head, (uint32_t)blobs[i].size());
-            writeU32(head, crc32OfBytes(blobs[i].data(), blobs[i].size()));
-        }
-
-        out.clear();
-        out.parts.reserve(1 + count);
-        out.parts.push_back(std::move(head));
-
-        for (int i = 0; i < count; i++)
-            out.parts.push_back(std::move(blobs[i]));
-
+        out.swap(segments);
         stats.segmentCount = (uint32_t)count;
         stats.reusedCount = (uint32_t)reusedCount;
         stats.rejectedCount = (uint32_t)rejectedCount;

@@ -7,6 +7,7 @@ package Modules.L3Feature
     import Modules.L2Engine.ReplayEngine.ReplayClock;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
+    import Modules.L2Engine.ReplayEngine.ReplaySegmentCache;
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.CanvasView;
@@ -186,6 +187,7 @@ package Modules.L3Feature
         // addundo data에서 캔버스 비트맵 데이터가 변경되기 전, rdatabuffer 비어있을때 넣어줘야함
         public static function applyDeepUndo():void
         {
+            ReplaySegmentCache.truncateSegmentCacheToByteLength(ReplayState.rFileLastBytePosition); // repdata보다 먼저 자름
             const fs:FileStream = new FileStream();
             fs.open(AppDataPaths.replayDataFilePath, FileMode.UPDATE);
             fs.position = ReplayState.rFileLastBytePosition;

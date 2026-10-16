@@ -8,6 +8,7 @@ package Modules.L2Engine
     import Modules.L2Engine.ReplayEngine.ReplayClock;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
+    import Modules.L2Engine.ReplayEngine.ReplaySegmentCache;
     import Modules.L2Engine.ReplayEngine.TimingSheetFile;
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
@@ -214,6 +215,7 @@ package Modules.L2Engine
                 const written:Vector.<uint> = TimingSheetFile.appendGroupTimesAtFrame(ReplayState.rMemoryDataTimingSheet[0], lastRDataTotalFrame);
                 ReplayState.increaseRFileDataTotalFrame(firstElementFrameCount);
                 ReplayClock.appendRecordsToFileIndex(written, lastRDataTotalFrame); // 덧붙은 프레임만 시간 색인에 반영 (파일을 다시 읽지 않음)
+                ReplaySegmentCache.requestSegmentCacheFillIfSegmentClosed(ReplayState.getRFileDataTotalFrame()); // 1만 프레임 경계를 넘었으면 조각 캐시를 백그라운드에서 채움
                 ReplayDrawer.updateReplayCanvasFromUndoBaseInfo();
 
                 if (ReplayState.rReplayImageCacheState === ReplayState.REPLAY_IMAGE_CAHCHE_COMPLETE)

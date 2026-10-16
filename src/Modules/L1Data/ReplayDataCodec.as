@@ -15,8 +15,11 @@ package Modules.L1Data
     {
         private static const MAGIC:String = "FRC2";
         private static const VERSION:uint = 1;
-        private static const SEGMENT_VERSION:uint = 2; // 조각마다 VERSION 1 블록, 저장은 네이티브만 (decodeSegmentedBlock)
+        private static const SEGMENT_VERSION:uint = 2; // 조각마다 VERSION 1 블록 (decodeSegmentedBlock, worker 저장은 assembleSegmentedBlock)
         private static const SEGMENT_ENTRY_BYTES:uint = 16;
+        // 조각 경계 프레임 단위 (anesrc/fofonative/src/frc2.h FRC2_SEGMENT_FRAMES와 같아야 함)
+        public static const SEGMENT_FRAMES:Number = 10000;
+        private static const CRC32_TABLE:Vector.<uint> = makeCrc32Table();
         private static const STREAM_COUNT:int = 8;
         private static const MAX_SCALED:Number = 268435455; // 2^28 - 1, 예측값 차이가 int 범위를 넘지 않게 함
         private static const MAX_NAMES:int = 250;
@@ -583,6 +586,112 @@ package Modules.L1Data
             input.position = 0;
             output.position = 0;
             return output;
+        }
+
+        // 리플레이를 명령 뭉치 경계에서 조각으로 나눈 끝 위치들 [[끝 바이트 위치, 끝까지의 누적 프레임], ...] (frc2.cpp splitReplayIntoSegments와 같은 규칙)
+        // 누적 프레임(뭉치 배열 길이의 합)이 SEGMENT_FRAMES의 배수를 넘어서는 뭉치 바로 뒤에서 자름
+        // replayStartFrames: replay 앞까지의 누적 프레임, isClosedSegmentOnly면 경계에서 끝나지 않은 마지막 부분은 빼고 돌려줌
+        public static function splitReplayIntoSegmentEnds(replay:ByteArray, replayStartFrames:Number, isClosedSegmentOnly:Boolean):Array
+        {
+            const segmentEnds:Array = [];
+            var frames:Number = replayStartFrames;
+            replay.position = 0;
+            while (replay.bytesAvailable > 0)
+            {
+                const group:Array = replay.readObject() as Array;
+                if (group === null)
+                    throw new Error("Replay object is not an Array");
+                const framesBefore:Number = frames;
+                frames += group.length;
+                if (Math.floor(frames / SEGMENT_FRAMES) != Math.floor(framesBefore / SEGMENT_FRAMES))
+                    segmentEnds.push([replay.position, frames]);
+            }
+            if (!isClosedSegmentOnly && replay.length > 0 && (segmentEnds.length === 0 || segmentEnds[segmentEnds.length - 1][0] != replay.length))
+                segmentEnds.push([replay.length, frames]);
+            replay.position = 0;
+            return segmentEnds;
+        }
+
+        // replay를 조각으로 나눠 조각마다 encodeVerified, 조각 하나라도 인코드하지 못하면 null
+        // 결과: [{rawLength, rawCrc, compressed:ByteArray, compressedCrc, endFrames}, ...] (assembleSegmentedBlock, repdata 조각 캐시에 씀)
+        public static function encodeReplaySegments(replay:ByteArray, replayStartFrames:Number, isClosedSegmentOnly:Boolean):Array
+        {
+            var segmentEnds:Array;
+            try
+            {
+                segmentEnds = splitReplayIntoSegmentEnds(replay, replayStartFrames, isClosedSegmentOnly);
+            }
+            catch (error:Error)
+            {
+                trace("Replay segment split failed: " + error);
+                replay.position = 0;
+                return null;
+            }
+            const segments:Array = [];
+            var start:uint = 0;
+            for (var i:int = 0; i < segmentEnds.length; i++)
+            {
+                const end:uint = segmentEnds[i][0];
+                const raw:ByteArray = new ByteArray();
+                raw.writeBytes(replay, start, end - start);
+                const compressed:ByteArray = encodeVerified(raw);
+                if (compressed === null)
+                {
+                    raw.clear();
+                    return null;
+                }
+                segments.push({ rawLength: raw.length, rawCrc: crc32OfBytes(raw, 0, raw.length), compressed: compressed,
+                        compressedCrc: crc32OfBytes(compressed, 0, compressed.length), endFrames: segmentEnds[i][1] });
+                raw.clear();
+                start = end;
+            }
+            replay.position = 0;
+            return segments;
+        }
+
+        // 조각들로 세그먼트 형식(VERSION 2) 블록을 만듦: "FRC2" 2, 조각 수, 조각 표 [원본 길이, 원본 crc32, 압축 길이, 압축 crc32], 조각들 (frc2.cpp frc2AssembleSegmentedBlock과 같음)
+        public static function assembleSegmentedBlock(segments:Array):ByteArray
+        {
+            const output:ByteArray = new ByteArray();
+            output.writeUTFBytes(MAGIC);
+            output.writeByte(SEGMENT_VERSION);
+            output.writeUnsignedInt(segments.length);
+            for each (var entry:Object in segments)
+            {
+                output.writeUnsignedInt(entry.rawLength);
+                output.writeUnsignedInt(entry.rawCrc);
+                output.writeUnsignedInt(ByteArray(entry.compressed).length);
+                output.writeUnsignedInt(entry.compressedCrc);
+            }
+            for each (entry in segments)
+                output.writeBytes(ByteArray(entry.compressed));
+            output.position = 0;
+            return output;
+        }
+
+        // zlib crc32와 같은 값 (조각 표와 repdata 조각 캐시 확인용)
+        public static function crc32OfBytes(bytes:ByteArray, offset:uint, length:uint):uint
+        {
+            const table:Vector.<uint> = CRC32_TABLE;
+            var crc:uint = 0xFFFFFFFF;
+            const end:uint = offset + length;
+            for (var i:uint = offset; i < end; i++)
+                crc = table[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+            return crc ^ 0xFFFFFFFF;
+        }
+
+        // crc32 바이트 표 (다항식 0xEDB88320)
+        private static function makeCrc32Table():Vector.<uint>
+        {
+            const table:Vector.<uint> = new Vector.<uint>(256, true);
+            for (var n:uint = 0; n < 256; n++)
+            {
+                var c:uint = n;
+                for (var k:int = 0; k < 8; k++)
+                    c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+                table[n] = c;
+            }
+            return table;
         }
 
         // 원본과 decode 결과가 바이트 단위로 같은지 비교

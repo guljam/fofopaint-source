@@ -64,6 +64,7 @@ package Modules.L5App
     import Modules.L4UI.UIEngine.CanvasNavigator;
     import Modules.L1Data.FOFOTimer;
     import Modules.L1Data.NativeSave;
+    import Modules.L2Engine.ReplayEngine.ReplaySegmentCache;
     import Modules.L1Data.PixelRestore;
     import Modules.L1Data.ReplayDataCodec;
     import Modules.L1Data.UIEngine.UITheme;
@@ -253,6 +254,8 @@ package Modules.L5App
             }
 
             ReplayDrawer.commandWindow.disposeQueuedCommandGroups(); // repdata가 바뀌었으니 미리 읽은 묶음은 버림
+            // 불러온 repdata로 조각 캐시를 백그라운드에서 채움, 세그먼트 형식 파일이면 같은 조각은 그 압축 바이트를 그대로 씀
+            ReplaySegmentCache.requestSegmentCacheFill(oldFile.nativePath);
 
             if (ReplayFileCache.repFileTemp.exists)
             {
@@ -899,7 +902,7 @@ package Modules.L5App
         // mergedImage는 소유권을 가져가서 처리 후 dispose함
         private static function startSave(mergedImage:BitmapData, isContinueSave:Boolean):void
         {
-            if (startNativeSave(mergedImage))
+            if (startNativeSave(mergedImage, true))
             {
                 mergedImage.dispose();
                 return;
@@ -914,7 +917,7 @@ package Modules.L5App
             BackgroundWorkerCoordinator.receivedSaveImageDataFromWorker = null;
             // 소유권을 Worker로 넘김, Worker 쪽에서 dispose함
             BackgroundWorkerCoordinator.startPngEncodingWorker(mergedImage, DrawCanvas.CANVAS_BG_COLOR, false, false);
-            saveFOFOFile();
+            saveFOFOFile(true);
             pollTimerWaitWorkerForImageSave(lastSaveFilePath, isContinueSave);
         }
 
@@ -969,7 +972,8 @@ package Modules.L5App
 
         // 네이티브 저장: 지금 상태(비트맵 6개, repdata 길이, 메모리 뭉치, 메타)를 한 번에 넘기고 바로 돌아옴
         // 저장 결과는 onNativeSaveDone, 끝날때까지 isSaveInProgress를 유지해서 repdata 자르기/초기화를 막음
-        private static function startNativeSave(mergedImage:BitmapData):Boolean
+        // isSegmentCacheUsed면 repdata 조각 캐시에 있는 앞부분은 네이티브가 repdata를 읽지 않고 캐시 조각을 그대로 씀
+        private static function startNativeSave(mergedImage:BitmapData, isSegmentCacheUsed:Boolean):Boolean
         {
             if (!NativeSave.isAvailable || !AppDataPaths.replayDataFilePath.exists)
             {
@@ -1053,13 +1057,26 @@ package Modules.L5App
             const composite:BitmapData = new BitmapData(mergedImage.width, mergedImage.height, true, DrawCanvas.CANVAS_BG_COLOR);
             composite.draw(mergedImage);
             const compositeTime:int = getTimer();
+            // repdata 조각 캐시: 저장 길이 안의 앞부분 조각 파일 경로와 [원본 길이, 원본 crc, 압축 길이, 압축 crc, 누적 프레임]
+            const cacheSegmentPaths:Array = [];
+            const cacheSegmentNumbers:Array = [];
+
+            if (isSegmentCacheUsed)
+            {
+                for each (var cachedSegment:Object in ReplaySegmentCache.getCachedSegmentsForSave(repdataLength))
+                {
+                    cacheSegmentPaths.push(ReplaySegmentCache.getSegmentFilePath(cachedSegment));
+                    cacheSegmentNumbers.push(cachedSegment.rawLength, cachedSegment.rawCrc, cachedSegment.compressedLength, cachedSegment.compressedCrc, cachedSegment.endFrames);
+                }
+            }
+
             const pngPath:String = lastSaveFilePath;
             const started:Boolean = NativeSave.startReplayFileAndPngSave(pngPath, ReplayFileCache.getReplayFileNameFromPath(pngPath), composite,
                     first1, first2, current1, current2, reference,
                     AppDataPaths.replayDataFilePath.nativePath, repdataLength, memoryGroups, mirrorBytes,
                     timingSheetFile.nativePath, timingSheetFile.exists ? timingSheetFile.size : 0, timingPointsFile.nativePath, timingPointsFile.exists ? timingPointsFile.size : 0,
                     timingFileFrameCount, timingMemoryRecords, timingMemoryPointRecords, Math.min(TimingSheetFile.legacyFrames, timingFileFrameCount),
-                    firstMeta, finalMeta, referenceMeta, nativeSaveOptions, getSegmentReuseFofoPathForSave(), onNativeSaveDone);
+                    firstMeta, finalMeta, referenceMeta, nativeSaveOptions, getSegmentReuseFofoPathForSave(), cacheSegmentPaths, cacheSegmentNumbers, onNativeSaveDone);
             trace("Native save start: memory groups " + (memoryTime - saveStartTime) + "ms, timing sheet " + (sheetTime - memoryTime)
                 + "ms, composite " + (compositeTime - sheetTime) + "ms, native call " + (getTimer() - compositeTime) + "ms");
             composite.dispose();
@@ -1094,6 +1111,7 @@ package Modules.L5App
         private static function onNativeSaveDone(result:Object):void
         {
             trace("Native save " + result.status + " codec=" + result.codec + " encode=" + result.encodeMs + "ms write=" + result.writeMs + "ms " + result.message);
+            dropBrokenSegmentCacheReportedBySave(String(result.message));
 
             switch (result.status)
             {
@@ -1114,10 +1132,38 @@ package Modules.L5App
                     handleSaveWriteFailed(result);
                     break;
                 default:
+                    if (result.stage === "segment-cache")
+                    {
+                        // 캐시 뒤 부분을 조각으로 인코드하지 못함 (지원하지 않는 명령 형식 등): 캐시 없이 repdata 전체로 다시 저장 (그러면 네이티브가 zlib로 대신 씀)
+                        AppDataPaths.writeCrashLog("Native save segment encode failed, retry without segment cache: " + result.message);
+                        const mergedImage:BitmapData = DrawCanvas.getMergedBitmapData(false, true, true, null);
+
+                        if (startNativeSave(mergedImage, false))
+                        {
+                            mergedImage.dispose();
+                            break;
+                        }
+
+                        startWorkerSave(mergedImage, true);
+                        break;
+                    }
+
                     // 네이티브 내부 오류(메모리 부족 등)는 쓰기 실패가 아님, 이 저장을 기존 worker 경로로 다시 함 (지금 캔버스 기준)
                     AppDataPaths.writeCrashLog("Native save internal error, retry with worker: " + result.stage + " " + result.message);
                     startWorkerSave(DrawCanvas.getMergedBitmapData(false, true, true, null), true);
                     break;
+            }
+        }
+
+        // 네이티브 저장 결과(cachedSegments=쓴 캐시 조각 수, offeredCacheSegments=넘긴 수)에서 읽기/검증에 실패한 캐시 조각부터 버림
+        private static function dropBrokenSegmentCacheReportedBySave(saveResultMessage:String):void
+        {
+            const cached:Array = saveResultMessage.match(/cachedSegments=(\d+)/);
+            const offered:Array = saveResultMessage.match(/offeredCacheSegments=(\d+)/);
+
+            if (cached !== null && offered !== null && int(cached[1]) < int(offered[1]))
+            {
+                ReplaySegmentCache.dropCachedSegmentsFromIndex(int(cached[1]));
             }
         }
 
@@ -1192,7 +1238,9 @@ package Modules.L5App
             }
         }
 
-        private static function saveFOFOFile():void
+        // worker 저장: 이미지와 리플레이 데이터를 읽어 worker에 압축을 맡김 (결과는 onReplayDataCompressedByWorker)
+        // isSegmentCacheUsed면 repdata 조각 캐시 앞부분은 캐시 조각 파일을 넘기고 repdata는 그 뒤만 읽어서 세그먼트 형식으로, 아니면 이전 방식(한 덩어리)
+        private static function saveFOFOFile(isSegmentCacheUsed:Boolean):void
         {
             saveStartTime = getTimer();
 
@@ -1226,32 +1274,24 @@ package Modules.L5App
                     newRectangle = new Rectangle(0, 0, refImgWidth, refImgHeight);
                     ReferenceLayerController.canvasRefLayerBitmapData.copyPixelsToByteArray(newRectangle, ReferenceLayerController.refLayerImageData);
                 }
-                // 리플레이 파일을 임시파일로 복사해서 이 내부의 바이트만 읽어서 워커에게 보냄
-                AppDataPaths.replayDataFilePath.copyTo(ReplayFileCache.repFileTemp, true);
+                // 딥 언도일때는 읽은 바이트 까지만, 그게 아니면 전체 리플레이 데이터 끝까지 읽고 undo데이터까지 넣어줌
+                // ReplayController.rFileLastBytePosition = 0이면 리플레이 블록 없음
+                const repdataSaveLength:Number = UndoHistory.isDeepUndoEnabled ? Math.max(0, ReplayState.rFileLastBytePosition) : AppDataPaths.replayDataFilePath.size;
+                // repdata 조각 캐시에 있는 앞부분은 캐시 조각 파일을 넘기고 repdata는 그 뒤부터만 읽음
+                const replaySegmentInfo:Object = isSegmentCacheUsed ? readSegmentCacheForWorkerSave(repdataSaveLength) : null;
+                const repdataReadStart:Number = (replaySegmentInfo !== null) ? replaySegmentInfo.tailStartByte : 0;
 
-                const fs:FileStream = new FileStream();
-
-                // 딥 언도일때는 읽은 바이트 까지만 읽어줌
-                if (UndoHistory.isDeepUndoEnabled)
+                if (repdataSaveLength > repdataReadStart)
                 {
-                    // 마지막 바이트가 0이상일때만 읽어주어야함
-                    // ReplayController.rFileLastBytePosition = 0이면 안읽는것이 아니고 전체 바이트를 읽음그래서 0이면 안읽게 해주어야함
-                    if (ReplayState.rFileLastBytePosition > 0)
-                    {
-                        fs.open(ReplayFileCache.repFileTemp, FileMode.READ);
-                        fs.position = 0;
-                        fs.readBytes(replayDataReadBytes, 0, ReplayState.rFileLastBytePosition);
-                        fs.close();
-                    }
-                }
-                else
-                {
-                    // 그게 아니면 전체 리플레이 데이터 끝까지 읽고 undo데이터까지 넣어줌
-                    fs.open(ReplayFileCache.repFileTemp, FileMode.READ);
-                    fs.position = 0;
-                    fs.readBytes(replayDataReadBytes, 0, fs.bytesAvailable);
+                    const fs:FileStream = new FileStream();
+                    fs.open(AppDataPaths.replayDataFilePath, FileMode.READ);
+                    fs.position = repdataReadStart;
+                    fs.readBytes(replayDataReadBytes, 0, repdataSaveLength - repdataReadStart);
                     fs.close();
+                }
 
+                if (!UndoHistory.isDeepUndoEnabled)
+                {
                     replayDataReadBytes.position = replayDataReadBytes.length;
                     for (var i:int = 0, len:int = UndoHistory.undoDataIndex;i <= len;i++) // 리플레이 데이터랑 첫이미지 마지막 이미지 추가적으로 붙여줌
                     {
@@ -1272,8 +1312,71 @@ package Modules.L5App
                         UndoHistory.isDeepUndoEnabled ? 0 : UndoHistory.undoDataIndex + 1,
                         ReplayState.lastMirrorReadyFlag ? 1 : 0);
                 FileManager.updateReplaySaveMetaData();
-                BackgroundWorkerCoordinator.startReplayDataCompressionWorker(rLayer1FirstImageData, rLayer2FirstImageData, rLayer1CurrentImageData, rLayer2CurrentImageData, ReferenceLayerController.refLayerImageData, replayDataReadBytes);
+                BackgroundWorkerCoordinator.startReplayDataCompressionWorker(rLayer1FirstImageData, rLayer2FirstImageData, rLayer1CurrentImageData, rLayer2CurrentImageData, ReferenceLayerController.refLayerImageData, replayDataReadBytes, replaySegmentInfo);
             }
+        }
+
+        // worker 저장에 넘길 repdata 조각 캐시: 저장 길이 안의 앞부분 조각 파일을 읽어 {cachedSegments, cachedSegmentBytes, tailStartFrames, tailStartByte}
+        // 파일이 없거나 길이가 다른 조각부터는 캐시에서 버리고 그 앞까지만 씀 (압축 crc는 worker가 확인)
+        private static function readSegmentCacheForWorkerSave(repdataSaveLength:Number):Object
+        {
+            const cachedSegments:Array = [];
+            const cachedSegmentBytes:Array = [];
+            const segments:Array = ReplaySegmentCache.getCachedSegmentsForSave(repdataSaveLength);
+            var tailStartFrames:Number = 0;
+            var tailStartByte:Number = 0;
+
+            for (var i:int = 0;i < segments.length;i++)
+            {
+                const segment:Object = segments[i];
+                const compressed:ByteArray = new ByteArray();
+                const fs:FileStream = new FileStream();
+
+                try
+                {
+                    fs.open(new File(ReplaySegmentCache.getSegmentFilePath(segment)), FileMode.READ);
+                    fs.readBytes(compressed, 0, fs.bytesAvailable);
+                    fs.close();
+                }
+                catch (error:Error)
+                {
+                    fs.close();
+                }
+
+                if (compressed.length !== segment.compressedLength)
+                {
+                    ReplaySegmentCache.dropCachedSegmentsFromIndex(i);
+                    break;
+                }
+
+                cachedSegments.push({ rawLength: segment.rawLength, rawCrc: segment.rawCrc, compressedCrc: segment.compressedCrc, endFrames: segment.endFrames });
+                cachedSegmentBytes.push(compressed);
+                tailStartFrames = segment.endFrames;
+                tailStartByte = segment.endByte;
+            }
+
+            return { cachedSegments: cachedSegments, cachedSegmentBytes: cachedSegmentBytes, tailStartFrames: tailStartFrames, tailStartByte: tailStartByte };
+        }
+
+        // worker가 리플레이 데이터 압축을 끝냄: 조각 저장이 실패했으면("segment-cache-failed") 캐시를 비우고 이전 방식으로 다시 압축, 아니면 .fofo를 씀
+        public static function onReplayDataCompressedByWorker(firstImageLayer1:ByteArray, firstImageLayer2:ByteArray, finalImageLayer1:ByteArray, finalImageLayer2:ByteArray,
+                referenceImage:ByteArray, replayFileByteArray:ByteArray, segmentSaveStatus:String):void
+        {
+            if (segmentSaveStatus === "segment-cache-failed")
+            {
+                AppDataPaths.writeCrashLog("Worker segment save failed, retry without segment cache");
+                firstImageLayer1.clear();
+                firstImageLayer2.clear();
+                finalImageLayer1.clear();
+                finalImageLayer2.clear();
+                referenceImage.clear();
+                replayFileByteArray.clear();
+                ReplaySegmentCache.clearSegmentCache();
+                saveFOFOFile(false);
+                return;
+            }
+
+            writeReplayFile(firstImageLayer1, firstImageLayer2, finalImageLayer1, finalImageLayer2, referenceImage, replayFileByteArray);
         }
 
         public static function openLoadFileBrowser(toRefLayer:Boolean = false):void

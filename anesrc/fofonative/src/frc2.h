@@ -60,6 +60,23 @@ struct Frc2SegmentStats
 // reuse가 NULL이면 모든 조각을 새로 만듦. 조각들은 풀에서 동시에 처리
 int frc2EncodeSegmentedVerified(const uint8_t* input, size_t length, uint32_t segmentFrames, const Frc2ReuseSource* reuse, TaskPriority priority,
     Pieces& out, Frc2SegmentStats& stats, std::string& error);
+
+// 조각 하나의 원본 정보와 압축 바이트 (FRC2 버전 1 블록)
+struct Frc2EncodedSegment
+{
+    uint32_t rawLength = 0;
+    uint32_t rawCrc = 0;
+    uint64_t endFrames = 0; // 리플레이 처음부터 이 조각 끝까지의 누적 프레임 (뭉치 배열 길이의 합)
+    Bytes compressed;
+};
+
+// input을 조각 규칙으로 나눠 조각마다 인코드(검증)하거나 reuse에서 같은 조각을 가져옴, 조각들은 풀에서 동시에 처리
+// inputStartFrames: input 앞까지의 누적 프레임. 리플레이 중간부터 나눌때 경계가 처음부터 나눈 것과 같게 이어짐
+// isClosedSegmentOnly: 경계에서 끝나지 않은 마지막 부분은 빼고 돌려줌 (repdata 조각 캐시 채우기)
+int frc2EncodeReplaySegments(const uint8_t* input, size_t length, uint64_t inputStartFrames, uint32_t segmentFrames, bool isClosedSegmentOnly,
+    const Frc2ReuseSource* reuse, TaskPriority priority, std::vector<Frc2EncodedSegment>& out, Frc2SegmentStats& stats, std::string& error);
+// 조각들을 세그먼트 블록(머리 + 조각 표 + 조각들)으로 조립, 조각의 압축 바이트는 out으로 옮김
+void frc2AssembleSegmentedBlock(std::vector<Frc2EncodedSegment>& segments, Pieces& out);
 // 블록 앞 FRC2_SEGMENT_HEAD_BYTES 바이트가 세그먼트 형식이면 조각 수를 돌려줌, 아니면 -1
 int64_t frc2SegmentCountFromHead(const uint8_t* head, size_t length);
 // 조각 표(head 다음 바이트부터 count개)를 읽어 out에 넣음, fileOffset = blockFileOffset + 블록 안 위치. 표가 블록 길이를 넘으면 false

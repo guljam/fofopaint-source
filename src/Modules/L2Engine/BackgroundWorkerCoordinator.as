@@ -17,6 +17,7 @@ package Modules.L2Engine
     import flash.utils.ByteArray;
     import Modules.L2Engine.ReplayEngine.ReplayDrawer;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
+    import Modules.L2Engine.ReplayEngine.ReplaySegmentCache;
     import Modules.L1Data.AppDataPaths;
     import Modules.L2Engine.DrawEngine.CanvasView;
     import Modules.L2Engine.DrawEngine.DrawCanvas;
@@ -28,7 +29,8 @@ package Modules.L2Engine
     // 층: L2 엔진 - 백그라운드 워커 시작·중지와 데이터 전달
     public final class BackgroundWorkerCoordinator
     {
-        // worker가 리플레이 데이터 압축을 끝내 .fofo 파일에 써야 한다는 보고 (인자: 첫 이미지 레이어 1, 2, 마지막 이미지 레이어 1, 2, 참조 이미지, 리플레이 데이터)
+        // worker가 리플레이 데이터 압축을 끝내 .fofo 파일에 써야 한다는 보고 (인자: 첫 이미지 레이어 1, 2, 마지막 이미지 레이어 1, 2, 참조 이미지, 리플레이 데이터, 조각 저장 결과)
+        // 조각 저장 결과가 "segment-cache-failed"면 리플레이 데이터는 비어있음 (repdata 조각 캐시가 깨졌거나 뒷부분을 조각으로 인코드하지 못함, 캐시 없이 다시 저장해야 함)
         public static var onReplayDataCompressedFunc:Function;
         // worker가 완전히 멈췄으니 대기 중인 불러오기를 이어가고 파일 버튼 잠금을 풀어야 한다는 보고
         public static var onWorkerStoppedFunc:Function;
@@ -104,7 +106,12 @@ package Modules.L2Engine
             else if (command === "compress_ReplayDataDone")
             {
                 workerDataReceiveCount++;
-                if (onReplayDataCompressedFunc != null) onReplayDataCompressedFunc(backToMain.receive(true), backToMain.receive(true), backToMain.receive(true), backToMain.receive(true), backToMain.receive(true), backToMain.receive(true));
+                if (onReplayDataCompressedFunc != null) onReplayDataCompressedFunc(backToMain.receive(true), backToMain.receive(true), backToMain.receive(true), backToMain.receive(true), backToMain.receive(true), backToMain.receive(true), backToMain.receive(true));
+            }
+            else if (command === "encode_ReplaySegmentsDone")
+            {
+                workerDataReceiveCount++;
+                ReplaySegmentCache.finishWorkerSegmentCacheFill(backToMain.receive(true), backToMain.receive(true), backToMain.receive(true), backToMain.receive(true));
             }
             else if (command === "compress_UndoDataDone")
             {
@@ -473,7 +480,9 @@ package Modules.L2Engine
             }
         }
 
-        public static function startReplayDataCompressionWorker(dataA:ByteArray, dataA1:ByteArray, dataB:ByteArray, dataB1:ByteArray, dataC:ByteArray, dataD:ByteArray):void
+        // replaySegmentInfo: repdata 조각 캐시로 세그먼트 형식 저장할때 {cachedSegments:[{rawLength, rawCrc, compressedCrc, endFrames}], cachedSegmentBytes:[ByteArray], tailStartFrames}
+        //   (dataD는 캐시 뒤 부분 + 메모리 뭉치), null이면 이전 방식 (dataD 전체를 한 덩어리로)
+        public static function startReplayDataCompressionWorker(dataA:ByteArray, dataA1:ByteArray, dataB:ByteArray, dataB1:ByteArray, dataC:ByteArray, dataD:ByteArray, replaySegmentInfo:Object):void
         {
             sendDataToWorker(function ():void
                 {
@@ -485,6 +494,7 @@ package Modules.L2Engine
                     mainToBack.send(dataB1);
                     mainToBack.send(dataC);
                     mainToBack.send(dataD);
+                    mainToBack.send(replaySegmentInfo);
                     dataA.clear();
                     dataA1.clear();
                     dataB.clear();
@@ -497,6 +507,25 @@ package Modules.L2Engine
                     dataB1 = null;
                     dataC = null;
                     dataD = null;
+                });
+        }
+
+        // repdata 조각 캐시 채우기를 worker에 맡김: replayBytes(repdata 구간)를 조각으로 나눠 닫힌 조각만 인코드해 folderPath에 씀
+        // 결과는 ReplaySegmentCache.finishWorkerSegmentCacheFill (worker의 applicationStorageDirectory는 경로가 달라서 전체 경로로 넘김)
+        public static function startReplaySegmentEncodingWorker(jobId:int, replayBytes:ByteArray, replayStartFrames:Number, folderPath:String, segmentFileNamePrefix:String, firstSegmentNumber:int):void
+        {
+            sendDataToWorker(function ():void
+                {
+                    workerDataSendCount++;
+                    mainToBack.send("encode_ReplaySegments");
+                    mainToBack.send(jobId);
+                    mainToBack.send(replayBytes);
+                    mainToBack.send(replayStartFrames);
+                    mainToBack.send(folderPath);
+                    mainToBack.send(segmentFileNamePrefix);
+                    mainToBack.send(firstSegmentNumber);
+                    replayBytes.clear();
+                    replayBytes = null;
                 });
         }
 

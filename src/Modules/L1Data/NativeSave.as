@@ -44,12 +44,15 @@ package Modules.L1Data
         // reuseFofoPath: 압축 결과를 다시 쓸 이전 .fofo (원본이 같은 리플레이 조각, 첫 이미지, 참고 이미지는 다시 압축하지 않음), 없으면 빈 문자열
         // timing*: 타이밍 시트 객체 재료. 시트/점 시각 파일은 지금 길이까지 네이티브가 읽고, 앞 timingFileFrameCount 프레임만 쓴 뒤 메모리 부분 기록을 이어 붙임
         //   (TimingSheetFile.makeSheetFileObject와 같은 객체, timingLegacyFrameCount는 객체 끝의 옛 프레임 수)
+        // cacheSegmentPaths/cacheSegmentNumbers: repdata 조각 캐시(ReplaySegmentCache) 앞부분 조각 파일 경로와 조각마다 [원본 길이, 원본 crc, 압축 길이, 압축 crc, 누적 프레임]
+        //   네이티브는 맞는 앞부분 조각을 그대로 쓰고 repdata는 그 뒤부터만 읽음, 결과 message의 cachedSegments가 offeredCacheSegments보다 적으면 그 뒤 조각 파일이 깨진 것
         public static function startReplayFileAndPngSave(pngPath:String, fofoPath:String, compositeBitmapData:BitmapData,
                 firstLayer1BitmapData:BitmapData, firstLayer2BitmapData:BitmapData, currentLayer1BitmapData:BitmapData, currentLayer2BitmapData:BitmapData, referenceBitmapData:BitmapData,
                 repdataPath:String, repdataReadByteLength:Number, memoryGroupsBytes:ByteArray, mirrorBytes:ByteArray,
                 timingSheetFilePath:String, timingSheetFileByteLength:Number, timingPointsFilePath:String, timingPointsFileByteLength:Number,
                 timingFileFrameCount:Number, timingMemoryRecordBytes:ByteArray, timingMemoryPointRecordBytes:ByteArray, timingLegacyFrameCount:Number,
-                firstImageMetaArray:Array, finalImageMetaArray:Array, referenceImageMetaArray:Array, nativeSaveOptions:int, reuseFofoPath:String, onSaveDone:Function):Boolean
+                firstImageMetaArray:Array, finalImageMetaArray:Array, referenceImageMetaArray:Array, nativeSaveOptions:int, reuseFofoPath:String,
+                cacheSegmentPaths:Array, cacheSegmentNumbers:Array, onSaveDone:Function):Boolean
         {
             if (!isAvailable)
             {
@@ -59,7 +62,8 @@ package Modules.L1Data
             const saveJobId:int = NativeCore.nextNativeJobId();
             const nativeResultCode:int = NativeCore.callNativeFunctionForResultCode("saveStart", saveJobId, pngPath, fofoPath, compositeBitmapData, firstLayer1BitmapData, firstLayer2BitmapData, currentLayer1BitmapData, currentLayer2BitmapData, referenceBitmapData,
                     repdataPath, repdataReadByteLength, memoryGroupsBytes, mirrorBytes, firstImageMetaArray, finalImageMetaArray, referenceImageMetaArray, nativeSaveOptions, reuseFofoPath,
-                    timingSheetFilePath, timingSheetFileByteLength, timingPointsFilePath, timingPointsFileByteLength, timingFileFrameCount, timingMemoryRecordBytes, timingMemoryPointRecordBytes, timingLegacyFrameCount);
+                    timingSheetFilePath, timingSheetFileByteLength, timingPointsFilePath, timingPointsFileByteLength, timingFileFrameCount, timingMemoryRecordBytes, timingMemoryPointRecordBytes, timingLegacyFrameCount,
+                    cacheSegmentPaths, cacheSegmentNumbers);
 
             if (nativeResultCode !== NativeCore.OK)
             {

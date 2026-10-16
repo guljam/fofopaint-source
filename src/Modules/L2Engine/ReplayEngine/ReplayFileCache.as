@@ -43,6 +43,7 @@ package Modules.L2Engine.ReplayEngine
 
             if (AppDataPaths.replayDataFilePath.exists === false || overWrite === true)
             {
+                ReplaySegmentCache.clearSegmentCache(); // repdata보다 먼저 비워서 중간에 꺼져도 캐시가 새 repdata와 어긋나지 않게 함
                 const fs:FileStream = new FileStream();
                 fs.open(AppDataPaths.replayDataFilePath, FileMode.WRITE);
                 fs.close();

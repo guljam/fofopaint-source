@@ -36,6 +36,7 @@
     import Modules.L2Engine.BackgroundWorkerCoordinator;
     import Modules.L4UI.PaletteController;
     import Modules.L2Engine.ReplayEngine.ReplayFileCache;
+    import Modules.L2Engine.ReplayEngine.ReplaySegmentCache;
     import Modules.L4UI.UIEngine.UIController;
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
@@ -163,7 +164,7 @@
                 }
             };
             DrawCanvas.onMouseHintTempFunc = HintController.showMouseHintTemp;
-            BackgroundWorkerCoordinator.onReplayDataCompressedFunc = FileManager.writeReplayFile;
+            BackgroundWorkerCoordinator.onReplayDataCompressedFunc = FileManager.onReplayDataCompressedByWorker;
             BackgroundWorkerCoordinator.onWorkerStoppedFunc = function ():void
             {
                 if (LoadBoxController.isLoadPendingAfterSaving)
@@ -317,6 +318,10 @@
             if (isNewReplayFile)
             {
                 ReplayFileCache.createFirstImageCache(DrawCanvas.canvasLayer1BitmapData, DrawCanvas.canvasLayer2BitmapData, DrawCanvas.CANVAS_BG_COLOR);
+            }
+            else
+            {
+                ReplaySegmentCache.restoreSegmentCacheFromDisk(); // 지난 실행의 repdata 조각 캐시 중 지금 repdata와 맞는 앞부분을 이어 씀
             }
             CanvasNavigator.box.updateImage();
             ActivityWorkTimer.start();

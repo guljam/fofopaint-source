@@ -45,6 +45,8 @@ package Modules.L1Data
 
         public static var replayCachePreviewFilePath:File; // 그때 로드박스에 깔려있던 흐린 배경 이미지
 
+        public static var replaySegmentCacheFolderPath:File; // repdata를 조각(1만 프레임 경계)마다 미리 인코드해 둔 캐시 (ReplaySegmentCache)
+
         public static var isLoadingAppData:Boolean = false;
 
         // 앱 데이터 폴더(portable_<버전>)와 그 안의 파일 경로를 정함 (AppStateManager.initialize에서 부름)
@@ -66,6 +68,7 @@ package Modules.L1Data
             replayCacheImageFrameDataFilePath = dataFolderPath.resolvePath("jumpframedata");
             replayCacheProgressFilePath = dataFolderPath.resolvePath("imagecacheprogress");
             replayCachePreviewFilePath = dataFolderPath.resolvePath("imagecachepreview");
+            replaySegmentCacheFolderPath = dataFolderPath.resolvePath("repdatacache");
         }
 
         // 에러 내용을 데이터 폴더\log\ 의 날짜별 파일에 덧붙여 씀 (쓰는 중에 다시 불리면 무시함)

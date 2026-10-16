@@ -136,25 +136,51 @@ package worker
             return this.cacheGeneration.atomicCompareAndSwapIntAt(0, 0, 0) !== generation;
         }
 
-        private function compressReplayData(ba1:ByteArray, ba2:ByteArray, ba3:ByteArray, ba4:ByteArray, ba5:ByteArray, ba6:ByteArray):void
+        // replaySegmentInfo가 있으면 세그먼트 형식: repdata 조각 캐시 조각(압축 crc 확인) + ba6(캐시 뒤 부분 + 메모리 뭉치)을 조각으로 인코드해서 이어 붙임
+        // 캐시 조각이 깨졌거나 ba6를 조각으로 인코드하지 못하면 "segment-cache-failed" (캐시 앞부분이 있으면 ba6가 리플레이 전체가 아니라 zlib로 대신 쓸 수 없음)
+        // replaySegmentInfo가 null이면 이전 방식: ba6 전체를 한 덩어리로 인코드, 복원 결과가 원본과 다르면 기존 zlib
+        private function compressReplayData(ba1:ByteArray, ba2:ByteArray, ba3:ByteArray, ba4:ByteArray, ba5:ByteArray, ba6:ByteArray, replaySegmentInfo:Object):void
         {
             ba1.compress();
             ba2.compress();
             ba3.compress();
             ba4.compress();
             ba5.compress();
-            // 리플레이 명령은 전용 변환(LZMA 포함)으로 저장하고, 복원 결과가 원본과 다르면 기존 zlib으로 저장
-            const encoded:ByteArray = ReplayDataCodec.encodeVerified(ba6);
-            if (encoded != null)
+            var segmentSaveStatus:String = "whole";
+
+            if (replaySegmentInfo !== null)
             {
-                ba6.clear();
-                ba6.writeBytes(encoded);
-                ba6.position = 0;
-                encoded.clear();
+                const segmentedBlock:ByteArray = encodeSegmentedReplayBlock(ba6, replaySegmentInfo);
+                if (segmentedBlock !== null)
+                {
+                    ba6.clear();
+                    ba6.writeBytes(segmentedBlock);
+                    ba6.position = 0;
+                    segmentedBlock.clear();
+                    segmentSaveStatus = "segment";
+                }
+                else if (replaySegmentInfo.cachedSegments.length > 0)
+                {
+                    ba6.clear();
+                    segmentSaveStatus = "segment-cache-failed";
+                }
             }
-            else
+
+            if (segmentSaveStatus === "whole")
             {
-                ba6.compress();
+                // 리플레이 명령은 전용 변환(LZMA 포함)으로 저장하고, 복원 결과가 원본과 다르면 기존 zlib으로 저장
+                const encoded:ByteArray = ReplayDataCodec.encodeVerified(ba6);
+                if (encoded != null)
+                {
+                    ba6.clear();
+                    ba6.writeBytes(encoded);
+                    ba6.position = 0;
+                    encoded.clear();
+                }
+                else
+                {
+                    ba6.compress();
+                }
             }
             this.backToMain.send("compress_ReplayDataDone");
             this.backToMain.send(ba1);
@@ -163,6 +189,7 @@ package worker
             this.backToMain.send(ba4);
             this.backToMain.send(ba5);
             this.backToMain.send(ba6);
+            this.backToMain.send(segmentSaveStatus);
             ba1.clear();
             ba2.clear();
             ba3.clear();
@@ -175,6 +202,88 @@ package worker
             ba4 = null;
             ba5 = null;
             ba6 = null;
+        }
+
+        // repdata 조각 캐시 조각(압축 crc가 맞는지 확인) + tailReplay를 조각으로 인코드한 것을 세그먼트 형식 블록으로, 못하면 null
+        private function encodeSegmentedReplayBlock(tailReplay:ByteArray, replaySegmentInfo:Object):ByteArray
+        {
+            const segments:Array = [];
+            const cachedSegments:Array = replaySegmentInfo.cachedSegments;
+            const cachedSegmentBytes:Array = replaySegmentInfo.cachedSegmentBytes;
+
+            for (var i:int = 0; i < cachedSegments.length; i++)
+            {
+                const compressed:ByteArray = cachedSegmentBytes[i] as ByteArray;
+                if (compressed === null || ReplayDataCodec.crc32OfBytes(compressed, 0, compressed.length) !== cachedSegments[i].compressedCrc)
+                {
+                    trace("Replay segment cache " + i + " is broken");
+                    return null;
+                }
+                segments.push({ rawLength: cachedSegments[i].rawLength, rawCrc: cachedSegments[i].rawCrc, compressed: compressed, compressedCrc: cachedSegments[i].compressedCrc });
+            }
+
+            const tailSegments:Array = ReplayDataCodec.encodeReplaySegments(tailReplay, replaySegmentInfo.tailStartFrames, false);
+            if (tailSegments === null)
+                return null;
+
+            const block:ByteArray = ReplayDataCodec.assembleSegmentedBlock(segments.concat(tailSegments));
+            for each (var segment:Object in segments.concat(tailSegments))
+                ByteArray(segment.compressed).clear();
+            return block;
+        }
+
+        // repdata 조각 캐시 채우기: replayBytes를 조각으로 나눠 닫힌 조각만 인코드하고 folderPath에 조각마다 파일로 씀 (임시 파일에 쓰고 교체)
+        // 결과: [{fileName, rawLength, rawCrc, compressedLength, compressedCrc, endFrames}] 또는 실패면 null (main ReplaySegmentCache.finishWorkerSegmentCacheFill)
+        private function encodeReplaySegmentsToCacheFiles(jobId:int, replayBytes:ByteArray, replayStartFrames:Number, folderPath:String, segmentFileNamePrefix:String, firstSegmentNumber:int):void
+        {
+            const start:Number = new Date().time;
+            var results:Array = null;
+            var encodedTime:Number = start;
+            const replay:ByteArray = new ByteArray();
+            replay.writeBytes(replayBytes);
+            replayBytes.clear();
+
+            try
+            {
+                const segments:Array = ReplayDataCodec.encodeReplaySegments(replay, replayStartFrames, true);
+                encodedTime = new Date().time;
+                if (segments !== null)
+                {
+                    results = [];
+                    for (var i:int = 0; i < segments.length; i++)
+                    {
+                        const fileName:String = segmentFileNamePrefix + (firstSegmentNumber + i);
+                        const file:File = new File(folderPath).resolvePath(fileName);
+                        const tempFile:File = new File(folderPath).resolvePath(fileName + ".tmp");
+                        const fs:FileStream = new FileStream();
+                        try
+                        {
+                            fs.open(tempFile, FileMode.WRITE);
+                            fs.writeBytes(segments[i].compressed);
+                        }
+                        finally
+                        {
+                            fs.close();
+                        }
+                        tempFile.moveTo(file, true);
+                        results.push({ fileName: fileName, rawLength: segments[i].rawLength, rawCrc: segments[i].rawCrc, compressedLength: segments[i].compressed.length,
+                                compressedCrc: segments[i].compressedCrc, endFrames: segments[i].endFrames });
+                        segments[i].compressed.clear();
+                    }
+                }
+            }
+            catch (error:Error)
+            {
+                trace("Replay segment cache fill failed: " + error);
+                results = null;
+            }
+
+            replay.clear();
+            this.backToMain.send("encode_ReplaySegmentsDone");
+            this.backToMain.send(jobId);
+            this.backToMain.send(results);
+            this.backToMain.send(encodedTime - start);
+            this.backToMain.send(new Date().time - encodedTime);
         }
 
         private function onFromMain(event:Event):void
@@ -190,7 +299,10 @@ package worker
                     this.encodePNG(this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true));
                     break;
                 case "compress_ReplayData":
-                    this.compressReplayData(this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true));
+                    this.compressReplayData(this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true));
+                    break;
+                case "encode_ReplaySegments":
+                    this.encodeReplaySegmentsToCacheFiles(this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true));
                     break;
                 case "compress_UndoData":
                     this.compressUndoData(this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true), this.mainToBack.receive(true));

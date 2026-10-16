@@ -4,7 +4,9 @@
 // AIR 쪽이 예외를 내고, 먼저 잘리면 호출 시점 내용이 아니게 됨
 // 스레드에서 PNG 인코드, 이미지 5개 straight 변환 + zlib, FRC2 세그먼트 인코드(검증)를 동시에 하고
 // 이전 .fofo(reuseFofoPath)에 원본이 같은 리플레이 조각, 첫 이미지, 참고 이미지가 있으면 그 압축 바이트를 다시 씀 (frc2.h 세그먼트 형식 설명)
+// repdata 조각 캐시(AS3 ReplaySegmentCache)의 앞부분 조각을 넘겨받으면 그 파일을 읽어(길이, 압축 crc 확인) 그대로 쓰고 repdata는 캐시 끝부터만 읽음
 // .fofo를 ReplayFileCache.writeReplayFile과 같은 구조로 씀. 결과는 StatusEvent("save", 작업 번호) -> takeJobResult
+// 조각 캐시 채우기(replaySegmentCacheFillStart)도 여기 있음: repdata 구간을 호출 안에서 읽고, 스레드에서 닫힌 조각만 인코드해 조각 파일로 씀 -> StatusEvent("segcache")
 //
 // 쓰기 실패 처리 (지시서 D5, D6)
 // - 임시 파일을 대상 폴더에 만들지 못하거나 쓰는 중 실패(폴더 없음, 권한 없음, 디스크 부족, 잘못된 이름) -> 최종 실패, 재시도 없음
@@ -385,21 +387,20 @@ namespace
         }
     }
 
-    // 이전 .fofo(V2FOFOPAINT/FOFOPAINT 헤더)에서 리플레이 조각 표와 뒷부분을 읽음. 파일이 없거나 형식이 아니면 비워둠 (그러면 모두 새로 압축)
-    // 리플레이 조각의 압축 바이트는 여기서 읽지 않고, 원본이 같은 조각만 인코드 중에 그 위치에서 읽음
-    void readOldFofoForReuse(const std::wstring& path, OldFofoForReuse& old)
+    // 이전 .fofo(V2FOFOPAINT/FOFOPAINT 헤더)에서 리플레이 조각 표를 읽어 replay에 넣고, 리플레이 블록 뒤 위치(tailStart)를 돌려줌
+    // 파일이 없거나 형식이 아니면 false, 세그먼트 형식이 아니면 조각 표는 비워둠
+    bool readOldFofoReplaySegmentTable(const std::wstring& path, Frc2ReuseSource& replay, uint64_t* tailStart, uint64_t* fileSizeOut)
     {
-        const double start = nowMs();
         uint64_t fileSize = 0;
 
         if (path.empty() || !fileSizeOf(path, &fileSize))
-            return;
+            return false;
 
         Bytes head;
         const uint64_t headLength = 11 + 4 + FRC2_SEGMENT_HEAD_BYTES;
 
         if (!readFileRange(path, 0, (fileSize < headLength) ? fileSize : headLength, head).ok)
-            return;
+            return false;
 
         size_t headerLength = 0;
 
@@ -408,18 +409,17 @@ namespace
         else if (head.size() >= 9 && memcmp(head.data(), "FOFOPAINT", 9) == 0)
             headerLength = 9;
         else
-            return;
+            return false;
 
         if (head.size() < headerLength + 4)
-            return;
+            return false;
 
         const uint8_t* lengthBytes = head.data() + headerLength;
         const uint64_t blockLength = ((uint32_t)lengthBytes[0] << 24) | ((uint32_t)lengthBytes[1] << 16) | ((uint32_t)lengthBytes[2] << 8) | lengthBytes[3];
         const uint64_t blockStart = headerLength + 4;
-        const uint64_t tailStart = blockStart + blockLength;
 
-        if (tailStart > fileSize)
-            return;
+        if (blockStart + blockLength > fileSize)
+            return false;
 
         const int64_t segmentCount = (head.size() > blockStart) ? frc2SegmentCountFromHead(head.data() + blockStart, (size_t)(head.size() - blockStart)) : -1;
 
@@ -428,16 +428,82 @@ namespace
             Bytes table;
 
             if (readFileRange(path, blockStart + FRC2_SEGMENT_HEAD_BYTES, (uint64_t)segmentCount * FRC2_SEGMENT_ENTRY_BYTES, table).ok
-                && frc2ReadSegmentTable(table.data(), (uint32_t)segmentCount, blockStart, blockLength, old.replay.segments))
-                old.replay.path = path;
+                && frc2ReadSegmentTable(table.data(), (uint32_t)segmentCount, blockStart, blockLength, replay.segments))
+                replay.path = path;
             else
-                old.replay.segments.clear();
+                replay.segments.clear();
         }
+
+        *tailStart = blockStart + blockLength;
+        *fileSizeOut = fileSize;
+        return true;
+    }
+
+    // 이전 .fofo에서 리플레이 조각 표와 뒷부분(첫 이미지/참고 이미지 재사용)을 읽음. 파일이 없거나 형식이 아니면 비워둠 (그러면 모두 새로 압축)
+    // 리플레이 조각의 압축 바이트는 여기서 읽지 않고, 원본이 같은 조각만 인코드 중에 그 위치에서 읽음
+    void readOldFofoForReuse(const std::wstring& path, OldFofoForReuse& old)
+    {
+        const double start = nowMs();
+        uint64_t tailStart = 0;
+        uint64_t fileSize = 0;
+
+        if (!readOldFofoReplaySegmentTable(path, old.replay, &tailStart, &fileSize))
+            return;
 
         if (tailStart < fileSize && readFileRange(path, tailStart, fileSize - tailStart, old.tail).ok)
             findReusableImagesInOldTail(old);
 
         old.readMs = nowMs() - start;
+    }
+
+    // repdata 조각 캐시 파일들을 순서대로 읽어 압축 길이, 압축 crc, FRC2 버전 1 머리가 맞는 앞부분만 out에 넣음 (처음 틀린 조각에서 멈춤)
+    // pathArray: 캐시 파일 경로들, numberArray: 조각마다 [원본 길이, 원본 crc, 압축 길이, 압축 crc, 누적 프레임], offeredCount: 넘겨받은 조각 수
+    void readValidReplaySegmentCacheFiles(FREObject pathArray, FREObject numberArray, std::vector<Frc2EncodedSegment>& out, uint32_t* offeredCount)
+    {
+        const uint32_t NUMBERS_PER_SEGMENT = 5;
+        FREObjectType type;
+        uint32_t pathCount = 0;
+        uint32_t numberCount = 0;
+        *offeredCount = 0;
+
+        if (FREGetObjectType(pathArray, &type) != FRE_OK || type != FRE_TYPE_ARRAY || FREGetArrayLength(pathArray, &pathCount) != FRE_OK
+            || FREGetObjectType(numberArray, &type) != FRE_OK || type != FRE_TYPE_ARRAY || FREGetArrayLength(numberArray, &numberCount) != FRE_OK
+            || numberCount != pathCount * NUMBERS_PER_SEGMENT)
+            return;
+
+        *offeredCount = pathCount;
+
+        for (uint32_t i = 0; i < pathCount; i++)
+        {
+            FREObject element;
+            std::string path;
+            double numbers[NUMBERS_PER_SEGMENT];
+
+            if (FREGetArrayElementAt(pathArray, i, &element) != FRE_OK || !getUtf8(element, path))
+                return;
+
+            for (uint32_t k = 0; k < NUMBERS_PER_SEGMENT; k++)
+            {
+                if (FREGetArrayElementAt(numberArray, i * NUMBERS_PER_SEGMENT + k, &element) != FRE_OK || !getDouble(element, &numbers[k]) || numbers[k] < 0)
+                    return;
+            }
+
+            Frc2EncodedSegment segment;
+            segment.rawLength = (uint32_t)numbers[0];
+            segment.rawCrc = (uint32_t)numbers[1];
+            segment.endFrames = (uint64_t)numbers[4];
+            const uint64_t compressedLength = (uint64_t)numbers[2];
+            const std::wstring segmentFilePath = widePath(path);
+            uint64_t fileSize = 0;
+
+            if (!fileSizeOf(segmentFilePath, &fileSize) || fileSize != compressedLength || compressedLength < 5
+                || !readFilePrefix(segmentFilePath, compressedLength, segment.compressed).ok
+                || memcmp(segment.compressed.data(), "FRC2", 4) != 0 || segment.compressed[4] != 1
+                || crc32OfBytes(segment.compressed.data(), segment.compressed.size()) != (uint32_t)numbers[3])
+                return;
+
+            out.push_back(std::move(segment));
+        }
     }
 
     // 결과 문자열: 줄마다 한 필드
@@ -657,7 +723,11 @@ namespace
         int32_t id = 0;
         std::wstring pngPath;
         std::wstring fofoPath;
-        Bytes replay; // repdata 앞부분 + 메모리 뭉치
+        Bytes replay; // repdata 앞부분(조각 캐시가 있으면 캐시 뒤부터) + 메모리 뭉치
+        std::vector<Frc2EncodedSegment> cachedReplaySegments; // repdata 조각 캐시에서 읽은 앞부분 조각들 (repdata 처음부터 이어짐)
+        uint64_t replayStartFrames = 0; // replay 앞까지의 누적 프레임 (= 캐시 조각 마지막 endFrames)
+        uint32_t offeredCacheSegmentCount = 0; // AS3가 넘긴 캐시 조각 수 (cachedReplaySegments보다 많으면 뒤는 읽기/검증 실패)
+        double cacheReadMs = 0;
         PixelImage composite;
         PixelImage images[5]; // 첫 이미지 1, 2, 현재 1, 2, 참고
         bool hasReference = false;
@@ -695,8 +765,11 @@ namespace
             volatile LONG reusedImageCount = 0;
             volatile LONG failed = 0;
             const char* volatile failMessage = "";
+            const char* volatile failStage = "encode";
             const int partCount = (hasReference ? 7 : 6) + 1;
             const int timingSheetPartIndex = partCount - 1; // 마지막 작업 = 타이밍 시트 객체
+            const size_t cachedSegmentCount = cachedReplaySegments.size();
+            const uint64_t tailByteCount = replay.size();
             OldFofoForReuse old;
 
             if (!isLegacyWholeSave)
@@ -725,18 +798,35 @@ namespace
                         const double replayStart = nowMs();
                         std::string error;
 
-                        // 리플레이 명령은 FRC2 세그먼트 형식으로 (이전 .fofo에 같은 조각이 있으면 그대로 씀)
+                        // 리플레이 명령은 FRC2 세그먼트 형식으로: 앞부분은 repdata 조각 캐시의 압축 바이트를 그대로 쓰고
+                        // 나머지(replay)만 조각으로 나눠 인코드 (이전 .fofo에 같은 조각이 있으면 그대로 씀)
                         // 지원하지 않는 형식이거나 검증이 다르면 기존 zlib (V1 헤더)
                         if (!forceZlibReplay && !isLegacyWholeSave)
                         {
-                            Pieces segmented;
+                            std::vector<Frc2EncodedSegment> tailSegments;
 
-                            if (frc2EncodeSegmentedVerified(replay.data(), replay.size(), FRC2_SEGMENT_FRAMES, old.replay.segments.empty() ? NULL : &old.replay,
-                                PRIORITY_SAVE, segmented, segmentStats, error) == FRC2_OK)
+                            if (frc2EncodeReplaySegments(replay.data(), replay.size(), replayStartFrames, FRC2_SEGMENT_FRAMES, false, old.replay.segments.empty() ? NULL : &old.replay,
+                                PRIORITY_SAVE, tailSegments, segmentStats, error) == FRC2_OK)
                             {
-                                replayBlock = std::move(segmented);
+                                std::vector<Frc2EncodedSegment> allSegments;
+                                allSegments.reserve(cachedReplaySegments.size() + tailSegments.size());
+
+                                for (size_t i = 0; i < cachedReplaySegments.size(); i++)
+                                    allSegments.push_back(std::move(cachedReplaySegments[i]));
+
+                                for (size_t i = 0; i < tailSegments.size(); i++)
+                                    allSegments.push_back(std::move(tailSegments[i]));
+
+                                cachedReplaySegments.clear();
+                                frc2AssembleSegmentedBlock(allSegments, replayBlock);
                                 isFrc2 = true;
                                 codecName = "frc2seg";
+                            }
+                            else if (!cachedReplaySegments.empty())
+                            {
+                                // 앞부분을 캐시로 받아서 replay가 리플레이 전체가 아님 -> zlib로 대신 쓸 수 없음, AS3가 캐시 없이 다시 저장
+                                failStage = "segment-cache";
+                                throw "replay tail segment encode failed";
                             }
                         }
                         else if (!forceZlibReplay)
@@ -808,8 +898,8 @@ namespace
 
             if (failed)
             {
-                // 네이티브 내부 오류: 쓰기 실패가 아님, AS3가 이 저장을 기존 worker 경로로 처리함
-                jobs::finish(id, "save", makeResult("internal", pngPath, fofoPath, 0, "encode", 0, "", encoded - start, 0, failMessage));
+                // 네이티브 내부 오류: 쓰기 실패가 아님, AS3가 이 저장을 기존 worker 경로로 처리함 ("segment-cache"면 조각 캐시 없이 다시 저장)
+                jobs::finish(id, "save", makeResult("internal", pngPath, fofoPath, 0, failStage, 0, "", encoded - start, 0, failMessage));
                 return;
             }
 
@@ -863,10 +953,14 @@ namespace
             const uint64_t fofoSize = fofo.size();
             const char* codec = codecName;
             // 저장 결과 message 끝에 붙이는 재사용 집계 (key=value, 테스트와 로그용)
-            char reuseStats[256];
-            sprintf_s(reuseStats, "replayMs=%.1f segments=%lu reusedSegments=%lu rejectedSegments=%lu reusedRawBytes=%llu reusedImages=%ld oldReadMs=%.1f timingSheetMs=%.1f",
+            // cachedSegments: repdata 조각 캐시에서 그대로 쓴 조각 수, offeredCacheSegments: AS3가 넘긴 수 (적으면 그 뒤 캐시 파일은 깨진 것)
+            // segments/reusedSegments는 캐시 뒤에서 새로 나눈 조각만 셈
+            char reuseStats[384];
+            sprintf_s(reuseStats, "replayMs=%.1f segments=%lu reusedSegments=%lu rejectedSegments=%lu reusedRawBytes=%llu reusedImages=%ld oldReadMs=%.1f timingSheetMs=%.1f"
+                " cachedSegments=%lu offeredCacheSegments=%lu cacheReadMs=%.1f tailBytes=%llu",
                 replayMs, (unsigned long)segmentStats.segmentCount, (unsigned long)segmentStats.reusedCount, (unsigned long)segmentStats.rejectedCount,
-                (unsigned long long)segmentStats.reusedRawBytes, (long)reusedImageCount, old.readMs, timingSheetMs);
+                (unsigned long long)segmentStats.reusedRawBytes, (long)reusedImageCount, old.readMs, timingSheetMs,
+                (unsigned long)cachedSegmentCount, (unsigned long)offeredCacheSegmentCount, cacheReadMs, (unsigned long long)tailByteCount);
 
             // 임시 파일 쓰기: 여기서 실패하면 이름을 바꿔도 소용없음 -> 최종 실패
             std::wstring pngTemp;
@@ -1066,6 +1160,94 @@ namespace
         }
     };
 
+    // repdata 한 구간을 조각 규칙으로 나눠 닫힌 조각(경계에서 끝나는 조각)만 인코드하고 조각마다 캐시 파일로 씀 (ReplaySegmentCache 채우기)
+    // 결과: StatusEvent("segcache", 작업 번호) -> takeJobResult
+    //   "ok\n인코드ms\n쓰기ms\n재사용 조각 수\n조각 수\n" + 조각마다 "파일 이름 원본길이 원본crc 압축길이 압축crc 누적프레임\n"
+    //   실패면 "error\n메세지"
+    class ReplaySegmentCacheFillJob : public Task
+    {
+    public:
+        int32_t id = 0;
+        Bytes replay; // repdata 구간 (호출 시점 내용)
+        uint64_t replayStartFrames = 0; // 구간 앞까지의 누적 프레임
+        std::wstring cacheFolderPath;
+        std::string segmentFileNamePrefix; // 조각 파일 이름 = 접두어 + 조각 번호
+        uint32_t firstSegmentNumber = 0;
+        std::wstring reuseFofoPath; // 같은 조각의 압축 결과를 가져올 .fofo (불러온 파일), 없으면 빈 문자열
+        uint64_t budgetBytes = 0;
+
+        ~ReplaySegmentCacheFillJob() override
+        {
+            budget::release(budgetBytes);
+        }
+
+        void run() override
+        {
+            const double start = nowMs();
+            Frc2ReuseSource reuse;
+            uint64_t tailStart = 0;
+            uint64_t fileSize = 0;
+
+            if (!reuseFofoPath.empty())
+                readOldFofoReplaySegmentTable(reuseFofoPath, reuse, &tailStart, &fileSize);
+
+            std::vector<Frc2EncodedSegment> segments;
+            Frc2SegmentStats stats;
+            std::string error;
+            const int result = frc2EncodeReplaySegments(replay.data(), replay.size(), replayStartFrames, FRC2_SEGMENT_FRAMES, true,
+                reuse.segments.empty() ? NULL : &reuse, PRIORITY_CACHE, segments, stats, error);
+            Bytes().swap(replay);
+
+            if (result != FRC2_OK)
+            {
+                jobs::finish(id, "segcache", "error\n" + error);
+                return;
+            }
+
+            const double encoded = nowMs();
+            std::string lines;
+
+            for (size_t i = 0; i < segments.size(); i++)
+            {
+                char number[16];
+                sprintf_s(number, "%lu", (unsigned long)(firstSegmentNumber + i));
+                const std::string fileName = segmentFileNamePrefix + number;
+                const std::wstring filePath = cacheFolderPath + L"\\" + widePath(fileName);
+                const uint64_t compressedLength = segments[i].compressed.size();
+                const uint32_t compressedCrc = crc32OfBytes(segments[i].compressed.data(), segments[i].compressed.size());
+                Pieces file;
+                file.parts.push_back(std::move(segments[i].compressed));
+                std::wstring tempPath;
+                IoResult written = writeTempFile(filePath, { &file }, tempPath);
+
+                if (written.ok)
+                {
+                    written = replaceFile(tempPath, filePath);
+
+                    if (!written.ok)
+                        deleteQuietly(tempPath);
+                }
+
+                if (!written.ok)
+                {
+                    char message[96];
+                    sprintf_s(message, "error\nsegment write failed %lu", (unsigned long)written.error);
+                    jobs::finish(id, "segcache", message);
+                    return;
+                }
+
+                char line[160];
+                sprintf_s(line, "%s %lu %lu %llu %lu %llu\n", fileName.c_str(), (unsigned long)segments[i].rawLength, (unsigned long)segments[i].rawCrc,
+                    (unsigned long long)compressedLength, (unsigned long)compressedCrc, (unsigned long long)segments[i].endFrames);
+                lines += line;
+            }
+
+            char head[128];
+            sprintf_s(head, "ok\n%.1f\n%.1f\n%lu\n%lu\n", encoded - start, nowMs() - encoded, (unsigned long)stats.reusedCount, (unsigned long)segments.size());
+            jobs::finish(id, "segcache", head + lines);
+        }
+    };
+
     uint64_t estimate(const PixelImage& image)
     {
         // 스냅샷 + straight 변환 버퍼 + 압축 결과(대략 절반)
@@ -1075,7 +1257,9 @@ namespace
 
 // saveStart(id, pngPath, fofoPath, composite, first1, first2, current1, current2, reference|null,
 //           repdataPath, repdataLength, memoryGroups, mirrorBytes, firstMeta, finalMeta, referenceMeta|null, options, reuseFofoPath,
-//           timingSheetPath, timingSheetLength, timingPointsPath, timingPointsLength, timingFileFrameCount, timingMemoryRecords, timingMemoryPointRecords, timingLegacyFrameCount):int
+//           timingSheetPath, timingSheetLength, timingPointsPath, timingPointsLength, timingFileFrameCount, timingMemoryRecords, timingMemoryPointRecords, timingLegacyFrameCount,
+//           [cacheSegmentPaths, cacheSegmentNumbers]):int
+// cacheSegment*: repdata 조각 캐시 (ReplaySegmentCache), 처음부터 이어진 조각 파일 경로와 조각마다 [원본 길이, 원본 crc, 압축 길이, 압축 crc, 누적 프레임]
 // options: 1 = repdata를 FRC2 대신 zlib으로 (테스트용), 2 = 세그먼트 이전 방식(리플레이 한 덩어리 FRC2, 이미지 재사용 없음, 비교 테스트용)
 // reuseFofoPath: 압축 결과를 다시 쓸 이전 .fofo 경로, 없으면 빈 문자열
 // timing*: 타이밍 시트 재료. 시트/점 시각 파일은 repdata처럼 여기서 호출 시점 길이까지 읽어 둠 (AIR가 공유 없이 열어 쓰는 파일이라 스레드에서 읽지 않음)
@@ -1126,10 +1310,34 @@ static FREObject SaveStart(FREContext ctx, void* functionData, uint32_t argc, FR
     job->isLegacyWholeSave = (options & 2) != 0;
     job->reuseFofoPath = reuseFofo.empty() ? std::wstring() : widePath(reuseFofo);
 
-    // repdata 앞부분 + 메모리 뭉치 (호출 시점 내용)
-    if (repdataLength > 0)
+    // repdata 조각 캐시: 맞는 앞부분 조각만 쓰고 repdata는 그 뒤부터만 읽음 (이전 방식/zlib 시험 옵션이면 캐시를 쓰지 않음)
+    const double cacheReadStart = nowMs();
+    uint64_t cachedRawByteLength = 0;
+
+    if (argc >= 28 && !job->forceZlibReplay && !job->isLegacyWholeSave)
     {
-        const IoResult read = readFilePrefix(widePath(repdata), (uint64_t)repdataLength, job->replay);
+        readValidReplaySegmentCacheFiles(argv[26], argv[27], job->cachedReplaySegments, &job->offeredCacheSegmentCount);
+
+        for (size_t i = 0; i < job->cachedReplaySegments.size(); i++)
+            cachedRawByteLength += job->cachedReplaySegments[i].rawLength;
+
+        // AS3는 저장 길이 안의 조각만 넘김, 넘으면 캐시를 쓰지 않음
+        if (cachedRawByteLength > (uint64_t)repdataLength)
+        {
+            job->cachedReplaySegments.clear();
+            cachedRawByteLength = 0;
+        }
+
+        if (!job->cachedReplaySegments.empty())
+            job->replayStartFrames = job->cachedReplaySegments.back().endFrames;
+    }
+
+    job->cacheReadMs = nowMs() - cacheReadStart;
+
+    // repdata 나머지 + 메모리 뭉치 (호출 시점 내용)
+    if ((uint64_t)repdataLength > cachedRawByteLength)
+    {
+        const IoResult read = readFileRange(widePath(repdata), cachedRawByteLength, (uint64_t)repdataLength - cachedRawByteLength, job->replay);
 
         if (!read.ok)
         {
@@ -1220,6 +1428,44 @@ static FREObject PngStart(FREContext ctx, void* functionData, uint32_t argc, FRE
     return newInt(RESULT_OK);
 }
 
+// replaySegmentCacheFillStart(id, repdataPath, startByte, endByte, startFrames, cacheFolderPath, segmentFileNamePrefix, firstSegmentNumber, reuseFofoPath):int
+// repdata의 [startByte, endByte)를 호출 안에서 읽고(saveStart와 같은 이유로 스레드에서 읽지 않음) 닫힌 조각을 캐시 파일로 씀 (ReplaySegmentCacheFillJob)
+static FREObject ReplaySegmentCacheFillStart(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
+{
+    if (argc < 9)
+        return newInt(RESULT_BAD_ARGUMENT);
+
+    ReplaySegmentCacheFillJob* job = new ReplaySegmentCacheFillJob();
+    std::string repdataPath, cacheFolderPath, reuseFofoPath;
+    double startByte = 0, endByte = 0, startFrames = 0;
+    int32_t firstSegmentNumber = 0;
+
+    if (!getInt(argv[0], &job->id) || !getUtf8(argv[1], repdataPath) || !getDouble(argv[2], &startByte) || !getDouble(argv[3], &endByte)
+        || !getDouble(argv[4], &startFrames) || !getUtf8(argv[5], cacheFolderPath) || !getUtf8(argv[6], job->segmentFileNamePrefix)
+        || !getInt(argv[7], &firstSegmentNumber) || !getUtf8(argv[8], reuseFofoPath)
+        || startByte < 0 || endByte < startByte || startFrames < 0 || firstSegmentNumber < 0)
+    {
+        delete job;
+        return newInt(RESULT_BAD_ARGUMENT);
+    }
+
+    if (endByte > startByte && !readFileRange(widePath(repdataPath), (uint64_t)startByte, (uint64_t)(endByte - startByte), job->replay).ok)
+    {
+        delete job;
+        return newInt(RESULT_IO_ERROR);
+    }
+
+    job->replayStartFrames = (uint64_t)startFrames;
+    job->cacheFolderPath = widePath(cacheFolderPath);
+    job->firstSegmentNumber = (uint32_t)firstSegmentNumber;
+    job->reuseFofoPath = reuseFofoPath.empty() ? std::wstring() : widePath(reuseFofoPath);
+    // 원본 + 인코드 중 버퍼 (조각 압축 결과는 원본보다 작음)
+    job->budgetBytes = (uint64_t)job->replay.size() * 2;
+    budget::forceAcquire(job->budgetBytes);
+    pool::submit(job, PRIORITY_CACHE);
+    return newInt(RESULT_OK);
+}
+
 // activeSaves():int  진행 중인 저장 작업 수
 static FREObject ActiveSaves(FREContext ctx, void* functionData, uint32_t argc, FREObject argv[])
 {
@@ -1235,6 +1481,7 @@ static const NamedFunction gSaveFunctions[] = {
     { "saveStart", &SaveStart },
     { "pngStart", &PngStart },
     { "activeSaves", &ActiveSaves },
+    { "replaySegmentCacheFillStart", &ReplaySegmentCacheFillStart },
 };
 
 const NamedFunction* saveFunctions(uint32_t* count)
