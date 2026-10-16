@@ -54,22 +54,6 @@
             "problemMatcher": []
         },
         {
-            "label": "Make and Install AIR Package",
-            "type": "shell",
-            "command": "pwsh",
-            "args": [
-                "-ExecutionPolicy",
-                "Bypass",
-                "-Command",
-                "& '${workspaceFolder}\\make-air-package.ps1'; if ($LASTEXITCODE -eq 0) { Start-Sleep -Seconds 1; Start-Process 'E:\\fofopaint-source\\bin\\fofoPaint.air' }"
-            ],
-            "problemMatcher": [],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
-            }
-        },
-        {
             "label": "Make AIR Package (legacy)",
             "type": "shell",
             "command": "pwsh",
