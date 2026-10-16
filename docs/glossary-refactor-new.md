@@ -2,6 +2,8 @@
 
 작성: 2026-10-10 (0단계). 브랜치 `refactor-layers`, 기준 077e56e. 이 파일은 단계마다 갱신한다.
 
+갱신: 2026-10-16, 브랜치 `native-ane`, 기준 d13c0daf. 6절 표를 지금 코드의 package·층 주석과 대조해 새 클래스 6개를 넣고 이름이 바뀐 클래스 1개를 고침.
+
 ## 1. 층 (0단계에서 사용자가 확정)
 
 | 층 | 이름 | 폴더 (package) | 뜻 |
@@ -64,13 +66,23 @@
 | 메뉴 상자 가장자리 클래스 | `MenuBoxBorderUI` (L4, `Modules.L4UI.UIEngine`) | 툴박스2, 올가미 메뉴, 참조 레이어 메뉴의 배경 조각(여러 개가 맞붙음) 바깥 변을 `EXTEND_PX`(2px) 늘리고 조각마다 같은 크기 `WornBorderMask`를 걸어 겉 테두리만 해지게 함. 힌트로 조각이 움직이면 `updateMenuBoxBorderRect`로 마스크를 맞춤. `ToolMenuSet2.hint`가 단일 줄 복귀 때 BG 높이를 60으로 고정하던 것은 저장해 둔 높이로 복원하도록 바꿈 |
 | 하이라이트 상자 모양 고정 | `HandDrawnLine.drawRect`의 `randomSeed` 인자, `HintController.HIGHLIGHT_BOX_SEED` | 앱을 켤 때 seed를 한 번 정해 같은 크기의 하이라이트가 늘 같은 모양이 됨(-1이면 예전처럼 그릴 때마다 무작위). 크기(가로x세로)별로 한 번 그린 `Shape`를 저장해 두었다가 같은 크기가 오면 그대로 보여주고, 하이라이트 색이 바뀌거나 64개를 넘으면 비움 |
 
+### native-ane 브랜치에서 정한 이름과 결정 (2026-10-16)
+
+| 항목 | 결정 | 뜻 |
+|---|---|---|
+| 메시지 상자 문구 클래스 | `MessageBoxStrings` (L4, `Modules.L4UI`) | `MessageBoxController.showStatusMessage`/`showErrorMessage`로 띄우는 문구 모음. 바뀌지 않는 문구는 `STRING_` 상수(`STRING_ALREADY_SAVED`, `STRING_UNKNOWN_ERROR`), 값을 이어 붙이는 문구는 `get~String` 메서드(`getReplayFileSavedString`, `getReplayFileSaveFailedString`, `getCaptureImageSavedString`, `getCaptureImageSaveFailedString`). 문구만 돌려주고 언제·어떤 종류(status/error)로 띄울지는 부르는 쪽이 정함. 소요 시간, 파일 이름 같은 값은 부르는 쪽이 계산해서 넘김 |
+| 층 | L4 UI | 같은 성격의 `HintStrings`(L4, `Modules.L4UI`)와 같은 자리. 크기 표시에 `ReplayFileCache.formatFileSize`(L2)를 부르므로 L1에는 둘 수 없음. 부르는 쪽은 `FileManager`, `Main`(L5) |
+| 함께 옮긴 것 | `FileManager.getSizeSuffix` → `MessageBoxStrings.getFileSizeSuffixString`, `FileManager.describeWriteError` → `MessageBoxStrings.getWriteErrorReasonString` (둘 다 private) | 결과가 메시지 문구에만 쓰여서 옮김. 네이티브 저장과 worker 저장이 같은 "File saved", "Image saved" 문구를 각각 따로 만들던 것도 하나로 합침 |
+| 받은 오류 문구 | `error.message`, `err.message`처럼 받은 오류를 그대로 띄우는 곳은 `MessageBoxStrings`에 넣지 않음 | 우리가 만든 문구가 아님 |
+| 이름 변경 | `PenCursorPreviewPixel` → `PenSizePreviewPixelStyleCursor` (L4, `Modules.L4UI`, 2e58ec24) | 정수 픽셀 원·사각형 외곽선을 그리는 펜 커서 픽셀 |
+
 ### 1단계 이후 새 L1 클래스의 위치
-`KeyState`, `AppDataPaths`, `ToolState`는 모두 `Modules.L1Data`(루트)에 있다.
+`KeyState`, `AppDataPaths`, `ToolState`, `AppContext`, `NativeReplaySegmentCache`는 모두 `Modules.L1Data`(루트)에 있다.
 
 ## 3. 층 배치 확정 (부록 A 초안 대비 변경)
 
 부록 A 초안과 다른 곳은 한 곳뿐이다: `DrawrScratchPad` L2 → **L4** (ColorPickerSet이 만들어 쓰는 UI 위젯).
-애매함 목록의 나머지 결정: HintController, CanvasNavigator, PenSizePreviewCursor, PenCursorPreviewPixel = **L4**, UITheme, ColorHistory, HintStrings, Utils = **L1**.
+애매함 목록의 나머지 결정: HintController, CanvasNavigator, PenSizePreviewCursor, PenCursorPreviewPixel(지금 `PenSizePreviewPixelStyleCursor`) = **L4**, UITheme, ColorHistory, HintStrings, Utils = **L1**. (HintStrings는 이후 L4로 바뀜, 6절 표 참고)
 층이 나중에 바뀌면 그 클래스는 한 번 더 옮긴다 (3-5).
 
 ## 4. 기존 코드의 이해하기 어려운 이름 (해당 코드의 주석에서 가져옴)
@@ -100,6 +112,7 @@
 ## 6. 클래스별 목적지 (폴더 이동은 각 클래스를 처음 손대는 단계에서 함, R9)
 
 - 현재 package가 `(루트)`인 클래스 중 `Main`만 제자리 (document class). 나머지 루트 클래스(AppWindowState, DrawrScratchPad, FOFOTimer, HintStrings)는 층 폴더로 옮긴다: 옮길 때 사용처에 import가 추가된다.
+- `worker` 폴더의 클래스(BackgroundImageProcessor, CacheImageMetaDataRecord)는 별도 worker.swf로 빌드하므로 층에 넣지 않고 표에서도 뺀다.
 - `worker`가 import하는 CacheImageFormat, PixelRestore, ReplayDataCodec를 옮기면 worker.swf를 다시 빌드한다 (3-5).
 - 같은 이름의 기능 폴더가 층마다 생긴다 (예: `L1Data.ReplayEngine`, `L2Engine.ReplayEngine`, `L5App.ReplayEngine`). 클래스 이름은 겹치지 않는다.
 
@@ -112,6 +125,7 @@
 | DragInteraction | L1 | Modules | Modules.L1Data |
 | FOFOTimer | L1 | (루트) | Modules.L1Data |
 | HintStrings | L4 | (층 변경) | Modules.L4UI |
+| MessageBoxStrings | L4 | (신설) | Modules.L4UI |
 | InputPriority | L1 | Modules | Modules.L1Data |
 | MouseState | L1 | Modules | Modules.L1Data |
 | NativeImageCaching | L1 | Modules | Modules.L1Data |
@@ -146,6 +160,7 @@
 | ReplayDrawCommands | L2 | Modules.ReplayEngine | Modules.L2Engine.ReplayEngine |
 | ReplayDrawer | L2 | Modules.ReplayEngine | Modules.L2Engine.ReplayEngine |
 | ReplayFileCache | L2 | Modules.ReplayEngine | Modules.L2Engine.ReplayEngine |
+| ReplaySegmentCache | L2 | (신설) | Modules.L2Engine.ReplayEngine |
 | ReplayViewport | L4 | (이전 L2) | Modules.L4UI.ReplayEngine |
 | TimingSheetFile | L2 | Modules.ReplayEngine | Modules.L2Engine.ReplayEngine |
 | PenStabilizer | L2 | Modules.Tools | Modules.L2Engine.Tools |
@@ -180,7 +195,7 @@
 | ImageViewWindow | L4 | Modules | Modules.L4UI |
 | LoadBoxController | L5 | (층 변경) | Modules.L5App |
 | PaletteController | L4 | Modules | Modules.L4UI |
-| PenCursorPreviewPixel | L4 | Modules | Modules.L4UI |
+| PenSizePreviewPixelStyleCursor | L4 | Modules (이전 이름 PenCursorPreviewPixel) | Modules.L4UI |
 | PenSizePreviewCursor | L4 | Modules | Modules.L4UI |
 | ReferenceLayerController | L4 | Modules | Modules.L4UI |
 | SidebarController | L4 | Modules | Modules.L4UI |
@@ -192,6 +207,8 @@
 | BottomHintBorderUI | L4 | (신설) | Modules.L4UI.UIEngine |
 | MenuBoxBorderUI | L4 | (신설) | Modules.L4UI.UIEngine |
 | WornBorderMask | L4 | (신설) | Modules.L4UI.UIEngine |
+| MessageBox | L4 | (신설) | Modules.L4UI.UIEngine |
+| MessageBoxController | L4 | (신설) | Modules.L4UI.UIEngine |
 | UIController | L4 | Modules.UIEngine | Modules.L4UI.UIEngine |
 | AboutWindowSet | L4 | Symbols | Symbols |
 | CanvasInfoSet | L4 | Symbols | Symbols |
@@ -226,4 +243,6 @@
 | KeyState | L1 | (신설) | Modules.L1Data |
 | AppDataPaths | L1 | (신설) | Modules.L1Data |
 | ToolState | L1 | (신설) | Modules.L1Data |
+| AppContext | L1 | (신설) | Modules.L1Data |
+| NativeReplaySegmentCache | L1 | (신설) | Modules.L1Data |
 | LassoSelectionBoxes | L2 | (신설) | Modules.L2Engine |

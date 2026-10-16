@@ -41,6 +41,7 @@
     import Modules.L1Data.AppDataPaths;
     import Modules.L4UI.UIEngine.HintController;
     import Modules.L4UI.UIEngine.MessageBoxController;
+    import Modules.L4UI.MessageBoxStrings;
     import Modules.L4UI.PenSizePreviewCursor;
     import Modules.L1Data.Tools.PenSettings;
     import Modules.L2Engine.DrawEngine.CanvasView;
@@ -389,7 +390,7 @@
 
                 try
                 {
-                    var msg:String = "An unknown error occurred.";
+                    var msg:String = MessageBoxStrings.STRING_UNKNOWN_ERROR;
                     if (errorObject is Error)
                     {
                         msg = (errorObject as Error).message;
