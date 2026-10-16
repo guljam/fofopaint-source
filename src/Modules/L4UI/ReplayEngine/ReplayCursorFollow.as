@@ -32,7 +32,7 @@ package Modules.L4UI.ReplayEngine
         private static const PAN_DEADZONE_RATIO:Number = 0.65; // 화면 가운데 이 비율(가로, 세로 각각) 안에 커서가 있으면 이동하지 않음
         private static const RECENTER_DONE_PX:Number = 4; // 다시 맞추는 중 화면 중심이 목표와 이 화면 px 안이면 (또는 거의 안 움직이면) 이동을 멈춤
         private static const SAFETY_PADDING:Number = 20; // 커서가 화면 가장자리에서 이보다 가까우면 커서가 이 거리에 오는 위치로 옮김 (재생 중에는 SAFETY_SMOOTH_MS 스프링, 탐색 등은 바로)
-        private static const SAFETY_SMOOTH_MS:Number = 120; // 커서가 안전 구역을 벗어났을 때 화면 중심이 따라가는 스프링 시간. 한 틱에 확 튀지 않고 빠르게 따라감
+        private static const SAFETY_SMOOTH_MS:Number = 500; // 커서가 안전 구역을 벗어났을 때 화면 중심이 따라가는 스프링 시간. 한 틱에 확 튀지 않고 빠르게 따라감
         private static const EDGE_MARGIN:Number = 20; // 화면보다 큰 캔버스의 가장자리가 화면 안으로 들어올 수 있는 최대 px
         private static const MAX_DT_MS:Number = 100; // 한 틱 dt 상한 (멈췄다 재개할 때 튀지 않게)
 
