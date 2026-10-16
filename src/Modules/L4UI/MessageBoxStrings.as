@@ -8,11 +8,11 @@ package Modules.L4UI
         public static const STRING_ALREADY_SAVED:String = "Already saved";
         public static const STRING_UNKNOWN_ERROR:String = "An unknown error occurred.";
 
-        // 리플레이 파일 저장 완료 문구 (네이티브·worker 공통), renamedFileName이 있으면 원래 파일이 잡혀 있어 그 이름으로 저장했다는 문구
-        public static function getReplayFileSavedString(elapsedMs:int, fileSize:Number, renamedFileName:String = null):String
+        // 리플레이 파일 저장 완료 문구 "File saved : 파일명 (크기)" (네이티브·worker 공통), isRenamed면 원래 파일이 잡혀 있어 다른 이름으로 저장했다는 말을 덧붙임
+        public static function getReplayFileSavedString(savedFileName:String, fileSize:Number, isRenamed:Boolean = false):String
         {
-            const head:String = (renamedFileName !== null) ? "File saved as \"" + renamedFileName + "\" (file was in use) : " : "File saved : ";
-            return head + elapsedMs + " ms" + getFileSizeSuffixString(fileSize);
+            const sizeText:String = (isNaN(fileSize) || fileSize <= 0) ? "" : " (" + ReplayFileCache.formatFileSize(fileSize) + ")";
+            return "File saved : " + savedFileName + sizeText + (isRenamed ? " _ original file was in use" : "");
         }
 
         // 리플레이 파일 쓰기 실패 문구, win32 오류 코드를 이유로 바꿔 붙임

@@ -52,8 +52,14 @@ package Modules.L2Engine.ReplayEngine
             }
         }
 
+        // 바이트 수를 크기에 맞는 단위(B, KB, MB, GB) 문자열로 바꿈
         public static function formatFileSize(bytes:Number):String
         {
+            if (bytes >= 1073741824)
+            {
+                return (bytes / 1073741824).toFixed(2) + " GB";
+            }
+
             if (bytes >= 1048576)
             {
                 return (bytes / 1048576).toFixed(2) + " MB";

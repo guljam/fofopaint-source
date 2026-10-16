@@ -80,7 +80,6 @@ package Modules.L5App
         public static var isFileAlreadySaved:Boolean = false; // 세이브 버튼 여러번 눌러서 데이터 계속 쓰여지는거 방지
         public static var isContinueSaveON:Boolean = false; // 한번 저장후에 다른이름으로 저장하기 전까지는 똑같은 이름으로 저장
         private static var pendingInvokeArguments:Array; // 앱 상태 복원이 끝나기 전에 받은 invoke 인자
-        public static var saveStartTime:int = 0; // saveFOFOFile 호출 시각, 저장 완료 힌트에 걸린 시간 표시용
         public static var lastSaveFileName:String = getRandomFileName(); // 세이브 파일 저장후에 이름을 이쪽에다가 보관해서 계속 그 이름으로 저장할수있게함
         public static var lastSaveFilePath:String = lastSaveFileName; // 파일 저장경로로 계속 저장 초기에는 filename이랑 똑같게 해줌
         private static var lastSaveCaptureFilePath:String = lastSaveFileName;
@@ -995,7 +994,7 @@ package Modules.L5App
                 return false;
             }
 
-            saveStartTime = getTimer();
+            const nativeSaveStartTime:int = getTimer();
             ReplayState.lastMirrorReadyFlag = ReplayState.mirrorCommandReady;
 
             // 딥 언두면 읽은 바이트까지만 (0이면 리플레이 블록 없음), 아니면 지금 파일 전체 + 메모리 undo 뭉치
@@ -1078,7 +1077,7 @@ package Modules.L5App
                     timingSheetFile.nativePath, timingSheetFile.exists ? timingSheetFile.size : 0, timingPointsFile.nativePath, timingPointsFile.exists ? timingPointsFile.size : 0,
                     timingFileFrameCount, timingMemoryRecords, timingMemoryPointRecords, Math.min(TimingSheetFile.legacyFrames, timingFileFrameCount),
                     firstMeta, finalMeta, referenceMeta, nativeSaveOptions, getSegmentReuseFofoPathForSave(), cacheSegmentPaths, cacheSegmentNumbers, onNativeSaveDone);
-            trace("Native save start: memory groups " + (memoryTime - saveStartTime) + "ms, timing sheet " + (sheetTime - memoryTime)
+            trace("Native save start: memory groups " + (memoryTime - nativeSaveStartTime) + "ms, timing sheet " + (sheetTime - memoryTime)
                 + "ms, composite " + (compositeTime - sheetTime) + "ms, native call " + (getTimer() - compositeTime) + "ms");
             composite.dispose();
             memoryGroups.clear();
@@ -1172,7 +1171,7 @@ package Modules.L5App
         {
             BackgroundWorkerCoordinator.isSaveInProgress = 0;
             refreshFileOperationButtonsTopbar();
-            MessageBoxController.showStatusMessage(MessageBoxStrings.getReplayFileSavedString(getTimer() - saveStartTime, fofoSize, renamed ? stripExtension(lastSaveFileName) : null));
+            MessageBoxController.showStatusMessage(MessageBoxStrings.getReplayFileSavedString(stripExtension(lastSaveFileName), fofoSize, renamed));
 
             if (LoadBoxController.isLoadPendingAfterSaving)
             {
@@ -1217,8 +1216,6 @@ package Modules.L5App
         // isSegmentCacheUsed면 repdata 조각 캐시 앞부분은 캐시 조각 파일을 넘기고 repdata는 그 뒤만 읽어서 세그먼트 형식으로, 아니면 이전 방식(한 덩어리)
         private static function saveFOFOFile(isSegmentCacheUsed:Boolean):void
         {
-            saveStartTime = getTimer();
-
             if (AppDataPaths.replayDataFilePath.exists)
             {
                 rLayer1FirstImageData = new ByteArray();
@@ -1887,7 +1884,7 @@ package Modules.L5App
                 BackgroundWorkerCoordinator.isSaveInProgress = 0;
             }
 
-            MessageBoxController.showStatusMessage(MessageBoxStrings.getReplayFileSavedString(getTimer() - FileManager.saveStartTime, fofoSize));
+            MessageBoxController.showStatusMessage(MessageBoxStrings.getReplayFileSavedString(stripExtension(lastSaveFileName), fofoSize));
         }
 
     }
