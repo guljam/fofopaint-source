@@ -93,9 +93,6 @@
         {
             "label": "Publish AIR and Bundle",
             "type": "shell",
-            "dependsOn": [
-                "Build nativecore ANE"
-            ],
             "command": "pwsh",
             "args": [
                 "-NoProfile",
