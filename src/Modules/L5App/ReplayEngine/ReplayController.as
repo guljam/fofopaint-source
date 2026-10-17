@@ -438,6 +438,15 @@ package Modules.L5App.ReplayEngine
             }
         }
 
+        // 사용자가 직접 프레임을 탐색한 뒤 부름. 커서 카메라 없이 캔버스를 뷰포트에 맞춤 (창 맞춤 중이거나 딥 언두 중이면 건드리지 않음)
+        private static function fitReplayCanvasAfterManualSeek():void
+        {
+            if (ReplayState.isReplayModeON && !ReplayState.isReplayCanvasFitToWindow && !UndoHistory.isDeepUndoEnabled)
+            {
+                ReplayDrawer.viewport.fitToViewportMargin(true);
+            }
+        }
+
         public static function moveToPreviousStep():void
         {
             stopReplayBeforeFrameJump();
@@ -445,6 +454,7 @@ package Modules.L5App.ReplayEngine
             if (ReplayState.rNowFrame > 0)
             {
                 ReplayDrawer.renderReplayFrame(ReplayState.rPrevFrame, ReplayDrawer.JUMP_FRAME_PREV);
+                fitReplayCanvasAfterManualSeek();
                 updateDeleteReplayDataButtonsState();
                 UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.getSeekbarRatioOfFrame(ReplayState.rNowFrame));
                 updateReplayPrograssText();
@@ -469,6 +479,8 @@ package Modules.L5App.ReplayEngine
                     ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame + ReplayDrawCommands.getRemainingCommandCount(), ReplayDrawer.JUMP_FRAME_NEXT);
                 }
 
+                fitReplayCanvasAfterManualSeek();
+
                 updateDeleteReplayDataButtonsState();
                 UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.getSeekbarRatioOfFrame(ReplayState.rNowFrame));
                 updateReplayPrograssText();
@@ -482,6 +494,7 @@ package Modules.L5App.ReplayEngine
             if (ReplayState.rNowFrame > 0)
             {
                 ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame - 1, ReplayDrawer.JUMP_FRAME_MANUAL);
+                fitReplayCanvasAfterManualSeek();
                 updateDeleteReplayDataButtonsState();
                 UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.getSeekbarRatioOfFrame(ReplayState.rNowFrame));
                 updateReplayPrograssText();
@@ -495,6 +508,7 @@ package Modules.L5App.ReplayEngine
             if (ReplayState.rNowFrame < ReplayState.TOTAL_FRAME)
             {
                 ReplayDrawer.renderReplayFrame(ReplayState.rNowFrame + 1, ReplayDrawer.JUMP_FRAME_MANUAL);
+                fitReplayCanvasAfterManualSeek();
                 updateDeleteReplayDataButtonsState();
                 UIController.seekBarBox.updateReplayPrograssBarWidthByNowFame(ReplayClock.getSeekbarRatioOfFrame(ReplayState.rNowFrame));
                 updateReplayPrograssText();
@@ -554,6 +568,7 @@ package Modules.L5App.ReplayEngine
                 updateFrameFromSeekbarMouse();
                 ReplayState.isReplayFinished = false;
                 UIController.seekBarBox.resetPrograssBarColor();
+                fitReplayCanvasAfterManualSeek(); // 드래그 시작 때 한 번만 맞춤 (드래그 중에는 반복하지 않음)
             }
 
             function onSeekbarMouseMove():void

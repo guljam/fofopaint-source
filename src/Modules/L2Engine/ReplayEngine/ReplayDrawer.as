@@ -348,7 +348,8 @@ package Modules.L2Engine.ReplayEngine
 
             ReplayDrawCommands.updateRCursorPos();
 
-            if (!ReplayState.isReplayCanvasFitToWindow && !UndoHistory.isDeepUndoEnabled)
+            // 재생 중 자동 건너뛰기만 카메라가 처리함. 사용자 직접 탐색은 ReplayController.fitReplayCanvasAfterManualSeek가 뷰포트에 맞춤
+            if (jumpflag === JUMP_FRAME_AUTO_SKIP && !ReplayState.isReplayCanvasFitToWindow && !UndoHistory.isDeepUndoEnabled)
             {
                 cursorFollow.moveCameraToCursorNow();
             }
