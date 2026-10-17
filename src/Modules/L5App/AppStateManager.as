@@ -5,6 +5,7 @@ package Modules.L5App
     import Modules.L1Data.AppDataPaths;
     import flash.display.BitmapData;
     import flash.display.NativeWindowDisplayState;
+    import flash.display.Screen;
     import flash.filesystem.File;
     import flash.filesystem.FileMode;
     import flash.filesystem.FileStream;
@@ -601,8 +602,19 @@ package Modules.L5App
 
                 PaletteController.initializeMyPaletteList();
 
-                UIController.lastAppWindowSize.width = 1000;
-                UIController.lastAppWindowSize.height = 800;
+                // 첫 실행 기본 창 크기가 창이 있는 화면보다 크면 그 화면의 0,0으로 옮기고 화면 크기에 맞춘다.
+                const firstRunScreenBounds:Rectangle = Screen.getScreensForRectangle(AppContext.stage.nativeWindow.bounds)[0].visibleBounds;
+                const firstRunWindowWidth:Number = Math.min(1000, firstRunScreenBounds.width);
+                const firstRunWindowHeight:Number = Math.min(800, firstRunScreenBounds.height);
+
+                if (firstRunWindowWidth < 1000 || firstRunWindowHeight < 800)
+                {
+                    AppContext.stage.nativeWindow.x = firstRunScreenBounds.x;
+                    AppContext.stage.nativeWindow.y = firstRunScreenBounds.y;
+                }
+
+                UIController.lastAppWindowSize.width = firstRunWindowWidth;
+                UIController.lastAppWindowSize.height = firstRunWindowHeight;
 
                 DrawCanvas.applyCanvasSizeDrawMode(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT, 0, 0, false);
                 CanvasResizer.updateButtonPos(DrawCanvas.CANVAS_WIDTH, DrawCanvas.CANVAS_HEIGHT);
@@ -620,7 +632,7 @@ package Modules.L5App
 
                 FOFOTimer.add(0.3, true, function ():Boolean
                     {
-                        if (AppContext.stage.nativeWindow.width === 1000 && AppContext.stage.nativeWindow.height === 800)
+                        if (AppContext.stage.nativeWindow.width === firstRunWindowWidth && AppContext.stage.nativeWindow.height === firstRunWindowHeight)
                         {
                             CanvasView.viewport.centerCanvasInStage("draw");
                             CanvasNavigator.updateCursor();
