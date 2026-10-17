@@ -412,6 +412,7 @@ package Modules.L5App
                 ReferenceLayerController.refLayerRawBitmapData = null;
                 ReferenceLayerController.refLayerRawTransformData = null;
                 ReferenceLayerController.canvasRefLayerBitmap.smoothing = true;
+                ReferenceLayerController.setRefLayerMenuButtonsByRefLayerImage();
             }
             AppWindowState.updateWindowTitle();
             CanvasLayers.selectLayer(1, false);

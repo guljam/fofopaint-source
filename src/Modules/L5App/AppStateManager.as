@@ -294,10 +294,7 @@ package Modules.L5App
                 ReferenceLayerController.canvasRefLayerBitmapData = DrawCanvas.updateBitmapData(ReferenceLayerController.canvasRefLayerBitmapData, tmpbmpd, ReferenceLayerController.canvasRefLayerBitmap);
                 ReferenceLayerController.canvasRefLayerBitmap.smoothing = true;
 
-                if(!ReferenceLayerController.isRefLayerEmpty())
-                {
-                    ReferenceLayerController.setRefLayerMenuButtonsOn();
-                }
+                ReferenceLayerController.setRefLayerMenuButtonsByRefLayerImage();
 
                 tmpbmpd.dispose();
                 tmpbmpd = null;

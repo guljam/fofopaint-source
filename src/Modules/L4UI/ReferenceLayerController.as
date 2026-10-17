@@ -265,17 +265,11 @@ package Modules.L4UI
             Utils.setAsTopChild(refLayerMenuBox);
         }
 
-        private static function isRefLayerImageExist():Boolean
-        {
-            return (canvasRefLayerBitmapData && canvasRefLayerBitmapData.width > 1 && canvasRefLayerBitmapData.height > 1)
-                || !canvasRefLayerBitmapData;
-        }
-
         public static function startReflayerClear():void
         {
             Utils.setAsTopChild(refLayerMenuBox);
 
-            if (isRefLayerImageExist())
+            if (!isRefLayerEmpty())
             {
                 clearRefLayerImage();
             }
@@ -721,9 +715,22 @@ package Modules.L4UI
             setRefLayerMenuButtonAlpha(UITheme.OFFALPHA);
         }
 
-        public static function setRefLayerMenuButtonsOn():void
+        private static function setRefLayerMenuButtonsOn():void
         {
             setRefLayerMenuButtonAlpha(1.0);
+        }
+
+        // 참조 레이어 이미지가 있으면 메뉴 버튼을 켜고, 비어 있으면 끔 (이미지를 바깥에서 직접 바꾼 뒤 버튼 상태를 맞출 때 호출)
+        public static function setRefLayerMenuButtonsByRefLayerImage():void
+        {
+            if (isRefLayerEmpty())
+            {
+                setRefLayerMenuButtonsOff();
+            }
+            else
+            {
+                setRefLayerMenuButtonsOn();
+            }
         }
 
         private static function setRefLayerMenuButtonAlpha(alp:Number):void
