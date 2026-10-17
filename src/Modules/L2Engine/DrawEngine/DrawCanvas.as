@@ -62,6 +62,19 @@ package Modules.L2Engine.DrawEngine
             return clone;
         }
 
+        // 드로우 캔버스 레이어(targetbmpd)를 리플레이 캔버스 레이어(newbmpd)와 같은 그림으로 맞춤
+        // 크기가 같으면 새 비트맵을 만들지 않고 targetbmpd에 픽셀만 덮어씀 (undo 연타 때 캔버스 크기 할당과 GC를 줄임)
+        // 크기가 다르면 updateBitmapData처럼 복제본으로 바꿈. 반환값은 맞춘 뒤의 드로우 캔버스 레이어
+        public static function updateDrawLayerBitmapDataFromReplayLayer(targetbmpd:BitmapData, newbmpd:BitmapData, targetBitmap:Bitmap):BitmapData
+        {
+            if (targetbmpd !== null && targetbmpd !== newbmpd && targetbmpd.width === newbmpd.width && targetbmpd.height === newbmpd.height)
+            {
+                copyPixels(targetbmpd, newbmpd);
+                return targetbmpd;
+            }
+            return updateBitmapData(targetbmpd, newbmpd, targetBitmap);
+        }
+
         // maxOutputEdge > 0이면 긴 축이 그 값 이하가 되도록 처음부터 작게 합성함 (대표색 추출처럼 큰 이미지가 필요 없을때)
         public static function getMergedBitmapData(transparentBG:Boolean, layer1merge:Boolean, layer2merge:Boolean, clipRect:Rectangle, maxOutputEdge:Number = 0):BitmapData
         {
@@ -286,8 +299,8 @@ package Modules.L2Engine.DrawEngine
         // 드로우 모드 캔버스 상태를 리플레 캔버스 상태랑 똑같이 만들어줌
         public static function applyReplayCanvasToDrawModeCanvas():void
         {
-            canvasLayer1BitmapData = updateBitmapData(canvasLayer1BitmapData, ReplayDrawer.rCanvasLayer1BitmapData, canvasLayer1Bitmap);
-            canvasLayer2BitmapData = updateBitmapData(canvasLayer2BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, canvasLayer2Bitmap);
+            canvasLayer1BitmapData = updateDrawLayerBitmapDataFromReplayLayer(canvasLayer1BitmapData, ReplayDrawer.rCanvasLayer1BitmapData, canvasLayer1Bitmap);
+            canvasLayer2BitmapData = updateDrawLayerBitmapDataFromReplayLayer(canvasLayer2BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, canvasLayer2Bitmap);
             syncDrawModeCanvasSizeToReplayMode(ReplayDrawer.rCanvasLayer1BitmapData.width, ReplayDrawer.rCanvasLayer1BitmapData.height);
             setCanvasBGColorDrawMode(ReplayState.RCANVAS_BG_COLOR);
             CanvasView.updateCanvasPanelColorAndSize();

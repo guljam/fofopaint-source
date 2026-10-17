@@ -264,8 +264,8 @@ package Modules.L3Feature
             ReplayDrawer.updateReplayCanvasFromUndoRefData(undoRefData, undoIndexSave);
 
             //드로우 모드 캔버스 bmpd갱신하고 크기 정보 갱신
-            DrawCanvas.canvasLayer1BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer1BitmapData,ReplayDrawer.rCanvasLayer1BitmapData,DrawCanvas.canvasLayer1Bitmap)
-            DrawCanvas.canvasLayer2BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer2BitmapData,ReplayDrawer.rCanvasLayer2BitmapData,DrawCanvas.canvasLayer2Bitmap)
+            DrawCanvas.canvasLayer1BitmapData = DrawCanvas.updateDrawLayerBitmapDataFromReplayLayer(DrawCanvas.canvasLayer1BitmapData,ReplayDrawer.rCanvasLayer1BitmapData,DrawCanvas.canvasLayer1Bitmap)
+            DrawCanvas.canvasLayer2BitmapData = DrawCanvas.updateDrawLayerBitmapDataFromReplayLayer(DrawCanvas.canvasLayer2BitmapData,ReplayDrawer.rCanvasLayer2BitmapData,DrawCanvas.canvasLayer2Bitmap)
             DrawCanvas.syncDrawModeCanvasSizeToReplayMode(DrawCanvas.canvasLayer1BitmapData.width,DrawCanvas.canvasLayer1BitmapData.height);
 
             // 앞 뒤 데이터가 캔버스 원점 이동 되었을때 반대방향으로 다시 움직여줌

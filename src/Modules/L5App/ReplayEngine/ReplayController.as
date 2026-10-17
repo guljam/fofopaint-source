@@ -331,9 +331,9 @@ package Modules.L5App.ReplayEngine
                 TimingSheetFile.deleteSheetAfterFrame(rNowFrameSave);
                 ReplayClock.truncateFileIndex(rNowFrameSave);
                 updateTotalFrameAndReplayMaxSpeed(rNowFrameSave);
-                DrawCanvas.canvasLayer1BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer1BitmapData, ReplayDrawer.rCanvasLayer1BitmapData, DrawCanvas.canvasLayer1Bitmap);
+                DrawCanvas.canvasLayer1BitmapData = DrawCanvas.updateDrawLayerBitmapDataFromReplayLayer(DrawCanvas.canvasLayer1BitmapData, ReplayDrawer.rCanvasLayer1BitmapData, DrawCanvas.canvasLayer1Bitmap);
                 DrawCanvas.canvasLayer1Bitmap.bitmapData = DrawCanvas.canvasLayer1BitmapData;
-                DrawCanvas.canvasLayer2BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer2BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, DrawCanvas.canvasLayer2Bitmap);
+                DrawCanvas.canvasLayer2BitmapData = DrawCanvas.updateDrawLayerBitmapDataFromReplayLayer(DrawCanvas.canvasLayer2BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, DrawCanvas.canvasLayer2Bitmap);
                 DrawCanvas.canvasLayer2Bitmap.bitmapData = DrawCanvas.canvasLayer2BitmapData;
                 DrawCanvas.setCanvasSizeDrawMode(DrawCanvas.canvasLayer1Bitmap.width, DrawCanvas.canvasLayer1Bitmap.height, 0, 0, false);
                 DrawCanvas.setCanvasBGColorDrawMode(ReplayState.RCANVAS_BG_COLOR);
@@ -2188,8 +2188,8 @@ package Modules.L5App.ReplayEngine
             // 캔버스 2번 지워줘야함
             ReplayDrawer.rCanvasDrawShape.graphics.clear();
             ReplayDrawer.rCanvasDrawLayerBitmapData.fillRect(new Rectangle(0, 0, ReplayDrawer.rCanvasDrawLayerBitmapData.width, ReplayDrawer.rCanvasDrawLayerBitmapData.height), 0);
-            DrawCanvas.canvasLayer1BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer1BitmapData, ReplayDrawer.rCanvasLayer1BitmapData, DrawCanvas.canvasLayer1Bitmap);
-            DrawCanvas.canvasLayer2BitmapData = DrawCanvas.updateBitmapData(DrawCanvas.canvasLayer2BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, DrawCanvas.canvasLayer2Bitmap);
+            DrawCanvas.canvasLayer1BitmapData = DrawCanvas.updateDrawLayerBitmapDataFromReplayLayer(DrawCanvas.canvasLayer1BitmapData, ReplayDrawer.rCanvasLayer1BitmapData, DrawCanvas.canvasLayer1Bitmap);
+            DrawCanvas.canvasLayer2BitmapData = DrawCanvas.updateDrawLayerBitmapDataFromReplayLayer(DrawCanvas.canvasLayer2BitmapData, ReplayDrawer.rCanvasLayer2BitmapData, DrawCanvas.canvasLayer2Bitmap);
             DrawCanvas.setCanvasSizeDrawMode(DrawCanvas.canvasLayer1Bitmap.width, DrawCanvas.canvasLayer1Bitmap.height);
             DrawCanvas.setCanvasBGColorDrawMode(ReplayState.RCANVAS_BG_COLOR);
             CanvasView.updateCanvasPanelColorAndSize();
