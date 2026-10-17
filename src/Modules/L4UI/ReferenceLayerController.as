@@ -265,7 +265,7 @@ package Modules.L4UI
             Utils.setAsTopChild(refLayerMenuBox);
         }
 
-        private static function isRefLayerImageAlreadyCleared():Boolean
+        private static function isRefLayerImageExist():Boolean
         {
             return (canvasRefLayerBitmapData && canvasRefLayerBitmapData.width > 1 && canvasRefLayerBitmapData.height > 1)
                 || !canvasRefLayerBitmapData;
@@ -275,7 +275,7 @@ package Modules.L4UI
         {
             Utils.setAsTopChild(refLayerMenuBox);
 
-            if (isRefLayerImageAlreadyCleared())
+            if (isRefLayerImageExist())
             {
                 clearRefLayerImage();
             }
